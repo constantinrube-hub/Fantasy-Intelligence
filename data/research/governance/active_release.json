@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "active_build": "V8.8-M6",
+  "control_build": "V8.2.2",
+  "generated_at": "2026-08-23T14:39:46.530102+00:00",
+  "operator_mode": "AUTO",
+  "runtime_enabled": false,
+  "runtime_allow_m5": false,
+  "fallback": "V8.2.2",
+  "reason": "m4_complete; m5_complete; m6_complete; current_complete; scoring_signature_match; fresh_snapshot; eligible_players",
+  "checks": {
+    "operator_auto": true,
+    "m4_complete": false,
+    "m5_complete": false,
+    "m6_complete": false,
+    "current_complete": false,
+    "current_producer": true,
+    "current_contract": true,
+    "scoring_signature_match": false,
+    "fresh_snapshot": false,
+    "target_week_leakage_guard": true,
+    "eligible_players": false
+  },
+  "current_snapshot": {
+    "path": "data/research/current/milestone5_current.json",
+    "season": 2026,
+    "week": null,
+    "generated_at": null,
+    "age_hours": null,
+    "max_age_hours": 18.0,
+    "eligible_players": 0
+  },
+  "scoring_signature": null,
+  "decision_gates": {
+    "weekly_mean_positions": [],
+    "weekly_risk_positions": [],
+    "draft_policy_positions": [],
+    "waiver_policy_positions": [],
+    "validated_format_profiles": [],
+    "format_position_gates": {
+      "REDRAFT": [],
+      "DYNASTY": [],
+      "REDRAFT_BESTBALL": [],
+      "DYNASTY_BESTBALL": [],
+      "CHOPPED": []
+    }
+  },
+  "model_lineage": {
+    "research_window": "2019-2025 primary; 2016-2025 extended where available",
+    "time_safe_folds": [],
+    "m4_research_build": "V8.6-M4",
+    "m5_research_build": "V8.7-M5",
+    "m6_research_build": "V8.8-M6",
+    "m4_validated_positions": [],
+    "m6_validated_candidate_positions": [],
+    "artifact_sha256": {
+      "milestone4": "254310e9d3308445d6e530ffbf5637e5410b851e48c38f67be7e3d71f3bbd564",
+      "milestone5": "1219beee65f5e4048a168bc23af4cf1fe156b419a122c6127340ea0582def804",
+      "milestone6": "1fce92a95ab883a5b16c9457ec0f0dfd4ea9a791e72e4231c69db7f40d1096e5",
+      "current_snapshot": "055ca2185bf586bd5d5c843eaa6986e1c96982366abebdc6774bea26928e2338"
+    },
+    "audit_rule": "Feature lists, coefficients, sample sizes and holdout metrics remain versioned in the milestone bundles referenced above; promotion is allowed only through their validated decision gates."
+  },
+  "rollback": {
+    "mode": "CONTROL",
+    "operator_override": "data/research/governance/operator_override.json",
+    "effect": "All M5/M6 decision overrides disabled; V8.2.2 remains live fallback.",
+    "code_change_required": false
+  },
+  "promotion": {
+    "mode": "AUTO",
+    "rule": "All checks above must pass on every scheduled rebuild; a failed check automatically falls back without editing live scoring functions."
+  }
+}

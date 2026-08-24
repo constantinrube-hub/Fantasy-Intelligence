@@ -1,0 +1,199 @@
+{
+  "schema_version": 5,
+  "milestone": "M5",
+  "control_build": "V8.2.2",
+  "research_build": "V8.7-M5",
+  "generated_at": null,
+  "status": "pipeline_ready_not_run",
+  "steps_completed": [
+    24,
+    25,
+    26,
+    27
+  ],
+  "integration_mode": "fail_closed_conditional",
+  "activation": {
+    "policy": "fail_closed",
+    "upstream_validated_positions": [],
+    "blend_validated_positions": [],
+    "requires_current_snapshot": true,
+    "current_snapshot_path": "data/research/current/milestone5_current.json",
+    "fallback": "V8.2.2 live decision logic",
+    "rule": "A player receives M5 decision values only when the current snapshot marks that player activation_eligible=true; all other players retain the V8.2.2 path.",
+    "decision_gates": {
+      "weekly_mean_positions": [],
+      "weekly_risk_positions": [],
+      "draft_policy_positions": [],
+      "waiver_policy_positions": [],
+      "validated_format_profiles": [],
+      "format_position_gates": {
+        "REDRAFT": [],
+        "DYNASTY": [],
+        "REDRAFT_BESTBALL": [],
+        "DYNASTY_BESTBALL": [],
+        "CHOPPED": []
+      }
+    }
+  },
+  "draft_integration": {
+    "folds": [],
+    "aggregate": [],
+    "live_contract": {
+      "status": "conditional_activation"
+    }
+  },
+  "waiver_integration": {
+    "folds": [],
+    "aggregate": [],
+    "model_specs": {
+      "positions": {},
+      "live_status": "CONDITIONAL"
+    },
+    "status": "conditional_activation"
+  },
+  "weekly_integration": {
+    "ranking_folds": [],
+    "ranking_aggregate": [],
+    "risk_calibration_folds": [],
+    "risk_calibration_aggregate": [],
+    "risk_bands": [],
+    "status": "conditional_activation"
+  },
+  "format_strategy": {
+    "profiles": {
+      "REDRAFT": {
+        "label": "Redraft",
+        "evidence_status": "diagnostic_only",
+        "production_core": "season projection + league VOR",
+        "draft_weights": {
+          "season_projection": 0.55,
+          "vor": 0.2,
+          "current_role": 0.1,
+          "weekly_shape": 0.05,
+          "market_edge": 0.1
+        },
+        "waiver_weights": {
+          "next3": 0.45,
+          "role_change": 0.2,
+          "weekly": 0.2,
+          "roster_gain": 0.15
+        }
+      },
+      "DYNASTY": {
+        "label": "Dynasty",
+        "evidence_status": "diagnostic_only",
+        "production_core": "redraft production + future role probability + age/contract/market",
+        "draft_weights": {
+          "season_projection": 0.32,
+          "vor": 0.13,
+          "future_role": 0.25,
+          "age_curve": 0.12,
+          "talent": 0.08,
+          "market_edge": 0.1
+        },
+        "waiver_weights": {
+          "next3": 0.22,
+          "role_change": 0.18,
+          "future_role": 0.3,
+          "roster_gain": 0.15,
+          "market": 0.15
+        },
+        "limitation": "full multi-year dynasty asset-value backtest is not yet available"
+      },
+      "REDRAFT_BESTBALL": {
+        "label": "Redraft + Best Ball",
+        "evidence_status": "diagnostic_only",
+        "production_core": "season projection + spike-week probability + depth contribution",
+        "draft_weights": {
+          "season_projection": 0.4,
+          "vor": 0.15,
+          "spike": 0.25,
+          "depth_fit": 0.1,
+          "market_edge": 0.1
+        },
+        "waiver_weights": {
+          "next3": 0.3,
+          "spike": 0.3,
+          "role_change": 0.15,
+          "depth_fit": 0.15,
+          "market": 0.1
+        },
+        "limitation": "player-level spike validation is not a full historical best-ball roster simulation"
+      },
+      "DYNASTY_BESTBALL": {
+        "label": "Dynasty + Best Ball",
+        "evidence_status": "diagnostic_only",
+        "production_core": "dynasty future role + spike-week contribution",
+        "draft_weights": {
+          "season_projection": 0.25,
+          "vor": 0.1,
+          "future_role": 0.22,
+          "age_curve": 0.1,
+          "spike": 0.18,
+          "market_edge": 0.15
+        },
+        "waiver_weights": {
+          "next3": 0.18,
+          "future_role": 0.25,
+          "spike": 0.25,
+          "role_change": 0.12,
+          "market": 0.2
+        },
+        "limitation": "combined dynasty/best-ball utility is a transparent policy transform, not a directly optimized historical league simulation"
+      },
+      "CHOPPED": {
+        "label": "Chopped",
+        "evidence_status": "diagnostic_only",
+        "production_core": "weekly median + calibrated downside + short-horizon role security",
+        "draft_weights": {
+          "season_projection": 0.3,
+          "vor": 0.1,
+          "floor": 0.3,
+          "early_week": 0.2,
+          "health": 0.1
+        },
+        "waiver_weights": {
+          "next3": 0.25,
+          "floor": 0.3,
+          "role_change": 0.15,
+          "weekly": 0.2,
+          "market": 0.1
+        },
+        "limitation": "bust-risk validation is player-level; true guillotine survival requires historical roster-level elimination data"
+      }
+    },
+    "best_ball_proxy": [],
+    "best_ball_aggregate": [],
+    "chopped_proxy": [],
+    "chopped_aggregate": []
+  },
+  "runtime_contract": {
+    "player_keys": [
+      "sleeper_id",
+      "canonical_player_id",
+      "full_name"
+    ],
+    "required_player_fields": [
+      "decision_weekly_projection",
+      "p10",
+      "p90",
+      "activation_eligible",
+      "projection_source"
+    ],
+    "optional_player_fields": [
+      "fie_weekly_projection",
+      "sleeper_weekly_projection",
+      "waiver_next3_projection",
+      "young_role_probability",
+      "spike_probability",
+      "bust_probability",
+      "confidence"
+    ]
+  },
+  "limitations": [
+    "Empirical M5 decision-policy results have not been generated yet.",
+    "Current-season snapshot automation is intentionally deferred to roadmap Step 29."
+  ],
+  "scoring_signature": null,
+  "scoring_settings": {}
+}

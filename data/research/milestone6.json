@@ -1,0 +1,81 @@
+{
+  "schema_version": 6,
+  "milestone": "M6",
+  "control_build": "V8.2.2",
+  "research_build": "V8.8-M6",
+  "generated_at": null,
+  "status": "pipeline_ready_not_run",
+  "steps_completed": [
+    28,
+    29,
+    30
+  ],
+  "scoring_signature": null,
+  "advanced_second_wave": {
+    "opponent_role": {
+      "folds": [],
+      "aggregate": []
+    },
+    "position_interactions": {
+      "folds": [],
+      "aggregate": []
+    },
+    "player_archetypes": [],
+    "validated_candidate_positions": [],
+    "blocked_analyses": [
+      {
+        "analysis": "coordinator_tendency_portability",
+        "status": "blocked_missing_versioned_coordinator_source",
+        "reason": "No trustworthy public historical coordinator/scheme assignment table is bundled across the full modelling window."
+      },
+      {
+        "analysis": "offensive_line_unit_quality",
+        "status": "blocked_missing_consistent_player_unit_grades",
+        "reason": "Public team/player inputs do not provide a consistent historical OL-unit quality measure comparable across 2019-2025."
+      },
+      {
+        "analysis": "stadium_stat_crew_tackle_bias",
+        "status": "blocked_missing_official_stat_crew_identifier",
+        "reason": "Venue can be reconstructed, but attributing persistent tackle-credit effects to a stat crew requires an auditable official/scorer identifier rather than stadium name alone."
+      },
+      {
+        "analysis": "all_route_alignment_and_separation",
+        "status": "blocked_missing_all_route_tracking",
+        "reason": "Public participation does not provide every eligible receiver's route/alignment/separation on every route; targeted-play separation cannot be used as if it were all-route target-earning evidence."
+      },
+      {
+        "analysis": "individual_double_team_rate",
+        "status": "blocked_missing_consistent_public_history",
+        "reason": "No consistent free historical individual double-team series is bundled for all pass rushers/receivers across the primary window."
+      }
+    ],
+    "activation_status": "DIAGNOSTIC_ONLY"
+  },
+  "current_season_automation": {
+    "status": "implemented",
+    "builder": "research/build_current_snapshot.py",
+    "workflow": ".github/workflows/build-fie-current.yml",
+    "output": "data/research/current/milestone5_current.json",
+    "producer_build": "V8.8-M6",
+    "target_week_rule": "all realized target-week rows excluded before feature generation",
+    "freshness_rule_hours": 18,
+    "first_write_sleeper_archive": true
+  },
+  "governance": {
+    "status": "implemented",
+    "active_manifest": "data/research/governance/active_release.json",
+    "operator_override": "data/research/governance/operator_override.json",
+    "control_fallback": "V8.2.2",
+    "default_mode": "AUTO",
+    "promotion_rule": "all checks must pass",
+    "rollback_rule": "CONTROL hard-disables M5/M6 overrides without code changes"
+  },
+  "limitations": [
+    "Empirical Step 28 results have not been generated yet."
+  ],
+  "methodology": {
+    "step28": "Second-wave signals must improve M4 OOS residuals in expanding-window holdouts; archetypes remain descriptive.",
+    "step29": "Current features are built only from completed weeks before the target week and must satisfy history/coverage gates.",
+    "step30": "AUTO promotes only when version, validation, scoring, freshness, leakage and eligibility checks all pass; CONTROL hard-disables overrides."
+  }
+}

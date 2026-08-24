@@ -2,7 +2,7 @@ export function onRequestGet() {
   return Response.json({
     ok: true,
     app: "Fantasy Intelligence Engine",
-    version: "V7",
+    version: "V8.9-RTS",
     runtime: "Cloudflare Pages Functions",
     proxy: "allowlisted",
     cache: {
