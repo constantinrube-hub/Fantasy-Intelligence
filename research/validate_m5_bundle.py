@@ -22,7 +22,10 @@ g=a.get('decision_gates',{})
 for key in ['weekly_mean_positions','weekly_risk_positions','draft_policy_positions','waiver_policy_positions','validated_format_profiles']:
     assert isinstance(g.get(key,[]),list), key
 assert set(g.get('weekly_risk_positions',[])).issubset(set(g.get('weekly_mean_positions',[])))
-assert set(g.get('draft_policy_positions',[])).issubset(set(g.get('weekly_mean_positions',[])))
+upstream=set(a.get('upstream_validated_positions',[]) or [])
+assert set(g.get('weekly_mean_positions',[])).issubset(upstream)
+assert set(g.get('draft_policy_positions',[])).issubset(upstream)
+assert set(g.get('waiver_policy_positions',[])).issubset(upstream)
 fg=g.get('format_position_gates',{})
 assert set(fg)=={'REDRAFT','DYNASTY','REDRAFT_BESTBALL','DYNASTY_BESTBALL','CHOPPED'}
 for key, vals in fg.items(): assert isinstance(vals,list), key
