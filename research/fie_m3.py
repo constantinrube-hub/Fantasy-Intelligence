@@ -570,7 +570,17 @@ def young_player_seasons(df: pd.DataFrame, identity: pd.DataFrame, combine: pd.D
     for c in ["draft_year","draft_round","draft_pick","height","weight"]:
         if c in ident: ident[c]=pd.to_numeric(ident[c],errors="coerce")
     if not combine.empty: ident=ident.merge(combine,on="canonical_player_id",how="left")
-    d=d.merge(ident,on="canonical_player_id",how="left",suffixes=("","_identity"))
+
+    # M3 may receive an M1/M2-enriched player-week table that already contains
+    # identity metadata (and, on older bundles, previously suffixed columns such
+    # as ``position_identity``).  Re-merging every identity column with pandas'
+    # suffix machinery can therefore create a duplicate output name.  Add only
+    # metadata that is genuinely absent from the player-week table.  This keeps
+    # the merge idempotent across milestones and is compatible with pandas 2.x.
+    identity_cols = [c for c in ident.columns if c == "canonical_player_id" or c not in d.columns]
+    if len(identity_cols) > 1:
+        d=d.merge(ident[identity_cols],on="canonical_player_id",how="left")
+
     d["experience_year"]=pd.to_numeric(d.season,errors="coerce")-pd.to_numeric(d.draft_year,errors="coerce")+1
     d=d[d.experience_year.isin([1,2])].copy()
     if d.empty:return pd.DataFrame()
