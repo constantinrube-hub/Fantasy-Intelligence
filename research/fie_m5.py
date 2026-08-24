@@ -598,7 +598,7 @@ def run(args) -> dict:
         },
     }
     bundle = {
-        "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD,
+        "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD, "contract_revision": 2,
         "generated_at": utc_now(), "status": "complete", "steps_completed": [24, 25, 26, 27],
         "integration_mode": "fail_closed_conditional",
         "scoring_signature": m4.get("scoring_signature") or m1.get("scoring", {}).get("signature"),

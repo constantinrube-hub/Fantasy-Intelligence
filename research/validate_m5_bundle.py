@@ -1,53 +1,124 @@
 #!/usr/bin/env python3
-import json, sys
+"""Validate an FIE M5 decision-policy bundle.
+
+The validator intentionally accepts both the original V8.7-M5 runtime contract
+(revision 1) and the newer decision-specific contract (revision 2).  Revision 2
+allows waiver promotion to be validated independently from the same-week M4
+projection gate, while weekly and draft policies remain constrained by the
+upstream validated M4 positions.
+"""
+from __future__ import annotations
+
+import json
+import sys
 from pathlib import Path
 
-p=Path(sys.argv[1] if len(sys.argv)>1 else 'data/research/milestone5.json')
-if not p.exists():
-    raise SystemExit(f'Missing {p}')
-b=json.loads(p.read_text())
-assert b.get('schema_version')==5
-assert b.get('milestone')=='M5'
-assert b.get('research_build')=='V8.7-M5'
-assert b.get('control_build')=='V8.2.2'
-assert b.get('steps_completed')==[24,25,26,27]
-assert b.get('integration_mode')=='fail_closed_conditional'
-a=b.get('activation',{})
-assert a.get('policy')=='fail_closed'
-assert a.get('requires_current_snapshot') is True
-assert a.get('fallback')=='V8.2.2 live decision logic'
-assert str(a.get('current_snapshot_path','')).endswith('milestone5_current.json')
-assert isinstance(b.get('scoring_settings',{}),dict)
-g=a.get('decision_gates',{})
-for key in ['weekly_mean_positions','weekly_risk_positions','draft_policy_positions','waiver_policy_positions','validated_format_profiles']:
-    assert isinstance(g.get(key,[]),list), key
-assert set(g.get('weekly_risk_positions',[])).issubset(set(g.get('weekly_mean_positions',[])))
-upstream=set(a.get('upstream_validated_positions',[]) or [])
-assert set(g.get('weekly_mean_positions',[])).issubset(upstream)
-assert set(g.get('draft_policy_positions',[])).issubset(upstream)
-assert set(g.get('waiver_policy_positions',[])).issubset(upstream)
-fg=g.get('format_position_gates',{})
-assert set(fg)=={'REDRAFT','DYNASTY','REDRAFT_BESTBALL','DYNASTY_BESTBALL','CHOPPED'}
-for key, vals in fg.items(): assert isinstance(vals,list), key
+EXPECTED_FORMATS = {"REDRAFT", "DYNASTY", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED"}
 
-for section in ['draft_integration','waiver_integration','weekly_integration','format_strategy','runtime_contract']:
-    assert section in b, section
 
-profiles=b['format_strategy'].get('profiles',{})
-expected={'REDRAFT','DYNASTY','REDRAFT_BESTBALL','DYNASTY_BESTBALL','CHOPPED'}
-assert set(profiles)==expected
-for k,v in profiles.items():
-    for weight_key in ['draft_weights','waiver_weights']:
-        w=v.get(weight_key,{})
-        assert w and abs(sum(float(x) for x in w.values())-1.0)<1e-9, (k,weight_key,w)
+def validate_bundle(b: dict) -> None:
+    assert b.get("schema_version") == 5
+    assert b.get("milestone") == "M5"
+    assert b.get("research_build") == "V8.7-M5"
+    assert b.get("control_build") == "V8.2.2"
+    assert b.get("steps_completed") == [24, 25, 26, 27]
+    assert b.get("integration_mode") == "fail_closed_conditional"
 
-for r in b['weekly_integration'].get('risk_bands',[]):
-    vals=[r.get('q10'),r.get('q25'),r.get('q50'),r.get('q75'),r.get('q90')]
-    if all(x is not None for x in vals):
-        assert vals==sorted(vals), (r.get('position'),vals)
+    activation = b.get("activation", {})
+    assert activation.get("policy") == "fail_closed"
+    assert activation.get("requires_current_snapshot") is True
+    assert activation.get("fallback") == "V8.2.2 live decision logic"
+    assert str(activation.get("current_snapshot_path", "")).endswith("milestone5_current.json")
+    assert isinstance(b.get("scoring_settings", {}), dict)
 
-# M5 may conditionally activate players only through a separate current snapshot.
-text=json.dumps(b)
-assert 'activation_eligible=true' in text
-assert 'unconditional_activation' not in text
-print(f"OK {p}: M5 schema/guardrails validated")
+    gates = activation.get("decision_gates", {})
+    for key in [
+        "weekly_mean_positions",
+        "weekly_risk_positions",
+        "draft_policy_positions",
+        "waiver_policy_positions",
+        "validated_format_profiles",
+    ]:
+        assert isinstance(gates.get(key, []), list), key
+
+    upstream = set(activation.get("upstream_validated_positions", []) or [])
+    weekly = set(gates.get("weekly_mean_positions", []) or [])
+    weekly_risk = set(gates.get("weekly_risk_positions", []) or [])
+    draft = set(gates.get("draft_policy_positions", []) or [])
+    waiver = set(gates.get("waiver_policy_positions", []) or [])
+
+    # Same-week and draft policies still depend on the upstream M4 production
+    # model. Risk bands additionally require the weekly mean gate.
+    assert weekly.issubset(upstream)
+    assert draft.issubset(upstream)
+    assert weekly_risk.issubset(weekly)
+
+    # Waiver next-3 prediction is independently time-validated in M5.  Do NOT
+    # force it to be a subset of the same-week M4 gate.  It must, however,
+    # exactly reflect the positions whose M5 waiver aggregate passed promotion.
+    waiver_validated = {
+        r.get("position")
+        for r in b.get("waiver_integration", {}).get("aggregate", [])
+        if r.get("position") and r.get("status") == "validated_candidate"
+    }
+    assert waiver == waiver_validated, (sorted(waiver), sorted(waiver_validated))
+
+    format_gates = gates.get("format_position_gates", {})
+    assert set(format_gates) == EXPECTED_FORMATS
+    for key, vals in format_gates.items():
+        assert isinstance(vals, list), key
+
+    for section in ["draft_integration", "waiver_integration", "weekly_integration", "format_strategy", "runtime_contract"]:
+        assert section in b, section
+
+    profiles = b["format_strategy"].get("profiles", {})
+    assert set(profiles) == EXPECTED_FORMATS
+    for key, value in profiles.items():
+        for weight_key in ["draft_weights", "waiver_weights"]:
+            weights = value.get(weight_key, {})
+            assert weights and abs(sum(float(x) for x in weights.values()) - 1.0) < 1e-9, (key, weight_key, weights)
+
+    for row in b["weekly_integration"].get("risk_bands", []):
+        vals = [row.get("q10"), row.get("q25"), row.get("q50"), row.get("q75"), row.get("q90")]
+        if all(x is not None for x in vals):
+            assert vals == sorted(vals), (row.get("position"), vals)
+
+    runtime = b.get("runtime_contract", {})
+    required = set(runtime.get("required_player_fields", []) or [])
+    assert {"decision_weekly_projection", "p10", "p90", "activation_eligible", "projection_source"}.issubset(required)
+
+    # Revision 2 exposes independent weekly/waiver eligibility and
+    # decision-specific format gates.  Revision 1 remains valid for already
+    # migrated historical Redraft bundles, so deployment does not require a
+    # destructive rebuild merely to satisfy the newer validator.
+    revision = int(b.get("contract_revision") or 1)
+    if revision >= 2:
+        specific_fields = set(runtime.get("decision_specific_player_fields", []) or [])
+        assert {"weekly_activation_eligible", "waiver_activation_eligible", "waiver_feature_coverage"}.issubset(specific_fields)
+
+        decision_format = gates.get("decision_format_position_gates", {})
+        assert set(decision_format) == {"weekly", "draft", "waiver"}
+        base = {"weekly": weekly, "draft": draft, "waiver": waiver}
+        for decision, by_format in decision_format.items():
+            assert set(by_format) == EXPECTED_FORMATS, decision
+            for fmt, vals in by_format.items():
+                assert isinstance(vals, list), (decision, fmt)
+                assert set(vals).issubset(base[decision]), (decision, fmt, vals, sorted(base[decision]))
+
+    text = json.dumps(b)
+    assert "unconditional_activation" not in text
+
+
+def main(argv=None) -> None:
+    argv = sys.argv[1:] if argv is None else argv
+    path = Path(argv[0] if argv else "data/research/milestone5.json")
+    if not path.exists():
+        raise SystemExit(f"Missing {path}")
+    bundle = json.loads(path.read_text())
+    validate_bundle(bundle)
+    revision = int(bundle.get("contract_revision") or 1)
+    print(f"OK {path}: M5 schema/guardrails validated contract_revision={revision}")
+
+
+if __name__ == "__main__":
+    main()

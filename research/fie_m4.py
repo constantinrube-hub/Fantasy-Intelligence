@@ -212,7 +212,7 @@ def feature_pool(df: pd.DataFrame, pos: str) -> List[str]:
 
 
 def ridge_pipeline(alpha: float = 10.0) -> Pipeline:
-    return Pipeline([("impute", SimpleImputer(strategy="median")), ("scale", StandardScaler()), ("ridge", Ridge(alpha=alpha))])
+    return Pipeline([("impute", SimpleImputer(strategy="median", keep_empty_features=True)), ("scale", StandardScaler()), ("ridge", Ridge(alpha=alpha))])
 
 
 def resolve_targets(df: pd.DataFrame, pos: str) -> Dict[str, str]:
