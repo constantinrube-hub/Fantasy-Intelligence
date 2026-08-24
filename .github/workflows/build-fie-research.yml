@@ -4,9 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       league_id:
-        description: "Optional Sleeper league ID for exact historical scoring replay"
-        required: false
+        description: "Sleeper league ID. Required: each historical build is permanently namespaced by League ID."
+        required: true
         type: string
+      league_format:
+        description: "Strategic league format. Use CHOPPED explicitly because Sleeper has no canonical chopped type."
+        required: true
+        default: "REDRAFT"
+        type: choice
+        options: [REDRAFT, DYNASTY, CHOPPED, REDRAFT_BESTBALL, DYNASTY_BESTBALL, AUTO]
       full_raw_cache:
         description: "Also cache the broader Step 1 historical archive"
         required: false
@@ -16,7 +22,6 @@ on:
 permissions:
   contents: write
 
-# Prevent two research builds from trying to publish generated bundles at the same time.
 concurrency:
   group: fie-research-main
   cancel-in-progress: false
@@ -32,8 +37,35 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: research/requirements.txt
+
+      - name: Validate League ID and define namespace
+        env:
+          INPUT_LEAGUE_ID: ${{ inputs.league_id }}
+        shell: bash
+        run: |
+          if ! [[ "$INPUT_LEAGUE_ID" =~ ^[0-9]{6,32}$ ]]; then
+            echo "Invalid Sleeper League ID" >&2
+            exit 2
+          fi
+          echo "FIE_LEAGUE_ID=$INPUT_LEAGUE_ID" >> "$GITHUB_ENV"
+          echo "FIE_LEAGUE_ROOT=data/research/leagues/$INPUT_LEAGUE_ID" >> "$GITHUB_ENV"
+          echo "FIE_DERIVED_DIR=.cache/fie-research/leagues/$INPUT_LEAGUE_ID/derived" >> "$GITHUB_ENV"
+          echo "FIE_CACHE_DIR=.cache/fie-research/leagues/$INPUT_LEAGUE_ID" >> "$GITHUB_ENV"
+
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
+
+      - name: Capture immutable league profile for this build
+        env:
+          LEAGUE_FORMAT: ${{ inputs.league_format }}
+        run: |
+          mkdir -p "$FIE_LEAGUE_ROOT"
+          python research/league_profile.py build \
+            --league-id "$FIE_LEAGUE_ID" \
+            --format "$LEAGUE_FORMAT" \
+            --output "$FIE_LEAGUE_ROOT/profile.json" \
+            --registry data/research/leagues/registry.json
+
       - name: Resolve rollover-safe historical window
         shell: bash
         run: |
@@ -42,6 +74,7 @@ jobs:
           if [ "$MONTH" = "01" ]; then LAST_COMPLETE=$((YEAR-2)); else LAST_COMPLETE=$((YEAR-1)); fi
           echo "FIE_PRIMARY_SEASONS=2019-${LAST_COMPLETE}" >> "$GITHUB_ENV"
           echo "FIE_EXTENDED_SEASONS=2016-${LAST_COMPLETE}" >> "$GITHUB_ENV"
+
       - name: Run deterministic integrity tests
         run: |
           python research/integrity_test.py
@@ -59,90 +92,130 @@ jobs:
           python research/integrity_m5_test.py
           python research/integrity_m6_test.py
           python research/integrity_v89_test.py
+          python research/test_league_profile.py
+          python research/integrity_market_archive_test.py
+          python research/integrity_decision_engines_test.py
           python research/fie_m6.py --fixture --derived-dir /tmp/m4_derived --m3-bundle /tmp/m3_fixture.json --m4-bundle /tmp/m4_fixture.json --output /tmp/m6_fixture.json
           python research/validate_m6_bundle.py /tmp/m6_fixture.json
+
       - name: Build Milestone 1 historical backbone
         env:
-          INPUT_LEAGUE_ID: ${{ inputs.league_id }}
           FULL_RAW: ${{ inputs.full_raw_cache }}
         run: |
-          ARGS="--seasons $FIE_PRIMARY_SEASONS --extended-seasons $FIE_EXTENDED_SEASONS --output data/research/milestone1.json --derived-dir data/research/derived"
-          if [ -n "$INPUT_LEAGUE_ID" ]; then ARGS="$ARGS --league-id $INPUT_LEAGUE_ID"; fi
+          ARGS="--seasons $FIE_PRIMARY_SEASONS --extended-seasons $FIE_EXTENDED_SEASONS --output $FIE_LEAGUE_ROOT/milestone1.json --derived-dir $FIE_DERIVED_DIR --league-id $FIE_LEAGUE_ID"
           if [ "$FULL_RAW" = "true" ]; then ARGS="$ARGS --full-raw-cache"; fi
           python research/fie_research.py $ARGS
-          python research/validate_bundle.py data/research/milestone1.json
+          python research/validate_bundle.py "$FIE_LEAGUE_ROOT/milestone1.json"
+
       - name: Build Milestone 2 opportunity intelligence
         run: |
           python research/fie_m2.py \
-            --m1-derived-dir data/research/derived \
-            --m1-bundle data/research/milestone1.json \
-            --derived-dir data/research/derived \
-            --output data/research/milestone2.json
-          python research/validate_m2_bundle.py data/research/milestone2.json
+            --m1-derived-dir "$FIE_DERIVED_DIR" \
+            --m1-bundle "$FIE_LEAGUE_ROOT/milestone1.json" \
+            --derived-dir "$FIE_DERIVED_DIR" \
+            --output "$FIE_LEAGUE_ROOT/milestone2.json"
+          python research/validate_m2_bundle.py "$FIE_LEAGUE_ROOT/milestone2.json"
+
       - name: Build Milestone 3 advanced positional intelligence
         run: |
           python research/fie_m3.py \
-            --derived-dir data/research/derived \
-            --m1-bundle data/research/milestone1.json \
-            --m2-bundle data/research/milestone2.json \
-            --cache-dir .cache/fie-research \
+            --derived-dir "$FIE_DERIVED_DIR" \
+            --m1-bundle "$FIE_LEAGUE_ROOT/milestone1.json" \
+            --m2-bundle "$FIE_LEAGUE_ROOT/milestone2.json" \
+            --cache-dir "$FIE_CACHE_DIR" \
             --seasons "$FIE_PRIMARY_SEASONS" \
-            --output data/research/milestone3.json
-          python research/validate_m3_bundle.py data/research/milestone3.json
+            --output "$FIE_LEAGUE_ROOT/milestone3.json"
+          python research/validate_m3_bundle.py "$FIE_LEAGUE_ROOT/milestone3.json"
+
       - name: Build Milestone 4 governance and blend research
         run: |
           python research/fie_m4.py \
-            --derived-dir data/research/derived \
-            --m1-bundle data/research/milestone1.json \
-            --m2-bundle data/research/milestone2.json \
-            --m3-bundle data/research/milestone3.json \
-            --cache-dir .cache/fie-research \
+            --derived-dir "$FIE_DERIVED_DIR" \
+            --m1-bundle "$FIE_LEAGUE_ROOT/milestone1.json" \
+            --m2-bundle "$FIE_LEAGUE_ROOT/milestone2.json" \
+            --m3-bundle "$FIE_LEAGUE_ROOT/milestone3.json" \
+            --cache-dir "$FIE_CACHE_DIR" \
             --sleeper-archive data/research/market/sleeper \
             --seasons "$FIE_PRIMARY_SEASONS" \
-            --output data/research/milestone4.json
-          python research/validate_m4_bundle.py data/research/milestone4.json
+            --output "$FIE_LEAGUE_ROOT/milestone4.json"
+          python research/validate_m4_bundle.py "$FIE_LEAGUE_ROOT/milestone4.json"
+
       - name: Build Milestone 5 decision-policy research
         run: |
           python research/fie_m5.py \
-            --derived-dir data/research/derived \
-            --m1-bundle data/research/milestone1.json \
-            --m2-bundle data/research/milestone2.json \
-            --m3-bundle data/research/milestone3.json \
-            --m4-bundle data/research/milestone4.json \
-            --output data/research/milestone5.json
-          python research/validate_m5_bundle.py data/research/milestone5.json
+            --derived-dir "$FIE_DERIVED_DIR" \
+            --m1-bundle "$FIE_LEAGUE_ROOT/milestone1.json" \
+            --m2-bundle "$FIE_LEAGUE_ROOT/milestone2.json" \
+            --m3-bundle "$FIE_LEAGUE_ROOT/milestone3.json" \
+            --m4-bundle "$FIE_LEAGUE_ROOT/milestone4.json" \
+            --output "$FIE_LEAGUE_ROOT/milestone5.json"
+          python research/validate_m5_bundle.py "$FIE_LEAGUE_ROOT/milestone5.json"
+
       - name: Build Milestone 6 second-wave and production contracts
         run: |
           python research/fie_m6.py \
-            --derived-dir data/research/derived \
-            --m1-bundle data/research/milestone1.json \
-            --m2-bundle data/research/milestone2.json \
-            --m3-bundle data/research/milestone3.json \
-            --m4-bundle data/research/milestone4.json \
-            --m5-bundle data/research/milestone5.json \
-            --cache-dir .cache/fie-research \
+            --derived-dir "$FIE_DERIVED_DIR" \
+            --m1-bundle "$FIE_LEAGUE_ROOT/milestone1.json" \
+            --m2-bundle "$FIE_LEAGUE_ROOT/milestone2.json" \
+            --m3-bundle "$FIE_LEAGUE_ROOT/milestone3.json" \
+            --m4-bundle "$FIE_LEAGUE_ROOT/milestone4.json" \
+            --m5-bundle "$FIE_LEAGUE_ROOT/milestone5.json" \
+            --cache-dir "$FIE_CACHE_DIR" \
             --seasons "$FIE_PRIMARY_SEASONS" \
-            --output data/research/milestone6.json
-          python research/validate_m6_bundle.py data/research/milestone6.json
-      - name: Rebuild governance in fail-closed state
+            --output "$FIE_LEAGUE_ROOT/milestone6.json"
+          python research/validate_m6_bundle.py "$FIE_LEAGUE_ROOT/milestone6.json"
+
+      - name: Stamp League-ID identity into M1-M6
         run: |
-          python research/fie_governance.py --output data/research/governance/active_release.json
-      - name: Commit updated research bundles
+          python research/stamp_league_artifacts.py \
+            --profile "$FIE_LEAGUE_ROOT/profile.json" \
+            "$FIE_LEAGUE_ROOT/milestone1.json" \
+            "$FIE_LEAGUE_ROOT/milestone2.json" \
+            "$FIE_LEAGUE_ROOT/milestone3.json" \
+            "$FIE_LEAGUE_ROOT/milestone4.json" \
+            "$FIE_LEAGUE_ROOT/milestone5.json" \
+            "$FIE_LEAGUE_ROOT/milestone6.json"
+          python research/validate_bundle.py "$FIE_LEAGUE_ROOT/milestone1.json"
+          python research/validate_m2_bundle.py "$FIE_LEAGUE_ROOT/milestone2.json"
+          python research/validate_m3_bundle.py "$FIE_LEAGUE_ROOT/milestone3.json"
+          python research/validate_m4_bundle.py "$FIE_LEAGUE_ROOT/milestone4.json"
+          python research/validate_m5_bundle.py "$FIE_LEAGUE_ROOT/milestone5.json"
+          python research/validate_m6_bundle.py "$FIE_LEAGUE_ROOT/milestone6.json"
+
+      - name: Build namespaced fail-closed governance
         run: |
-          if git diff --quiet -- data/research/milestone1.json data/research/milestone2.json data/research/milestone3.json data/research/milestone4.json data/research/milestone5.json data/research/milestone6.json data/research/governance/active_release.json; then
-            echo "Research bundles unchanged."
+          python research/fie_governance.py \
+            --league-id "$FIE_LEAGUE_ID" \
+            --league-profile "$FIE_LEAGUE_ROOT/profile.json" \
+            --m4-bundle "$FIE_LEAGUE_ROOT/milestone4.json" \
+            --m5-bundle "$FIE_LEAGUE_ROOT/milestone5.json" \
+            --m6-bundle "$FIE_LEAGUE_ROOT/milestone6.json" \
+            --current-snapshot "$FIE_LEAGUE_ROOT/current/milestone5_current.json" \
+            --operator-override "$FIE_LEAGUE_ROOT/governance/operator_override.json" \
+            --global-operator-override data/research/governance/operator_override.json \
+            --output "$FIE_LEAGUE_ROOT/governance/active_release.json"
+
+      - name: Audit namespaced research readiness
+        run: python research/production_readiness.py --league-id "$FIE_LEAGUE_ID"
+      - name: Verify no legacy generated bundle was modified
+        shell: bash
+        run: |
+          if ! git diff --quiet -- data/research/milestone1.json data/research/milestone2.json data/research/milestone3.json data/research/milestone4.json data/research/milestone5.json data/research/milestone6.json data/research/current data/research/governance; then
+            echo "ERROR: League-specific historical build modified a legacy/global research artifact." >&2
+            git diff -- data/research/milestone1.json data/research/milestone2.json data/research/milestone3.json data/research/milestone4.json data/research/milestone5.json data/research/milestone6.json data/research/current data/research/governance
+            exit 1
+          fi
+
+      - name: Commit league-specific research bundles
+        run: |
+          if git diff --quiet -- "$FIE_LEAGUE_ROOT" data/research/leagues/registry.json; then
+            echo "League-specific research bundles unchanged."
             exit 0
           fi
           git config user.name "FIE Research Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/research/milestone1.json data/research/milestone2.json data/research/milestone3.json data/research/milestone4.json data/research/milestone5.json data/research/milestone6.json data/research/governance/active_release.json
-          git commit -m "Update FIE research milestones 1-6"
-
-          # The research build can take 20+ minutes, so main may have advanced
-          # while this runner was computing the bundles. Rebase the generated
-          # commit onto the latest remote main before publishing it.
+          git add "$FIE_LEAGUE_ROOT" data/research/leagues/registry.json
+          git commit -m "Update FIE research for league $FIE_LEAGUE_ID"
           git fetch origin main
           git rebase origin/main
-
-          # Push the rebased workflow commit explicitly to main.
           git push origin HEAD:main
