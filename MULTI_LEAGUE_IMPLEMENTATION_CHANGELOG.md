@@ -1,0 +1,102 @@
+# FIE Multi-League Research Architecture, Phase 1 + Runtime Migration
+
+## Goal
+Make the empirical M1-M6/current/governance stack permanent per Sleeper League ID so switching between Redraft, Chopped, Dynasty, Best Ball, IDP, Superflex, or other saved leagues never requires rebuilding another league's research.
+
+## Repo-specific migration source
+The committed legacy `data/research/milestone1.json` identifies League ID `1313697754907697152` in its embedded Sleeper scoring provenance. The migration workflow validates this provenance before copying anything.
+
+## Implemented
+
+### League-ID namespace
+Research now lives under:
+
+`data/research/leagues/<league_id>/`
+
+with:
+- `profile.json`
+- `milestone1.json` through `milestone6.json`
+- `current/milestone5_current.json`
+- `governance/operator_override.json`
+- `governance/active_release.json`
+
+A global `data/research/leagues/registry.json` tracks enabled league profiles and scheduled refresh eligibility.
+
+### Exact league profile contract
+`research/league_profile.py` captures:
+- League ID and name
+- explicit strategic format
+- exact Sleeper scoring settings and 16-character research scoring signature
+- roster positions
+- Sleeper settings
+- team count
+- season/season type
+- 64-character profile fingerprint
+
+Chopped remains an explicit format because Sleeper has no canonical chopped-league type.
+
+### Historical workflow isolation
+`.github/workflows/build-fie-research.yml` now requires a League ID and writes M1-M6 only into that League ID's namespace. Derived/cache files are also isolated per League ID. The workflow fails if a league-specific run modifies a legacy/global generated artifact.
+
+### Artifact identity stamping
+Every namespaced M1-M6 bundle is stamped with:
+- `league_id`
+- `league_format`
+- `profile_fingerprint`
+- `profile_scoring_signature`
+
+Stamping fails if the empirical scoring signature disagrees with the captured profile.
+
+### Non-destructive legacy migration
+`.github/workflows/migrate-fie-redraft-profile.yml` copies the existing M1-M6 profile without editing or deleting the global source files. It builds the migration profile from the exact historical M1 scoring, not from a guessed current scoring configuration. A current Sleeper scoring mismatch is recorded instead of silently rewriting history.
+
+### Current-season multi-league refresh
+`.github/workflows/build-fie-current.yml` can refresh one League ID or every enabled League ID in `registry.json`. Scheduled runs iterate registered leagues sequentially and commit successful league updates together.
+
+### Live profile drift protection
+`build_current_snapshot.py` now checks both:
+- exact current scoring signature
+- full current League-ID profile fingerprint, including roster/settings configuration
+
+If the current Sleeper league settings have changed since historical research was generated, empirical activation fails closed and a historical rebuild is required.
+
+### Per-league + global governance
+Each league has independent governance. Activation requires:
+- League ID match
+- profile fingerprint match
+- current live profile match
+- strategic format match
+- artifact path namespace match
+- scoring match
+- M4/M5/M6 completion
+- fresh current snapshot
+- leakage guard
+- eligible players
+- SHA-256 integrity
+
+The existing global `data/research/governance/operator_override.json` remains an emergency kill switch. Global `CONTROL` disables empirical overrides for every league.
+
+### Browser switching safety
+The browser no longer fetches global M1-M6 paths. It derives all research paths from the currently loaded Sleeper League ID.
+
+On every league change it:
+1. invalidates the previous research state,
+2. closes M5/M6 governance,
+3. resets SHA-256 verification,
+4. loads only the new League ID namespace,
+5. discards late responses belonging to a previous league.
+
+A league without a generated research profile still uses the normal fallback engine and does not break the app.
+
+## Validation completed
+- Python compile checks
+- original M1, M2, M3, M4, M5, M6 integrity tests
+- V8.9 integrity/rollover/scoring/statistical guardrail test
+- multi-league namespace/governance isolation test
+- profile/fingerprint fixture test
+- JavaScript syntax check across all inline scripts
+- stamped copies of the real M1-M6 bundles revalidated successfully
+- migration source files verified byte-identical after migration
+- migration rerun verified idempotent
+- global CONTROL verified to override otherwise valid per-league AUTO governance
+- cross-league artifact injection verified to fail closed
