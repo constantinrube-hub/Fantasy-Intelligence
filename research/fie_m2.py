@@ -309,8 +309,7 @@ def _ensure_prior_columns(d: pd.DataFrame, cols: Sequence[str]) -> pd.DataFrame:
 
 def player_oos_components(df: pd.DataFrame, team_preds: pd.DataFrame, include_competition: bool = True) -> Tuple[pd.DataFrame, List[dict]]:
     d = _ensure_prior_columns(df, ["snap_share","offense_snap_share","defense_snap_share","qb_pass_attempt_share","qb_rush_share","carry_share","target_share"])
-    d = d.merge(team_preds, on=["season","week","team","opponent_team"], how="left")
-   # V8.9 HOTFIX: real M1 player_week rows may not carry opponent_team.
+      # V8.9 HOTFIX: real M1 player_week rows may not carry opponent_team.
 if "opponent_team" not in d.columns:
     opp_key = team_preds[
         ["season", "week", "team", "opponent_team"]
@@ -321,6 +320,8 @@ if "opponent_team" not in d.columns:
         on=["season", "week", "team"],
         how="left"
     )
+    d = d.merge(team_preds, on=["season","week","team","opponent_team"], how="left")
+
     # Opponent predicted offense becomes defensive opportunity volume.
     opp = team_preds[[c for c in team_preds.columns if c in ["season","week","team","pred_team_plays","pred_team_dropbacks","pred_team_rush_attempts"]]].copy()
     if not opp.empty:
