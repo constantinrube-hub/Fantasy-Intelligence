@@ -1,0 +1,37 @@
+{
+  "product": "Fantasy Intelligence Engine",
+  "release": "V8.9-RTS",
+  "release_date": "2026-08-24",
+  "base": "V8.8-M6",
+  "deployment": "Cloudflare Pages via GitHub repository root",
+  "runtime_status": "ready",
+  "research_activation": "fail_closed_until_empirical_artifacts_pass_M6",
+  "expected_governance_runtime_allow_m5": false,
+  "validation": {
+    "python_compileall": "PASS",
+    "integrity_m1_m6": "PASS",
+    "integrity_v89": "PASS",
+    "bundle_validators_m1_m6": "PASS",
+    "json_parse": "PASS",
+    "yaml_parse": "PASS",
+    "javascript_syntax": "PASS",
+    "html_unique_ids": "182/182",
+    "governance_artifact_hashes": "PASS",
+    "physical_browser_smoke": "REQUIRED_POST_DEPLOY_ENVIRONMENT_LIMITATION"
+  },
+  "required_runtime_paths": [
+    "index.html",
+    "_routes.json",
+    "wrangler.toml",
+    "functions/",
+    "data/research/",
+    "research/",
+    ".github/workflows/"
+  ],
+  "documentation": [
+    "README_FINAL_V8_9_RTS.md",
+    "V8_9_RTS_CHANGELOG.md",
+    "V8_9_RTS_IMPLEMENTATION_AUDIT.md",
+    "DEPLOYMENT_GUIDE_V8_9_RTS.md"
+  ]
+}
