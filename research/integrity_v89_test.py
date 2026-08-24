@@ -29,6 +29,13 @@ assert 'three-year discounted projected VOR utility' in html
 assert 'weekly survival-strength proxy' in html
 assert "['rec_te','bonus_rec_te','rec_rb','bonus_rec_rb','rec_wr','bonus_rec_wr']" in html
 assert 'weeklyExact' in html and 'seasonExact' in html
+# Multi-league production isolation: browser loaders must be League-ID scoped.
+assert 'data/research/leagues/${id}' in html
+assert 'FIE_RESEARCH_RUNTIME' in html and 'resetAll()' in html
+assert 'artifact_paths' in html and 'league_id_match' in html and 'profile_fingerprint_match' in html
+assert 'current_profile_live_match' in html and 'artifact_scope_match' in html
+for legacy in ('data/research/milestone4.json','data/research/milestone5.json','data/research/milestone6.json','data/research/current/milestone5_current.json','data/research/governance/active_release.json'):
+    assert legacy not in html, f'legacy global browser research path remains: {legacy}'
 
 # Remove embedded curated data before rollover scan. Historical draft years in that dataset are legitimate.
 scan=re.sub(r'const CURATED = \[.*?\];\nconst PFF', 'const CURATED=[];\nconst PFF', html, flags=re.S)

@@ -272,6 +272,7 @@ def fantasy_from_pred(pred: pd.DataFrame, pos: str, scoring: dict) -> pd.Series:
 def final_model_validation(df: pd.DataFrame, scoring: dict) -> Tuple[List[dict], List[dict], pd.DataFrame, dict]:
     fold_rows: List[dict] = []
     target_metrics: List[dict] = []
+    coefficient_rows: List[dict] = []
     oos_parts = []
     for train_seasons, test_season in FOLDS:
         for pos in POSITIONS:
@@ -283,7 +284,18 @@ def final_model_validation(df: pd.DataFrame, scoring: dict) -> Tuple[List[dict],
             te = z[z.season.eq(test_season)].dropna(subset=["fantasy_points"]).copy()
             if len(tr) < 60 or len(te) < 12:
                 continue
-            pred_stats, _, tm = predict_raw_models(tr, te, pos, fs)
+            pred_stats, fold_specs, tm = predict_raw_models(tr, te, pos, fs, export_specs=True)
+            for spec in fold_specs:
+                coeffs = list(spec.get("coefficients") or [])
+                feats = list(spec.get("features") or [])
+                denom = sum(abs(float(x)) for x in coeffs if np.isfinite(float(x))) or 1.0
+                for feat, coef in zip(feats, coeffs):
+                    c = float(coef)
+                    coefficient_rows.append({
+                        "position": pos, "target": spec.get("target"), "feature": feat,
+                        "test_season": int(test_season), "coefficient": c,
+                        "normalized_abs_weight": abs(c) / denom,
+                    })
             if pred_stats.empty:
                 continue
             fie = fantasy_from_pred(pred_stats, pos, scoring).reindex(te.index)
@@ -327,6 +339,38 @@ def final_model_validation(df: pd.DataFrame, scoring: dict) -> Tuple[List[dict],
                 "status": "validated_candidate" if gate["robust"] else "diagnostic_only",
             })
     oos = pd.concat(oos_parts, ignore_index=True) if oos_parts else pd.DataFrame()
+
+    # Coefficient stability is diagnostic only.  Ridge intentionally keeps correlated
+    # predictors, so a sign flip is not treated as automatic evidence of uselessness;
+    # the table instead shows whether a feature's standardized direction and relative
+    # weight are stable across chronological holdouts.  This is a guard against
+    # over-interpreting a single good period or one correlated feature family.
+    feature_stability = []
+    cf = pd.DataFrame(coefficient_rows)
+    if not cf.empty:
+        for (pos, target, feat), g in cf.groupby(["position", "target", "feature"]):
+            co = pd.to_numeric(g.coefficient, errors="coerce").dropna()
+            wt = pd.to_numeric(g.normalized_abs_weight, errors="coerce").dropna()
+            if co.empty:
+                continue
+            pos_share = float((co > 0).mean()); neg_share = float((co < 0).mean())
+            sign_consistency = max(pos_share, neg_share)
+            mean_weight = float(wt.mean()) if len(wt) else 0.0
+            if len(co) >= 3 and sign_consistency >= .75 and mean_weight >= .015:
+                label = "stable_direction"
+            elif mean_weight < .015:
+                label = "low_weight"
+            else:
+                label = "direction_unstable"
+            feature_stability.append({
+                "position": pos, "target": target, "feature": feat,
+                "folds": int(len(co)), "sign_consistency": sign_consistency,
+                "positive_share": pos_share, "negative_share": neg_share,
+                "mean_normalized_abs_weight": mean_weight,
+                "median_coefficient": float(np.median(co)), "classification": label,
+                "activation_effect": "diagnostic_only",
+            })
+
     # Train deployable candidate specs on full primary window. They remain OFF until later integration.
     specs = {}
     for pos in POSITIONS:
@@ -335,8 +379,9 @@ def final_model_validation(df: pd.DataFrame, scoring: dict) -> Tuple[List[dict],
         if len(z) < 100 or len(fs) < 2:
             continue
         _, pspecs, _ = predict_raw_models(z, z.iloc[:1].copy(), pos, fs, export_specs=True)
-        specs[pos] = {"features": fs, "targets": pspecs, "trained_rows": int(len(z)), "live_status": "OFF"}
-    return fold_rows, agg, target_metrics, oos, {"positions": specs, "algorithm": "position-specific ridge raw-stat stack", "live_status": "OFF"}
+        pos_stability = [r for r in feature_stability if r.get("position") == pos]
+        specs[pos] = {"features": fs, "targets": pspecs, "trained_rows": int(len(z)), "feature_stability": pos_stability, "live_status": "OFF"}
+    return fold_rows, agg, target_metrics, oos, {"positions": specs, "feature_stability": feature_stability, "coefficient_stability_policy": {"status": "diagnostic_only", "stable_direction_min_folds": 3, "sign_consistency_min": .75, "mean_normalized_abs_weight_min": .015, "reason": "Ridge coefficient direction is monitored across chronological folds but does not independently promote or remove correlated predictors"}, "algorithm": "position-specific ridge raw-stat stack", "live_status": "OFF"}
 
 
 # ------------------- Steps 22-23 market benchmark/blend ------------------
@@ -361,8 +406,13 @@ def score_sleeper_stats(stats: dict, scoring: dict, position: str = "") -> float
     return float(pts)
 
 
-def load_sleeper_market(path: str, scoring: dict) -> Tuple[pd.DataFrame, dict]:
+def load_sleeper_market(path: str, scoring: dict, identity: Optional[pd.DataFrame] = None) -> Tuple[pd.DataFrame, dict]:
     root = Path(path)
+    sid_map = {}
+    if identity is not None and not identity.empty and {"sleeper_id", "canonical_player_id"}.issubset(identity.columns):
+        for rr in identity.dropna(subset=["sleeper_id", "canonical_player_id"]).itertuples(index=False):
+            sid_map[str(getattr(rr, "sleeper_id"))] = str(getattr(rr, "canonical_player_id"))
+    posthoc_mapped = 0
     files = sorted(root.rglob("*.jsonl.gz")) if root.exists() else []
     rows=[]; rejected=0
     for f in files:
@@ -373,8 +423,12 @@ def load_sleeper_market(path: str, scoring: dict) -> Tuple[pd.DataFrame, dict]:
                     if not r.get("pregame_eligible", False):
                         rejected += 1; continue
                     stats=r.get("stats") or {}
+                    cid = str(r.get("canonical_player_id") or "")
+                    if not cid and r.get("sleeper_id") is not None:
+                        cid = sid_map.get(str(r.get("sleeper_id")), "")
+                        if cid: posthoc_mapped += 1
                     rows.append({
-                        "season":int(r["season"]),"week":int(r["week"]),"canonical_player_id":str(r.get("canonical_player_id") or ""),
+                        "season":int(r["season"]),"week":int(r["week"]),"canonical_player_id":cid,
                         "market_projection":score_sleeper_stats(stats,scoring,str(r.get("position_model") or "")),
                         "provider":"Sleeper","captured_at":r.get("captured_at"),"snapshot_file":str(f),
                     })
@@ -383,7 +437,7 @@ def load_sleeper_market(path: str, scoring: dict) -> Tuple[pd.DataFrame, dict]:
     d=pd.DataFrame(rows)
     if not d.empty:
         d=d[d.canonical_player_id.ne("")].drop_duplicates(["season","week","canonical_player_id"],keep="first")
-    return d,{"files":len(files),"eligible_rows":int(len(d)),"rejected_nonpregame_rows":int(rejected)}
+    return d,{"files":len(files),"eligible_rows":int(len(d)),"rejected_nonpregame_rows":int(rejected),"posthoc_identity_mapped_rows":int(posthoc_mapped),"identity_policy":"raw Sleeper IDs may be mapped to canonical IDs at evaluation time without mutating the immutable snapshot"}
 
 
 def fixture_market(oos: pd.DataFrame) -> pd.DataFrame:
@@ -482,7 +536,7 @@ def run(args) -> dict:
     if args.fixture:
         market=fixture_market(oos); market_meta={"files":1,"eligible_rows":int(len(market)),"rejected_nonpregame_rows":0,"fixture":True}
     else:
-        market,market_meta=load_sleeper_market(args.sleeper_archive,scoring)
+        market,market_meta=load_sleeper_market(args.sleeper_archive,scoring,identity)
     mb_rows,mb_agg,joined=market_benchmark(oos,market)
     blend_rows,blend_agg=blend_validation(joined)
 
@@ -498,7 +552,7 @@ def run(args) -> dict:
         "methodology":{
             "step19":"one governance registry joins stability, forward predictiveness and incremental model evidence; feature graduation and live activation are separate states",
             "step20":"all M1-M4 research features and trained model specifications are hard OFF for live scoring in this milestone",
-            "step21":"position-specific models predict raw football stat components from pregame-only features; league scoring is applied after the raw-stat projections",
+            "step21":"position-specific models predict raw football stat components from pregame-only features; league scoring is applied after the raw-stat projections; standardized coefficient direction/weight stability is reported across chronological folds before any interpretation",
             "step22":"direct Sleeper comparison accepts only immutable snapshots explicitly marked pregame_eligible; historical Sleeper endpoints are not retrospectively trusted as pregame archives",
             "step23":"blend weight is learned by position on PRIOR completed holdout seasons only, then evaluated on the next holdout season; no same-year weight tuning",
             "time_safe_folds":["2019-2021 -> 2022","2019-2022 -> 2023","2019-2023 -> 2024","2019-2024 -> 2025"],

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
 import math
 from datetime import datetime, timezone
@@ -32,6 +33,7 @@ from fie_research import (
 )
 from fie_m2 import add_change_signals, add_competition_features, add_position_shares, add_team_context
 from fie_m3 import add_lagged_advanced, add_public_enrichment
+from league_profile import sha256_json
 
 PRODUCER_BUILD = "V8.8-M6"
 M5_BUILD = "V8.7-M5"
@@ -74,7 +76,11 @@ def league_scoring(league_id: Optional[str], fallback: dict) -> Tuple[dict, dict
         return dict(fallback or DEFAULT_PPR), {"type": "research_bundle", "league_id": None}
     league = get_json(f"https://api.sleeper.app/v1/league/{league_id}")
     scoring = league.get("scoring_settings") or fallback or DEFAULT_PPR
-    return scoring, {"type": "sleeper_league", "league_id": str(league_id), "league_name": league.get("name")}
+    return scoring, {
+        "type": "sleeper_league", "league_id": str(league_id), "league_name": league.get("name"),
+        "profile_fields": {"roster_positions": league.get("roster_positions") or [], "settings": league.get("settings") or {},
+          "total_rosters": league.get("total_rosters"), "season": league.get("season"), "season_type": league.get("season_type")},
+    }
 
 
 def sleeper_state() -> dict:
@@ -180,8 +186,67 @@ def score_sleeper_projection(stats: dict, scoring: dict, position: str = "") -> 
 
 def archive_sleeper_projection(rows: List[dict], season: int, week: int, identity: pd.DataFrame, output_root: Path, pregame_eligible: bool) -> dict:
     out = output_root / str(season) / f"week_{week:02d}.jsonl.gz"
+    manifest_path = output_root / "manifest.json"
+
+    def sha256_file(path: Path) -> str:
+        h = hashlib.sha256()
+        with path.open("rb") as fh:
+            for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    def read_existing_meta(path: Path) -> dict:
+        meta_path = path.with_suffix(path.suffix + ".meta.json")
+        if meta_path.exists():
+            try:
+                return json.loads(meta_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        # Legacy first-write snapshots may predate sidecar metadata.  Recover
+        # immutable facts from the stored rows without changing the snapshot.
+        first = None; n = 0
+        try:
+            with gzip.open(path, "rt", encoding="utf-8") as fh:
+                for line in fh:
+                    if not line.strip(): continue
+                    r = json.loads(line); n += 1
+                    if first is None: first = r
+        except Exception:
+            first = None
+        return {
+            "season": season, "week": week,
+            "captured_at": (first or {}).get("captured_at"),
+            "pregame_eligible": bool((first or {}).get("pregame_eligible", False)),
+            "rows": n, "first_write_policy": True, "source": "Sleeper projection endpoint",
+        }
+
+    def register(path: Path, meta: dict, *, written: bool) -> dict:
+        digest = sha256_file(path)
+        meta = {**meta, "sha256": digest, "path": str(path)}
+        sidecar = path.with_suffix(path.suffix + ".meta.json")
+        if not sidecar.exists():
+            sidecar.write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        manifest = {"schema_version": 1, "snapshots": {}}
+        if manifest_path.exists():
+            try: manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except Exception: pass
+        manifest.setdefault("schema_version", 1); manifest.setdefault("snapshots", {})
+        key = f"{season}-W{week:02d}"
+        existing = manifest["snapshots"].get(key)
+        if existing and existing.get("sha256") and existing.get("sha256") != digest:
+            raise RuntimeError(f"Immutable Sleeper archive hash changed for {key}")
+        manifest["snapshots"][key] = {
+            "season": season, "week": week, "path": str(path), "sha256": digest,
+            "captured_at": meta.get("captured_at"), "pregame_eligible": bool(meta.get("pregame_eligible")),
+            "rows": int(meta.get("rows") or 0),
+        }
+        manifest["updated_at"] = utc_now()
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        return {**meta, "written": written, "first_write": True, "manifest": str(manifest_path)}
+
     if out.exists():
-        return {"path": str(out), "written": False, "first_write": True, "pregame_eligible": None}
+        return register(out, read_existing_meta(out), written=False)
     imap = {}
     if not identity.empty and {"sleeper_id", "canonical_player_id"}.issubset(identity.columns):
         for r in identity.dropna(subset=["sleeper_id", "canonical_player_id"]).itertuples(index=False):
@@ -196,7 +261,12 @@ def archive_sleeper_projection(rows: List[dict], season: int, week: int, identit
                    "sleeper_id": sid, "canonical_player_id": imap.get(sid),
                    "position_model": normalize_position((r.get("player") or {}).get("position")), "stats": r.get("stats") or r}
             h.write(json.dumps(rec, separators=(",", ":")) + "\n"); n += 1
-    return {"path": str(out), "written": True, "rows": n, "first_write": True, "pregame_eligible": bool(pregame_eligible)}
+    meta = {
+        "season": season, "week": week, "captured_at": captured,
+        "pregame_eligible": bool(pregame_eligible), "rows": n,
+        "first_write_policy": True, "source": "Sleeper projection endpoint",
+    }
+    return register(out, meta, written=True)
 
 
 def current_observed_frame(season: int, target_week: int, scoring: dict, cache_dir: Path) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
@@ -394,9 +464,35 @@ def inferred_nfl_season(now_utc: Optional[datetime] = None) -> int:
 
 def build_snapshot(args) -> dict:
     m4 = load_json(args.m4_bundle); m5 = load_json(args.m5_bundle); m6 = load_json(args.m6_bundle)
-    fallback_scoring = m5.get("scoring_settings") or DEFAULT_PPR
-    scoring, scoring_prov = league_scoring(args.league_id, fallback_scoring)
+    profile = load_json(getattr(args, "league_profile", None)) if getattr(args, "league_profile", None) else {}
+    profile_league_id = str(profile.get("league_id") or "")
+    league_id = str(args.league_id or profile_league_id or "") or None
+    if profile and not league_id:
+        raise RuntimeError("league profile is present but no League ID could be resolved")
+    if profile_league_id and league_id and profile_league_id != league_id:
+        raise RuntimeError(f"league profile belongs to {profile_league_id}, not {league_id}")
+    fallback_scoring = m5.get("scoring_settings") or profile.get("scoring_settings") or DEFAULT_PPR
+    scoring, scoring_prov = league_scoring(league_id, fallback_scoring)
     sig = scoring_signature(scoring)
+    profile_sig = profile.get("scoring_signature")
+    profile_fp = profile.get("profile_fingerprint")
+    live_profile_fp = None
+    profile_current_match = True
+    if profile and league_id:
+        pf = scoring_prov.get("profile_fields") or {}
+        live_contract = {"league_id": league_id, "format": profile.get("format"), "scoring_settings": scoring,
+          "roster_positions": pf.get("roster_positions") or [], "settings": pf.get("settings") or {},
+          "total_rosters": pf.get("total_rosters"), "season": pf.get("season"), "season_type": pf.get("season_type")}
+        live_profile_fp = sha256_json(live_contract)
+        profile_current_match = bool(profile_fp and live_profile_fp == profile_fp)
+    artifact_identity_ok = True
+    if profile:
+        for label, bundle in (("M4",m4),("M5",m5),("M6",m6)):
+            bid=str(bundle.get("league_id") or "")
+            bfp=bundle.get("profile_fingerprint")
+            if bid != league_id or bfp != profile_fp:
+                artifact_identity_ok=False
+                break
     state = sleeper_state()
     season = int(args.season or state.get("season") or inferred_nfl_season())
     week = int(args.week or state.get("week") or 1)
@@ -415,7 +511,13 @@ def build_snapshot(args) -> dict:
         if sid: proj_by_sid[sid] = r
 
     m5_sig = m5.get("scoring_signature")
-    research_compatible = bool(m5.get("status") == "complete" and m6.get("status") == "complete" and (not m5_sig or m5_sig == sig))
+    research_compatible = bool(
+        m5.get("status") == "complete" and m6.get("status") == "complete"
+        and (not m5_sig or m5_sig == sig)
+        and (not profile_sig or profile_sig == sig)
+        and artifact_identity_ok
+        and profile_current_match
+    )
     specs = m4.get("final_position_models", {}).get("model_specs", {}).get("positions", {}) or {}
     comp = build_competition_now(observed)
     players = []
@@ -453,68 +555,97 @@ def build_snapshot(args) -> dict:
                 frame = pd.DataFrame([{**fie_stats, "position_model": pos}])
                 fie_fp = float(score_rows(frame, scoring).iloc[0])
         weekly_model_ok = research_compatible and m4_position_valid(m4, pos) and m5_gate(m5, "weekly_mean_positions", pos)
-        activation_eligible = bool(weekly_model_ok and history_games >= 2 and feature_coverage >= args.min_feature_coverage and fie_fp is not None and math.isfinite(float(fie_fp)))
+        weekly_activation_eligible = bool(weekly_model_ok and history_games >= 2 and feature_coverage >= args.min_feature_coverage and fie_fp is not None and math.isfinite(float(fie_fp)))
         blend_w = m4_blend_weight(m4, pos)
-        if activation_eligible and blend_w is not None and sleeper_fp is not None and math.isfinite(float(sleeper_fp)):
+        if weekly_activation_eligible and blend_w is not None and sleeper_fp is not None and math.isfinite(float(sleeper_fp)):
             decision = blend_w * fie_fp + (1.0 - blend_w) * float(sleeper_fp); source = f"M6 blend FIE {blend_w:.2f} / Sleeper {1-blend_w:.2f}"
-        elif activation_eligible:
+        elif weekly_activation_eligible:
             decision = fie_fp; source = "M6 FIE raw-stat model"
         elif sleeper_fp is not None:
             decision = float(sleeper_fp); source = "Sleeper diagnostic only (M6 gate off)"
         else:
             decision = None; source = "Unavailable"
         q10, q90 = m5_risk_band(m5, pos)
-        risk_ok = activation_eligible and m5_gate(m5, "weekly_risk_positions", pos)
+        risk_ok = weekly_activation_eligible and m5_gate(m5, "weekly_risk_positions", pos)
         p10 = max(0.0, decision + q10) if decision is not None and risk_ok and q10 is not None else None
         p90 = max(decision, decision + q90) if decision is not None and risk_ok and q90 is not None else None
 
-        # Waiver next-3 spec is allowed to use the just-completed role signal. Missing xFP fields are imputed by the exported model, but coverage is surfaced.
+        # Waiver is a separate decision model.  It is allowed to activate even
+        # when the same-position M4 weekly model remains diagnostic, provided
+        # its own M5 next-3 gate and live feature-coverage checks pass.
         waiver_next3 = None
+        waiver_feature_coverage = 0.0
+        waiver_activation_eligible = False
         wspec = m5.get("waiver_integration", {}).get("model_specs", {}).get("positions", {}).get(pos)
-        if activation_eligible and m5_gate(m5, "waiver_policy_positions", pos) and wspec and not g.empty:
-            latest = latest_player_row(g); wvals = {"fie_projection": decision, "fp_prior_4": rolling_mean(g, "fantasy_points", 4)}
-            for f in wspec.get("features") or []:
-                if f in wvals: continue
-                v = latest.get(f)
-                try: wvals[f] = float(v) if v is not None and math.isfinite(float(v)) else None
-                except Exception: wvals[f] = None
-            try: waiver_next3, _ = predict_linear_spec(wspec, wvals)
-            except Exception: waiver_next3 = None
+        if research_compatible and m5_gate(m5, "waiver_policy_positions", pos) and wspec and not g.empty and history_games >= 2:
+            cvals = comp.get((str(cid), pos), {})
+            wvals = {f: feature_value(f, g, team_hist, team, opponent, cvals) for f in (wspec.get("features") or [])}
+            try:
+                waiver_next3, waiver_feature_coverage = predict_linear_spec(wspec, wvals)
+                waiver_activation_eligible = bool(
+                    waiver_next3 is not None
+                    and math.isfinite(float(waiver_next3))
+                    and waiver_feature_coverage >= args.min_feature_coverage
+                )
+            except Exception:
+                waiver_next3 = None
+                waiver_feature_coverage = 0.0
+                waiver_activation_eligible = False
 
-        confidence = int(round(max(5, min(95, 35 + feature_coverage * 60)))) if activation_eligible else int(round(max(5, min(60, 10 + feature_coverage * 40))))
+        confidence = int(round(max(5, min(95, 35 + feature_coverage * 60)))) if weekly_activation_eligible else int(round(max(5, min(60, 10 + feature_coverage * 40))))
         players.append({
             "sleeper_id": sid, "canonical_player_id": cid, "full_name": name.strip() or None,
             "team": team or None, "opponent": opponent, "position_model": pos,
             "season": season, "week": week, "history_games": history_games,
-            "activation_eligible": activation_eligible, "projection_source": source,
+            # Backwards-compatible alias for clients written before M5 decision
+            # gates became independent.
+            "activation_eligible": weekly_activation_eligible,
+            "weekly_activation_eligible": weekly_activation_eligible,
+            "waiver_activation_eligible": waiver_activation_eligible,
+            "projection_source": source,
             "decision_weekly_projection": round(float(decision), 4) if decision is not None and math.isfinite(float(decision)) else None,
             "fie_weekly_projection": round(float(fie_fp), 4) if fie_fp is not None and math.isfinite(float(fie_fp)) else None,
             "sleeper_weekly_projection": round(float(sleeper_fp), 4) if sleeper_fp is not None and math.isfinite(float(sleeper_fp)) else None,
             "p10": round(float(p10), 4) if p10 is not None else None,
             "p90": round(float(p90), 4) if p90 is not None else None,
-            "waiver_next3_projection": round(float(waiver_next3), 4) if waiver_next3 is not None else None,
+            "waiver_next3_projection": round(float(waiver_next3), 4) if waiver_next3 is not None and waiver_activation_eligible else None,
+            "waiver_feature_coverage": round(float(waiver_feature_coverage), 4),
             "young_role_probability": None, "spike_probability": None, "bust_probability": None,
             "confidence": confidence, "feature_coverage": round(float(feature_coverage), 4),
             "predicted_stats": {k: round(float(v), 4) for k, v in fie_stats.items()} if fie_stats else {},
         })
 
-    eligible = sum(1 for r in players if r["activation_eligible"])
+    eligible = sum(1 for r in players if r["weekly_activation_eligible"])
+    waiver_eligible = sum(1 for r in players if r.get("waiver_activation_eligible"))
     status = "complete" if players else "ready"
     bundle = {
-        "schema_version": 2, "m5_build": M5_BUILD, "producer_build": PRODUCER_BUILD,
+        "schema_version": 3, "m5_build": M5_BUILD, "producer_build": PRODUCER_BUILD,
         "generated_at": generated, "status": status, "season": season, "week": week,
+        "league_id": league_id, "league_format": profile.get("format") if profile else None,
+        "profile_fingerprint": profile_fp, "profile_scoring_signature": profile_sig,
+        "live_profile_fingerprint": live_profile_fp, "profile_current_match": profile_current_match,
         "scoring_signature": sig, "scoring_settings": scoring, "scoring_provenance": scoring_prov,
         "research_compatible": research_compatible, "snapshot_max_age_hours": 18,
         "target_week_realised_stats_excluded": True,
         "players": players,
-        "summary": {"players": len(players), "activation_eligible": eligible, "fie_projected": sum(r["fie_weekly_projection"] is not None for r in players), "sleeper_projected": sum(r["sleeper_weekly_projection"] is not None for r in players)},
+        "summary": {
+            "players": len(players),
+            "activation_eligible": eligible,
+            "weekly_activation_eligible": eligible,
+            "waiver_activation_eligible": waiver_eligible,
+            "fie_projected": sum(r["fie_weekly_projection"] is not None for r in players),
+            "sleeper_projected": sum(r["sleeper_weekly_projection"] is not None for r in players),
+        },
         "source_health": source_meta, "sleeper_archive": archive_meta,
         "kickoff": {"first_kickoff_utc": kickoff.isoformat() if kickoff else None, "capture_pregame_eligible": pregame_eligible},
         "guardrails": [
             "No target-week realised stats are used in target-week FIE features.",
             "At least two completed prior games and minimum feature coverage are required for FIE activation.",
-            "M4 weekly model and M5 weekly decision gate must both validate the position.",
+            "M4 weekly model and M5 weekly decision gate must both validate the position for weekly activation.",
+            "Waiver next-3 activation is independently gated by M5 waiver validation and live feature coverage.",
             "Scoring signature must match the empirical M5 research profile.",
+            "League ID and profile fingerprint must match M4/M5/M6 artifacts when a league profile is supplied.",
+            "Current Sleeper roster/settings fingerprint must still match the historical League-ID profile.",
         ],
     }
     return bundle
@@ -523,6 +654,7 @@ def build_snapshot(args) -> dict:
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description="Build FIE V8.8-M6 current-season decision snapshot")
     p.add_argument("--league-id", default=None)
+    p.add_argument("--league-profile", default=None, help="League-ID profile.json used to validate namespace/scoring identity")
     p.add_argument("--season", type=int, default=None)
     p.add_argument("--week", type=int, default=None)
     p.add_argument("--m4-bundle", default="data/research/milestone4.json")

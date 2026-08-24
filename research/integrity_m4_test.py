@@ -27,6 +27,9 @@ with tempfile.TemporaryDirectory() as td:
     assert len(b['final_position_models']['aggregate'])>=5
     assert len(b['final_position_models']['raw_target_metrics'])>20
     assert all(v['live_status']=='OFF' for v in b['final_position_models']['model_specs']['positions'].values())
+    stab=b['final_position_models']['model_specs'].get('feature_stability',[])
+    assert stab and all(r.get('activation_effect')=='diagnostic_only' for r in stab)
+    assert {r.get('classification') for r in stab} <= {'stable_direction','low_weight','direction_unstable'}
     assert b['sleeper_benchmark']['status']=='complete'
     assert len(b['sleeper_benchmark']['folds'])>0
     assert b['blend']['status']=='complete'

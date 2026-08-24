@@ -135,7 +135,15 @@ def load_frames(args):
             "backfield_competition_index", "tackle_competition_index", "pass_rush_support_index",
         ] if c in m2.columns]
         oos = oos.merge(m2[keep], on=[c for c in KEYS if c in m2.columns], how="left", suffixes=("", "_m2"))
-    return oos, pw, ps, young, m1, m2b, m3, m4
+    # Keep a dedicated, wider M2 waiver frame.  M4 OOS rows can start later
+    # than the historical backbone because M4 has stricter feature/model gates;
+    # restricting waiver research to those rows unnecessarily discards valid
+    # time-safe M2 history.
+    waiver_frame = m2.copy()
+    if not waiver_frame.empty:
+        waiver_frame["season"] = pd.to_numeric(waiver_frame.season, errors="coerce").astype("Int64")
+        waiver_frame["week"] = pd.to_numeric(waiver_frame.week, errors="coerce").astype("Int64")
+    return oos, waiver_frame, pw, ps, young, m1, m2b, m3, m4
 
 
 # --------------------------- Step 24 Draft ---------------------------
@@ -199,10 +207,37 @@ def draft_season_validation(oos: pd.DataFrame, m4: dict) -> Tuple[List[dict], Li
 # --------------------------- Step 25 Waiver --------------------------
 
 WAIVER_FEATURES = [
-    "fie_projection", "fp_prior_4", "opportunity_xfp_pregame", "xfp_residual", "opportunity_change_score",
+    # Keep the waiver model independent from the M4 weekly model.  The previous
+    # implementation validated only on M4 OOS rows, which began in 2023 for the
+    # production bundle.  That left only three whole-season folds while the
+    # promotion gate required four, making live promotion impossible by design.
+    # All fields below are time-safe M2 pre-decision features and are available
+    # over the wider historical player-week panel.
+    "fp_prior_4", "opportunity_xfp_pregame", "xfp_residual", "opportunity_change_score",
     "role_breakout_signal", "receiving_competition_index", "backfield_competition_index",
     "tackle_competition_index", "pass_rush_support_index",
 ]
+
+
+def waiver_temporal_folds(df: pd.DataFrame) -> List[Tuple[List[int], int]]:
+    """Return whole-season expanding-window folds for waiver evaluation.
+
+    Waiver validation intentionally uses the M2 player-week panel rather than
+    M4 OOS predictions.  That allows 2019-2025 history to contribute while
+    preserving an honest chronological test.  At least two complete prior
+    seasons are required before a season can become a holdout.  In the current
+    seven-season backbone this normally yields 2021-2025, five independent
+    season blocks, so the existing four-fold promotion standard remains intact.
+    """
+    if df.empty or "season" not in df:
+        return []
+    seasons = sorted({int(x) for x in pd.to_numeric(df.season, errors="coerce").dropna().tolist()})
+    folds: List[Tuple[List[int], int]] = []
+    for test in seasons:
+        train = [s for s in seasons if s < test]
+        if len(train) >= 2:
+            folds.append((train, test))
+    return folds
 
 
 def waiver_features(g: pd.DataFrame) -> List[str]:
@@ -213,11 +248,12 @@ def waiver_features(g: pd.DataFrame) -> List[str]:
     return out
 
 
-def waiver_validation(oos: pd.DataFrame, m4: dict) -> Tuple[List[dict], List[dict], dict]:
+def waiver_validation(waiver_frame: pd.DataFrame, m4: dict) -> Tuple[List[dict], List[dict], dict]:
     rows, specs = [], {}
-    for train_seasons, test_season in FOLDS:
+    folds = waiver_temporal_folds(waiver_frame)
+    for train_seasons, test_season in folds:
         for pos in POSITIONS:
-            z = oos[oos.position_model.eq(pos)].copy()
+            z = waiver_frame[waiver_frame.position_model.eq(pos)].copy()
             fs = waiver_features(z)
             if len(fs) < 2 or "fp_next3" not in z:
                 continue
@@ -256,17 +292,29 @@ def waiver_validation(oos: pd.DataFrame, m4: dict) -> Tuple[List[dict], List[dic
                 "mean_mae_improvement_vs_recent_fp": mean_imp, "positive_folds": wins,
                 "bootstrap_ci95_low": gate["ci95_low"], "bootstrap_ci95_high": gate["ci95_high"],
                 "mean_spearman": float(pd.to_numeric(g.spearman, errors="coerce").mean()),
-                "status": "validated_candidate" if upstream_status(m4, pos) == "validated_candidate" and gate["robust"] else "diagnostic_only",
+                # Waiver forecasting is now validated independently from the M4
+                # weekly raw-stat model.  This is intentional: a useful next-3
+                # role/opportunity model should not be disabled merely because a
+                # same-week weekly model for that position fails its own gate.
+                "upstream_weekly_status": upstream_status(m4, pos),
+                "status": "validated_candidate" if gate["robust"] else "diagnostic_only",
             })
     # Deployable policy specs trained on all completed primary seasons. These predict future three-game PPG.
     for pos in POSITIONS:
-        z = oos[oos.position_model.eq(pos)].dropna(subset=["fp_next3"]).copy()
+        z = waiver_frame[waiver_frame.position_model.eq(pos)].dropna(subset=["fp_next3"]).copy()
         fs = waiver_features(z)
         if len(z) < 100 or len(fs) < 2:
             continue
         model = ridge_pipeline(); model.fit(z[fs], pd.to_numeric(z.fp_next3, errors="coerce"))
         specs[pos] = export_ridge_spec(model, fs, len(z))
-    return rows, agg, {"positions": specs, "target": "mean fantasy points over next 3 games", "live_status": "CONDITIONAL"}
+    return rows, agg, {
+        "positions": specs,
+        "target": "mean fantasy points over next 3 games",
+        "live_status": "CONDITIONAL",
+        "validation_source": "M2 time-safe player-week panel",
+        "temporal_fold_policy": "whole-season expanding window; >=2 prior seasons; promotion requires >=4 valid holdout seasons",
+        "candidate_test_seasons": [test for _, test in folds],
+    }
 
 
 # --------------------------- Step 26 Weekly --------------------------
@@ -494,9 +542,9 @@ def write_derived(season: pd.DataFrame, derived_dir: Optional[str]) -> dict:
 
 
 def run(args) -> dict:
-    oos, pw, ps, young, m1, m2b, m3, m4 = load_frames(args)
+    oos, waiver_frame, pw, ps, young, m1, m2b, m3, m4 = load_frames(args)
     drows, dagg, season = draft_season_validation(oos, m4)
-    wrows, wagg, wspec = waiver_validation(oos, m4)
+    wrows, wagg, wspec = waiver_validation(waiver_frame, m4)
     rank_rows, rank_agg = weekly_ranking_metrics(oos, m4)
     risk_rows, risk_agg, risk_bands = weekly_risk_calibration(oos, m4)
     formats = format_strategy(dagg, risk_agg, m3, oos)
@@ -507,7 +555,11 @@ def run(args) -> dict:
     runtime_positions = sorted(validated_models)
     weekly_positions = sorted(set(r.get("position") for r in rank_agg if r.get("status") == "validated_candidate") & set(runtime_positions))
     draft_positions = sorted(set(r.get("position") for r in dagg if r.get("status") == "validated_candidate") & set(runtime_positions))
-    waiver_positions = sorted(set(r.get("position") for r in wagg if r.get("status") == "validated_candidate") & set(runtime_positions))
+    # Waiver next-3 models have their own temporal validation and no longer
+    # require M4 weekly-model promotion.  Keep the gates independent so a
+    # position can have a validated waiver edge even while weekly FIE remains
+    # diagnostic-only.
+    waiver_positions = sorted(set(r.get("position") for r in wagg if r.get("status") == "validated_candidate"))
     risk_positions = sorted(set(r.get("position") for r in risk_agg if r.get("status") == "validated_candidate") & set(weekly_positions))
     validated_format_profiles = sorted(k for k, v in formats.get("profiles", {}).items() if str(v.get("evidence_status", "")).startswith("validated_"))
     bb_positions = sorted(r.get("position") for r in formats.get("best_ball_aggregate", []) if r.get("status") == "validated_candidate")
@@ -518,6 +570,32 @@ def run(args) -> dict:
         "REDRAFT_BESTBALL": sorted(set(runtime_positions) & set(bb_positions)),
         "DYNASTY_BESTBALL": [],
         "CHOPPED": sorted(set(runtime_positions) & set(risk_positions) & set(chopped_positions)),
+    }
+    decision_format_position_gates = {
+        "weekly": {
+            "REDRAFT": sorted(set(weekly_positions)),
+            "DYNASTY": [],
+            "REDRAFT_BESTBALL": sorted(set(weekly_positions) & set(bb_positions)),
+            "DYNASTY_BESTBALL": [],
+            "CHOPPED": sorted(set(weekly_positions) & set(risk_positions) & set(chopped_positions)),
+        },
+        "draft": {
+            "REDRAFT": sorted(set(draft_positions)),
+            "DYNASTY": [],
+            "REDRAFT_BESTBALL": sorted(set(draft_positions) & set(bb_positions)),
+            "DYNASTY_BESTBALL": [],
+            "CHOPPED": sorted(set(draft_positions) & set(risk_positions) & set(chopped_positions)),
+        },
+        "waiver": {
+            "REDRAFT": sorted(set(waiver_positions)),
+            "DYNASTY": [],
+            "REDRAFT_BESTBALL": sorted(set(waiver_positions) & set(bb_positions)),
+            "DYNASTY_BESTBALL": [],
+            # Chopped waivers remain conservative until both waiver next-3 and
+            # player-level chopped downside evidence are available.  Weekly M4
+            # validation is no longer an unnecessary prerequisite here.
+            "CHOPPED": sorted(set(waiver_positions) & set(chopped_positions)),
+        },
     }
     bundle = {
         "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD,
@@ -541,11 +619,12 @@ def run(args) -> dict:
                 "waiver_policy_positions": waiver_positions,
                 "validated_format_profiles": validated_format_profiles,
                 "format_position_gates": format_position_gates,
+                "decision_format_position_gates": decision_format_position_gates,
             },
             "requires_current_snapshot": True,
             "current_snapshot_path": "data/research/current/milestone5_current.json",
             "fallback": "V8.2.2 live decision logic",
-            "rule": "A player receives M5 decision values only when the current snapshot marks that player activation_eligible=true; all other players retain the V8.2.2 path.",
+            "rule": "Weekly, draft and waiver decisions use independent position/format gates. The current snapshot exposes decision-specific eligibility; any failed gate retains the V8.2.2 fallback for that decision only.",
         },
         "draft_integration": {
             "folds": drows, "aggregate": dagg,
@@ -565,6 +644,7 @@ def run(args) -> dict:
         "runtime_contract": {
             "player_keys": ["sleeper_id", "canonical_player_id", "full_name"],
             "required_player_fields": ["decision_weekly_projection", "p10", "p90", "activation_eligible", "projection_source"],
+            "decision_specific_player_fields": ["weekly_activation_eligible", "waiver_activation_eligible", "waiver_feature_coverage"],
             "optional_player_fields": ["fie_weekly_projection", "sleeper_weekly_projection", "waiver_next3_projection", "young_role_probability", "spike_probability", "bust_probability", "confidence"],
             "version_match": "current snapshot m5_build must equal V8.7-M5 and scoring_signature must match the loaded research profile when present",
         },
