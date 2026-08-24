@@ -276,9 +276,12 @@ COMPONENTS = {
 
 def component_features(pos: str, target: str, include_competition: bool = True) -> List[str]:
     f = [f"{target}_prior4", f"{target}_prior8", "fp_prior_4", "fp_prior_8"]
-    if target != "snap_share": f += ["snap_share_prior4", "snap_share_prior8"]
-    if target == "offense_snap_share": f += ["offense_snap_share_prior4", "offense_snap_share_prior8"]
-    if target == "defense_snap_share": f += ["defense_snap_share_prior4", "defense_snap_share_prior8"]
+    # Generic snap-share history is an additional predictor for non-snap targets.
+    # Do not append offense/defense prior columns a second time when they are
+    # already the target-specific first two features. Duplicate DataFrame column
+    # names are rejected by newer sklearn/narwhals versions in GitHub Actions.
+    if target not in {"snap_share", "offense_snap_share", "defense_snap_share"}:
+        f += ["snap_share_prior4", "snap_share_prior8"]
     if include_competition:
         if pos in ["WR","TE"] or (pos == "RB" and target == "target_share"):
             f += ["receiving_competition_index", "receiving_competitor_count", "receiving_concentration_hhi"]
@@ -288,7 +291,8 @@ def component_features(pos: str, target: str, include_competition: bool = True) 
             f += ["tackle_competition_index"]
         if pos in ["EDGE","IDL"]:
             f += ["pass_rush_support_index"]
-    return f
+    # Preserve feature order while guaranteeing uniqueness for DataFrame consumers.
+    return list(dict.fromkeys(f))
 
 
 def _ensure_prior_columns(d: pd.DataFrame, cols: Sequence[str]) -> pd.DataFrame:
