@@ -415,8 +415,26 @@ def load_sleeper_market(path: str, scoring: dict, identity: Optional[pd.DataFram
     posthoc_mapped = 0
     files = sorted(root.rglob("*.jsonl.gz")) if root.exists() else []
     rows=[]; rejected=0
+    timing_rejected_files=0
     for f in files:
         try:
+            meta_path=f.with_suffix(f.suffix+".meta.json")
+            meta=json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+            try: policy_ver=int(meta.get("capture_policy_version") or 0)
+            except Exception: policy_ver=0
+            try:
+                hours=float(meta.get("hours_before_kickoff")); window=float(meta.get("capture_window_hours"))
+                timing_ok=0 < hours <= window
+            except Exception:
+                timing_ok=False
+            file_verified=bool(
+                meta.get("pregame_eligible") and policy_ver>=2
+                and str(meta.get("season_type") or "").lower()=="regular"
+                and meta.get("first_kickoff_utc") and timing_ok
+            )
+            if not file_verified:
+                timing_rejected_files += 1
+                continue
             with gzip.open(f, "rt", encoding="utf-8") as h:
                 for line in h:
                     r=json.loads(line)
@@ -437,7 +455,7 @@ def load_sleeper_market(path: str, scoring: dict, identity: Optional[pd.DataFram
     d=pd.DataFrame(rows)
     if not d.empty:
         d=d[d.canonical_player_id.ne("")].drop_duplicates(["season","week","canonical_player_id"],keep="first")
-    return d,{"files":len(files),"eligible_rows":int(len(d)),"rejected_nonpregame_rows":int(rejected),"posthoc_identity_mapped_rows":int(posthoc_mapped),"identity_policy":"raw Sleeper IDs may be mapped to canonical IDs at evaluation time without mutating the immutable snapshot"}
+    return d,{"files":len(files),"eligible_rows":int(len(d)),"rejected_nonpregame_rows":int(rejected),"timing_rejected_files":int(timing_rejected_files),"capture_policy":"requires sidecar capture_policy_version>=2, regular season, verified first kickoff and 0<hours_before_kickoff<=capture_window_hours","posthoc_identity_mapped_rows":int(posthoc_mapped),"identity_policy":"raw Sleeper IDs may be mapped to canonical IDs at evaluation time without mutating the immutable snapshot"}
 
 
 def fixture_market(oos: pd.DataFrame) -> pd.DataFrame:

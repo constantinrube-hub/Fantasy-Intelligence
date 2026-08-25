@@ -34,6 +34,27 @@ def sha(path: Path) -> str:
     return h.hexdigest()
 
 
+def verified_market_meta(row: dict, sidecar: dict) -> tuple[bool, str]:
+    meta = sidecar or row or {}
+    if not meta.get("pregame_eligible"):
+        return True, "not_eligible"
+    try: ver = int(meta.get("capture_policy_version") or 0)
+    except Exception: ver = 0
+    if ver < 2:
+        return False, "eligible benchmark lacks capture-policy-v2 timing evidence"
+    if str(meta.get("season_type") or "").lower() != "regular":
+        return False, "eligible benchmark is not marked regular season"
+    try:
+        h = float(meta.get("hours_before_kickoff")); w = float(meta.get("capture_window_hours"))
+    except Exception:
+        return False, "eligible benchmark lacks auditable kickoff-window fields"
+    if not (0 < h <= w):
+        return False, f"eligible benchmark captured outside window ({h:.2f}h, max {w:.2f}h)"
+    if not meta.get("first_kickoff_utc"):
+        return False, "eligible benchmark lacks first_kickoff_utc"
+    return True, "verified"
+
+
 def audit_market(issues: list[str], warnings: list[str]) -> int:
     root = RESEARCH / "market" / "sleeper"
     manifest = load(root / "manifest.json", {}) or {}
@@ -49,7 +70,12 @@ def audit_market(issues: list[str], warnings: list[str]) -> int:
         got = sha(path)
         if expected and got != expected:
             issues.append(f"market {key}: SHA-256 mismatch, immutable archive changed")
-        if not row.get("pregame_eligible"):
+        sidecar_path = path.with_suffix(path.suffix + ".meta.json")
+        sidecar = load(sidecar_path, {}) or {}
+        ok_timing, timing_reason = verified_market_meta(row, sidecar)
+        if not ok_timing:
+            issues.append(f"market {key}: {timing_reason}; quarantine/repair before benchmarking")
+        elif not row.get("pregame_eligible"):
             warnings.append(f"market {key}: preserved but not eligible as a pregame benchmark")
     # Legacy snapshots may predate the manifest.  They are not lost, but should be
     # registered on the next build so integrity can be checked centrally.
@@ -90,8 +116,27 @@ def audit_league(lid: str, row: dict, issues: list[str], warnings: list[str]) ->
     gov = root / "governance" / "active_release.json"
     if row.get("current_refresh", True) and not current.exists():
         warnings.append(f"league {lid}: no namespaced current snapshot yet")
+    if current.exists():
+        cur = load(current, {}) or {}
+        st = str(cur.get("season_type") or "").lower()
+        if not st:
+            warnings.append(f"league {lid}: current snapshot predates season-type semantics; refresh current snapshot")
+        elif st in {"pre", "preseason"} and int(cur.get("week") or 0) != 1:
+            issues.append(f"league {lid}: preseason snapshot is labeled as regular Week {cur.get('week')}; rebuild current snapshot")
     if not gov.exists():
         warnings.append(f"league {lid}: no namespaced governance release yet")
+
+    m5 = load(root / "milestone5.json", {}) or {}
+    rev = int(m5.get("contract_revision") or 1)
+    wspec = m5.get("waiver_integration", {}).get("model_specs", {}) or {}
+    required_folds = int(wspec.get("required_promotion_folds") or 4)
+    max_folds = int(wspec.get("max_valid_folds") or max([int(x.get("folds") or 0) for x in m5.get("waiver_integration", {}).get("aggregate", [])] or [0]))
+    if max_folds < required_folds:
+        msg = f"league {lid}: waiver validation has only {max_folds} fold(s) but promotion requires {required_folds}"
+        if rev >= 3:
+            issues.append(msg)
+        else:
+            warnings.append(msg + "; legacy M5 should be rebuilt with the full-history waiver panel")
     return {
         "league_id": lid,
         "format": profile.get("format") or row.get("format"),

@@ -19,7 +19,7 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-from build_current_snapshot import archive_sleeper_projection, first_kickoff_utc, load_schedule
+from build_current_snapshot import archive_sleeper_projection, first_kickoff_utc, load_schedule, market_capture_decision, normalize_season_type
 
 UA = "Fantasy-Intelligence-Engine/market-capture-v3"
 
@@ -72,37 +72,51 @@ def main():
     out_root = Path(a.output_root)
     out = out_root / str(season) / f"week_{week:02d}.jsonl.gz"
 
-    # Existing first-write snapshots can always be re-registered/hash-verified
-    # without another provider request or a new timing assertion.
+    # Existing verified first-write snapshots can be re-registered/hash-verified
+    # without another provider request. A legacy file marked eligible without the
+    # v2 timing sidecar is NOT silently blessed; it must be quarantined first.
     if out.exists():
+        sidecar = out.with_suffix(out.suffix + ".meta.json")
+        existing = {}
+        if sidecar.exists():
+            try: existing = __import__("json").loads(sidecar.read_text(encoding="utf-8"))
+            except Exception: existing = {}
+        if existing.get("pregame_eligible") and int(existing.get("capture_policy_version") or 0) < 2:
+            raise SystemExit(f"INVALID EXISTING SNAPSHOT: {out} lacks verified capture-policy-v2 timing metadata. Run Repair FIE Market Archive first.")
         meta = archive_sleeper_projection([], season, week, pd.DataFrame(), out_root, False)
         print(f"Preserved immutable {meta.get('path')} sha256={meta.get('sha256')} pregame_eligible={meta.get('pregame_eligible')}")
         return
 
     pregame = bool(a.pregame_eligible)
+    capture_context = {
+        "capture_policy_version": 2 if pregame else None,
+        "season_type": "manual_assertion" if pregame else normalize_season_type(state.get("season_type")),
+        "capture_window_hours": None,
+        "first_kickoff_utc": None,
+        "hours_before_kickoff": None,
+        "reason": "manual_operator_assertion" if pregame else "not_asserted",
+    }
     if a.auto_pregame:
-        season_type = str(state.get("season_type") or "").lower()
-        if season_type != "regular":
-            print(f"SKIP: Sleeper season_type={season_type or 'unknown'}; benchmark capture waits for regular season")
-            return
+        season_type = normalize_season_type(state.get("season_type"))
         schedule = load_schedule(Path(a.cache_dir))
         kickoff = first_kickoff_utc(schedule, season, week)
-        if kickoff is None:
-            raise SystemExit("Cannot verify first kickoff; refusing to mark a benchmark pregame-eligible")
-        now = datetime.now(timezone.utc)
-        hours = (kickoff - now).total_seconds() / 3600
-        if hours <= 0:
-            raise SystemExit(f"MISSED: Week {week} first kickoff already occurred at {kickoff.isoformat()}; no eligible snapshot written")
-        if hours > float(a.capture_window_hours):
-            print(f"SKIP: first kickoff is {hours:.1f}h away; capture window starts at <= {a.capture_window_hours:.1f}h")
+        decision = market_capture_decision(season_type, kickoff, window_hours=float(a.capture_window_hours))
+        if not decision.get("pregame_eligible"):
+            reason = decision.get("reason")
+            if reason == "kickoff_already_started":
+                raise SystemExit(f"MISSED: Week {week} first kickoff already occurred at {decision.get('first_kickoff_utc')}; no eligible snapshot written")
+            if reason == "kickoff_unverified":
+                raise SystemExit("Cannot verify first regular-season kickoff; refusing to mark a benchmark pregame-eligible")
+            print(f"SKIP: {reason}; benchmark capture not eligible")
             return
         pregame = True
-        print(f"Timing verified: first kickoff {kickoff.isoformat()} ({hours:.1f}h away)")
+        capture_context = decision
+        print(f"Timing verified: first kickoff {decision.get('first_kickoff_utc')} ({decision.get('hours_before_kickoff'):.1f}h away)")
 
     ident_path = Path(a.derived_dir) / "player_identity.csv.gz"
     ident = pd.read_csv(ident_path, low_memory=False) if ident_path.exists() else pd.DataFrame()
     rows = get_json(f"https://api.sleeper.com/projections/nfl/{season}/{week}?season_type=regular")
-    meta = archive_sleeper_projection(rows or [], season, week, ident, out_root, pregame)
+    meta = archive_sleeper_projection(rows or [], season, week, ident, out_root, pregame, capture_context=capture_context)
     print(
         f"Wrote {meta.get('path')} rows={meta.get('rows')} pregame_eligible={meta.get('pregame_eligible')} "
         f"sha256={meta.get('sha256')} canonical_identity_available={not ident.empty}"

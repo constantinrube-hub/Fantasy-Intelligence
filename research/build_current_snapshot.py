@@ -101,9 +101,39 @@ def load_schedule(cache_dir: Path) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def regular_schedule_slice(schedule: pd.DataFrame, season: int, week: int) -> pd.DataFrame:
+    """Return only regular-season games for a numbered NFL week.
+
+    nflverse contains preseason and postseason games in the same schedule table.
+    A bare season/week filter can therefore bind Sleeper preseason Week 3 to NFL
+    regular-season Week 3, which is precisely what a pregame benchmark must not do.
+    """
+    if schedule.empty or not {"season", "week"}.issubset(schedule.columns):
+        return pd.DataFrame()
+    s = schedule[(pd.to_numeric(schedule["season"], errors="coerce") == season) & (pd.to_numeric(schedule["week"], errors="coerce") == week)].copy()
+    gt = next((c for c in ["game_type", "season_type", "type"] if c in s.columns), None)
+    if gt:
+        vals = s[gt].astype(str).str.upper().str.replace("_", "", regex=False)
+        s = s[vals.isin(["REG", "REGULAR", "REGULARSEASON"])].copy()
+    return s
+
+
+def normalize_season_type(value) -> str:
+    v = str(value or "").strip().lower().replace("_", "")
+    if v in {"regular", "reg", "regularseason"}: return "regular"
+    if v in {"pre", "preseason"}: return "preseason"
+    if v in {"post", "postseason", "playoffs"}: return "postseason"
+    return v or "unknown"
+
+
+def resolve_analysis_week(explicit_week: Optional[int], sleeper_week: int, season_type: str) -> int:
+    if explicit_week is not None:
+        return int(explicit_week)
+    return 1 if normalize_season_type(season_type) == "preseason" else int(sleeper_week or 1)
+
+
 def opponent_map(schedule: pd.DataFrame, season: int, week: int) -> Dict[str, str]:
-    if schedule.empty or not {"season", "week"}.issubset(schedule.columns): return {}
-    s = schedule[(pd.to_numeric(schedule.season, errors="coerce") == season) & (pd.to_numeric(schedule.week, errors="coerce") == week)].copy()
+    s = regular_schedule_slice(schedule, season, week)
     hc = next((c for c in ["home_team", "home"] if c in s.columns), None)
     ac = next((c for c in ["away_team", "away"] if c in s.columns), None)
     if not hc or not ac: return {}
@@ -115,8 +145,7 @@ def opponent_map(schedule: pd.DataFrame, season: int, week: int) -> Dict[str, st
 
 
 def first_kickoff_utc(schedule: pd.DataFrame, season: int, week: int) -> Optional[datetime]:
-    if schedule.empty: return None
-    s = schedule[(pd.to_numeric(schedule.get("season"), errors="coerce") == season) & (pd.to_numeric(schedule.get("week"), errors="coerce") == week)].copy()
+    s = regular_schedule_slice(schedule, season, week)
     if s.empty: return None
     for c in ["gametime", "game_time", "kickoff"]:
         if c not in s.columns: continue
@@ -140,6 +169,31 @@ def first_kickoff_utc(schedule: pd.DataFrame, season: int, week: int) -> Optiona
         if len(x):
             return x.min().to_pydatetime()
     return None
+
+
+def market_capture_decision(season_type: str, kickoff: Optional[datetime], *, now: Optional[datetime] = None, window_hours: float = 18.0) -> dict:
+    """Single timing policy for every immutable Sleeper benchmark capture path."""
+    now = now or datetime.now(timezone.utc)
+    st = normalize_season_type(season_type)
+    base = {
+        "capture_policy_version": 2,
+        "season_type": st,
+        "capture_window_hours": float(window_hours),
+        "first_kickoff_utc": kickoff.isoformat() if kickoff else None,
+        "hours_before_kickoff": None,
+        "pregame_eligible": False,
+    }
+    if st != "regular":
+        return {**base, "reason": f"season_type_{st}"}
+    if kickoff is None:
+        return {**base, "reason": "kickoff_unverified"}
+    hours = (kickoff - now).total_seconds() / 3600.0
+    base["hours_before_kickoff"] = round(float(hours), 6)
+    if hours <= 0:
+        return {**base, "reason": "kickoff_already_started"}
+    if hours > float(window_hours):
+        return {**base, "reason": "before_capture_window"}
+    return {**base, "pregame_eligible": True, "reason": "timing_verified"}
 
 
 def sleeper_players() -> dict:
@@ -184,7 +238,7 @@ def score_sleeper_projection(stats: dict, scoring: dict, position: str = "") -> 
     return float(total)
 
 
-def archive_sleeper_projection(rows: List[dict], season: int, week: int, identity: pd.DataFrame, output_root: Path, pregame_eligible: bool) -> dict:
+def archive_sleeper_projection(rows: List[dict], season: int, week: int, identity: pd.DataFrame, output_root: Path, pregame_eligible: bool, capture_context: Optional[dict] = None) -> dict:
     out = output_root / str(season) / f"week_{week:02d}.jsonl.gz"
     manifest_path = output_root / "manifest.json"
 
@@ -239,6 +293,11 @@ def archive_sleeper_projection(rows: List[dict], season: int, week: int, identit
             "season": season, "week": week, "path": str(path), "sha256": digest,
             "captured_at": meta.get("captured_at"), "pregame_eligible": bool(meta.get("pregame_eligible")),
             "rows": int(meta.get("rows") or 0),
+            "capture_policy_version": meta.get("capture_policy_version"),
+            "season_type": meta.get("season_type"),
+            "first_kickoff_utc": meta.get("first_kickoff_utc"),
+            "hours_before_kickoff": meta.get("hours_before_kickoff"),
+            "capture_window_hours": meta.get("capture_window_hours"),
         }
         manifest["updated_at"] = utc_now()
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -258,6 +317,8 @@ def archive_sleeper_projection(rows: List[dict], season: int, week: int, identit
             sid = str(r.get("player_id") or (r.get("player") or {}).get("player_id") or "")
             if not sid: continue
             rec = {"season": season, "week": week, "captured_at": captured, "pregame_eligible": bool(pregame_eligible),
+                   "capture_policy_version": (capture_context or {}).get("capture_policy_version"),
+                   "season_type": (capture_context or {}).get("season_type"),
                    "sleeper_id": sid, "canonical_player_id": imap.get(sid),
                    "position_model": normalize_position((r.get("player") or {}).get("position")), "stats": r.get("stats") or r}
             h.write(json.dumps(rec, separators=(",", ":")) + "\n"); n += 1
@@ -265,6 +326,7 @@ def archive_sleeper_projection(rows: List[dict], season: int, week: int, identit
         "season": season, "week": week, "captured_at": captured,
         "pregame_eligible": bool(pregame_eligible), "rows": n,
         "first_write_policy": True, "source": "Sleeper projection endpoint",
+        **(capture_context or {}),
     }
     return register(out, meta, written=True)
 
@@ -495,15 +557,29 @@ def build_snapshot(args) -> dict:
                 break
     state = sleeper_state()
     season = int(args.season or state.get("season") or inferred_nfl_season())
-    week = int(args.week or state.get("week") or 1)
+    sleeper_week = int(state.get("week") or 1)
+    season_type = normalize_season_type(state.get("season_type"))
+    # Sleeper's preseason week counter is not the regular-season decision week.
+    # Unless the operator explicitly supplies --week, preseason analysis points at
+    # upcoming regular-season Week 1 while retaining the source-state metadata.
+    week = resolve_analysis_week(args.week, sleeper_week, season_type)
     generated = utc_now(); cache = Path(args.cache_dir); schedule = load_schedule(cache)
     opponents = opponent_map(schedule, season, week)
     kickoff = first_kickoff_utc(schedule, season, week)
-    pregame_eligible = bool(kickoff and datetime.now(timezone.utc) < kickoff)
+    capture_decision = market_capture_decision(season_type, kickoff, window_hours=18.0)
+    pregame_eligible = bool(capture_decision.get("pregame_eligible"))
 
     observed, team_hist, identity, source_meta = current_observed_frame(season, week, scoring, cache)
     sp = sleeper_players(); srows = sleeper_projection_rows(season, week)
-    archive_meta = archive_sleeper_projection(srows, season, week, identity, Path(args.sleeper_archive), pregame_eligible)
+    if pregame_eligible:
+        archive_meta = archive_sleeper_projection(
+            srows, season, week, identity, Path(args.sleeper_archive), True, capture_context=capture_decision
+        )
+    else:
+        archive_meta = {
+            "written": False, "skipped": True, "season": season, "week": week,
+            "pregame_eligible": False, **capture_decision,
+        }
     sid_to_cid, sp = sleeper_identity_maps(identity, sp)
     proj_by_sid = {}
     for r in srows:
@@ -621,6 +697,8 @@ def build_snapshot(args) -> dict:
     bundle = {
         "schema_version": 3, "m5_build": M5_BUILD, "producer_build": PRODUCER_BUILD,
         "generated_at": generated, "status": status, "season": season, "week": week,
+        "season_type": season_type, "sleeper_state_week": sleeper_week,
+        "analysis_week_policy": "explicit --week when supplied; otherwise preseason maps to upcoming regular Week 1",
         "league_id": league_id, "league_format": profile.get("format") if profile else None,
         "profile_fingerprint": profile_fp, "profile_scoring_signature": profile_sig,
         "live_profile_fingerprint": live_profile_fp, "profile_current_match": profile_current_match,
@@ -637,7 +715,11 @@ def build_snapshot(args) -> dict:
             "sleeper_projected": sum(r["sleeper_weekly_projection"] is not None for r in players),
         },
         "source_health": source_meta, "sleeper_archive": archive_meta,
-        "kickoff": {"first_kickoff_utc": kickoff.isoformat() if kickoff else None, "capture_pregame_eligible": pregame_eligible},
+        "kickoff": {
+            "first_kickoff_utc": kickoff.isoformat() if kickoff else None,
+            "capture_pregame_eligible": pregame_eligible,
+            "capture_policy": capture_decision,
+        },
         "guardrails": [
             "No target-week realised stats are used in target-week FIE features.",
             "At least two completed prior games and minimum feature coverage are required for FIE activation.",
@@ -646,6 +728,8 @@ def build_snapshot(args) -> dict:
             "Scoring signature must match the empirical M5 research profile.",
             "League ID and profile fingerprint must match M4/M5/M6 artifacts when a league profile is supplied.",
             "Current Sleeper roster/settings fingerprint must still match the historical League-ID profile.",
+            "Immutable Sleeper benchmarks are written only in regular season and within 18 hours before first kickoff.",
+            "Sleeper preseason week numbers never masquerade as regular-season weekly decision weeks.",
         ],
     }
     return bundle

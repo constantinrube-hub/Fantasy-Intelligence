@@ -592,12 +592,41 @@ def aggregate_rows(rows: List[dict], keys: Sequence[str], metrics: Sequence[str]
     return out
 
 
-def write_m2_derived(df: pd.DataFrame, derived_dir: Optional[str]) -> dict:
+def write_m2_derived(df: pd.DataFrame, derived_dir: Optional[str], waiver_df: Optional[pd.DataFrame] = None) -> dict:
     if not derived_dir: return {"written":False,"files":{}}
     p=Path(derived_dir); p.mkdir(parents=True,exist_ok=True)
-    cols=[c for c in ["season","week","canonical_player_id","full_name","team","position_model","fantasy_points","fp_prior_4","fp_next3","opportunity_xfp_realized","opportunity_xfp_pregame","xfp_residual","opportunity_change_score","role_breakout_signal","receiving_competition_index","backfield_competition_index","tackle_competition_index","pass_rush_support_index","pred_targets","pred_carries","pred_pass_attempts","pred_defensive_opportunities"] if c in df.columns]
+    cols=[c for c in ["season","week","canonical_player_id","full_name","team","position_model","fantasy_points","fp_prior_4","fp_prior_8","fp_next3","opportunity_xfp_realized","opportunity_xfp_pregame","xfp_residual","opportunity_change_score","role_breakout_signal","receiving_competition_index","backfield_competition_index","tackle_competition_index","pass_rush_support_index","pred_targets","pred_carries","pred_pass_attempts","pred_defensive_opportunities"] if c in df.columns]
     path=p/"milestone2_player_week.csv.gz"; df[cols].to_csv(path,index=False,compression="gzip")
-    return {"written":True,"files":{"milestone2_player_week":{"path":str(path),"rows":int(len(df)),"columns":int(len(cols))}}}
+    files={"milestone2_player_week":{"path":str(path),"rows":int(len(df)),"columns":int(len(cols)),"scope":"M2 chronological OOS component frame"}}
+
+    # Waiver evaluation needs a wider time-safe panel than M2's component OOS
+    # predictions.  This dedicated file is built from the complete M1 player-week
+    # backbone after lagged role/competition features are constructed.  Future
+    # fp_next3 is retained only as the supervised label.
+    if waiver_df is not None and not waiver_df.empty:
+        waiver_cols=[c for c in [
+            "season","week","canonical_player_id","full_name","team","position_model","fantasy_points",
+            "fp_prior_4","fp_prior_8","fp_next3",
+            "change_snap_share","change_qb_rush_share","change_offense_snap_share","change_carry_share","change_target_share","change_defense_snap_share",
+            "opportunity_change_score","role_breakout_signal",
+            "snap_share_prior4","snap_share_prior8","offense_snap_share_prior4","offense_snap_share_prior8",
+            "defense_snap_share_prior4","defense_snap_share_prior8","target_share_prior4","target_share_prior8",
+            "carry_share_prior4","carry_share_prior8","qb_rush_share_prior4","qb_rush_share_prior8",
+            "red_zone_carry_share_prior4","inside_10_carry_share_prior4","inside_5_carry_share_prior4",
+            "red_zone_target_share_prior4","end_zone_target_share_proxy_prior4",
+            "receiving_competition_index","receiving_competition_index_prior4",
+            "backfield_competition_index","backfield_competition_index_prior4",
+            "tackle_competition_index","tackle_competition_index_prior4",
+            "pass_rush_support_index","pass_rush_support_index_prior4",
+            "receiving_competitor_count","backfield_competitor_count","receiving_concentration_hhi"
+        ] if c in waiver_df.columns]
+        wpath=p/"milestone2_waiver_player_week.csv.gz"
+        waiver_df[waiver_cols].to_csv(wpath,index=False,compression="gzip")
+        files["milestone2_waiver_player_week"]={
+            "path":str(wpath),"rows":int(len(waiver_df)),"columns":int(len(waiver_cols)),
+            "scope":"full historical time-safe player-week panel; fp_next3 label only"
+        }
+    return {"written":True,"files":files}
 
 
 def run(args) -> dict:
@@ -610,6 +639,10 @@ def run(args) -> dict:
     player,team_ctx=add_team_context(player,team)
     player=add_competition_features(player)
     player=add_position_shares(player)
+    # Post-game waiver decisions may use the just-completed week's role change,
+    # but never future outcomes.  add_change_signals is backward-looking within
+    # each player-season; fp_next3 remains a label only.
+    waiver_player=add_change_signals(player)
 
     team_pred,team_validation=team_oos_predictions(team_ctx)
     pred,component_validation=player_oos_components(player,team_pred,include_competition=True)
@@ -620,7 +653,7 @@ def run(args) -> dict:
     change=change_validation(pred)
     competition=competition_validation(player,team_pred)
     vacated_summary,vacated_episodes=vacated_opportunity(player)
-    manifest=write_m2_derived(pred,args.derived_dir)
+    manifest=write_m2_derived(pred,args.derived_dir,waiver_player)
 
     comp_agg=aggregate_rows(component_validation,["position","component"],["baseline_mae","model_mae","mae_improvement_vs_prior4","spearman"])
     count_agg=aggregate_rows(count_validation,["position","component"],["mae","rmse","spearman"])

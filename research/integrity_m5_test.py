@@ -26,17 +26,20 @@ wf = waiver_temporal_folds(pd.DataFrame({"season": [2019, 2020, 2021, 2022, 2023
 assert [test for _, test in wf] == [2021, 2022, 2023, 2024, 2025], wf
 assert all(max(train) < test for train, test in wf)
 assert "fie_projection" not in WAIVER_FEATURES
+assert "fp_next3" not in WAIVER_FEATURES
+assert "opportunity_change_score" not in WAIVER_FEATURES
+assert "role_breakout_signal" not in WAIVER_FEATURES
 
-# Regression guard for the August 2026 failure: revision-2 waiver promotion is
-# independent from upstream weekly M4 promotion, and the validator must accept
-# that contract rather than requiring the literal text "activation_eligible=true".
+# Regression guard for the August 2026 failure: revision-3 waiver promotion is
+# independent from upstream weekly M4 promotion and must prove that the temporal
+# design can supply at least four valid holdout seasons.
 formats = {"REDRAFT": [], "DYNASTY": [], "REDRAFT_BESTBALL": [], "DYNASTY_BESTBALL": [], "CHOPPED": []}
 bundle = {
     "schema_version": 5,
     "milestone": "M5",
     "research_build": "V8.7-M5",
     "control_build": "V8.2.2",
-    "contract_revision": 2,
+    "contract_revision": 3,
     "steps_completed": [24, 25, 26, 27],
     "integration_mode": "fail_closed_conditional",
     "scoring_settings": {},
@@ -61,7 +64,10 @@ bundle = {
         },
     },
     "draft_integration": {},
-    "waiver_integration": {"aggregate": [{"position": "WR", "status": "validated_candidate"}]},
+    "waiver_integration": {
+        "aggregate": [{"position": "WR", "status": "validated_candidate", "folds": 5}],
+        "model_specs": {"available_test_seasons": [2021, 2022, 2023, 2024, 2025], "max_valid_folds": 5, "required_promotion_folds": 4},
+    },
     "weekly_integration": {"risk_bands": []},
     "format_strategy": {
         "profiles": {

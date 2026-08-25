@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Validate an FIE M5 decision-policy bundle.
 
-The validator intentionally accepts both the original V8.7-M5 runtime contract
-(revision 1) and the newer decision-specific contract (revision 2).  Revision 2
-allows waiver promotion to be validated independently from the same-week M4
-projection gate, while weekly and draft policies remain constrained by the
-upstream validated M4 positions.
+The validator accepts legacy revisions 1-2 and the full-history waiver contract
+(revision 3). Revision 2 separated waiver promotion from the same-week M4 gate;
+revision 3 additionally requires evidence that the waiver design can actually
+produce at least four chronological holdout seasons.
 """
 from __future__ import annotations
 
@@ -104,6 +103,15 @@ def validate_bundle(b: dict) -> None:
             for fmt, vals in by_format.items():
                 assert isinstance(vals, list), (decision, fmt)
                 assert set(vals).issubset(base[decision]), (decision, fmt, vals, sorted(base[decision]))
+
+    if revision >= 3:
+        waiver_meta = b.get("waiver_integration", {}).get("model_specs", {}) or {}
+        required_folds = int(waiver_meta.get("required_promotion_folds") or 4)
+        max_folds = int(waiver_meta.get("max_valid_folds") or 0)
+        seasons = waiver_meta.get("available_test_seasons") or []
+        assert required_folds >= 4
+        assert max_folds >= required_folds, (max_folds, required_folds, seasons)
+        assert len(set(seasons)) >= required_folds, seasons
 
     text = json.dumps(b)
     assert "unconditional_activation" not in text

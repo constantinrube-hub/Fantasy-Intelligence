@@ -117,6 +117,7 @@ def load_frames(args):
     d = Path(args.derived_dir)
     oos = read_csv(d / "milestone4_oos_predictions.csv.gz")
     m2 = read_csv(d / "milestone2_player_week.csv.gz")
+    waiver_full = read_csv(d / "milestone2_waiver_player_week.csv.gz")
     pw = read_csv(d / "player_week.csv.gz")
     ps = read_csv(d / "player_season.csv.gz")
     young = read_csv(d / "milestone3_young_player_season.csv.gz")
@@ -139,7 +140,7 @@ def load_frames(args):
     # than the historical backbone because M4 has stricter feature/model gates;
     # restricting waiver research to those rows unnecessarily discards valid
     # time-safe M2 history.
-    waiver_frame = m2.copy()
+    waiver_frame = waiver_full.copy() if not waiver_full.empty else m2.copy()
     if not waiver_frame.empty:
         waiver_frame["season"] = pd.to_numeric(waiver_frame.season, errors="coerce").astype("Int64")
         waiver_frame["week"] = pd.to_numeric(waiver_frame.week, errors="coerce").astype("Int64")
@@ -207,15 +208,28 @@ def draft_season_validation(oos: pd.DataFrame, m4: dict) -> Tuple[List[dict], Li
 # --------------------------- Step 25 Waiver --------------------------
 
 WAIVER_FEATURES = [
-    # Keep the waiver model independent from the M4 weekly model.  The previous
-    # implementation validated only on M4 OOS rows, which began in 2023 for the
-    # production bundle.  That left only three whole-season folds while the
-    # promotion gate required four, making live promotion impossible by design.
-    # All fields below are time-safe M2 pre-decision features and are available
-    # over the wider historical player-week panel.
-    "fp_prior_4", "opportunity_xfp_pregame", "xfp_residual", "opportunity_change_score",
-    "role_breakout_signal", "receiving_competition_index", "backfield_competition_index",
-    "tackle_competition_index", "pass_rush_support_index",
+    # Full-history, time-safe waiver features. Current-week role change is valid
+    # for post-game waiver decisions; all rolling priors exclude future weeks.
+    # fp_next3 is the supervised label and is never included here.
+    "fp_prior_4", "fp_prior_8",
+    # Use raw backward-looking role deltas rather than opportunity_change_score:
+    # the latter is robust-standardized across the whole retrospective panel and
+    # is therefore diagnostic, not appropriate for chronological promotion.
+    "change_snap_share", "change_qb_rush_share", "change_offense_snap_share",
+    "change_carry_share", "change_target_share", "change_defense_snap_share",
+    "snap_share_prior4", "snap_share_prior8",
+    "offense_snap_share_prior4", "offense_snap_share_prior8",
+    "defense_snap_share_prior4", "defense_snap_share_prior8",
+    "target_share_prior4", "target_share_prior8",
+    "carry_share_prior4", "carry_share_prior8",
+    "qb_rush_share_prior4", "qb_rush_share_prior8",
+    "red_zone_carry_share_prior4", "inside_10_carry_share_prior4", "inside_5_carry_share_prior4",
+    "red_zone_target_share_prior4", "end_zone_target_share_proxy_prior4",
+    "receiving_competition_index", "receiving_competition_index_prior4",
+    "backfield_competition_index", "backfield_competition_index_prior4",
+    "tackle_competition_index", "tackle_competition_index_prior4",
+    "pass_rush_support_index", "pass_rush_support_index_prior4",
+    "receiving_competitor_count", "backfield_competitor_count", "receiving_concentration_hhi",
 ]
 
 
@@ -311,8 +325,11 @@ def waiver_validation(waiver_frame: pd.DataFrame, m4: dict) -> Tuple[List[dict],
         "positions": specs,
         "target": "mean fantasy points over next 3 games",
         "live_status": "CONDITIONAL",
-        "validation_source": "M2 time-safe player-week panel",
+        "validation_source": "M2 full-history waiver player-week panel (dedicated artifact; legacy OOS fallback only)",
         "temporal_fold_policy": "whole-season expanding window; >=2 prior seasons; promotion requires >=4 valid holdout seasons",
+        "available_test_seasons": sorted({int(r["test_season"]) for r in rows}),
+        "max_valid_folds": max([int(r.get("folds") or 0) for r in agg] or [0]),
+        "required_promotion_folds": 4,
         "candidate_test_seasons": [test for _, test in folds],
     }
 
@@ -598,7 +615,7 @@ def run(args) -> dict:
         },
     }
     bundle = {
-        "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD, "contract_revision": 2,
+        "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD, "contract_revision": 3,
         "generated_at": utc_now(), "status": "complete", "steps_completed": [24, 25, 26, 27],
         "integration_mode": "fail_closed_conditional",
         "scoring_signature": m4.get("scoring_signature") or m1.get("scoring", {}).get("signature"),
