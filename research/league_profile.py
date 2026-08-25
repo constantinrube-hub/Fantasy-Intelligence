@@ -15,6 +15,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
+try:
+    from portfolio_rules import load_portfolio_config, entry_for
+except Exception:
+    load_portfolio_config = None
+    entry_for = None
+
 SCHEMA_VERSION = 1
 LEAGUE_ID_RE = re.compile(r"^[0-9]{6,32}$")
 FORMATS = {
@@ -80,7 +86,7 @@ def infer_format(league: Dict[str, Any], requested: str) -> str:
     return "REDRAFT"
 
 
-def build_profile(league_id: str, requested_format: str = "AUTO", league_json: Dict[str, Any] | None = None) -> Dict[str, Any]:
+def build_profile(league_id: str, requested_format: str = "AUTO", league_json: Dict[str, Any] | None = None, portfolio_entry: Dict[str, Any] | None = None) -> Dict[str, Any]:
     league_id = require_league_id(league_id)
     league = league_json or fetch_json(f"https://api.sleeper.app/v1/league/{league_id}")
     if str(league.get("league_id") or league_id) != league_id:
@@ -90,6 +96,7 @@ def build_profile(league_id: str, requested_format: str = "AUTO", league_json: D
     settings = league.get("settings") or {}
     fmt = infer_format(league, requested_format)
 
+    constraints = list((portfolio_entry or {}).get("research_constraints") or [])
     league_contract = {
         "league_id": league_id,
         "format": fmt,
@@ -100,8 +107,10 @@ def build_profile(league_id: str, requested_format: str = "AUTO", league_json: D
         "season": league.get("season"),
         "season_type": league.get("season_type"),
     }
+    if constraints:
+        league_contract["research_constraints"] = constraints
 
-    return {
+    profile = {
         "schema_version": SCHEMA_VERSION,
         "league_id": league_id,
         "league_name": league.get("name"),
@@ -118,6 +127,15 @@ def build_profile(league_id: str, requested_format: str = "AUTO", league_json: D
         "captured_at": utc_now(),
         "source": "Sleeper league API",
     }
+    if constraints:
+        profile["research_constraints"] = constraints
+    if portfolio_entry:
+        profile["portfolio"] = {
+            "priority": portfolio_entry.get("priority"),
+            "alias": portfolio_entry.get("alias"),
+            "managed": True,
+        }
+    return profile
 
 
 def load_json(path: Path, default: Any = None) -> Any:
@@ -205,7 +223,15 @@ def cmd_legacy(args: argparse.Namespace) -> None:
     print(f"historical_scoring_matches_current={profile['migration']['historical_scoring_matches_current']}")
 
 def cmd_build(args: argparse.Namespace) -> None:
-    profile = build_profile(args.league_id, args.format)
+    portfolio_entry = None
+    if getattr(args, "portfolio_config", None) and load_portfolio_config and entry_for:
+        cfg_path = Path(args.portfolio_config)
+        if cfg_path.exists():
+            cfg = load_portfolio_config(cfg_path)
+            portfolio_entry = entry_for(cfg, args.league_id)
+            if portfolio_entry and args.format == "AUTO":
+                args.format = portfolio_entry.get("format") or args.format
+    profile = build_profile(args.league_id, args.format, portfolio_entry=portfolio_entry)
     out = Path(args.output)
     write_json(out, profile)
     update_registry(Path(args.registry), profile, current_refresh=not args.disable_current_refresh)
@@ -239,6 +265,7 @@ def main() -> None:
     b.add_argument("--format", default="AUTO", choices=sorted(FORMATS))
     b.add_argument("--output", required=True)
     b.add_argument("--registry", default="data/research/leagues/registry.json")
+    b.add_argument("--portfolio-config", default=None, help="Optional managed-portfolio config; custom constraints become part of the research fingerprint")
     b.add_argument("--disable-current-refresh", action="store_true")
     b.set_defaults(func=cmd_build)
     f = sub.add_parser("fixture")

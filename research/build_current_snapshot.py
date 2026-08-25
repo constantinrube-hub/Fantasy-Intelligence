@@ -564,6 +564,8 @@ def build_snapshot(args) -> dict:
         live_contract = {"league_id": league_id, "format": profile.get("format"), "scoring_settings": scoring,
           "roster_positions": pf.get("roster_positions") or [], "settings": pf.get("settings") or {},
           "total_rosters": pf.get("total_rosters"), "season": pf.get("season"), "season_type": pf.get("season_type")}
+        if profile.get("research_constraints"):
+            live_contract["research_constraints"] = profile.get("research_constraints")
         live_profile_fp = sha256_json(live_contract)
         profile_current_match = bool(profile_fp and live_profile_fp == profile_fp)
     artifact_identity_ok = True
