@@ -209,7 +209,7 @@ tbody tr:hover{background:#162a45}
 
   <div class="app-layout" id="appLayoutV82">
     <aside class="sidebar" aria-label="Primary navigation">
-      <div class="brand-mini"><span class="brand-dot"></span><div><b>FIE V8.5</b><small>League Intelligence</small></div></div>
+      <div class="brand-mini"><span class="brand-dot"></span><div><b>FIE V8.9 · VF1</b><small>League Intelligence</small></div></div>
       <nav class="primary-nav" id="primaryNav">
         <button class="primary-tab active" data-section="home"><span class="nav-icon">⌂</span><span>Home</span></button>
         <button class="primary-tab" data-section="draft"><span class="nav-icon">D</span><span>Draft</span></button>
@@ -230,6 +230,7 @@ tbody tr:hover{background:#162a45}
   <div class="tabs legacy-tabs">
     <button class="tab active" data-tab="targets">Dynasty Targets</button>
     <button class="tab" data-tab="draft">Draft Board</button>
+    <button class="tab" data-tab="valuefinder">Value Finder</button>
     <button class="tab" data-tab="draftanalysis">Draft Player Analysis</button>
     <button class="tab" data-tab="draftassistant">Draft Assistant</button>
     <button class="tab" data-tab="waivers">Waiver Wire</button>
@@ -274,6 +275,13 @@ tbody tr:hover{background:#162a45}
     </div>
     <div id="draftAssistantStatus" class="intel-status">Load the Sleeper league to inspect its drafts.</div>
     <div id="draftAssistantSummary"></div>
+  </div>
+
+  <div id="valueFinderPanel" class="card intel-panel">
+    <div class="eyebrow">Pre-draft market inefficiency</div><h2 style="margin:4px 0 5px">Value Finder</h2>
+    <div class="subtitle">Three connected draft-market modes: Top 100 Pick Optimizer maximizes premium-pick value and timing using tier cliffs, replacement cost, survival, opponent pressure and value capture; ADP 100–200 finds valuation sleepers; ADP 200+ requires a credible path to snaps or meaningful workload.</div>
+    <div id="valueFinderStatus" class="intel-status">Load a Sleeper league to build its Value Finder board.</div>
+    <div id="valueFinderSummary"></div>
   </div>
 
   <div id="draftAnalysisPanel" class="card intel-panel">
@@ -1587,7 +1595,7 @@ ${complete?'':`<div class="notice"><b>Steps 19–23 are installed but empirical 
 
 const SECTION_CONFIG={
  home:{title:'Home',eyebrow:'Command center',desc:'Your league-specific overview of roster strength, weekly outlook and the next decision that matters.',hero:'hero-home',tabs:[]},
- draft:{title:'Draft',eyebrow:'Draft intelligence',desc:'Market ADP, imported draft behavior and live league-specific decision support.',hero:'hero-draft',tabs:[['draft','Draft Board'],['draftanalysis','Draft Player Analysis'],['draftassistant','Draft Assistant']]},
+ draft:{title:'Draft',eyebrow:'Draft intelligence',desc:'Top-100 pick optimization, market sleepers, imported draft behavior and live league-specific decision support.',hero:'hero-draft',tabs:[['draft','Draft Board'],['valuefinder','Value Finder'],['draftanalysis','Draft Player Analysis'],['draftassistant','Draft Assistant']]},
  team:{title:'Team',eyebrow:'Roster construction',desc:'Format-aware team power, structure and roster assets.',hero:'hero-team',tabs:[['team','Power & Structure'],['myroster','Roster Assets']]},
  weekly:{title:'Weekly',eyebrow:'Game-week decisions',desc:'Projection, floor/ceiling, matchup win probability and season leverage under the loaded league rules.',hero:'hero-weekly',tabs:[['startsit','Lineup & Start/Sit'],['matchupsim','Matchup & Playoffs']]},
  market:{title:'Market',eyebrow:'Acquisition & trades',desc:'Waivers, acquisition targets and trade economics for this league.',hero:'hero-market',tabs:[['waivers','Waivers'],['targets','Dynasty Targets'],['trades','Trade Center']]},
@@ -1601,7 +1609,7 @@ function activateTab(tab){state.activeTab=tab;if(tab==='draftassistant'&&state.l
 function setupNavigation(){$('primaryNav')?.addEventListener('click',e=>{const b=e.target.closest('.primary-tab');if(!b)return;const section=b.dataset.section,cfg=SECTION_CONFIG[section],tab=cfg.tabs[0]?.[0]||section;activateTab(tab);});$('subnav')?.addEventListener('click',e=>{const b=e.target.closest('.tab[data-tab]');if(b)activateTab(b.dataset.tab);});};
 
 const RENDER_V71=window.render;
-function render(){renderNavigation();const home=state.activeTab==='home',rules=state.activeTab==='rules',research=state.activeTab==='research',research2=state.activeTab==='research2',research3=state.activeTab==='research3',research4=state.activeTab==='research4',research5=state.activeTab==='research5',research6=state.activeTab==='research6',matchupsim=state.activeTab==='matchupsim';$('homePanel')?.classList.toggle('active',home);$('leagueRulesPanel')?.classList.toggle('active',rules);$('researchPanel')?.classList.toggle('active',research);$('research2Panel')?.classList.toggle('active',research2);$('research3Panel')?.classList.toggle('active',research3);$('research4Panel')?.classList.toggle('active',research4);$('research5Panel')?.classList.toggle('active',research5);$('research6Panel')?.classList.toggle('active',research6);if(home||rules||research||research2||research3||research4||research5||research6||matchupsim){for(const id of ['modelPanel','teamPanel','tradePanel','draftAssistantPanel','draftAnalysisPanel','leagueIntelPanel','validationPanel','featuresPanel'])$(id)?.classList.remove('active');$('mainArea')?.classList.add('hidden');$('weeklyControls')?.classList.add('hidden');if(typeof renderHealthDiagnostics==='function')renderHealthDiagnostics();if(home){renderHome();window.FIEDecisionEngines?.renderCommandCenter?.();}else if(rules)renderLeagueRules();else if(research)renderMilestone1();else if(research2)renderMilestone2();else if(research3)renderMilestone3();else if(research4)renderMilestone4();else if(research5)window.renderMilestone5?.();else if(research6)window.renderMilestone6?.();else if(matchupsim){window.FIEDecisionEngines?.renderMatchupPanel?.();window.FIEDecisionEngines?.runLeagueSimulation?.(false);}return;}RENDER_V71();$('homePanel')?.classList.remove('active');$('leagueRulesPanel')?.classList.remove('active');$('researchPanel')?.classList.remove('active');$('research2Panel')?.classList.remove('active');$('research3Panel')?.classList.remove('active');$('research4Panel')?.classList.remove('active');$('research5Panel')?.classList.remove('active');$('research6Panel')?.classList.remove('active');renderNavigation();};
+function render(){renderNavigation();const home=state.activeTab==='home',rules=state.activeTab==='rules',research=state.activeTab==='research',research2=state.activeTab==='research2',research3=state.activeTab==='research3',research4=state.activeTab==='research4',research5=state.activeTab==='research5',research6=state.activeTab==='research6',matchupsim=state.activeTab==='matchupsim',valuefinder=state.activeTab==='valuefinder';$('homePanel')?.classList.toggle('active',home);$('valueFinderPanel')?.classList.toggle('active',valuefinder);$('leagueRulesPanel')?.classList.toggle('active',rules);$('researchPanel')?.classList.toggle('active',research);$('research2Panel')?.classList.toggle('active',research2);$('research3Panel')?.classList.toggle('active',research3);$('research4Panel')?.classList.toggle('active',research4);$('research5Panel')?.classList.toggle('active',research5);$('research6Panel')?.classList.toggle('active',research6);if(home||rules||research||research2||research3||research4||research5||research6||matchupsim||valuefinder){for(const id of ['modelPanel','teamPanel','tradePanel','draftAssistantPanel','draftAnalysisPanel','leagueIntelPanel','validationPanel','featuresPanel'])$(id)?.classList.remove('active');$('mainArea')?.classList.add('hidden');$('weeklyControls')?.classList.add('hidden');if(typeof renderHealthDiagnostics==='function')renderHealthDiagnostics();if(home){renderHome();window.FIEDecisionEngines?.renderCommandCenter?.();}else if(rules)renderLeagueRules();else if(research)renderMilestone1();else if(research2)renderMilestone2();else if(research3)renderMilestone3();else if(research4)renderMilestone4();else if(research5)window.renderMilestone5?.();else if(research6)window.renderMilestone6?.();else if(matchupsim){window.FIEDecisionEngines?.renderMatchupPanel?.();window.FIEDecisionEngines?.runLeagueSimulation?.(false);}else if(valuefinder)window.renderValueFinder?.();return;}RENDER_V71();$('homePanel')?.classList.remove('active');$('valueFinderPanel')?.classList.remove('active');$('leagueRulesPanel')?.classList.remove('active');$('researchPanel')?.classList.remove('active');$('research2Panel')?.classList.remove('active');$('research3Panel')?.classList.remove('active');$('research4Panel')?.classList.remove('active');$('research5Panel')?.classList.remove('active');$('research6Panel')?.classList.remove('active');renderNavigation();};
 
 // Preserve V8.1 rules while switching saved leagues, and migrate any old quick format override.
 const LOAD_V71=window.loadLeague;
@@ -1712,7 +1720,7 @@ async function refreshM5(){m5ResearchLoaded=false;m5CurrentLoaded=false;await Pr
 window.FIE_RESEARCH_RUNTIME?.registerReset(()=>{m5ResearchBundle=null;m5ResearchLoaded=false;m5ResearchError=null;m5CurrentBundle=null;m5CurrentLoaded=false;m5CurrentError=null;m5CurrentMap=new Map();});
 function bindM5(){if(window.FIE)window.FIE.VERSION='8.7-M5';window.renderMilestone5=renderMilestone5;if($('m5Position'))$('m5Position').onchange=()=>{if(state.activeTab==='research5')renderMilestone5();};if($('m5Refresh'))$('m5Refresh').onclick=refreshM5;}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindM5);else bindM5();
-window.FIE_M5={VERSION:'8.7-M5',loadMilestone5Research,loadM5Current,m5ActivationFor,applyM5DecisionScores,renderMilestone5};
+window.FIE_M5={VERSION:'8.7-M5',loadMilestone5Research,loadM5Current,m5ActivationFor,applyM5DecisionScores,renderMilestone5,getResearchBundle:()=>m5ResearchBundle,getCurrentBundle:()=>m5CurrentBundle};
 })();
 </script>
 
@@ -1993,6 +2001,7 @@ window.FIE89=CORE;
 <script src="app/decision-engines.js"></script>
 <script src="app/portfolio-home.js"></script>
 <script src="app/table-sort.js"></script>
+<script src="app/value-finder.js"></script>
 
 </body>
 </html>
