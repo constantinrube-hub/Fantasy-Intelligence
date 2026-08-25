@@ -54,6 +54,8 @@ jobs:
           python research/integrity_decision_engines_test.py
           python research/integrity_draft_rank_sort_test.py
           python research/integrity_portfolio_home_test.py
+          python research/integrity_custom_league_rules_test.py
+          python research/integrity_bulk_onboarding_test.py --config-only
       - name: Resolve target leagues
         env:
           INPUT_LEAGUE_ID: ${{ inputs.league_id }}

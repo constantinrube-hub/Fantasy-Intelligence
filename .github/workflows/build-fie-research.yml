@@ -64,7 +64,8 @@ jobs:
             --league-id "$FIE_LEAGUE_ID" \
             --format "$LEAGUE_FORMAT" \
             --output "$FIE_LEAGUE_ROOT/profile.json" \
-            --registry data/research/leagues/registry.json
+            --registry data/research/leagues/registry.json \
+            --portfolio-config config/league-portfolio.json
 
       - name: Resolve rollover-safe historical window
         shell: bash
@@ -97,6 +98,8 @@ jobs:
           python research/integrity_decision_engines_test.py
           python research/integrity_draft_rank_sort_test.py
           python research/integrity_portfolio_home_test.py
+          python research/integrity_custom_league_rules_test.py
+          python research/integrity_bulk_onboarding_test.py --config-only
           python research/fie_m6.py --fixture --derived-dir /tmp/m4_derived --m3-bundle /tmp/m3_fixture.json --m4-bundle /tmp/m4_fixture.json --output /tmp/m6_fixture.json
           python research/validate_m6_bundle.py /tmp/m6_fixture.json
 
