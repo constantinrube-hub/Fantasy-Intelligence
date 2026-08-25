@@ -119,3 +119,13 @@ A league without a generated research profile still uses the normal fallback eng
 - Current-season server snapshots now enforce the same decision-specific format gates used by the browser for weekly and waiver activation.
 - Production readiness rejects revision-4 waiver gates that expose a position without both forecast and ranking validation.
 - Extended integrity tests cover index-misaligned correlations, attainable revision-4 waiver promotion, and server-side REDRAFT/CHOPPED format gating.
+
+## Bulk Portfolio Onboarding
+
+- Added central 19-league managed portfolio configuration with priority and format metadata.
+- Added fixed-entry-cohort rules for two custom Dynasty formats and included them in research fingerprints.
+- Added browser enforcement for cohort eligibility and fixed legacy-veteran caps.
+- Added `PLAN_ONLY` bulk preflight with Sleeper membership, drafts, league history, live fingerprints, and per-league build state.
+- Added failure-isolated parallel M1-M6 matrix builds with one final merge/commit.
+- Added machine-generated `portfolio-status.json`; unbuilt/failed leagues no longer pollute the production research registry.
+- Portfolio Home now syncs the central managed portfolio into the browser and shows priority/research readiness badges.
