@@ -100,3 +100,12 @@ A league without a generated research profile still uses the normal fallback eng
 - migration rerun verified idempotent
 - global CONTROL verified to override otherwise valid per-league AUTO governance
 - cross-league artifact injection verified to fail closed
+
+## 2026-08-25 Research Integrity + Draft UI hotfix
+
+- Unified immutable Sleeper benchmark timing across capture paths: regular season only, verified kickoff, <=18h window.
+- Current snapshot now distinguishes Sleeper preseason state from regular-season analysis week.
+- Added full-history M2 waiver panel and M5 contract revision 3 with an attainable >=4-fold chronological promotion gate.
+- Strengthened production-readiness checks and added one-time market-archive quarantine workflow.
+- Draft Assistant League Rank is stable across drafted-player removal; Value vs ADP uses identical ADP-covered eligible samples.
+- Added model-aware Draft Assistant sorting and generic sortable-table support.
