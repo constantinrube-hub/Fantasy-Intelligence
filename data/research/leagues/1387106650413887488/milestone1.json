@@ -1,0 +1,4908 @@
+{
+  "schema_version": 1,
+  "milestone": "M1",
+  "control_build": "V8.2.2",
+  "research_build": "V8.3-M1",
+  "generated_at": "2026-08-25T13:15:51.877907+00:00",
+  "status": "complete",
+  "diagnostic_only": true,
+  "primary_window": [
+    2019,
+    2025
+  ],
+  "extended_window": [
+    2016,
+    2025
+  ],
+  "scoring": {
+    "signature": "bd035c4fb16a126b",
+    "provenance": {
+      "type": "sleeper_league",
+      "league_id": "1387106650413887488",
+      "league_name": "German Football League"
+    },
+    "settings": {
+      "sack": 1.0,
+      "fgm_40_49": 3.0,
+      "pass_int": -2.0,
+      "pts_allow_0": 10.0,
+      "pass_2pt": 2.0,
+      "st_td": 6.0,
+      "rec_td": 6.0,
+      "fgm_30_39": 3.0,
+      "xpmiss": -1.0,
+      "rush_td": 6.0,
+      "rec_2pt": 2.0,
+      "st_fum_rec": 1.0,
+      "fgmiss": 0.0,
+      "ff": 1.0,
+      "rec": 1.0,
+      "pts_allow_14_20": 1.0,
+      "fgm_0_19": 3.0,
+      "int": 2.0,
+      "def_st_fum_rec": 1.0,
+      "fum_lost": -2.0,
+      "pts_allow_1_6": 7.0,
+      "fgm_20_29": 3.0,
+      "pts_allow_21_27": 0.0,
+      "xpm": 1.0,
+      "rush_2pt": 2.0,
+      "fum_rec": 2.0,
+      "def_st_td": 6.0,
+      "fgm_50p": 5.0,
+      "def_td": 6.0,
+      "safe": 2.0,
+      "pass_yd": 0.04,
+      "blk_kick": 2.0,
+      "pass_td": 4.0,
+      "rush_yd": 0.1,
+      "fum": 0.0,
+      "pts_allow_28_34": -1.0,
+      "pts_allow_35p": -4.0,
+      "fum_rec_td": 6.0,
+      "rec_yd": 0.1,
+      "def_st_ff": 1.0,
+      "pts_allow_7_13": 4.0,
+      "st_ff": 1.0
+    },
+    "support": {
+      "nonzero_keys": 39,
+      "supported_keys": [
+        "def_td",
+        "ff",
+        "fum_lost",
+        "fum_rec",
+        "int",
+        "pass_2pt",
+        "pass_td",
+        "pass_yd",
+        "rec",
+        "rec_2pt",
+        "rec_td",
+        "rec_yd",
+        "rush_2pt",
+        "rush_td",
+        "rush_yd",
+        "sack"
+      ],
+      "unsupported": [
+        {
+          "key": "fgm_40_49",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pass_int",
+          "reason": "mapped raw-stat field absent"
+        },
+        {
+          "key": "pts_allow_0",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "st_td",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgm_30_39",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "xpmiss",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "st_fum_rec",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_14_20",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgm_0_19",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "def_st_fum_rec",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_1_6",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgm_20_29",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "xpm",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "def_st_td",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgm_50p",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "safe",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "blk_kick",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_28_34",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_35p",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fum_rec_td",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "def_st_ff",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_7_13",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "st_ff",
+          "reason": "no Milestone 1 raw-stat mapping"
+        }
+      ],
+      "exact_replay_eligible": false,
+      "coverage_rate": 0.41025641025641024
+    }
+  },
+  "methodology": {
+    "no_random_split": true,
+    "pregame_lagging": true,
+    "folds": [
+      "2019-2021 -> 2022",
+      "2019-2022 -> 2023",
+      "2019-2023 -> 2024",
+      "2019-2024 -> 2025"
+    ],
+    "route_guardrail": "pass_play_participation_proxy is never labeled as true_route_participation",
+    "team_opportunity": "separate pregame team-volume forecasts are validated before player allocation; PBP-derived red-zone and goal-line volume joins when available",
+    "activation": "none in Milestone 1; all findings remain diagnostic"
+  },
+  "coverage": {
+    "player_weeks": 124022,
+    "seasons": [
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "positions": {
+      "QB": {
+        "rows": 4490,
+        "players": 160,
+        "team_plays": 1.0,
+        "team_pass_attempts": 1.0,
+        "team_rush_attempts": 1.0,
+        "team_red_zone_plays": 1.0,
+        "team_goal_line_plays": 1.0,
+        "snap_share": 0.9997772828507795,
+        "qb_rush_share": 1.0,
+        "red_zone_carry_share": 0.3975501113585746,
+        "inside_5_carry_share": 0.31336302895322937
+      },
+      "RB": {
+        "rows": 10604,
+        "players": 356,
+        "team_plays": 1.0,
+        "team_rush_attempts": 1.0,
+        "team_pass_attempts": 1.0,
+        "team_red_zone_plays": 1.0,
+        "team_goal_line_plays": 1.0,
+        "snap_share": 0.999622783855149,
+        "carry_share": 1.0,
+        "target_share": 1.0,
+        "carries_per_rush_attempt": 1.0,
+        "targets_per_pass_attempt": 1.0,
+        "red_zone_carry_share": 0.5603545831761599,
+        "inside_10_carry_share": 0.49877404752923427,
+        "inside_5_carry_share": 0.41125990192380235,
+        "red_zone_target_share": 0.5573368540173519
+      },
+      "WR": {
+        "rows": 16859,
+        "players": 547,
+        "team_plays": 1.0,
+        "team_pass_attempts": 1.0,
+        "team_red_zone_plays": 1.0,
+        "snap_share": 0.9985764280206418,
+        "target_share": 1.0,
+        "targets_per_pass_attempt": 1.0,
+        "pass_play_participation_proxy": 0.9985764280206418,
+        "red_zone_target_share": 0.3744587460703482,
+        "end_zone_target_share_proxy": 0.3364375111216561
+      },
+      "TE": {
+        "rows": 8377,
+        "players": 286,
+        "team_plays": 1.0,
+        "team_pass_attempts": 1.0,
+        "team_red_zone_plays": 1.0,
+        "snap_share": 0.9988062552226334,
+        "target_share": 1.0,
+        "targets_per_pass_attempt": 1.0,
+        "pass_play_participation_proxy": 0.9988062552226334,
+        "red_zone_target_share": 0.37041900441685566,
+        "end_zone_target_share_proxy": 0.33162229915244124
+      },
+      "EDGE": {
+        "rows": 13304,
+        "players": 369,
+        "defensive_opponent_plays": 1.0,
+        "defensive_opponent_dropbacks": 1.0,
+        "defense_snap_share": 0.9988725195429946,
+        "snap_share": 0.9988725195429946,
+        "pass_rush_opportunity_proxy": 0.9988725195429946
+      },
+      "IDL": {
+        "rows": 10758,
+        "players": 336,
+        "defensive_opponent_plays": 1.0,
+        "defensive_opponent_dropbacks": 1.0,
+        "defense_snap_share": 0.9986056887897379,
+        "snap_share": 0.9986056887897379,
+        "pass_rush_opportunity_proxy": 0.9986056887897379
+      },
+      "LB": {
+        "rows": 14756,
+        "players": 506,
+        "defensive_opponent_plays": 1.0,
+        "defensive_opponent_rush_attempts": 1.0,
+        "defense_snap_share": 1.0,
+        "snap_share": 1.0,
+        "tackle_opportunity_proxy": 1.0
+      },
+      "S": {
+        "rows": 4135,
+        "players": 97,
+        "defensive_opponent_plays": 1.0,
+        "defensive_opponent_dropbacks": 1.0,
+        "defense_snap_share": 1.0,
+        "snap_share": 1.0,
+        "coverage_opportunity_proxy": 1.0,
+        "tackle_opportunity_proxy": 1.0
+      },
+      "CB": {
+        "rows": 17028,
+        "players": 604,
+        "defensive_opponent_plays": 1.0,
+        "defensive_opponent_dropbacks": 1.0,
+        "defense_snap_share": 0.9986492835330044,
+        "snap_share": 0.9986492835330044,
+        "coverage_opportunity_proxy": 0.9986492835330044
+      }
+    },
+    "sources": [
+      {
+        "source": "players",
+        "season": null,
+        "path": ".cache/fie-research/players.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/players/players.csv",
+        "ok": true,
+        "rows": 25052,
+        "error": null
+      },
+      {
+        "source": "ff_playerids",
+        "season": null,
+        "path": ".cache/fie-research/ff_playerids.csv",
+        "url": "https://raw.githubusercontent.com/dynastyprocess/data/master/files/db_playerids.csv",
+        "ok": true,
+        "rows": 12480,
+        "error": null
+      },
+      {
+        "source": "player_week",
+        "season": 2019,
+        "path": ".cache/fie-research/player_week_2019.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2019.csv",
+        "ok": true,
+        "rows": 17362,
+        "error": null
+      },
+      {
+        "source": "team_week",
+        "season": 2019,
+        "path": ".cache/fie-research/team_week_2019.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2019.csv",
+        "ok": true,
+        "rows": 534,
+        "error": null
+      },
+      {
+        "source": "snaps",
+        "season": 2019,
+        "path": ".cache/fie-research/snaps_2019.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2019.csv",
+        "ok": true,
+        "rows": 23862,
+        "error": null
+      },
+      {
+        "source": "pbp",
+        "season": 2019,
+        "path": ".cache/fie-research/pbp_2019.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2019.csv",
+        "ok": true,
+        "rows": 47260,
+        "error": null
+      },
+      {
+        "source": "player_week",
+        "season": 2020,
+        "path": ".cache/fie-research/player_week_2020.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2020.csv",
+        "ok": true,
+        "rows": 17602,
+        "error": null
+      },
+      {
+        "source": "team_week",
+        "season": 2020,
+        "path": ".cache/fie-research/team_week_2020.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2020.csv",
+        "ok": true,
+        "rows": 538,
+        "error": null
+      },
+      {
+        "source": "snaps",
+        "season": 2020,
+        "path": ".cache/fie-research/snaps_2020.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2020.csv",
+        "ok": true,
+        "rows": 24999,
+        "error": null
+      },
+      {
+        "source": "pbp",
+        "season": 2020,
+        "path": ".cache/fie-research/pbp_2020.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2020.csv",
+        "ok": true,
+        "rows": 47705,
+        "error": null
+      },
+      {
+        "source": "player_week",
+        "season": 2021,
+        "path": ".cache/fie-research/player_week_2021.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2021.csv",
+        "ok": true,
+        "rows": 18969,
+        "error": null
+      },
+      {
+        "source": "team_week",
+        "season": 2021,
+        "path": ".cache/fie-research/team_week_2021.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2021.csv",
+        "ok": true,
+        "rows": 570,
+        "error": null
+      },
+      {
+        "source": "snaps",
+        "season": 2021,
+        "path": ".cache/fie-research/snaps_2021.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2021.csv",
+        "ok": true,
+        "rows": 26468,
+        "error": null
+      },
+      {
+        "source": "pbp",
+        "season": 2021,
+        "path": ".cache/fie-research/pbp_2021.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2021.csv",
+        "ok": true,
+        "rows": 49922,
+        "error": null
+      },
+      {
+        "source": "player_week",
+        "season": 2022,
+        "path": ".cache/fie-research/player_week_2022.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2022.csv",
+        "ok": true,
+        "rows": 18831,
+        "error": null
+      },
+      {
+        "source": "team_week",
+        "season": 2022,
+        "path": ".cache/fie-research/team_week_2022.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2022.csv",
+        "ok": true,
+        "rows": 568,
+        "error": null
+      },
+      {
+        "source": "snaps",
+        "season": 2022,
+        "path": ".cache/fie-research/snaps_2022.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2022.csv",
+        "ok": true,
+        "rows": 26381,
+        "error": null
+      },
+      {
+        "source": "pbp",
+        "season": 2022,
+        "path": ".cache/fie-research/pbp_2022.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2022.csv",
+        "ok": true,
+        "rows": 49434,
+        "error": null
+      },
+      {
+        "source": "player_week",
+        "season": 2023,
+        "path": ".cache/fie-research/player_week_2023.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2023.csv",
+        "ok": true,
+        "rows": 18643,
+        "error": null
+      },
+      {
+        "source": "team_week",
+        "season": 2023,
+        "path": ".cache/fie-research/team_week_2023.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2023.csv",
+        "ok": true,
+        "rows": 570,
+        "error": null
+      },
+      {
+        "source": "snaps",
+        "season": 2023,
+        "path": ".cache/fie-research/snaps_2023.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2023.csv",
+        "ok": true,
+        "rows": 26540,
+        "error": null
+      },
+      {
+        "source": "pbp",
+        "season": 2023,
+        "path": ".cache/fie-research/pbp_2023.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2023.csv",
+        "ok": true,
+        "rows": 49665,
+        "error": null
+      },
+      {
+        "source": "player_week",
+        "season": 2024,
+        "path": ".cache/fie-research/player_week_2024.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2024.csv",
+        "ok": true,
+        "rows": 18983,
+        "error": null
+      },
+      {
+        "source": "team_week",
+        "season": 2024,
+        "path": ".cache/fie-research/team_week_2024.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2024.csv",
+        "ok": true,
+        "rows": 570,
+        "error": null
+      },
+      {
+        "source": "snaps",
+        "season": 2024,
+        "path": ".cache/fie-research/snaps_2024.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2024.csv",
+        "ok": true,
+        "rows": 26615,
+        "error": null
+      },
+      {
+        "source": "pbp",
+        "season": 2024,
+        "path": ".cache/fie-research/pbp_2024.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2024.csv",
+        "ok": true,
+        "rows": 49492,
+        "error": null
+      },
+      {
+        "source": "player_week",
+        "season": 2025,
+        "path": ".cache/fie-research/player_week_2025.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2025.csv",
+        "ok": true,
+        "rows": 19422,
+        "error": null
+      },
+      {
+        "source": "team_week",
+        "season": 2025,
+        "path": ".cache/fie-research/team_week_2025.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2025.csv",
+        "ok": true,
+        "rows": 570,
+        "error": null
+      },
+      {
+        "source": "snaps",
+        "season": 2025,
+        "path": ".cache/fie-research/snaps_2025.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2025.csv",
+        "ok": true,
+        "rows": 26612,
+        "error": null
+      },
+      {
+        "source": "pbp",
+        "season": 2025,
+        "path": ".cache/fie-research/pbp_2025.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2025.csv",
+        "ok": true,
+        "rows": 48771,
+        "error": null
+      }
+    ]
+  },
+  "derived_tables": {
+    "written": true,
+    "files": {
+      "player_week": {
+        "path": ".cache/fie-research/leagues/1387106650413887488/derived/player_week.csv.gz",
+        "rows": 124022,
+        "columns": 245
+      },
+      "team_week": {
+        "path": ".cache/fie-research/leagues/1387106650413887488/derived/team_week.csv.gz",
+        "rows": 3742,
+        "columns": 20
+      },
+      "player_identity": {
+        "path": ".cache/fie-research/leagues/1387106650413887488/derived/player_identity.csv.gz",
+        "rows": 25052,
+        "columns": 43
+      },
+      "player_season": {
+        "path": ".cache/fie-research/leagues/1387106650413887488/derived/player_season.csv.gz",
+        "rows": 13922,
+        "columns": 9
+      },
+      "team_season": {
+        "path": ".cache/fie-research/leagues/1387106650413887488/derived/team_season.csv.gz",
+        "rows": 224,
+        "columns": 7
+      },
+      "game_environment": {
+        "path": ".cache/fie-research/leagues/1387106650413887488/derived/game_environment.csv.gz",
+        "rows": 3742,
+        "columns": 11
+      }
+    }
+  },
+  "identity": {
+    "rows": 25052,
+    "gsis": 25052,
+    "pfr": 22579,
+    "pff": 11776,
+    "otc": 9948,
+    "espn": 16765,
+    "sleeper": 6113,
+    "tfg_join_key": 25052,
+    "name_fallback": 0,
+    "duplicate_canonical_ids": 0,
+    "player_week": {
+      "player_week_rows": 129812,
+      "exact_identity_matches": 129660,
+      "unmatched_rows": 152,
+      "match_rate": 0.9988290758943703
+    },
+    "snap_counts": {
+      "rows": 181477,
+      "matched": 181271,
+      "match_rate": 0.9988648699284207
+    }
+  },
+  "metrics": [
+    {
+      "metric": "carries_per_rush_attempt",
+      "classification": "opportunity",
+      "positions": [
+        "RB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "carry_share",
+      "classification": "opportunity",
+      "positions": [
+        "RB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "coverage_opportunity_proxy",
+      "classification": "participation_proxy",
+      "positions": [
+        "S",
+        "CB"
+      ],
+      "true_route": false,
+      "proxy": true
+    },
+    {
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "positions": [
+        "EDGE",
+        "IDL",
+        "LB",
+        "S",
+        "CB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "positions": [
+        "EDGE",
+        "IDL",
+        "S",
+        "CB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "positions": [
+        "EDGE",
+        "IDL",
+        "LB",
+        "S",
+        "CB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "defensive_opponent_rush_attempts",
+      "classification": "team_opportunity",
+      "positions": [
+        "LB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "end_zone_target_share_proxy",
+      "classification": "opportunity_quality_proxy",
+      "positions": [
+        "WR",
+        "TE"
+      ],
+      "true_route": false,
+      "proxy": true
+    },
+    {
+      "metric": "fantasy_points",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "inside_10_carry_share",
+      "classification": "opportunity_quality",
+      "positions": [
+        "RB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "inside_5_carry_share",
+      "classification": "opportunity_quality",
+      "positions": [
+        "QB",
+        "RB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "interceptions_def",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "offense_snap_share",
+      "classification": "participation",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "pass_play_participation_proxy",
+      "classification": "participation_proxy",
+      "positions": [
+        "WR",
+        "TE"
+      ],
+      "true_route": false,
+      "proxy": true
+    },
+    {
+      "metric": "pass_rush_opportunity_proxy",
+      "classification": "participation_proxy",
+      "positions": [
+        "EDGE",
+        "IDL"
+      ],
+      "true_route": false,
+      "proxy": true
+    },
+    {
+      "metric": "passing_tds",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "passing_yards",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "qb_rush_share",
+      "classification": "opportunity",
+      "positions": [
+        "QB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "receiving_tds",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "receiving_yards",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "receptions",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "red_zone_carry_share",
+      "classification": "opportunity_quality",
+      "positions": [
+        "QB",
+        "RB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "red_zone_target_share",
+      "classification": "opportunity_quality",
+      "positions": [
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "rushing_tds",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "rushing_yards",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "sacks",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "snap_share",
+      "classification": "participation",
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE",
+        "EDGE",
+        "IDL",
+        "LB",
+        "S",
+        "CB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "tackle_opportunity_proxy",
+      "classification": "participation_proxy",
+      "positions": [
+        "LB",
+        "S"
+      ],
+      "true_route": false,
+      "proxy": true
+    },
+    {
+      "metric": "tackles_solo",
+      "classification": "outcome",
+      "positions": [],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "target_share",
+      "classification": "opportunity",
+      "positions": [
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "targets_per_pass_attempt",
+      "classification": "opportunity",
+      "positions": [
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "team_goal_line_plays",
+      "classification": "team_opportunity",
+      "positions": [
+        "QB",
+        "RB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "team_rush_attempts",
+      "classification": "team_opportunity",
+      "positions": [
+        "QB",
+        "RB"
+      ],
+      "true_route": false,
+      "proxy": false
+    },
+    {
+      "metric": "true_route_participation",
+      "classification": "participation_true_route",
+      "positions": [],
+      "true_route": true,
+      "proxy": false
+    }
+  ],
+  "team_opportunity_validation": [
+    {
+      "target": "team_plays",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "n_train": 1504,
+      "n_test": 542,
+      "baseline_mae": 7.1033210332103325,
+      "model_mae": 6.511314489688428,
+      "rmse": 8.244924192064026,
+      "spearman": 0.1307518741637905,
+      "mae_improvement_vs_prior4": 0.08334221989321355,
+      "features": [
+        "team_plays_prior4",
+        "team_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_plays",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "n_train": 2046,
+      "n_test": 544,
+      "baseline_mae": 7.351102941176471,
+      "model_mae": 6.662282785915495,
+      "rmse": 8.310948465309146,
+      "spearman": 0.05638094775495764,
+      "mae_improvement_vs_prior4": 0.09370296685720707,
+      "features": [
+        "team_plays_prior4",
+        "team_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_plays",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "n_train": 2590,
+      "n_test": 544,
+      "baseline_mae": 7.174632352941177,
+      "model_mae": 6.639032063701398,
+      "rmse": 8.233963850443818,
+      "spearman": 0.04684735066378471,
+      "mae_improvement_vs_prior4": 0.07465194910234164,
+      "features": [
+        "team_plays_prior4",
+        "team_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_plays",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "n_train": 3134,
+      "n_test": 544,
+      "baseline_mae": 7.392003676470588,
+      "model_mae": 6.775203797968082,
+      "rmse": 8.665952087484735,
+      "spearman": 0.08953878270977714,
+      "mae_improvement_vs_prior4": 0.08344150050490845,
+      "features": [
+        "team_plays_prior4",
+        "team_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_dropbacks",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "n_train": 1504,
+      "n_test": 542,
+      "baseline_mae": 7.0857933579335795,
+      "model_mae": 6.669415830284822,
+      "rmse": 8.381420950750156,
+      "spearman": 0.33812113475844036,
+      "mae_improvement_vs_prior4": 0.05876230177987931,
+      "features": [
+        "team_dropbacks_prior4",
+        "team_dropbacks_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_dropbacks",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "n_train": 2046,
+      "n_test": 544,
+      "baseline_mae": 6.5390625,
+      "model_mae": 6.145200886029105,
+      "rmse": 7.649585434628282,
+      "spearman": 0.12416602145877347,
+      "mae_improvement_vs_prior4": 0.060232122566636244,
+      "features": [
+        "team_dropbacks_prior4",
+        "team_dropbacks_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_dropbacks",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "n_train": 2590,
+      "n_test": 544,
+      "baseline_mae": 6.931985294117647,
+      "model_mae": 6.406270091576182,
+      "rmse": 8.09965624358401,
+      "spearman": 0.20656561990808575,
+      "mae_improvement_vs_prior4": 0.0758390533499222,
+      "features": [
+        "team_dropbacks_prior4",
+        "team_dropbacks_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_dropbacks",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "n_train": 3134,
+      "n_test": 544,
+      "baseline_mae": 6.862132352941177,
+      "model_mae": 6.469357467165842,
+      "rmse": 8.045501531373697,
+      "spearman": 0.20709321179098197,
+      "mae_improvement_vs_prior4": 0.05723802246498319,
+      "features": [
+        "team_dropbacks_prior4",
+        "team_dropbacks_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_pass_attempts",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "n_train": 1504,
+      "n_test": 542,
+      "baseline_mae": 6.7956642066420665,
+      "model_mae": 6.434917871505364,
+      "rmse": 8.083779684206942,
+      "spearman": 0.36289804269855347,
+      "mae_improvement_vs_prior4": 0.053084779378020114,
+      "features": [
+        "team_pass_attempts_prior4",
+        "team_pass_attempts_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_pass_attempts",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "n_train": 2046,
+      "n_test": 544,
+      "baseline_mae": 6.294577205882353,
+      "model_mae": 5.991886882105882,
+      "rmse": 7.409410843582645,
+      "spearman": 0.15337675667683395,
+      "mae_improvement_vs_prior4": 0.04808747496076528,
+      "features": [
+        "team_pass_attempts_prior4",
+        "team_pass_attempts_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_pass_attempts",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "n_train": 2590,
+      "n_test": 544,
+      "baseline_mae": 6.7109375,
+      "model_mae": 6.186675288452873,
+      "rmse": 7.777625025064118,
+      "spearman": 0.17128593435451114,
+      "mae_improvement_vs_prior4": 0.0781205623725637,
+      "features": [
+        "team_pass_attempts_prior4",
+        "team_pass_attempts_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_pass_attempts",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "n_train": 3134,
+      "n_test": 544,
+      "baseline_mae": 6.582720588235294,
+      "model_mae": 6.225254246578201,
+      "rmse": 7.716264274632612,
+      "spearman": 0.2361499155901655,
+      "mae_improvement_vs_prior4": 0.05430373914031242,
+      "features": [
+        "team_pass_attempts_prior4",
+        "team_pass_attempts_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_rush_attempts",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "n_train": 1504,
+      "n_test": 542,
+      "baseline_mae": 6.501845018450185,
+      "model_mae": 6.056090080154649,
+      "rmse": 7.546445121773019,
+      "spearman": 0.2344776930720761,
+      "mae_improvement_vs_prior4": 0.06855822263228724,
+      "features": [
+        "team_rush_attempts_prior4",
+        "team_rush_attempts_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_rush_attempts",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "n_train": 2046,
+      "n_test": 544,
+      "baseline_mae": 6.496783088235294,
+      "model_mae": 5.959197034333194,
+      "rmse": 7.372505549714373,
+      "spearman": 0.19403582189946614,
+      "mae_improvement_vs_prior4": 0.08274649878269584,
+      "features": [
+        "team_rush_attempts_prior4",
+        "team_rush_attempts_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_rush_attempts",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "n_train": 2590,
+      "n_test": 544,
+      "baseline_mae": 6.278492647058823,
+      "model_mae": 5.950440212098881,
+      "rmse": 7.225507017328657,
+      "spearman": 0.2626446876181207,
+      "mae_improvement_vs_prior4": 0.052250190197103974,
+      "features": [
+        "team_rush_attempts_prior4",
+        "team_rush_attempts_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_rush_attempts",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "n_train": 3134,
+      "n_test": 544,
+      "baseline_mae": 6.341452205882353,
+      "model_mae": 5.816769417405689,
+      "rmse": 7.241022231112563,
+      "spearman": 0.1845927676805546,
+      "mae_improvement_vs_prior4": 0.08273858596457863,
+      "features": [
+        "team_rush_attempts_prior4",
+        "team_rush_attempts_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_red_zone_plays",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "n_train": 1504,
+      "n_test": 542,
+      "baseline_mae": 4.202952029520295,
+      "model_mae": 3.94002043037183,
+      "rmse": 4.8222930258259185,
+      "spearman": 0.11237436782415715,
+      "mae_improvement_vs_prior4": 0.0625587913689501,
+      "features": [
+        "team_red_zone_plays_prior4",
+        "team_red_zone_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_red_zone_plays",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "n_train": 2046,
+      "n_test": 544,
+      "baseline_mae": 4.491268382352941,
+      "model_mae": 4.157513766795758,
+      "rmse": 5.063061709987396,
+      "spearman": 0.14552006313554736,
+      "mae_improvement_vs_prior4": 0.07431188411464545,
+      "features": [
+        "team_red_zone_plays_prior4",
+        "team_red_zone_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_red_zone_plays",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "n_train": 2590,
+      "n_test": 544,
+      "baseline_mae": 4.3010110294117645,
+      "model_mae": 3.8948730770480724,
+      "rmse": 4.803216495030913,
+      "spearman": 0.12483404069474766,
+      "mae_improvement_vs_prior4": 0.09442848427646053,
+      "features": [
+        "team_red_zone_plays_prior4",
+        "team_red_zone_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_red_zone_plays",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "n_train": 3134,
+      "n_test": 544,
+      "baseline_mae": 4.339154411764706,
+      "model_mae": 4.013162994924032,
+      "rmse": 5.03564802883796,
+      "spearman": 0.10228381059234867,
+      "mae_improvement_vs_prior4": 0.07512786729986284,
+      "features": [
+        "team_red_zone_plays_prior4",
+        "team_red_zone_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_goal_line_plays",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "n_train": 1504,
+      "n_test": 542,
+      "baseline_mae": 1.993081180811808,
+      "model_mae": 1.8795762899058361,
+      "rmse": 2.2724273970800137,
+      "spearman": 0.05157023573501098,
+      "mae_improvement_vs_prior4": 0.05694945695073991,
+      "features": [
+        "team_goal_line_plays_prior4",
+        "team_goal_line_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_goal_line_plays",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "n_train": 2046,
+      "n_test": 544,
+      "baseline_mae": 1.9140625,
+      "model_mae": 1.8247680720090012,
+      "rmse": 2.1928907376769704,
+      "spearman": 0.11869680580807794,
+      "mae_improvement_vs_prior4": 0.04665178278713409,
+      "features": [
+        "team_goal_line_plays_prior4",
+        "team_goal_line_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_goal_line_plays",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "n_train": 2590,
+      "n_test": 544,
+      "baseline_mae": 1.9990808823529411,
+      "model_mae": 1.8183650505239721,
+      "rmse": 2.205092918955275,
+      "spearman": 0.07095741379544222,
+      "mae_improvement_vs_prior4": 0.09039945978387047,
+      "features": [
+        "team_goal_line_plays_prior4",
+        "team_goal_line_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    },
+    {
+      "target": "team_goal_line_plays",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "n_train": 3134,
+      "n_test": 544,
+      "baseline_mae": 2.006893382352941,
+      "model_mae": 1.8618354321344082,
+      "rmse": 2.3197319481946352,
+      "spearman": 0.11178787226318786,
+      "mae_improvement_vs_prior4": 0.07227984879219779,
+      "features": [
+        "team_goal_line_plays_prior4",
+        "team_goal_line_plays_prior8",
+        "opp_plays_prior4",
+        "opp_dropbacks_prior4",
+        "opp_pass_attempts_prior4",
+        "opp_rush_attempts_prior4"
+      ]
+    }
+  ],
+  "stability": [
+    {
+      "position": "QB",
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.09281250269149917,
+      "week_to_week_n": 3933,
+      "block4_spearman": 0.18185032052430497,
+      "block4_n": 3009,
+      "year_to_year_spearman": 0.11908186284425894,
+      "year_to_year_n": 397,
+      "stability_score": 0.1312482286866877,
+      "stability_label": "low"
+    },
+    {
+      "position": "QB",
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.20362064252541537,
+      "week_to_week_n": 3933,
+      "block4_spearman": 0.39157647966318926,
+      "block4_n": 3009,
+      "year_to_year_spearman": 0.23238464410406906,
+      "year_to_year_n": 397,
+      "stability_score": 0.27586058876422453,
+      "stability_label": "low"
+    },
+    {
+      "position": "QB",
+      "metric": "team_rush_attempts",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.12204626246124985,
+      "week_to_week_n": 3933,
+      "block4_spearman": 0.2740197977096842,
+      "block4_n": 3009,
+      "year_to_year_spearman": 0.18889906206145662,
+      "year_to_year_n": 397,
+      "stability_score": 0.19498837407746353,
+      "stability_label": "low"
+    },
+    {
+      "position": "QB",
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.08873959583580389,
+      "week_to_week_n": 3933,
+      "block4_spearman": 0.1522861675574687,
+      "block4_n": 3009,
+      "year_to_year_spearman": 0.10018398370227494,
+      "year_to_year_n": 397,
+      "stability_score": 0.11373658236518251,
+      "stability_label": "low"
+    },
+    {
+      "position": "QB",
+      "metric": "team_goal_line_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.030632388777290992,
+      "week_to_week_n": 3933,
+      "block4_spearman": 0.11183680205754554,
+      "block4_n": 3009,
+      "year_to_year_spearman": 0.06409434090392813,
+      "year_to_year_n": 397,
+      "stability_score": 0.06885451057958822,
+      "stability_label": "low"
+    },
+    {
+      "position": "QB",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.4019411881557893,
+      "week_to_week_n": 3933,
+      "block4_spearman": 0.27263050281726364,
+      "block4_n": 3009,
+      "year_to_year_spearman": 0.46042506313495957,
+      "year_to_year_n": 397,
+      "stability_score": 0.3783322513693375,
+      "stability_label": "medium"
+    },
+    {
+      "position": "QB",
+      "metric": "qb_rush_share",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.42219944195934217,
+      "week_to_week_n": 3933,
+      "block4_spearman": 0.6576606731363435,
+      "block4_n": 3009,
+      "year_to_year_spearman": 0.5578588971335242,
+      "year_to_year_n": 397,
+      "stability_score": 0.5459063374097366,
+      "stability_label": "medium"
+    },
+    {
+      "position": "QB",
+      "metric": "red_zone_carry_share",
+      "classification": "opportunity_quality",
+      "week_to_week_spearman": 0.11686245412062758,
+      "week_to_week_n": 800,
+      "block4_spearman": 0.19083370714120396,
+      "block4_n": 891,
+      "year_to_year_spearman": 0.17012000095705862,
+      "year_to_year_n": 257,
+      "stability_score": 0.15927205407296338,
+      "stability_label": "low"
+    },
+    {
+      "position": "QB",
+      "metric": "inside_5_carry_share",
+      "classification": "opportunity_quality",
+      "week_to_week_spearman": 0.02189055865238153,
+      "week_to_week_n": 495,
+      "block4_spearman": 0.09863920045929055,
+      "block4_n": 542,
+      "year_to_year_spearman": 0.19685833403973016,
+      "year_to_year_n": 235,
+      "stability_score": 0.10579603105046742,
+      "stability_label": "low"
+    },
+    {
+      "position": "RB",
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.09806246100357961,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.1565410854501492,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.04417537935933382,
+      "year_to_year_n": 717,
+      "stability_score": 0.09959297527102086,
+      "stability_label": "low"
+    },
+    {
+      "position": "RB",
+      "metric": "team_rush_attempts",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.13197197267265096,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.276762135990706,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.1637848062057924,
+      "year_to_year_n": 717,
+      "stability_score": 0.19083963828971642,
+      "stability_label": "low"
+    },
+    {
+      "position": "RB",
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.1768713178270054,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.37400227731388147,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.26593644047470444,
+      "year_to_year_n": 717,
+      "stability_score": 0.2722700118718638,
+      "stability_label": "low"
+    },
+    {
+      "position": "RB",
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.07548821169662605,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.1315592858406304,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.11783331026703489,
+      "year_to_year_n": 717,
+      "stability_score": 0.10829360260143044,
+      "stability_label": "low"
+    },
+    {
+      "position": "RB",
+      "metric": "team_goal_line_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.031215009164747908,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.09320001765787087,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.027927535126127924,
+      "year_to_year_n": 717,
+      "stability_score": 0.05078085398291557,
+      "stability_label": "low"
+    },
+    {
+      "position": "RB",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.7749025171898565,
+      "week_to_week_n": 9528,
+      "block4_spearman": 0.8209285982471781,
+      "block4_n": 7623,
+      "year_to_year_spearman": 0.7197029269559698,
+      "year_to_year_n": 717,
+      "stability_score": 0.7718446807976681,
+      "stability_label": "high"
+    },
+    {
+      "position": "RB",
+      "metric": "carry_share",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.7769548800020026,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.8391341034005965,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.7372895518812942,
+      "year_to_year_n": 717,
+      "stability_score": 0.7844595117612978,
+      "stability_label": "high"
+    },
+    {
+      "position": "RB",
+      "metric": "target_share",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.491861568634041,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.7092220813184977,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.6531046055594003,
+      "year_to_year_n": 717,
+      "stability_score": 0.6180627518373131,
+      "stability_label": "high"
+    },
+    {
+      "position": "RB",
+      "metric": "carries_per_rush_attempt",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.7769548800020026,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.8391341034005965,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.7372895518812942,
+      "year_to_year_n": 717,
+      "stability_score": 0.7844595117612978,
+      "stability_label": "high"
+    },
+    {
+      "position": "RB",
+      "metric": "targets_per_pass_attempt",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.491861568634041,
+      "week_to_week_n": 9531,
+      "block4_spearman": 0.7092220813184977,
+      "block4_n": 7624,
+      "year_to_year_spearman": 0.6531046055594003,
+      "year_to_year_n": 717,
+      "stability_score": 0.6180627518373131,
+      "stability_label": "high"
+    },
+    {
+      "position": "RB",
+      "metric": "red_zone_carry_share",
+      "classification": "opportunity_quality",
+      "week_to_week_spearman": 0.3178665502012945,
+      "week_to_week_n": 3829,
+      "block4_spearman": 0.4972192752993892,
+      "block4_n": 4140,
+      "year_to_year_spearman": 0.44651134816127075,
+      "year_to_year_n": 542,
+      "stability_score": 0.4205323912206515,
+      "stability_label": "medium"
+    },
+    {
+      "position": "RB",
+      "metric": "inside_10_carry_share",
+      "classification": "opportunity_quality",
+      "week_to_week_spearman": 0.26017528128663636,
+      "week_to_week_n": 3044,
+      "block4_spearman": 0.42497074028376985,
+      "block4_n": 3588,
+      "year_to_year_spearman": 0.4154129779994792,
+      "year_to_year_n": 527,
+      "stability_score": 0.3668529998566285,
+      "stability_label": "medium"
+    },
+    {
+      "position": "RB",
+      "metric": "inside_5_carry_share",
+      "classification": "opportunity_quality",
+      "week_to_week_spearman": 0.2780185931420989,
+      "week_to_week_n": 2076,
+      "block4_spearman": 0.41021705024381844,
+      "block4_n": 2554,
+      "year_to_year_spearman": 0.4282467173954252,
+      "year_to_year_n": 504,
+      "stability_score": 0.3721607869271142,
+      "stability_label": "medium"
+    },
+    {
+      "position": "RB",
+      "metric": "red_zone_target_share",
+      "classification": "opportunity_quality",
+      "week_to_week_spearman": 0.13071798550891792,
+      "week_to_week_n": 3806,
+      "block4_spearman": 0.2819097819266741,
+      "block4_n": 4125,
+      "year_to_year_spearman": 0.3339697994896852,
+      "year_to_year_n": 540,
+      "stability_score": 0.2488658556417591,
+      "stability_label": "low"
+    },
+    {
+      "position": "WR",
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.09939786196140259,
+      "week_to_week_n": 15199,
+      "block4_spearman": 0.1561675404654223,
+      "block4_n": 12212,
+      "year_to_year_spearman": 0.14273537274585307,
+      "year_to_year_n": 1113,
+      "stability_score": 0.13276692505755933,
+      "stability_label": "low"
+    },
+    {
+      "position": "WR",
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.18912732630607212,
+      "week_to_week_n": 15199,
+      "block4_spearman": 0.35441756117345613,
+      "block4_n": 12212,
+      "year_to_year_spearman": 0.2274146937394457,
+      "year_to_year_n": 1113,
+      "stability_score": 0.2569865270729913,
+      "stability_label": "low"
+    },
+    {
+      "position": "WR",
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.08006259447359079,
+      "week_to_week_n": 15199,
+      "block4_spearman": 0.1474786142959762,
+      "block4_n": 12212,
+      "year_to_year_spearman": 0.0742668489608184,
+      "year_to_year_n": 1113,
+      "stability_score": 0.10060268591012846,
+      "stability_label": "low"
+    },
+    {
+      "position": "WR",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.7882041982967518,
+      "week_to_week_n": 15181,
+      "block4_spearman": 0.8304311573186237,
+      "block4_n": 12201,
+      "year_to_year_spearman": 0.7293176096699231,
+      "year_to_year_n": 1110,
+      "stability_score": 0.7826509884284328,
+      "stability_label": "high"
+    },
+    {
+      "position": "WR",
+      "metric": "target_share",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.6759854728624921,
+      "week_to_week_n": 15199,
+      "block4_spearman": 0.824066855680671,
+      "block4_n": 12212,
+      "year_to_year_spearman": 0.7848755695830113,
+      "year_to_year_n": 1113,
+      "stability_score": 0.7616426327087248,
+      "stability_label": "high"
+    },
+    {
+      "position": "WR",
+      "metric": "targets_per_pass_attempt",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.6759854728624921,
+      "week_to_week_n": 15199,
+      "block4_spearman": 0.824066855680671,
+      "block4_n": 12212,
+      "year_to_year_spearman": 0.7848755695830113,
+      "year_to_year_n": 1113,
+      "stability_score": 0.7616426327087248,
+      "stability_label": "high"
+    },
+    {
+      "position": "WR",
+      "metric": "pass_play_participation_proxy",
+      "classification": "participation_proxy",
+      "week_to_week_spearman": 0.7882332442171621,
+      "week_to_week_n": 15181,
+      "block4_spearman": 0.8304462146152121,
+      "block4_n": 12201,
+      "year_to_year_spearman": 0.7293113970082316,
+      "year_to_year_n": 1110,
+      "stability_score": 0.7826636186135353,
+      "stability_label": "high"
+    },
+    {
+      "position": "WR",
+      "metric": "red_zone_target_share",
+      "classification": "opportunity_quality",
+      "week_to_week_spearman": 0.1033021673988775,
+      "week_to_week_n": 2847,
+      "block4_spearman": 0.12821648949019337,
+      "block4_n": 3500,
+      "year_to_year_spearman": 0.25289526004435353,
+      "year_to_year_n": 789,
+      "stability_score": 0.1614713056444748,
+      "stability_label": "low"
+    },
+    {
+      "position": "WR",
+      "metric": "end_zone_target_share_proxy",
+      "classification": "opportunity_quality_proxy",
+      "week_to_week_spearman": 0.10861337659017949,
+      "week_to_week_n": 2301,
+      "block4_spearman": 0.17378503336286882,
+      "block4_n": 2742,
+      "year_to_year_spearman": 0.22632986538363437,
+      "year_to_year_n": 762,
+      "stability_score": 0.1695760917788942,
+      "stability_label": "low"
+    },
+    {
+      "position": "TE",
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.10130510261227557,
+      "week_to_week_n": 7476,
+      "block4_spearman": 0.13875154954939428,
+      "block4_n": 5868,
+      "year_to_year_spearman": 0.1329248264414148,
+      "year_to_year_n": 615,
+      "stability_score": 0.12432715953436153,
+      "stability_label": "low"
+    },
+    {
+      "position": "TE",
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.19537474056403686,
+      "week_to_week_n": 7476,
+      "block4_spearman": 0.3565155930112375,
+      "block4_n": 5868,
+      "year_to_year_spearman": 0.2594997003206106,
+      "year_to_year_n": 615,
+      "stability_score": 0.2704633446319616,
+      "stability_label": "low"
+    },
+    {
+      "position": "TE",
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.07751227606413412,
+      "week_to_week_n": 7476,
+      "block4_spearman": 0.139278049424148,
+      "block4_n": 5868,
+      "year_to_year_spearman": 0.22247412826334523,
+      "year_to_year_n": 615,
+      "stability_score": 0.1464214845838758,
+      "stability_label": "low"
+    },
+    {
+      "position": "TE",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.7517368506358812,
+      "week_to_week_n": 7469,
+      "block4_spearman": 0.8139365586150181,
+      "block4_n": 5865,
+      "year_to_year_spearman": 0.6834385945425082,
+      "year_to_year_n": 614,
+      "stability_score": 0.7497040012644692,
+      "stability_label": "high"
+    },
+    {
+      "position": "TE",
+      "metric": "target_share",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.6045952139816555,
+      "week_to_week_n": 7476,
+      "block4_spearman": 0.7924129940004412,
+      "block4_n": 5868,
+      "year_to_year_spearman": 0.7512828601169398,
+      "year_to_year_n": 615,
+      "stability_score": 0.7160970226996789,
+      "stability_label": "high"
+    },
+    {
+      "position": "TE",
+      "metric": "targets_per_pass_attempt",
+      "classification": "opportunity",
+      "week_to_week_spearman": 0.6045952139816555,
+      "week_to_week_n": 7476,
+      "block4_spearman": 0.7924129940004412,
+      "block4_n": 5868,
+      "year_to_year_spearman": 0.7512828601169398,
+      "year_to_year_n": 615,
+      "stability_score": 0.7160970226996789,
+      "stability_label": "high"
+    },
+    {
+      "position": "TE",
+      "metric": "pass_play_participation_proxy",
+      "classification": "participation_proxy",
+      "week_to_week_spearman": 0.7517368506358812,
+      "week_to_week_n": 7469,
+      "block4_spearman": 0.8139365586150181,
+      "block4_n": 5865,
+      "year_to_year_spearman": 0.6837801464565274,
+      "year_to_year_n": 614,
+      "stability_score": 0.7498178519024755,
+      "stability_label": "high"
+    },
+    {
+      "position": "TE",
+      "metric": "red_zone_target_share",
+      "classification": "opportunity_quality",
+      "week_to_week_spearman": 0.13071239064735504,
+      "week_to_week_n": 1332,
+      "block4_spearman": 0.19178140193119964,
+      "block4_n": 1563,
+      "year_to_year_spearman": 0.2665580869218511,
+      "year_to_year_n": 431,
+      "stability_score": 0.19635062650013527,
+      "stability_label": "low"
+    },
+    {
+      "position": "TE",
+      "metric": "end_zone_target_share_proxy",
+      "classification": "opportunity_quality_proxy",
+      "week_to_week_spearman": 0.0981763867071604,
+      "week_to_week_n": 1066,
+      "block4_spearman": 0.11575508049891987,
+      "block4_n": 1253,
+      "year_to_year_spearman": 0.20112943540857559,
+      "year_to_year_n": 416,
+      "stability_score": 0.1383536342048853,
+      "stability_label": "low"
+    },
+    {
+      "position": "EDGE",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.051175623059829735,
+      "week_to_week_n": 12013,
+      "block4_spearman": 0.08070163200509926,
+      "block4_n": 9673,
+      "year_to_year_spearman": 0.0856115381224374,
+      "year_to_year_n": 922,
+      "stability_score": 0.07249626439578881,
+      "stability_label": "low"
+    },
+    {
+      "position": "EDGE",
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.05126199049492714,
+      "week_to_week_n": 12013,
+      "block4_spearman": 0.13920103141079973,
+      "block4_n": 9673,
+      "year_to_year_spearman": 0.16318510600434746,
+      "year_to_year_n": 922,
+      "stability_score": 0.1178827093033581,
+      "stability_label": "low"
+    },
+    {
+      "position": "EDGE",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.7946515496102494,
+      "week_to_week_n": 11996,
+      "block4_spearman": 0.8529148482073445,
+      "block4_n": 9662,
+      "year_to_year_spearman": 0.7008057852745796,
+      "year_to_year_n": 922,
+      "stability_score": 0.7827907276973911,
+      "stability_label": "high"
+    },
+    {
+      "position": "EDGE",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.7945343501863579,
+      "week_to_week_n": 11996,
+      "block4_spearman": 0.852882935822833,
+      "block4_n": 9662,
+      "year_to_year_spearman": 0.7008232979320352,
+      "year_to_year_n": 922,
+      "stability_score": 0.782746861313742,
+      "stability_label": "high"
+    },
+    {
+      "position": "EDGE",
+      "metric": "pass_rush_opportunity_proxy",
+      "classification": "participation_proxy",
+      "week_to_week_spearman": 0.6451375904157246,
+      "week_to_week_n": 11996,
+      "block4_spearman": 0.7784670858843189,
+      "block4_n": 9662,
+      "year_to_year_spearman": 0.6846861661486929,
+      "year_to_year_n": 922,
+      "stability_score": 0.7027636141495789,
+      "stability_label": "high"
+    },
+    {
+      "position": "IDL",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.0541082112188946,
+      "week_to_week_n": 9642,
+      "block4_spearman": 0.08494302370381145,
+      "block4_n": 7650,
+      "year_to_year_spearman": 0.10459619515518447,
+      "year_to_year_n": 780,
+      "stability_score": 0.08121581002596351,
+      "stability_label": "low"
+    },
+    {
+      "position": "IDL",
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.05207705871504368,
+      "week_to_week_n": 9642,
+      "block4_spearman": 0.1844390428476231,
+      "block4_n": 7650,
+      "year_to_year_spearman": 0.16245891486797498,
+      "year_to_year_n": 780,
+      "stability_score": 0.13299167214354726,
+      "stability_label": "low"
+    },
+    {
+      "position": "IDL",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.724758154670898,
+      "week_to_week_n": 9630,
+      "block4_spearman": 0.8265673737404005,
+      "block4_n": 7642,
+      "year_to_year_spearman": 0.6296647827047078,
+      "year_to_year_n": 780,
+      "stability_score": 0.726996770372002,
+      "stability_label": "high"
+    },
+    {
+      "position": "IDL",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.723699263448459,
+      "week_to_week_n": 9630,
+      "block4_spearman": 0.8260644264014121,
+      "block4_n": 7642,
+      "year_to_year_spearman": 0.6285330972730365,
+      "year_to_year_n": 780,
+      "stability_score": 0.7260989290409693,
+      "stability_label": "high"
+    },
+    {
+      "position": "IDL",
+      "metric": "pass_rush_opportunity_proxy",
+      "classification": "participation_proxy",
+      "week_to_week_spearman": 0.599995821315602,
+      "week_to_week_n": 9630,
+      "block4_spearman": 0.7741115614748153,
+      "block4_n": 7642,
+      "year_to_year_spearman": 0.6516147577863322,
+      "year_to_year_n": 780,
+      "stability_score": 0.6752407135255831,
+      "stability_label": "high"
+    },
+    {
+      "position": "LB",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.049691642114019316,
+      "week_to_week_n": 13180,
+      "block4_spearman": 0.0911182141680187,
+      "block4_n": 10367,
+      "year_to_year_spearman": 0.059064297046629584,
+      "year_to_year_n": 1070,
+      "stability_score": 0.06662471777622253,
+      "stability_label": "low"
+    },
+    {
+      "position": "LB",
+      "metric": "defensive_opponent_rush_attempts",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.08913208618668456,
+      "week_to_week_n": 13180,
+      "block4_spearman": 0.1446582517339466,
+      "block4_n": 10367,
+      "year_to_year_spearman": 0.12886303377651775,
+      "year_to_year_n": 1070,
+      "stability_score": 0.12088445723238299,
+      "stability_label": "low"
+    },
+    {
+      "position": "LB",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.8288654314071712,
+      "week_to_week_n": 13180,
+      "block4_spearman": 0.8463586135378277,
+      "block4_n": 10367,
+      "year_to_year_spearman": 0.7008079126504504,
+      "year_to_year_n": 1070,
+      "stability_score": 0.7920106525318165,
+      "stability_label": "high"
+    },
+    {
+      "position": "LB",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.8285495115465076,
+      "week_to_week_n": 13180,
+      "block4_spearman": 0.8461644706045431,
+      "block4_n": 10367,
+      "year_to_year_spearman": 0.698174115533086,
+      "year_to_year_n": 1070,
+      "stability_score": 0.7909626992280456,
+      "stability_label": "high"
+    },
+    {
+      "position": "LB",
+      "metric": "tackle_opportunity_proxy",
+      "classification": "participation_proxy",
+      "week_to_week_spearman": 0.7938726815874835,
+      "week_to_week_n": 13180,
+      "block4_spearman": 0.827316781791625,
+      "block4_n": 10367,
+      "year_to_year_spearman": 0.6906412418813294,
+      "year_to_year_n": 1070,
+      "stability_score": 0.7706102350868127,
+      "stability_label": "high"
+    },
+    {
+      "position": "S",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.02357747515798753,
+      "week_to_week_n": 3776,
+      "block4_spearman": 0.09620001200979214,
+      "block4_n": 3092,
+      "year_to_year_spearman": 0.1850665723600819,
+      "year_to_year_n": 262,
+      "stability_score": 0.10161468650928718,
+      "stability_label": "low"
+    },
+    {
+      "position": "S",
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.019719947372375795,
+      "week_to_week_n": 3776,
+      "block4_spearman": 0.11933722806424357,
+      "block4_n": 3092,
+      "year_to_year_spearman": 0.1770359870846475,
+      "year_to_year_n": 262,
+      "stability_score": 0.10536438750708894,
+      "stability_label": "low"
+    },
+    {
+      "position": "S",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.6242129915109935,
+      "week_to_week_n": 3776,
+      "block4_spearman": 0.6552835087959281,
+      "block4_n": 3092,
+      "year_to_year_spearman": 0.6713230392515361,
+      "year_to_year_n": 262,
+      "stability_score": 0.6502731798528193,
+      "stability_label": "high"
+    },
+    {
+      "position": "S",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.6242061905023529,
+      "week_to_week_n": 3776,
+      "block4_spearman": 0.6552779881433788,
+      "block4_n": 3092,
+      "year_to_year_spearman": 0.6713230392515361,
+      "year_to_year_n": 262,
+      "stability_score": 0.6502690726324226,
+      "stability_label": "high"
+    },
+    {
+      "position": "S",
+      "metric": "coverage_opportunity_proxy",
+      "classification": "participation_proxy",
+      "week_to_week_spearman": 0.3804329697786115,
+      "week_to_week_n": 3776,
+      "block4_spearman": 0.5112391251763717,
+      "block4_n": 3092,
+      "year_to_year_spearman": 0.591696620344391,
+      "year_to_year_n": 262,
+      "stability_score": 0.49445623843312475,
+      "stability_label": "medium"
+    },
+    {
+      "position": "S",
+      "metric": "tackle_opportunity_proxy",
+      "classification": "participation_proxy",
+      "week_to_week_spearman": 0.44378065584743936,
+      "week_to_week_n": 3776,
+      "block4_spearman": 0.5659774488243585,
+      "block4_n": 3092,
+      "year_to_year_spearman": 0.6208770815703595,
+      "year_to_year_n": 262,
+      "stability_score": 0.5435450620807191,
+      "stability_label": "medium"
+    },
+    {
+      "position": "CB",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.052654499318540056,
+      "week_to_week_n": 15144,
+      "block4_spearman": 0.09442929297385627,
+      "block4_n": 11843,
+      "year_to_year_spearman": 0.1267138751591687,
+      "year_to_year_n": 1280,
+      "stability_score": 0.09126588915052168,
+      "stability_label": "low"
+    },
+    {
+      "position": "CB",
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "week_to_week_spearman": 0.03883702356769017,
+      "week_to_week_n": 15144,
+      "block4_spearman": 0.14518010734193404,
+      "block4_n": 11843,
+      "year_to_year_spearman": 0.11714412425087554,
+      "year_to_year_n": 1280,
+      "stability_score": 0.10038708505349991,
+      "stability_label": "low"
+    },
+    {
+      "position": "CB",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.7113768388651617,
+      "week_to_week_n": 15127,
+      "block4_spearman": 0.7580222268904,
+      "block4_n": 11835,
+      "year_to_year_spearman": 0.6923924232775888,
+      "year_to_year_n": 1278,
+      "stability_score": 0.7205971630110501,
+      "stability_label": "high"
+    },
+    {
+      "position": "CB",
+      "metric": "snap_share",
+      "classification": "participation",
+      "week_to_week_spearman": 0.7113237954316727,
+      "week_to_week_n": 15127,
+      "block4_spearman": 0.7578934272393839,
+      "block4_n": 11835,
+      "year_to_year_spearman": 0.6923751357675836,
+      "year_to_year_n": 1278,
+      "stability_score": 0.7205307861462135,
+      "stability_label": "high"
+    },
+    {
+      "position": "CB",
+      "metric": "coverage_opportunity_proxy",
+      "classification": "participation_proxy",
+      "week_to_week_spearman": 0.5852544375421207,
+      "week_to_week_n": 15127,
+      "block4_spearman": 0.6677583186959191,
+      "block4_n": 11835,
+      "year_to_year_spearman": 0.6866868921337765,
+      "year_to_year_n": 1278,
+      "stability_score": 0.6465665494572721,
+      "stability_label": "high"
+    }
+  ],
+  "predictiveness": [
+    {
+      "position": "QB",
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.08044664611428319,
+      "next_week_n": 4040,
+      "next3_spearman": 0.11408338951653492,
+      "next3_n": 4040,
+      "ros_spearman": 0.10085374851694666,
+      "ros_n": 3670,
+      "next_season_spearman": 0.11086767633794704,
+      "next_season_n": 3207
+    },
+    {
+      "position": "QB",
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.05773651222170393,
+      "next_week_n": 4040,
+      "next3_spearman": 0.07091753455698459,
+      "next3_n": 4040,
+      "ros_spearman": 0.060764024623587314,
+      "ros_n": 3670,
+      "next_season_spearman": 0.11077871581611214,
+      "next_season_n": 3207
+    },
+    {
+      "position": "QB",
+      "metric": "team_rush_attempts",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.03881969550777149,
+      "next_week_n": 4040,
+      "next3_spearman": 0.06719045475940251,
+      "next3_n": 4040,
+      "ros_spearman": 0.07292781385209,
+      "ros_n": 3670,
+      "next_season_spearman": 0.02710210127975641,
+      "next_season_n": 3207
+    },
+    {
+      "position": "QB",
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.12686912338833148,
+      "next_week_n": 4040,
+      "next3_spearman": 0.18299773664993194,
+      "next3_n": 4040,
+      "ros_spearman": 0.19811203319831733,
+      "ros_n": 3670,
+      "next_season_spearman": 0.16735487570670537,
+      "next_season_n": 3207
+    },
+    {
+      "position": "QB",
+      "metric": "team_goal_line_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.08859925606451652,
+      "next_week_n": 4040,
+      "next3_spearman": 0.11613565369735253,
+      "next3_n": 4040,
+      "ros_spearman": 0.12339325851189588,
+      "ros_n": 3670,
+      "next_season_spearman": 0.10576168578914581,
+      "next_season_n": 3207
+    },
+    {
+      "position": "QB",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.2911620240139987,
+      "next_week_n": 4040,
+      "next3_spearman": 0.3312464702354531,
+      "next3_n": 4040,
+      "ros_spearman": 0.28001027228565445,
+      "ros_n": 3670,
+      "next_season_spearman": 0.31552192270359253,
+      "next_season_n": 3207
+    },
+    {
+      "position": "QB",
+      "metric": "qb_rush_share",
+      "classification": "opportunity",
+      "next_week_spearman": 0.2518774152704977,
+      "next_week_n": 4040,
+      "next3_spearman": 0.306607942811678,
+      "next3_n": 4040,
+      "ros_spearman": 0.2798739287177627,
+      "ros_n": 3670,
+      "next_season_spearman": 0.340786995339905,
+      "next_season_n": 3207
+    },
+    {
+      "position": "QB",
+      "metric": "red_zone_carry_share",
+      "classification": "opportunity_quality",
+      "next_week_spearman": 0.06657440067274821,
+      "next_week_n": 2043,
+      "next3_spearman": 0.07253203559408963,
+      "next3_n": 2043,
+      "ros_spearman": 0.08789461126981267,
+      "ros_n": 1876,
+      "next_season_spearman": 0.14053718242189456,
+      "next_season_n": 1669
+    },
+    {
+      "position": "QB",
+      "metric": "inside_5_carry_share",
+      "classification": "opportunity_quality",
+      "next_week_spearman": 0.027473667400398548,
+      "next_week_n": 1545,
+      "next3_spearman": 0.01555715585721708,
+      "next3_n": 1545,
+      "ros_spearman": 0.00017977656831779125,
+      "ros_n": 1420,
+      "next_season_spearman": 0.03759693396290705,
+      "next_season_n": 1270
+    },
+    {
+      "position": "RB",
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": -0.008776130906815787,
+      "next_week_n": 9608,
+      "next3_spearman": -0.011219822689720993,
+      "next3_n": 9608,
+      "ros_spearman": -0.01045106518219959,
+      "ros_n": 8912,
+      "next_season_spearman": 0.016645836045848624,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "team_rush_attempts",
+      "classification": "team_opportunity",
+      "next_week_spearman": -0.005887295906367433,
+      "next_week_n": 9608,
+      "next3_spearman": -0.0015694465315901083,
+      "next3_n": 9608,
+      "ros_spearman": 0.0005166187990687443,
+      "ros_n": 8912,
+      "next_season_spearman": 0.024027048962709165,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.003490149325889429,
+      "next_week_n": 9608,
+      "next3_spearman": -0.0016344289966139988,
+      "next3_n": 9608,
+      "ros_spearman": -0.001271081988213112,
+      "ros_n": 8912,
+      "next_season_spearman": 0.004164822990911222,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.006636916961924509,
+      "next_week_n": 9608,
+      "next3_spearman": 0.010697528434877646,
+      "next3_n": 9608,
+      "ros_spearman": 0.012923774248488258,
+      "ros_n": 8912,
+      "next_season_spearman": 0.012352679978177536,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "team_goal_line_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.024591062166661976,
+      "next_week_n": 9608,
+      "next3_spearman": 0.02342620087596021,
+      "next3_n": 9608,
+      "ros_spearman": 0.01905137523130804,
+      "ros_n": 8912,
+      "next_season_spearman": 0.03239119474355905,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.6057027323157408,
+      "next_week_n": 9608,
+      "next3_spearman": 0.6769805925687535,
+      "next3_n": 9608,
+      "ros_spearman": 0.6738288745539945,
+      "ros_n": 8912,
+      "next_season_spearman": 0.621897633019448,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "carry_share",
+      "classification": "opportunity",
+      "next_week_spearman": 0.6042640396406231,
+      "next_week_n": 9608,
+      "next3_spearman": 0.6823888161715624,
+      "next3_n": 9608,
+      "ros_spearman": 0.684437467080015,
+      "ros_n": 8912,
+      "next_season_spearman": 0.6287288750275074,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "target_share",
+      "classification": "opportunity",
+      "next_week_spearman": 0.5160430193363753,
+      "next_week_n": 9608,
+      "next3_spearman": 0.5763108271767444,
+      "next3_n": 9608,
+      "ros_spearman": 0.5740053434536908,
+      "ros_n": 8912,
+      "next_season_spearman": 0.5388156653248333,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "carries_per_rush_attempt",
+      "classification": "opportunity",
+      "next_week_spearman": 0.6042640396406231,
+      "next_week_n": 9608,
+      "next3_spearman": 0.6823888161715624,
+      "next3_n": 9608,
+      "ros_spearman": 0.684437467080015,
+      "ros_n": 8912,
+      "next_season_spearman": 0.6287288750275074,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "targets_per_pass_attempt",
+      "classification": "opportunity",
+      "next_week_spearman": 0.5160430193363753,
+      "next_week_n": 9608,
+      "next3_spearman": 0.5763108271767444,
+      "next3_n": 9608,
+      "ros_spearman": 0.5740053434536908,
+      "ros_n": 8912,
+      "next_season_spearman": 0.5388156653248333,
+      "next_season_n": 7258
+    },
+    {
+      "position": "RB",
+      "metric": "red_zone_carry_share",
+      "classification": "opportunity_quality",
+      "next_week_spearman": 0.35427059464984795,
+      "next_week_n": 6643,
+      "next3_spearman": 0.41317445289640065,
+      "next3_n": 6643,
+      "ros_spearman": 0.4080879306583388,
+      "ros_n": 6185,
+      "next_season_spearman": 0.3450688676143568,
+      "next_season_n": 5199
+    },
+    {
+      "position": "RB",
+      "metric": "inside_10_carry_share",
+      "classification": "opportunity_quality",
+      "next_week_spearman": 0.3154588226897871,
+      "next_week_n": 6148,
+      "next3_spearman": 0.3663351949260922,
+      "next3_n": 6148,
+      "ros_spearman": 0.36183431368532765,
+      "ros_n": 5727,
+      "next_season_spearman": 0.30778450529374496,
+      "next_season_n": 4850
+    },
+    {
+      "position": "RB",
+      "metric": "inside_5_carry_share",
+      "classification": "opportunity_quality",
+      "next_week_spearman": 0.2935836323104204,
+      "next_week_n": 5184,
+      "next3_spearman": 0.345520430555257,
+      "next3_n": 5184,
+      "ros_spearman": 0.3385994923670677,
+      "ros_n": 4825,
+      "next_season_spearman": 0.29258469916710206,
+      "next_season_n": 4088
+    },
+    {
+      "position": "RB",
+      "metric": "red_zone_target_share",
+      "classification": "opportunity_quality",
+      "next_week_spearman": 0.10557015863624086,
+      "next_week_n": 6627,
+      "next3_spearman": 0.12507342417070283,
+      "next3_n": 6627,
+      "ros_spearman": 0.11650135323905444,
+      "ros_n": 6167,
+      "next_season_spearman": 0.11955709904304959,
+      "next_season_n": 5190
+    },
+    {
+      "position": "WR",
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.008739807054474589,
+      "next_week_n": 15320,
+      "next3_spearman": 0.018339725695361516,
+      "next3_n": 15320,
+      "ros_spearman": 0.012836366749043523,
+      "ros_n": 14252,
+      "next_season_spearman": 0.03350749195515209,
+      "next_season_n": 11489
+    },
+    {
+      "position": "WR",
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.03770393143227173,
+      "next_week_n": 15320,
+      "next3_spearman": 0.04922638282966508,
+      "next3_n": 15320,
+      "ros_spearman": 0.05430201715376082,
+      "ros_n": 14252,
+      "next_season_spearman": 0.035930494740756595,
+      "next_season_n": 11489
+    },
+    {
+      "position": "WR",
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.01998416015478332,
+      "next_week_n": 15320,
+      "next3_spearman": 0.02509419942069097,
+      "next3_n": 15320,
+      "ros_spearman": 0.026071060998986588,
+      "ros_n": 14252,
+      "next_season_spearman": 0.05346315940278309,
+      "next_season_n": 11489
+    },
+    {
+      "position": "WR",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.5538088324534373,
+      "next_week_n": 15303,
+      "next3_spearman": 0.6556093306206475,
+      "next3_n": 15303,
+      "ros_spearman": 0.6624038447506565,
+      "ros_n": 14238,
+      "next_season_spearman": 0.6321469594464674,
+      "next_season_n": 11483
+    },
+    {
+      "position": "WR",
+      "metric": "target_share",
+      "classification": "opportunity",
+      "next_week_spearman": 0.5965100016767566,
+      "next_week_n": 15320,
+      "next3_spearman": 0.7079091031453936,
+      "next3_n": 15320,
+      "ros_spearman": 0.7191917276474488,
+      "ros_n": 14252,
+      "next_season_spearman": 0.706068527521461,
+      "next_season_n": 11489
+    },
+    {
+      "position": "WR",
+      "metric": "targets_per_pass_attempt",
+      "classification": "opportunity",
+      "next_week_spearman": 0.5965100016767566,
+      "next_week_n": 15320,
+      "next3_spearman": 0.7079091031453936,
+      "next3_n": 15320,
+      "ros_spearman": 0.7191917276474488,
+      "ros_n": 14252,
+      "next_season_spearman": 0.706068527521461,
+      "next_season_n": 11489
+    },
+    {
+      "position": "WR",
+      "metric": "pass_play_participation_proxy",
+      "classification": "participation_proxy",
+      "next_week_spearman": 0.5538109608958758,
+      "next_week_n": 15303,
+      "next3_spearman": 0.6556217062152025,
+      "next3_n": 15303,
+      "ros_spearman": 0.6624162848742141,
+      "ros_n": 14238,
+      "next_season_spearman": 0.6321447425070945,
+      "next_season_n": 11483
+    },
+    {
+      "position": "WR",
+      "metric": "red_zone_target_share",
+      "classification": "opportunity_quality",
+      "next_week_spearman": 0.17602392500079359,
+      "next_week_n": 7434,
+      "next3_spearman": 0.225921040284207,
+      "next3_n": 7434,
+      "ros_spearman": 0.21980280576532962,
+      "ros_n": 6933,
+      "next_season_spearman": 0.2502281023841107,
+      "next_season_n": 5908
+    },
+    {
+      "position": "WR",
+      "metric": "end_zone_target_share_proxy",
+      "classification": "opportunity_quality_proxy",
+      "next_week_spearman": 0.10475509364570687,
+      "next_week_n": 6612,
+      "next3_spearman": 0.14365927383974042,
+      "next3_n": 6612,
+      "ros_spearman": 0.12843646720595872,
+      "ros_n": 6165,
+      "next_season_spearman": 0.1770432501202968,
+      "next_season_n": 5262
+    },
+    {
+      "position": "TE",
+      "metric": "team_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.017715941730315817,
+      "next_week_n": 7570,
+      "next3_spearman": 0.026369269945356162,
+      "next3_n": 7570,
+      "ros_spearman": 0.029615539449632813,
+      "ros_n": 6990,
+      "next_season_spearman": 0.053336975181661146,
+      "next_season_n": 5736
+    },
+    {
+      "position": "TE",
+      "metric": "team_pass_attempts",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.008433664490306836,
+      "next_week_n": 7570,
+      "next3_spearman": 0.00797562522627258,
+      "next3_n": 7570,
+      "ros_spearman": 0.0008561771940824329,
+      "ros_n": 6990,
+      "next_season_spearman": 0.005774957802658867,
+      "next_season_n": 5736
+    },
+    {
+      "position": "TE",
+      "metric": "team_red_zone_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.03138962892612721,
+      "next_week_n": 7570,
+      "next3_spearman": 0.04423517322169245,
+      "next3_n": 7570,
+      "ros_spearman": 0.04041197556791804,
+      "ros_n": 6990,
+      "next_season_spearman": 0.05017018162295981,
+      "next_season_n": 5736
+    },
+    {
+      "position": "TE",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.4746338204857096,
+      "next_week_n": 7566,
+      "next3_spearman": 0.5831116924187232,
+      "next3_n": 7566,
+      "ros_spearman": 0.6069843886794327,
+      "ros_n": 6987,
+      "next_season_spearman": 0.5624090101833359,
+      "next_season_n": 5732
+    },
+    {
+      "position": "TE",
+      "metric": "target_share",
+      "classification": "opportunity",
+      "next_week_spearman": 0.5285317060450885,
+      "next_week_n": 7570,
+      "next3_spearman": 0.6511658785800721,
+      "next3_n": 7570,
+      "ros_spearman": 0.6730716498159794,
+      "ros_n": 6990,
+      "next_season_spearman": 0.6475197169778055,
+      "next_season_n": 5736
+    },
+    {
+      "position": "TE",
+      "metric": "targets_per_pass_attempt",
+      "classification": "opportunity",
+      "next_week_spearman": 0.5285317060450885,
+      "next_week_n": 7570,
+      "next3_spearman": 0.6511658785800721,
+      "next3_n": 7570,
+      "ros_spearman": 0.6730716498159794,
+      "ros_n": 6990,
+      "next_season_spearman": 0.6475197169778055,
+      "next_season_n": 5736
+    },
+    {
+      "position": "TE",
+      "metric": "pass_play_participation_proxy",
+      "classification": "participation_proxy",
+      "next_week_spearman": 0.4746771526780951,
+      "next_week_n": 7566,
+      "next3_spearman": 0.5831430746506171,
+      "next3_n": 7566,
+      "ros_spearman": 0.6070472553889013,
+      "ros_n": 6987,
+      "next_season_spearman": 0.5624181676951777,
+      "next_season_n": 5732
+    },
+    {
+      "position": "TE",
+      "metric": "red_zone_target_share",
+      "classification": "opportunity_quality",
+      "next_week_spearman": 0.15667331636851825,
+      "next_week_n": 3561,
+      "next3_spearman": 0.19546292584455988,
+      "next3_n": 3561,
+      "ros_spearman": 0.2091052039617527,
+      "ros_n": 3320,
+      "next_season_spearman": 0.21949968453554042,
+      "next_season_n": 2780
+    },
+    {
+      "position": "TE",
+      "metric": "end_zone_target_share_proxy",
+      "classification": "opportunity_quality_proxy",
+      "next_week_spearman": 0.07846021517605695,
+      "next_week_n": 3142,
+      "next3_spearman": 0.11864687511185815,
+      "next3_n": 3142,
+      "ros_spearman": 0.13106841381286302,
+      "ros_n": 2929,
+      "next_season_spearman": 0.14098910594312186,
+      "next_season_n": 2447
+    },
+    {
+      "position": "EDGE",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": -0.008655847292704084,
+      "next_week_n": 12265,
+      "next3_spearman": -0.014570110814630109,
+      "next3_n": 12265,
+      "ros_spearman": -0.031370133062082896,
+      "ros_n": 11366,
+      "next_season_spearman": -0.026429657452497472,
+      "next_season_n": 9596
+    },
+    {
+      "position": "EDGE",
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.011522404099832732,
+      "next_week_n": 12265,
+      "next3_spearman": 0.020441141244651427,
+      "next3_n": 12265,
+      "ros_spearman": 0.014138761726959796,
+      "ros_n": 11366,
+      "next_season_spearman": 0.021714947634846028,
+      "next_season_n": 9596
+    },
+    {
+      "position": "EDGE",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.21422611707622952,
+      "next_week_n": 12259,
+      "next3_spearman": 0.32696500478907403,
+      "next3_n": 12259,
+      "ros_spearman": 0.37616455757920403,
+      "ros_n": 11361,
+      "next_season_spearman": 0.37493670748006325,
+      "next_season_n": 9594
+    },
+    {
+      "position": "EDGE",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.21057609091703003,
+      "next_week_n": 12259,
+      "next3_spearman": 0.3210844308997263,
+      "next3_n": 12259,
+      "ros_spearman": 0.36962957748965275,
+      "ros_n": 11361,
+      "next_season_spearman": 0.3630324650068498,
+      "next_season_n": 9594
+    },
+    {
+      "position": "EDGE",
+      "metric": "pass_rush_opportunity_proxy",
+      "classification": "participation_proxy",
+      "next_week_spearman": 0.21042077602071343,
+      "next_week_n": 12259,
+      "next3_spearman": 0.32295169436189963,
+      "next3_n": 12259,
+      "ros_spearman": 0.36809507028206556,
+      "ros_n": 11361,
+      "next_season_spearman": 0.36909641091348266,
+      "next_season_n": 9594
+    },
+    {
+      "position": "IDL",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": -0.016313861946093446,
+      "next_week_n": 9794,
+      "next3_spearman": -0.015043902115361583,
+      "next3_n": 9794,
+      "ros_spearman": -0.030032816686571775,
+      "ros_n": 9055,
+      "next_season_spearman": 0.009752404920134147,
+      "next_season_n": 7469
+    },
+    {
+      "position": "IDL",
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.019798038824148937,
+      "next_week_n": 9794,
+      "next3_spearman": 0.03620391757267804,
+      "next3_n": 9794,
+      "ros_spearman": 0.03484598766547203,
+      "ros_n": 9055,
+      "next_season_spearman": 0.09271857694743697,
+      "next_season_n": 7469
+    },
+    {
+      "position": "IDL",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.1917901792909842,
+      "next_week_n": 9788,
+      "next3_spearman": 0.2995205703951362,
+      "next3_n": 9788,
+      "ros_spearman": 0.35048426067572036,
+      "ros_n": 9049,
+      "next_season_spearman": 0.39919918652670755,
+      "next_season_n": 7469
+    },
+    {
+      "position": "IDL",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.19300771242111367,
+      "next_week_n": 9788,
+      "next3_spearman": 0.30126647303107235,
+      "next3_n": 9788,
+      "ros_spearman": 0.3519908973508554,
+      "ros_n": 9049,
+      "next_season_spearman": 0.40087628280057247,
+      "next_season_n": 7469
+    },
+    {
+      "position": "IDL",
+      "metric": "pass_rush_opportunity_proxy",
+      "classification": "participation_proxy",
+      "next_week_spearman": 0.1890208007238404,
+      "next_week_n": 9788,
+      "next3_spearman": 0.29689056807622827,
+      "next3_n": 9788,
+      "ros_spearman": 0.34916319419139225,
+      "ros_n": 9049,
+      "next_season_spearman": 0.4082971442110381,
+      "next_season_n": 7469
+    },
+    {
+      "position": "LB",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": -0.007453030497361267,
+      "next_week_n": 13321,
+      "next3_spearman": -0.008803048656005546,
+      "next3_n": 13321,
+      "ros_spearman": -0.0027938833195156436,
+      "ros_n": 12306,
+      "next_season_spearman": -0.02105254618896823,
+      "next_season_n": 9872
+    },
+    {
+      "position": "LB",
+      "metric": "defensive_opponent_rush_attempts",
+      "classification": "team_opportunity",
+      "next_week_spearman": -0.026516374603622408,
+      "next_week_n": 13321,
+      "next3_spearman": -0.03948054969639789,
+      "next3_n": 13321,
+      "ros_spearman": -0.030256127177644403,
+      "ros_n": 12306,
+      "next_season_spearman": -0.03138436409365243,
+      "next_season_n": 9872
+    },
+    {
+      "position": "LB",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.19991305815983731,
+      "next_week_n": 13321,
+      "next3_spearman": 0.3154099775010257,
+      "next3_n": 13321,
+      "ros_spearman": 0.38104867151117844,
+      "ros_n": 12306,
+      "next_season_spearman": 0.38547301324586947,
+      "next_season_n": 9872
+    },
+    {
+      "position": "LB",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.2001015356887582,
+      "next_week_n": 13321,
+      "next3_spearman": 0.31574032096958754,
+      "next3_n": 13321,
+      "ros_spearman": 0.3815063992707594,
+      "ros_n": 12306,
+      "next_season_spearman": 0.3857143982388522,
+      "next_season_n": 9872
+    },
+    {
+      "position": "LB",
+      "metric": "tackle_opportunity_proxy",
+      "classification": "participation_proxy",
+      "next_week_spearman": 0.19897446663401508,
+      "next_week_n": 13321,
+      "next3_spearman": 0.3141228052299964,
+      "next3_n": 13321,
+      "ros_spearman": 0.37918555231413503,
+      "ros_n": 12306,
+      "next_season_spearman": 0.38205164446588197,
+      "next_season_n": 9872
+    },
+    {
+      "position": "S",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": -0.014437986563517443,
+      "next_week_n": 3848,
+      "next3_spearman": -0.0011861391024529484,
+      "next3_n": 3848,
+      "ros_spearman": -0.04793307529460154,
+      "ros_n": 3592,
+      "next_season_spearman": 0.05817498302364417,
+      "next_season_n": 3109
+    },
+    {
+      "position": "S",
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.006998522177823698,
+      "next_week_n": 3848,
+      "next3_spearman": 0.009034656873680578,
+      "next3_n": 3848,
+      "ros_spearman": -0.016515968652068294,
+      "ros_n": 3592,
+      "next_season_spearman": 0.047733914788216404,
+      "next_season_n": 3109
+    },
+    {
+      "position": "S",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.11240009033503257,
+      "next_week_n": 3848,
+      "next3_spearman": 0.1955806308304231,
+      "next3_n": 3848,
+      "ros_spearman": 0.23469098495920204,
+      "ros_n": 3592,
+      "next_season_spearman": 0.27435480610808555,
+      "next_season_n": 3109
+    },
+    {
+      "position": "S",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.11240038718995819,
+      "next_week_n": 3848,
+      "next3_spearman": 0.1955766899717567,
+      "next3_n": 3848,
+      "ros_spearman": 0.23468066034543641,
+      "ros_n": 3592,
+      "next_season_spearman": 0.27435159425587924,
+      "next_season_n": 3109
+    },
+    {
+      "position": "S",
+      "metric": "coverage_opportunity_proxy",
+      "classification": "participation_proxy",
+      "next_week_spearman": 0.09537522474949219,
+      "next_week_n": 3848,
+      "next3_spearman": 0.16551139830936112,
+      "next3_n": 3848,
+      "ros_spearman": 0.1837187480824622,
+      "ros_n": 3592,
+      "next_season_spearman": 0.23848829709118718,
+      "next_season_n": 3109
+    },
+    {
+      "position": "S",
+      "metric": "tackle_opportunity_proxy",
+      "classification": "participation_proxy",
+      "next_week_spearman": 0.0897032369834566,
+      "next_week_n": 3848,
+      "next3_spearman": 0.16382268454489055,
+      "next3_n": 3848,
+      "ros_spearman": 0.18347085335249527,
+      "ros_n": 3592,
+      "next_season_spearman": 0.2637659119749725,
+      "next_season_n": 3109
+    },
+    {
+      "position": "CB",
+      "metric": "defensive_opponent_plays",
+      "classification": "team_opportunity",
+      "next_week_spearman": -0.0058338530392217786,
+      "next_week_n": 15325,
+      "next3_spearman": -0.005532941312741729,
+      "next3_n": 15325,
+      "ros_spearman": -0.023794734931823314,
+      "ros_n": 14108,
+      "next_season_spearman": -0.028612041129224997,
+      "next_season_n": 11636
+    },
+    {
+      "position": "CB",
+      "metric": "defensive_opponent_dropbacks",
+      "classification": "team_opportunity",
+      "next_week_spearman": 0.0002992055812411121,
+      "next_week_n": 15325,
+      "next3_spearman": -0.00747340686704621,
+      "next3_n": 15325,
+      "ros_spearman": -0.023189501366693028,
+      "ros_n": 14108,
+      "next_season_spearman": -0.03325136048319224,
+      "next_season_n": 11636
+    },
+    {
+      "position": "CB",
+      "metric": "defense_snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.10516390917330322,
+      "next_week_n": 15311,
+      "next3_spearman": 0.17933924994811218,
+      "next3_n": 15311,
+      "ros_spearman": 0.2268800191453094,
+      "ros_n": 14096,
+      "next_season_spearman": 0.30160603513743967,
+      "next_season_n": 11624
+    },
+    {
+      "position": "CB",
+      "metric": "snap_share",
+      "classification": "participation",
+      "next_week_spearman": 0.10554800505241557,
+      "next_week_n": 15311,
+      "next3_spearman": 0.17961608864904652,
+      "next3_n": 15311,
+      "ros_spearman": 0.22714814147513987,
+      "ros_n": 14096,
+      "next_season_spearman": 0.301593508877328,
+      "next_season_n": 11624
+    },
+    {
+      "position": "CB",
+      "metric": "coverage_opportunity_proxy",
+      "classification": "participation_proxy",
+      "next_week_spearman": 0.10381260891804774,
+      "next_week_n": 15311,
+      "next3_spearman": 0.1724716484834113,
+      "next3_n": 15311,
+      "ros_spearman": 0.21412445800706822,
+      "ros_n": 14096,
+      "next_season_spearman": 0.28564007545062303,
+      "next_season_n": 11624
+    }
+  ],
+  "validation": [
+    {
+      "position": "QB",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 1833,
+      "n_test": 617,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 6.146348067166847,
+      "rmse": 7.77339596888177,
+      "spearman": 0.469420787034156
+    },
+    {
+      "position": "QB",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 1833,
+      "n_test": 617,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_rush_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "team_goal_line_plays_prior4",
+        "snap_share_prior4",
+        "qb_rush_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4"
+      ],
+      "mae": 6.261478992059944,
+      "rmse": 7.872118778596109,
+      "spearman": 0.4514906206712462,
+      "mae_improvement_vs_baseline": -0.018731598607002815
+    },
+    {
+      "position": "QB",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 2450,
+      "n_test": 648,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 6.339881777291538,
+      "rmse": 7.788042055210492,
+      "spearman": 0.4766881911179163
+    },
+    {
+      "position": "QB",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 2450,
+      "n_test": 648,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_rush_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "team_goal_line_plays_prior4",
+        "snap_share_prior4",
+        "qb_rush_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4"
+      ],
+      "mae": 6.355588878528444,
+      "rmse": 7.843180406106572,
+      "spearman": 0.471075253729236,
+      "mae_improvement_vs_baseline": -0.00247750696127588
+    },
+    {
+      "position": "QB",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 3098,
+      "n_test": 649,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 6.770857894066974,
+      "rmse": 8.37852071185363,
+      "spearman": 0.4300065722779439
+    },
+    {
+      "position": "QB",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 3098,
+      "n_test": 649,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_rush_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "team_goal_line_plays_prior4",
+        "snap_share_prior4",
+        "qb_rush_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4"
+      ],
+      "mae": 6.69558585506041,
+      "rmse": 8.325208899392434,
+      "spearman": 0.4452246131237883,
+      "mae_improvement_vs_baseline": 0.011117060819208912
+    },
+    {
+      "position": "QB",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 3747,
+      "n_test": 583,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 6.781912715260546,
+      "rmse": 8.376387407843438,
+      "spearman": 0.3781245274980612
+    },
+    {
+      "position": "QB",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 3747,
+      "n_test": 583,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_rush_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "team_goal_line_plays_prior4",
+        "snap_share_prior4",
+        "qb_rush_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4"
+      ],
+      "mae": 6.720182739864859,
+      "rmse": 8.380439005188453,
+      "spearman": 0.380530493677494,
+      "mae_improvement_vs_baseline": 0.009102148315295142
+    },
+    {
+      "position": "RB",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 4344,
+      "n_test": 1546,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 4.995815733529832,
+      "rmse": 6.575728109815411,
+      "spearman": 0.5986905783886717
+    },
+    {
+      "position": "RB",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 4344,
+      "n_test": 1546,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_rush_attempts_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "team_goal_line_plays_prior4",
+        "snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "carries_per_rush_attempt_prior4",
+        "targets_per_pass_attempt_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_10_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "red_zone_target_share_prior4"
+      ],
+      "mae": 4.929092089375881,
+      "rmse": 6.50541819143825,
+      "spearman": 0.6156694306375315,
+      "mae_improvement_vs_baseline": 0.013355905764524076
+    },
+    {
+      "position": "RB",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 5890,
+      "n_test": 1440,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 4.762146759001521,
+      "rmse": 6.467188620026789,
+      "spearman": 0.6307220978488723
+    },
+    {
+      "position": "RB",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 5890,
+      "n_test": 1440,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_rush_attempts_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "team_goal_line_plays_prior4",
+        "snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "carries_per_rush_attempt_prior4",
+        "targets_per_pass_attempt_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_10_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "red_zone_target_share_prior4"
+      ],
+      "mae": 4.703912483663616,
+      "rmse": 6.354958175761234,
+      "spearman": 0.6406515728942979,
+      "mae_improvement_vs_baseline": 0.012228576372164351
+    },
+    {
+      "position": "RB",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 7330,
+      "n_test": 1494,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 4.7190501502844,
+      "rmse": 6.267303896772072,
+      "spearman": 0.6655558172121094
+    },
+    {
+      "position": "RB",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 7330,
+      "n_test": 1494,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_rush_attempts_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "team_goal_line_plays_prior4",
+        "snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "carries_per_rush_attempt_prior4",
+        "targets_per_pass_attempt_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_10_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "red_zone_target_share_prior4"
+      ],
+      "mae": 4.703085299227789,
+      "rmse": 6.29290552267934,
+      "spearman": 0.6645803644163987,
+      "mae_improvement_vs_baseline": 0.003383064504124655
+    },
+    {
+      "position": "RB",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 8824,
+      "n_test": 1424,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 4.760997784790266,
+      "rmse": 6.550790547858543,
+      "spearman": 0.6786421295900582
+    },
+    {
+      "position": "RB",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 8824,
+      "n_test": 1424,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_rush_attempts_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "team_goal_line_plays_prior4",
+        "snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "carries_per_rush_attempt_prior4",
+        "targets_per_pass_attempt_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_10_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "red_zone_target_share_prior4"
+      ],
+      "mae": 4.714020531629232,
+      "rmse": 6.508130592434274,
+      "spearman": 0.690172703683564,
+      "mae_improvement_vs_baseline": 0.00986710250341019
+    },
+    {
+      "position": "WR",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 6899,
+      "n_test": 2325,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 4.985479325621529,
+      "rmse": 6.5257061868379775,
+      "spearman": 0.5676348210320933
+    },
+    {
+      "position": "WR",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 6899,
+      "n_test": 2325,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "snap_share_prior4",
+        "target_share_prior4",
+        "targets_per_pass_attempt_prior4",
+        "pass_play_participation_proxy_prior4",
+        "red_zone_target_share_prior4",
+        "end_zone_target_share_proxy_prior4"
+      ],
+      "mae": 4.961059532925396,
+      "rmse": 6.492577532742866,
+      "spearman": 0.5779663466647726,
+      "mae_improvement_vs_baseline": 0.0048981835248285465
+    },
+    {
+      "position": "WR",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 9224,
+      "n_test": 2435,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 4.696093897335827,
+      "rmse": 6.329534639516259,
+      "spearman": 0.6100764758831357
+    },
+    {
+      "position": "WR",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 9224,
+      "n_test": 2435,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "snap_share_prior4",
+        "target_share_prior4",
+        "targets_per_pass_attempt_prior4",
+        "pass_play_participation_proxy_prior4",
+        "red_zone_target_share_prior4",
+        "end_zone_target_share_proxy_prior4"
+      ],
+      "mae": 4.649023854424009,
+      "rmse": 6.305079445789442,
+      "spearman": 0.6209852980750842,
+      "mae_improvement_vs_baseline": 0.010023232912468453
+    },
+    {
+      "position": "WR",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 11659,
+      "n_test": 2383,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 4.8027715310425165,
+      "rmse": 6.541258269753236,
+      "spearman": 0.6094146546232891
+    },
+    {
+      "position": "WR",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 11659,
+      "n_test": 2383,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "snap_share_prior4",
+        "target_share_prior4",
+        "targets_per_pass_attempt_prior4",
+        "pass_play_participation_proxy_prior4",
+        "red_zone_target_share_prior4",
+        "end_zone_target_share_proxy_prior4"
+      ],
+      "mae": 4.747019450712055,
+      "rmse": 6.472725839602619,
+      "spearman": 0.6209009521861323,
+      "mae_improvement_vs_baseline": 0.01160831406826457
+    },
+    {
+      "position": "WR",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 14042,
+      "n_test": 2270,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 4.517786852366012,
+      "rmse": 5.986927406281063,
+      "spearman": 0.6131008017765739
+    },
+    {
+      "position": "WR",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 14042,
+      "n_test": 2270,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "snap_share_prior4",
+        "target_share_prior4",
+        "targets_per_pass_attempt_prior4",
+        "pass_play_participation_proxy_prior4",
+        "red_zone_target_share_prior4",
+        "end_zone_target_share_proxy_prior4"
+      ],
+      "mae": 4.466128510773011,
+      "rmse": 5.96791102281098,
+      "spearman": 0.6254296667152519,
+      "mae_improvement_vs_baseline": 0.01143443532887054
+    },
+    {
+      "position": "TE",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 3390,
+      "n_test": 1183,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 3.7623398690673513,
+      "rmse": 5.100305787939499,
+      "spearman": 0.5142172394431049
+    },
+    {
+      "position": "TE",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 3390,
+      "n_test": 1183,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "snap_share_prior4",
+        "target_share_prior4",
+        "targets_per_pass_attempt_prior4",
+        "pass_play_participation_proxy_prior4",
+        "red_zone_target_share_prior4",
+        "end_zone_target_share_proxy_prior4"
+      ],
+      "mae": 3.729542035147558,
+      "rmse": 5.050233600408447,
+      "spearman": 0.5332220981635625,
+      "mae_improvement_vs_baseline": 0.008717403281252064
+    },
+    {
+      "position": "TE",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 4573,
+      "n_test": 1166,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 3.6935065919818046,
+      "rmse": 4.957770742881781,
+      "spearman": 0.5215856182556661
+    },
+    {
+      "position": "TE",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 4573,
+      "n_test": 1166,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "snap_share_prior4",
+        "target_share_prior4",
+        "targets_per_pass_attempt_prior4",
+        "pass_play_participation_proxy_prior4",
+        "red_zone_target_share_prior4",
+        "end_zone_target_share_proxy_prior4"
+      ],
+      "mae": 3.6342566632392423,
+      "rmse": 4.886338041487577,
+      "spearman": 0.538401191118434,
+      "mae_improvement_vs_baseline": 0.016041646946342903
+    },
+    {
+      "position": "TE",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 5739,
+      "n_test": 1202,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 3.7520609948685513,
+      "rmse": 5.016755928051815,
+      "spearman": 0.5681464085826728
+    },
+    {
+      "position": "TE",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 5739,
+      "n_test": 1202,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "snap_share_prior4",
+        "target_share_prior4",
+        "targets_per_pass_attempt_prior4",
+        "pass_play_participation_proxy_prior4",
+        "red_zone_target_share_prior4",
+        "end_zone_target_share_proxy_prior4"
+      ],
+      "mae": 3.693717668320206,
+      "rmse": 4.954695226176076,
+      "spearman": 0.5822468727809147,
+      "mae_improvement_vs_baseline": 0.015549674333156476
+    },
+    {
+      "position": "TE",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 6941,
+      "n_test": 1150,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 3.799985397967647,
+      "rmse": 5.315312955936376,
+      "spearman": 0.5646378608840894
+    },
+    {
+      "position": "TE",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 6941,
+      "n_test": 1150,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "team_plays_prior4",
+        "team_pass_attempts_prior4",
+        "team_red_zone_plays_prior4",
+        "snap_share_prior4",
+        "target_share_prior4",
+        "targets_per_pass_attempt_prior4",
+        "pass_play_participation_proxy_prior4",
+        "red_zone_target_share_prior4",
+        "end_zone_target_share_proxy_prior4"
+      ],
+      "mae": 3.711512375644993,
+      "rmse": 5.219747272731879,
+      "spearman": 0.5859925840723115,
+      "mae_improvement_vs_baseline": 0.023282463761563968
+    },
+    {
+      "position": "EDGE",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 6076,
+      "n_test": 1907,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.5148264064620774,
+      "rmse": 0.7188537122394023,
+      "spearman": 0.205925981133751
+    },
+    {
+      "position": "EDGE",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 6076,
+      "n_test": 1907,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "pass_rush_opportunity_proxy_prior4"
+      ],
+      "mae": 0.5013965791022778,
+      "rmse": 0.7123987492355489,
+      "spearman": 0.23793556012819916,
+      "mae_improvement_vs_baseline": 0.026086127656291747
+    },
+    {
+      "position": "EDGE",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 7983,
+      "n_test": 1796,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.5423514832821602,
+      "rmse": 0.8277355992575475,
+      "spearman": 0.24245588756654426
+    },
+    {
+      "position": "EDGE",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 7983,
+      "n_test": 1796,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "pass_rush_opportunity_proxy_prior4"
+      ],
+      "mae": 0.525121956755962,
+      "rmse": 0.8225478308818177,
+      "spearman": 0.2666781072886612,
+      "mae_improvement_vs_baseline": 0.03176819287361389
+    },
+    {
+      "position": "EDGE",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 9779,
+      "n_test": 1691,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.5286577670499317,
+      "rmse": 0.7953706544208331,
+      "spearman": 0.19500655039785805
+    },
+    {
+      "position": "EDGE",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 9779,
+      "n_test": 1691,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "pass_rush_opportunity_proxy_prior4"
+      ],
+      "mae": 0.5096536692702565,
+      "rmse": 0.7881852122108848,
+      "spearman": 0.24281333814711953,
+      "mae_improvement_vs_baseline": 0.035947826673811696
+    },
+    {
+      "position": "EDGE",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 11470,
+      "n_test": 1465,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.49438655535482334,
+      "rmse": 0.683328648332055,
+      "spearman": 0.2562079251190845
+    },
+    {
+      "position": "EDGE",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 11470,
+      "n_test": 1465,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "pass_rush_opportunity_proxy_prior4"
+      ],
+      "mae": 0.48630859687077116,
+      "rmse": 0.6822957927724511,
+      "spearman": 0.24847531355095792,
+      "mae_improvement_vs_baseline": 0.016339357121583936
+    },
+    {
+      "position": "IDL",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 4217,
+      "n_test": 1542,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.3029014652826597,
+      "rmse": 0.44830744558832836,
+      "spearman": 0.1634915806861976
+    },
+    {
+      "position": "IDL",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 4217,
+      "n_test": 1542,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "pass_rush_opportunity_proxy_prior4"
+      ],
+      "mae": 0.2842297446856369,
+      "rmse": 0.4415409711971298,
+      "spearman": 0.24605818080200537,
+      "mae_improvement_vs_baseline": 0.06164288634126897
+    },
+    {
+      "position": "IDL",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 5759,
+      "n_test": 1571,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.31719063130954894,
+      "rmse": 0.5091664220205273,
+      "spearman": 0.22825092121606647
+    },
+    {
+      "position": "IDL",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 5759,
+      "n_test": 1571,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "pass_rush_opportunity_proxy_prior4"
+      ],
+      "mae": 0.3040961970345225,
+      "rmse": 0.503507195600531,
+      "spearman": 0.26983682680052556,
+      "mae_improvement_vs_baseline": 0.04128253795190902
+    },
+    {
+      "position": "IDL",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 7330,
+      "n_test": 1610,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.3282699250892762,
+      "rmse": 0.5018458338603357,
+      "spearman": 0.12662607015823465
+    },
+    {
+      "position": "IDL",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 7330,
+      "n_test": 1610,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "pass_rush_opportunity_proxy_prior4"
+      ],
+      "mae": 0.314972506043837,
+      "rmse": 0.5006059109204253,
+      "spearman": 0.14545157933476616,
+      "mae_improvement_vs_baseline": 0.040507576324035406
+    },
+    {
+      "position": "IDL",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 8940,
+      "n_test": 1482,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.307618701073256,
+      "rmse": 0.5185397403551185,
+      "spearman": 0.11644177822405553
+    },
+    {
+      "position": "IDL",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 8940,
+      "n_test": 1482,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "pass_rush_opportunity_proxy_prior4"
+      ],
+      "mae": 0.3032580030693364,
+      "rmse": 0.5169036562413922,
+      "spearman": 0.14062468630686067,
+      "mae_improvement_vs_baseline": 0.014175659635469077
+    },
+    {
+      "position": "LB",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 4818,
+      "n_test": 2105,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.4566131348540129,
+      "rmse": 0.8065171714552009,
+      "spearman": 0.17471745445062226
+    },
+    {
+      "position": "LB",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 4818,
+      "n_test": 2105,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_rush_attempts_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "tackle_opportunity_proxy_prior4"
+      ],
+      "mae": 0.45221617927757946,
+      "rmse": 0.8039099855881892,
+      "spearman": 0.19960991122809743,
+      "mae_improvement_vs_baseline": 0.009629498673618356
+    },
+    {
+      "position": "LB",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 6923,
+      "n_test": 2242,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.44563708391559204,
+      "rmse": 0.7536202502402961,
+      "spearman": 0.21299047286326292
+    },
+    {
+      "position": "LB",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 6923,
+      "n_test": 2242,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_rush_attempts_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "tackle_opportunity_proxy_prior4"
+      ],
+      "mae": 0.44134060638741146,
+      "rmse": 0.7483323223929228,
+      "spearman": 0.252886923489034,
+      "mae_improvement_vs_baseline": 0.009641202860474624
+    },
+    {
+      "position": "LB",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 9165,
+      "n_test": 2423,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.4260617657224936,
+      "rmse": 0.6491654314876698,
+      "spearman": 0.20467058800422874
+    },
+    {
+      "position": "LB",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 9165,
+      "n_test": 2423,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_rush_attempts_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "tackle_opportunity_proxy_prior4"
+      ],
+      "mae": 0.4260414017719565,
+      "rmse": 0.6457870305713906,
+      "spearman": 0.2289375744139393,
+      "mae_improvement_vs_baseline": 4.779577088449738e-05
+    },
+    {
+      "position": "LB",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 11588,
+      "n_test": 2662,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.43222334529286105,
+      "rmse": 0.7498084047403247,
+      "spearman": 0.23544875538944107
+    },
+    {
+      "position": "LB",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 11588,
+      "n_test": 2662,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_rush_attempts_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "tackle_opportunity_proxy_prior4"
+      ],
+      "mae": 0.4291427913314433,
+      "rmse": 0.7468162393640521,
+      "spearman": 0.2597645226815253,
+      "mae_improvement_vs_baseline": 0.007127227149959883
+    },
+    {
+      "position": "S",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 2497,
+      "n_test": 575,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.597968501207129,
+      "rmse": 0.9983545417402996,
+      "spearman": 0.10923601230301858
+    },
+    {
+      "position": "S",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 2497,
+      "n_test": 575,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "coverage_opportunity_proxy_prior4",
+        "tackle_opportunity_proxy_prior4"
+      ],
+      "mae": 0.588329086410406,
+      "rmse": 0.9927377711579519,
+      "spearman": 0.14009111549629558,
+      "mae_improvement_vs_baseline": 0.016120271849208907
+    },
+    {
+      "position": "S",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 3072,
+      "n_test": 431,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.5413307443556228,
+      "rmse": 0.8772563285094908,
+      "spearman": -0.04889687715011399
+    },
+    {
+      "position": "S",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 3072,
+      "n_test": 431,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "coverage_opportunity_proxy_prior4",
+        "tackle_opportunity_proxy_prior4"
+      ],
+      "mae": 0.5434893699673647,
+      "rmse": 0.8750989986765746,
+      "spearman": -0.01421218482597225,
+      "mae_improvement_vs_baseline": -0.0039876279598926095
+    },
+    {
+      "position": "S",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 3503,
+      "n_test": 347,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.48172754573541005,
+      "rmse": 0.7332889202938394,
+      "spearman": 0.06717766922370022
+    },
+    {
+      "position": "S",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 3503,
+      "n_test": 347,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "coverage_opportunity_proxy_prior4",
+        "tackle_opportunity_proxy_prior4"
+      ],
+      "mae": 0.47391406169189754,
+      "rmse": 0.730057986774903,
+      "spearman": 0.0803668485421947,
+      "mae_improvement_vs_baseline": 0.01621971612934105
+    },
+    {
+      "position": "S",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 3850,
+      "n_test": 188,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.6106689663468604,
+      "rmse": 1.0965925878367218,
+      "spearman": 0.036089724436166856
+    },
+    {
+      "position": "S",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 3850,
+      "n_test": 188,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "coverage_opportunity_proxy_prior4",
+        "tackle_opportunity_proxy_prior4"
+      ],
+      "mae": 0.5901560746567474,
+      "rmse": 1.0914062161341778,
+      "spearman": 0.02098691984159257,
+      "mae_improvement_vs_baseline": 0.03359085334371113
+    },
+    {
+      "position": "CB",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "baseline",
+      "n_train": 7219,
+      "n_test": 2406,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.4667704957561905,
+      "rmse": 0.9721250641505672,
+      "spearman": 0.05988231770062165
+    },
+    {
+      "position": "CB",
+      "train_start": 2019,
+      "train_end": 2021,
+      "test_season": 2022,
+      "model": "opportunity",
+      "n_train": 7219,
+      "n_test": 2406,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "coverage_opportunity_proxy_prior4"
+      ],
+      "mae": 0.4624628367470594,
+      "rmse": 0.9714062118477922,
+      "spearman": 0.09788270326805729,
+      "mae_improvement_vs_baseline": 0.009228644587213017
+    },
+    {
+      "position": "CB",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "baseline",
+      "n_train": 9625,
+      "n_test": 2326,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.4917213286754646,
+      "rmse": 1.0626950897990015,
+      "spearman": 0.08653562936432664
+    },
+    {
+      "position": "CB",
+      "train_start": 2019,
+      "train_end": 2022,
+      "test_season": 2023,
+      "model": "opportunity",
+      "n_train": 9625,
+      "n_test": 2326,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "coverage_opportunity_proxy_prior4"
+      ],
+      "mae": 0.4907055855419307,
+      "rmse": 1.060406743924504,
+      "spearman": 0.12501284489968678,
+      "mae_improvement_vs_baseline": 0.002065688580704729
+    },
+    {
+      "position": "CB",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "baseline",
+      "n_train": 11951,
+      "n_test": 2335,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.43709587372019104,
+      "rmse": 0.8369931821641627,
+      "spearman": 0.06706611921053848
+    },
+    {
+      "position": "CB",
+      "train_start": 2019,
+      "train_end": 2023,
+      "test_season": 2024,
+      "model": "opportunity",
+      "n_train": 11951,
+      "n_test": 2335,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "coverage_opportunity_proxy_prior4"
+      ],
+      "mae": 0.43910252996024796,
+      "rmse": 0.8355469970366387,
+      "spearman": 0.08654358856188114,
+      "mae_improvement_vs_baseline": -0.004590883512529987
+    },
+    {
+      "position": "CB",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "baseline",
+      "n_train": 14286,
+      "n_test": 2138,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8"
+      ],
+      "mae": 0.45059809516849253,
+      "rmse": 1.00807479287225,
+      "spearman": 0.12113544091561283
+    },
+    {
+      "position": "CB",
+      "train_start": 2019,
+      "train_end": 2024,
+      "test_season": 2025,
+      "model": "opportunity",
+      "n_train": 14286,
+      "n_test": 2138,
+      "features": [
+        "fp_prior_4",
+        "fp_prior_8",
+        "defensive_opponent_plays_prior4",
+        "defensive_opponent_dropbacks_prior4",
+        "defense_snap_share_prior4",
+        "snap_share_prior4",
+        "coverage_opportunity_proxy_prior4"
+      ],
+      "mae": 0.44683795328683673,
+      "rmse": 1.0109352249786268,
+      "spearman": 0.15233666761908005,
+      "mae_improvement_vs_baseline": 0.008344779798169732
+    },
+    {
+      "position": "CB",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 9205,
+      "mae": 0.4617915497985234,
+      "rmse": 0.9690825280535506,
+      "spearman": 0.0836548767977749
+    },
+    {
+      "position": "CB",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 9205,
+      "mae": 0.4600446201812485,
+      "rmse": 0.9686139251666527,
+      "spearman": 0.11544395108717631,
+      "mae_improvement_vs_baseline": 0.003782939765868561
+    },
+    {
+      "position": "EDGE",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 6859,
+      "mae": 0.5210779718288661,
+      "rmse": 0.7586405324302645,
+      "spearman": 0.22489908605430947
+    },
+    {
+      "position": "EDGE",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 6859,
+      "mae": 0.5064220381737039,
+      "rmse": 0.7534953855250304,
+      "spearman": 0.24897557977873447,
+      "mae_improvement_vs_baseline": 0.028126181584155512
+    },
+    {
+      "position": "IDL",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 6205,
+      "mae": 0.3142282088053929,
+      "rmse": 0.49438166282238144,
+      "spearman": 0.15870258757113856
+    },
+    {
+      "position": "IDL",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 6205,
+      "mae": 0.3017810615835328,
+      "rmse": 0.49055482949331775,
+      "spearman": 0.20049281831103943,
+      "mae_improvement_vs_baseline": 0.03961180719318811
+    },
+    {
+      "position": "LB",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 9432,
+      "mae": 0.4392721792325755,
+      "rmse": 0.7375162278271109,
+      "spearman": 0.20695681767688875
+    },
+    {
+      "position": "LB",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 9432,
+      "mae": 0.4363949452838882,
+      "rmse": 0.7339650541486066,
+      "spearman": 0.235299732953149,
+      "mae_improvement_vs_baseline": 0.0065500026742278715
+    },
+    {
+      "position": "QB",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 2497,
+      "mae": 6.507281552011705,
+      "rmse": 8.075262461090182,
+      "spearman": 0.43856001948201934
+    },
+    {
+      "position": "QB",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 2497,
+      "mae": 6.505829350685958,
+      "rmse": 8.101055148290515,
+      "spearman": 0.4370802453004411,
+      "mae_improvement_vs_baseline": 0.0002231655898303349
+    },
+    {
+      "position": "RB",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 5904,
+      "mae": 4.812151799977226,
+      "rmse": 6.465193941826092,
+      "spearman": 0.6434026557599279
+    },
+    {
+      "position": "RB",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 5904,
+      "mae": 4.765105863945979,
+      "rmse": 6.415598765509662,
+      "spearman": 0.652768517907948,
+      "mae_improvement_vs_baseline": 0.009776486276153967
+    },
+    {
+      "position": "S",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 1541,
+      "mae": 0.5575020525988122,
+      "rmse": 0.9167826093079355,
+      "spearman": 0.040901632203192914
+    },
+    {
+      "position": "S",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 1541,
+      "mae": 0.5502470243896656,
+      "rmse": 0.9127231517777694,
+      "spearman": 0.05680817476352765,
+      "mae_improvement_vs_baseline": 0.013013455601333069
+    },
+    {
+      "position": "TE",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 4701,
+      "mae": 3.75184796316789,
+      "rmse": 5.096186547155434,
+      "spearman": 0.5421467817913833
+    },
+    {
+      "position": "TE",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 4701,
+      "mae": 3.692337665651807,
+      "rmse": 5.026621895588813,
+      "spearman": 0.5599656865338056,
+      "mae_improvement_vs_baseline": 0.01586159623212318
+    },
+    {
+      "position": "WR",
+      "model": "baseline",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 9413,
+      "mae": 4.751578538768506,
+      "rmse": 6.348967109391306,
+      "spearman": 0.600056688328773
+    },
+    {
+      "position": "WR",
+      "model": "opportunity",
+      "aggregate": true,
+      "folds": 4,
+      "n_test": 9413,
+      "mae": 4.706798636999423,
+      "rmse": 6.312522565779074,
+      "spearman": 0.6113205659103103,
+      "mae_improvement_vs_baseline": 0.009424215848211258
+    }
+  ],
+  "limitations": [
+    "True all-route participation is not inferred from nflverse participation's primary-receiver route field.",
+    "Defensive pass-rush, coverage and tackle opportunity counts are proxies from defensive snap share \u00d7 opponent volume until true role-specific participation is integrated.",
+    "PBP is used in the standard M1 build for team red-zone/goal-line volume and player red-zone shares; the broader participation/NGS/PFR/roster/depth/injury/FTN/contracts/draft/combine archive remains optional and diagnostic.",
+    "Current injuries after 2024 are not part of this historical Milestone 1 pipeline.",
+    "A scoring replay is labelled exact only when every non-zero Sleeper scoring key has a supported raw-stat mapping and source field; unsupported keys are surfaced in scoring.support instead of being silently ignored."
+  ],
+  "league_id": "1387106650413887488",
+  "league_format": "REDRAFT",
+  "profile_fingerprint": "e9b8a7b0b666b909b36d580a9ff935aeaa5e0735effca6baef1bcec5678463f3",
+  "profile_scoring_signature": "bd035c4fb16a126b"
+}
