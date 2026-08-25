@@ -109,3 +109,13 @@ A league without a generated research profile still uses the normal fallback eng
 - Strengthened production-readiness checks and added one-time market-archive quarantine workflow.
 - Draft Assistant League Rank is stable across drafted-player removal; Value vs ADP uses identical ADP-covered eligible samples.
 - Added model-aware Draft Assistant sorting and generic sortable-table support.
+
+## 2026-08-25 Research Governance hotfix R4
+
+- Fixed Spearman/correlation alignment across M1/M2/M3/M4/M5/M6 helpers by resetting positional indexes before paired correlation calculation.
+- M5 waiver contract revision 4 now separates forecast validation from decision-ranking validation and requires both before live waiver promotion.
+- Waiver ranking quality is evaluated within weekly decision sets, then aggregated chronologically by holdout season.
+- Added paired waiver ranking diagnostics: Spearman improvement vs recent points, top-quartile precision, and top-pick regret.
+- Current-season server snapshots now enforce the same decision-specific format gates used by the browser for weekly and waiver activation.
+- Production readiness rejects revision-4 waiver gates that expose a position without both forecast and ranking validation.
+- Extended integrity tests cover index-misaligned correlations, attainable revision-4 waiver promotion, and server-side REDRAFT/CHOPPED format gating.
