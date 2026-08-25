@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Validate an FIE M5 decision-policy bundle.
 
-The validator accepts legacy revisions 1-2 and the full-history waiver contract
-(revision 3). Revision 2 separated waiver promotion from the same-week M4 gate;
-revision 3 additionally requires evidence that the waiver design can actually
-produce at least four chronological holdout seasons.
+The validator accepts legacy revisions 1-3 and the decision-quality waiver
+contract (revision 4). Revision 2 separated waiver promotion from the same-week
+M4 gate; revision 3 requires enough chronological holdout seasons; revision 4
+additionally requires waiver activation to pass both point-forecast and ranking-
+decision validation.
 """
 from __future__ import annotations
 
@@ -112,6 +113,20 @@ def validate_bundle(b: dict) -> None:
         assert required_folds >= 4
         assert max_folds >= required_folds, (max_folds, required_folds, seasons)
         assert len(set(seasons)) >= required_folds, seasons
+
+    if revision >= 4:
+        for row in b.get("waiver_integration", {}).get("aggregate", []) or []:
+            assert row.get("forecast_status") in {"validated_candidate", "diagnostic_only"}, row
+            assert row.get("decision_ranking_status") in {"validated_candidate", "diagnostic_only"}, row
+            for key in [
+                "mean_spearman", "mean_baseline_spearman", "mean_spearman_improvement_vs_recent_fp",
+                "mean_top_quartile_precision", "mean_baseline_top_quartile_precision",
+                "mean_top1_regret", "mean_baseline_top1_regret",
+            ]:
+                assert key in row, (row.get("position"), key)
+            if row.get("status") == "validated_candidate":
+                assert row.get("forecast_status") == "validated_candidate", row.get("position")
+                assert row.get("decision_ranking_status") == "validated_candidate", row.get("position")
 
     text = json.dumps(b)
     assert "unconditional_activation" not in text

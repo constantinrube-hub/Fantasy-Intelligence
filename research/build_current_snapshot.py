@@ -501,6 +501,24 @@ def m5_gate(m5: dict, name: str, pos: str) -> bool:
     return pos in set(m5.get("activation", {}).get("decision_gates", {}).get(name, []) or [])
 
 
+def m5_format_gate(m5: dict, decision: str, league_format: str | None, pos: str) -> bool:
+    """Apply the decision-specific format gate when the League-ID profile is known.
+
+    Legacy/global snapshots without a profile retain the older generic decision
+    gate for backwards compatibility. Namespaced production snapshots must agree
+    with the browser's stricter decision+format contract.
+    """
+    generic_name = {"weekly": "weekly_mean_positions", "draft": "draft_policy_positions", "waiver": "waiver_policy_positions"}.get(decision)
+    if not generic_name or not m5_gate(m5, generic_name, pos):
+        return False
+    fmt = str(league_format or "").upper().strip()
+    by_decision = m5.get("activation", {}).get("decision_gates", {}).get("decision_format_position_gates", {}) or {}
+    by_format = by_decision.get(decision, {}) if isinstance(by_decision, dict) else {}
+    if not fmt or not isinstance(by_format, dict) or fmt not in by_format:
+        return True
+    return pos in set(by_format.get(fmt, []) or [])
+
+
 def sleeper_identity_maps(identity: pd.DataFrame, sp: dict) -> Tuple[Dict[str, str], Dict[str, dict]]:
     sid_to_cid = {}
     if not identity.empty and {"sleeper_id", "canonical_player_id"}.issubset(identity.columns):
@@ -538,6 +556,7 @@ def build_snapshot(args) -> dict:
     sig = scoring_signature(scoring)
     profile_sig = profile.get("scoring_signature")
     profile_fp = profile.get("profile_fingerprint")
+    league_format = str(profile.get("format") or "").upper() or None
     live_profile_fp = None
     profile_current_match = True
     if profile and league_id:
@@ -630,7 +649,7 @@ def build_snapshot(args) -> dict:
             if fie_stats:
                 frame = pd.DataFrame([{**fie_stats, "position_model": pos}])
                 fie_fp = float(score_rows(frame, scoring).iloc[0])
-        weekly_model_ok = research_compatible and m4_position_valid(m4, pos) and m5_gate(m5, "weekly_mean_positions", pos)
+        weekly_model_ok = research_compatible and m4_position_valid(m4, pos) and m5_format_gate(m5, "weekly", league_format, pos)
         weekly_activation_eligible = bool(weekly_model_ok and history_games >= 2 and feature_coverage >= args.min_feature_coverage and fie_fp is not None and math.isfinite(float(fie_fp)))
         blend_w = m4_blend_weight(m4, pos)
         if weekly_activation_eligible and blend_w is not None and sleeper_fp is not None and math.isfinite(float(sleeper_fp)):
@@ -653,7 +672,7 @@ def build_snapshot(args) -> dict:
         waiver_feature_coverage = 0.0
         waiver_activation_eligible = False
         wspec = m5.get("waiver_integration", {}).get("model_specs", {}).get("positions", {}).get(pos)
-        if research_compatible and m5_gate(m5, "waiver_policy_positions", pos) and wspec and not g.empty and history_games >= 2:
+        if research_compatible and m5_format_gate(m5, "waiver", league_format, pos) and wspec and not g.empty and history_games >= 2:
             cvals = comp.get((str(cid), pos), {})
             wvals = {f: feature_value(f, g, team_hist, team, opponent, cvals) for f in (wspec.get("features") or [])}
             try:

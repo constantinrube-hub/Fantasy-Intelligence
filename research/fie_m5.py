@@ -69,7 +69,7 @@ def read_csv(path: Path) -> pd.DataFrame:
 
 
 def safe_corr(x, y) -> Optional[float]:
-    z = pd.DataFrame({"x": pd.to_numeric(pd.Series(x), errors="coerce"), "y": pd.to_numeric(pd.Series(y), errors="coerce")}).dropna()
+    z = pd.DataFrame({"x": pd.to_numeric(pd.Series(x).reset_index(drop=True), errors="coerce"), "y": pd.to_numeric(pd.Series(y).reset_index(drop=True), errors="coerce")}).dropna()
     if len(z) < 8 or z.x.nunique() < 2 or z.y.nunique() < 2:
         return None
     r = spearmanr(z.x, z.y).statistic
@@ -284,10 +284,61 @@ def waiver_validation(waiver_frame: pd.DataFrame, m4: dict) -> Tuple[List[dict],
             bmask = mask & base.notna()
             ma = float(mean_absolute_error(y[mask], pred[mask.to_numpy()]))
             bm = float(mean_absolute_error(y[bmask], base[bmask])) if bmask.sum() >= 8 else None
+
+            # Decision-quality metrics use the exact same rows for FIE, baseline
+            # and realised next-three production.  This prevents sample drift and
+            # tests the actual waiver task: can we rank/acquire the better players,
+            # not merely reduce point-estimate error?
+            model_rank = baseline_rank = rank_improvement = None
+            model_topq = baseline_topq = None
+            model_regret = baseline_regret = None
+            decision_n = int(bmask.sum())
+            decision_weeks = 0
+            if decision_n >= 8:
+                week_values = te.loc[bmask, "week"].to_numpy() if "week" in te else np.zeros(decision_n, dtype=int)
+                ev = pd.DataFrame({
+                    "week": week_values,
+                    "actual": y[bmask].to_numpy(dtype=float),
+                    "model": pred[bmask.to_numpy()],
+                    "baseline": base[bmask].to_numpy(dtype=float),
+                }).dropna().reset_index(drop=True)
+                weekly_model_rank, weekly_base_rank, weekly_rank_imp = [], [], []
+                weekly_model_topq, weekly_base_topq = [], []
+                weekly_model_regret, weekly_base_regret = [], []
+                for _, wg in ev.groupby("week"):
+                    if len(wg) < 6:
+                        continue
+                    mr = safe_corr(wg.model, wg.actual)
+                    br = safe_corr(wg.baseline, wg.actual)
+                    if mr is not None and br is not None:
+                        weekly_model_rank.append(mr); weekly_base_rank.append(br); weekly_rank_imp.append(float(mr - br))
+                    k = max(1, int(math.ceil(len(wg) * .25)))
+                    actual_top = set(wg.nlargest(k, "actual").index)
+                    model_top = set(wg.nlargest(k, "model").index)
+                    baseline_top = set(wg.nlargest(k, "baseline").index)
+                    weekly_model_topq.append(float(len(actual_top & model_top) / k))
+                    weekly_base_topq.append(float(len(actual_top & baseline_top) / k))
+                    best_actual = float(wg.actual.max())
+                    weekly_model_regret.append(float(best_actual - wg.loc[wg.model.idxmax(), "actual"]))
+                    weekly_base_regret.append(float(best_actual - wg.loc[wg.baseline.idxmax(), "actual"]))
+                decision_weeks = len(weekly_model_topq)
+                if weekly_model_rank:
+                    model_rank = float(np.mean(weekly_model_rank))
+                    baseline_rank = float(np.mean(weekly_base_rank))
+                    rank_improvement = float(np.mean(weekly_rank_imp))
+                if weekly_model_topq:
+                    model_topq = float(np.mean(weekly_model_topq)); baseline_topq = float(np.mean(weekly_base_topq))
+                    model_regret = float(np.mean(weekly_model_regret)); baseline_regret = float(np.mean(weekly_base_regret))
+
             rows.append({
                 "position": pos, "train_start": min(train_seasons), "train_end": max(train_seasons), "test_season": test_season,
-                "n_test": int(mask.sum()), "feature_count": len(fs), "mae": ma, "rmse": rmse(y[mask], pred[mask.to_numpy()]),
-                "spearman": safe_corr(pred[mask.to_numpy()], y[mask]), "baseline_mae": bm,
+                "n_test": int(mask.sum()), "decision_n": decision_n, "decision_weeks": decision_weeks, "feature_count": len(fs), "mae": ma,
+                "rmse": rmse(y[mask], pred[mask.to_numpy()]),
+                "spearman": model_rank, "baseline_spearman": baseline_rank,
+                "spearman_improvement_vs_recent_fp": rank_improvement,
+                "top_quartile_precision": model_topq, "baseline_top_quartile_precision": baseline_topq,
+                "top1_regret": model_regret, "baseline_top1_regret": baseline_regret,
+                "baseline_mae": bm,
                 "mae_improvement_vs_recent_fp": float((bm - ma) / bm) if bm and bm > 0 else None,
                 "features": fs,
             })
@@ -299,19 +350,60 @@ def waiver_validation(waiver_frame: pd.DataFrame, m4: dict) -> Tuple[List[dict],
             mean_imp = float(imp.mean()) if len(imp) else None
             wins = int((imp > 0).sum())
             gate = promotion_gate(imp.tolist(), weights=g.loc[imp.index, "n_test"].tolist(), min_mean=.01, min_folds=4, require_positive_ci=True)
+
+            rank_imp = pd.to_numeric(g.spearman_improvement_vs_recent_fp, errors="coerce").dropna()
+            rank_gate = promotion_gate(
+                rank_imp.tolist(),
+                weights=g.loc[rank_imp.index, "decision_n"].tolist(),
+                min_mean=.01,
+                min_folds=4,
+                require_positive_ci=True,
+            )
+            model_precision = pd.to_numeric(g.top_quartile_precision, errors="coerce")
+            base_precision = pd.to_numeric(g.baseline_top_quartile_precision, errors="coerce")
+            precision_pairs = pd.DataFrame({"model": model_precision, "base": base_precision}).dropna()
+            mean_model_precision = float(precision_pairs.model.mean()) if len(precision_pairs) else None
+            mean_base_precision = float(precision_pairs.base.mean()) if len(precision_pairs) else None
+            precision_ok = bool(
+                mean_model_precision is not None and mean_base_precision is not None
+                and mean_model_precision >= mean_base_precision - .01
+            )
+
+            model_regret = pd.to_numeric(g.top1_regret, errors="coerce")
+            base_regret = pd.to_numeric(g.baseline_top1_regret, errors="coerce")
+            regret_pairs = pd.DataFrame({"model": model_regret, "base": base_regret}).dropna()
+            mean_model_regret = float(regret_pairs.model.mean()) if len(regret_pairs) else None
+            mean_base_regret = float(regret_pairs.base.mean()) if len(regret_pairs) else None
+            regret_ok = bool(
+                mean_model_regret is not None and mean_base_regret is not None
+                and mean_model_regret <= mean_base_regret * 1.02
+            )
+            decision_validated = bool(rank_gate["robust"] and precision_ok and regret_ok)
+            forecast_validated = bool(gate["robust"])
+
             agg.append({
                 "position": pos, "folds": int(len(g)), "n_test": int(g.n_test.sum()),
                 "mean_mae": float(np.average(g.mae, weights=g.n_test)),
                 "mean_baseline_mae": float(np.average(g.loc[g.baseline_mae.notna(), "baseline_mae"], weights=g.loc[g.baseline_mae.notna(), "n_test"])) if g.baseline_mae.notna().any() else None,
                 "mean_mae_improvement_vs_recent_fp": mean_imp, "positive_folds": wins,
                 "bootstrap_ci95_low": gate["ci95_low"], "bootstrap_ci95_high": gate["ci95_high"],
-                "mean_spearman": float(pd.to_numeric(g.spearman, errors="coerce").mean()),
-                # Waiver forecasting is now validated independently from the M4
-                # weekly raw-stat model.  This is intentional: a useful next-3
-                # role/opportunity model should not be disabled merely because a
-                # same-week weekly model for that position fails its own gate.
+                "mean_spearman": (lambda v: float(v) if np.isfinite(v) else None)(pd.to_numeric(g.spearman, errors="coerce").mean()),
+                "mean_baseline_spearman": (lambda v: float(v) if np.isfinite(v) else None)(pd.to_numeric(g.baseline_spearman, errors="coerce").mean()),
+                "mean_spearman_improvement_vs_recent_fp": float(rank_imp.mean()) if len(rank_imp) else None,
+                "rank_improvement_ci95_low": rank_gate["ci95_low"], "rank_improvement_ci95_high": rank_gate["ci95_high"],
+                "rank_positive_folds": rank_gate["positive_folds"], "rank_required_positive_folds": rank_gate["required_positive_folds"],
+                "mean_top_quartile_precision": mean_model_precision,
+                "mean_baseline_top_quartile_precision": mean_base_precision,
+                "mean_top1_regret": mean_model_regret,
+                "mean_baseline_top1_regret": mean_base_regret,
+                "forecast_status": "validated_candidate" if forecast_validated else "diagnostic_only",
+                "decision_ranking_status": "validated_candidate" if decision_validated else "diagnostic_only",
+                # Waiver forecasting is validated independently from the M4
+                # same-week model, but live waiver activation now additionally
+                # requires evidence that the model improves the actual ranking
+                # decision, not only MAE.
                 "upstream_weekly_status": upstream_status(m4, pos),
-                "status": "validated_candidate" if gate["robust"] else "diagnostic_only",
+                "status": "validated_candidate" if forecast_validated and decision_validated else "diagnostic_only",
             })
     # Deployable policy specs trained on all completed primary seasons. These predict future three-game PPG.
     for pos in POSITIONS:
@@ -326,7 +418,7 @@ def waiver_validation(waiver_frame: pd.DataFrame, m4: dict) -> Tuple[List[dict],
         "target": "mean fantasy points over next 3 games",
         "live_status": "CONDITIONAL",
         "validation_source": "M2 full-history waiver player-week panel (dedicated artifact; legacy OOS fallback only)",
-        "temporal_fold_policy": "whole-season expanding window; >=2 prior seasons; promotion requires >=4 valid holdout seasons",
+        "temporal_fold_policy": "whole-season expanding window; >=2 prior seasons; promotion requires >=4 valid holdout seasons; ranking quality is evaluated within weekly waiver decision sets before season aggregation",
         "available_test_seasons": sorted({int(r["test_season"]) for r in rows}),
         "max_valid_folds": max([int(r.get("folds") or 0) for r in agg] or [0]),
         "required_promotion_folds": 4,
@@ -615,14 +707,14 @@ def run(args) -> dict:
         },
     }
     bundle = {
-        "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD, "contract_revision": 3,
+        "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD, "contract_revision": 4,
         "generated_at": utc_now(), "status": "complete", "steps_completed": [24, 25, 26, 27],
         "integration_mode": "fail_closed_conditional",
         "scoring_signature": m4.get("scoring_signature") or m1.get("scoring", {}).get("signature"),
         "scoring_settings": m1.get("scoring", {}).get("settings", {}),
         "methodology": {
             "step24": "Draft uses league-scored season projection/VOR as the anchor; M5 validates availability-conditioned season aggregation and does not pretend this is a preseason injury forecast.",
-            "step25": "Waiver policy predicts mean fantasy points over the next three games from projection, opportunity, regression and role-change evidence using expanding windows.",
+            "step25": "Waiver policy predicts mean fantasy points over the next three games from projection, opportunity, regression and role-change evidence using expanding windows; live promotion additionally requires out-of-sample ranking, top-quartile and top-pick decision quality.",
             "step26": "Weekly decisions use M4 mean projection plus residual-quantile risk bands learned only from prior holdout seasons for calibration tests.",
             "step27": "One football projection core feeds separate transparent Redraft, Dynasty, Best Ball and Chopped utility transforms; format-specific evidence limits are surfaced.",
         },

@@ -51,7 +51,7 @@ def finite(v) -> bool:
 
 
 def safe_corr(x: pd.Series, y: pd.Series) -> Tuple[Optional[float], int]:
-    z = pd.DataFrame({"x": pd.to_numeric(x, errors="coerce"), "y": pd.to_numeric(y, errors="coerce")}).dropna()
+    z = pd.DataFrame({"x": pd.to_numeric(pd.Series(x).reset_index(drop=True), errors="coerce"), "y": pd.to_numeric(pd.Series(y).reset_index(drop=True), errors="coerce")}).dropna()
     if len(z) < 8 or z.x.nunique() < 2 or z.y.nunique() < 2:
         return None, len(z)
     r = spearmanr(z.x, z.y).statistic

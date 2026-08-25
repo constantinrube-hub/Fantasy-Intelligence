@@ -137,6 +137,17 @@ def audit_league(lid: str, row: dict, issues: list[str], warnings: list[str]) ->
             issues.append(msg)
         else:
             warnings.append(msg + "; legacy M5 should be rebuilt with the full-history waiver panel")
+    if rev >= 4:
+        aggregates = m5.get("waiver_integration", {}).get("aggregate", []) or []
+        by_pos = {str(r.get("position")): r for r in aggregates if r.get("position")}
+        gated = set(m5.get("activation", {}).get("decision_gates", {}).get("waiver_policy_positions", []) or [])
+        for pos in sorted(gated):
+            r = by_pos.get(pos) or {}
+            if r.get("forecast_status") != "validated_candidate" or r.get("decision_ranking_status") != "validated_candidate":
+                issues.append(f"league {lid}: waiver gate exposes {pos} without both forecast and decision-ranking validation")
+        for pos, r in by_pos.items():
+            if r.get("status") == "validated_candidate" and pos not in gated:
+                issues.append(f"league {lid}: validated waiver aggregate {pos} missing from activation gate")
     return {
         "league_id": lid,
         "format": profile.get("format") or row.get("format"),
