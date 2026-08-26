@@ -34,6 +34,8 @@ def main():
   run([sys.executable,'research/integrity_kicker_test.py']),
   run([sys.executable,'research/integrity_value_finder_test.py']),
   run([sys.executable,'research/integrity_v93_decision_ux_test.py']),
+  run([sys.executable,'research/integrity_v931_completion_test.py']),
+  run(['node','research/integrity_v931_persistent_cache_test.js']),
   run(['node','research/integrity_v93_scarcity_runtime_test.js']),
   run(['node','research/integrity_v93_league_context_runtime_test.js']),
   run(['node','research/integrity_v93_decision_ui_runtime_test.js']),

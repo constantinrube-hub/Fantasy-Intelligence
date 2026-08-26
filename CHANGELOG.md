@@ -1,3 +1,14 @@
+# V9.3.1 Completion Patch
+
+- Finished the V9.3 runtime consolidation with a persistent browser cache for stable shared NFL/projection proxy data while keeping live league endpoints network-fresh.
+- Routed legacy JSON/CSV consumers through the centralized data client and exposed persistent-cache hits in runtime diagnostics.
+- Kept core league switching progressive: league/rosters/users/player identity become interactive first; enrichment, projections, trends and research finish in the background. Background completion now includes public enrichment.
+- Centralized structural replacement scarcity on starter-slot/FLEX/Superflex demand. Draft Board scarcity is league-structure aware but does not depend on the selected user roster or stale projected replacement cutoffs.
+- Added Best Ball-specific roster-neutral Draft Board profiles plus a clearly labelled heuristic Portfolio Fit in Draft Assistant; Team retains Best Ball Contribution Profile.
+- Added V9.3.1 completion, persistent-cache and strengthened scarcity regression tests, and wired them into the current/research workflows and release gate.
+- Added a dedicated `Validate FIE V9.3.1 Completion` GitHub Actions workflow for a clean post-upload release build and validation artifact.
+- Release metadata remains `release-candidate` until the required live browser preview is completed.
+
 # Changelog
 
 ## 9.3 Decision UX & Reliability Consolidation, 2026-08-26

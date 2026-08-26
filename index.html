@@ -654,23 +654,14 @@ function scarcityScore(p){
 function computeReplacementLevels(){
   state.replacementLevels={};
   if(!state.league)return;
-  const ownW=state.replacement.ownershipInfluence/100;
+  const service=window.FIECore?.ReplacementService;
   const positions=[...new Set(PLAYERS.filter(p=>p.leagueEligible).map(p=>p.position))];
   for(const pos of positions){
     const pool=PLAYERS.filter(p=>p.position===pos&&p.leagueEligible&&Number.isFinite(Number(p.modelScore))).sort((a,b)=>b.modelScore-a.modelScore);
     if(!pool.length)continue;
-    const actual=actualOwnedAtPosition(pos),projected=projectedOwnedAtPosition(pos);
-    const effective=actual*ownW+projected*(1-ownW);
-    const idx=Math.max(0,Math.min(pool.length-1,Math.round(effective)));
-    const repl=pool[idx];
-    state.replacementLevels[pos]={
-      score:Math.round(repl.modelScore*10)/10,
-      player:repl.name,
-      effectiveOwned:Math.round(effective*10)/10,
-      actualOwned:actual,
-      projectedOwned:Math.round(projected*10)/10,
-      slotsPerTeam:Math.round(leaguePositionDemand(pos)*100)/100
-    };
+    const profile=service?.profile?.(pos,{league:state.league,players:PLAYERS.filter(p=>p.leagueEligible),state,valueFn:p=>Number(p.modelScore)});
+    const cutoff=Math.max(1,Math.round(Number(profile?.cutoff)||1)),idx=Math.max(0,Math.min(pool.length-1,cutoff-1)),repl=pool[idx];
+    state.replacementLevels[pos]={score:Math.round(repl.modelScore*10)/10,player:repl.name,effectiveOwned:Math.round(Number(profile?.effectiveOwned??cutoff)*10)/10,actualOwned:Number(profile?.actualOwned??actualOwnedAtPosition(pos)),projectedOwned:Math.round(Number(profile?.projectedOwned??cutoff)*10)/10,slotsPerTeam:Math.round(Number(profile?.perTeam??leaguePositionDemand(pos))*100)/100,cutoff:idx+1,method:profile?.method||'canonical structural starter-slot demand'};
   }
 }
 function replacementScoreFor(p){
@@ -874,7 +865,7 @@ function boundedProjectionAdjustment(p){
 }
 function computeProjectedReplacementLevels(){
   state.projectedReplacementLevels={};if(!state.league)return;
-  for(const [pos,r] of Object.entries(state.replacementLevels||{})){const xs=PLAYERS.filter(p=>p.position===pos&&p.leagueEligible&&p.engineSeasonProjection!==null&&p.engineSeasonProjection!==undefined&&Number.isFinite(Number(p.engineSeasonProjection))).sort((a,b)=>b.engineSeasonProjection-a.engineSeasonProjection);if(!xs.length)continue;const idx=clamp(Math.round((r.effectiveOwned||1)-1),0,xs.length-1);const rp=xs[idx];state.projectedReplacementLevels[pos]={points:rp.engineSeasonProjection,player:rp.name,cutoff:idx+1};}
+  for(const [pos,r] of Object.entries(state.replacementLevels||{})){const xs=PLAYERS.filter(p=>p.position===pos&&p.leagueEligible&&p.engineSeasonProjection!==null&&p.engineSeasonProjection!==undefined&&Number.isFinite(Number(p.engineSeasonProjection))).sort((a,b)=>b.engineSeasonProjection-a.engineSeasonProjection);if(!xs.length)continue;const idx=clamp(Math.round((Number(r.cutoff)||1)-1),0,xs.length-1),rp=xs[idx];state.projectedReplacementLevels[pos]={points:rp.engineSeasonProjection,player:rp.name,cutoff:idx+1,method:'FIECore ReplacementService structural cutoff'};}
   for(const p of PLAYERS){const r=state.projectedReplacementLevels[p.position];p.projectedReplacementPoints=r?.points??null;p.projectedVOR=(r&&p.engineSeasonProjection!==null&&p.engineSeasonProjection!==undefined&&Number.isFinite(Number(p.engineSeasonProjection)))?Math.round((p.engineSeasonProjection-r.points)*10)/10:null;}
 }
 function computeProjectionRanksAndEdges(){
@@ -1918,10 +1909,10 @@ function marginalStarterDemand(){
 function leaguePositionDemandV89(pos){const d=marginalStarterDemand();return Number.isFinite(d[pos])?d[pos]:0;}
 function replacementIndex(effective,poolLength){const rank=Math.max(1,Math.round(Number(effective)||1));return Math.max(0,Math.min(poolLength-1,rank-1));}
 function computeReplacementLevelsV89(){
-  state.replacementLevels={};if(!state.league)return;const ownW=state.replacement.ownershipInfluence/100,positions=[...new Set(PLAYERS.filter(p=>p.leagueEligible).map(p=>p.position))];
-  for(const pos of positions){const pool=PLAYERS.filter(p=>p.position===pos&&p.leagueEligible&&Number.isFinite(Number(p.modelScore))).sort((a,b)=>b.modelScore-a.modelScore);if(!pool.length)continue;const actual=actualOwnedAtPosition(pos),teams=Number(state.league.total_rosters||state.rosters.length||1),demand=leaguePositionDemandV89(pos),starterTotal=Math.max(1,Object.values(marginalStarterDemand()).reduce((a,b)=>a+b,0)),bench=countRosterSlot('BN'),benchShare=(bench/starterTotal)*(state.replacement.benchInfluence/100),projected=teams*demand*(1+benchShare),effective=actual*ownW+projected*(1-ownW),idx=replacementIndex(effective,pool.length),repl=pool[idx];state.replacementLevels[pos]={score:Math.round(repl.modelScore*10)/10,player:repl.name,effectiveOwned:Math.round(effective*10)/10,actualOwned:actual,projectedOwned:Math.round(projected*10)/10,slotsPerTeam:Math.round(demand*100)/100,cutoff:idx+1,method:'marginal starter allocation'};}
+  state.replacementLevels={};if(!state.league)return;const service=window.FIECore?.ReplacementService,eligible=PLAYERS.filter(p=>p.leagueEligible),positions=[...new Set(eligible.map(p=>p.position))];
+  for(const pos of positions){const pool=eligible.filter(p=>p.position===pos&&Number.isFinite(Number(p.modelScore))).sort((a,b)=>b.modelScore-a.modelScore);if(!pool.length)continue;const profile=service?.profile?.(pos,{league:state.league,players:eligible,state,valueFn:p=>Number(p.modelScore)}),cutoff=Math.max(1,Math.round(Number(profile?.cutoff)||1)),idx=replacementIndex(cutoff,pool.length),repl=pool[idx];state.replacementLevels[pos]={score:Math.round(repl.modelScore*10)/10,player:repl.name,effectiveOwned:Math.round(Number(profile?.effectiveOwned??cutoff)*10)/10,actualOwned:Number(profile?.actualOwned??actualOwnedAtPosition(pos)),projectedOwned:Math.round(Number(profile?.projectedOwned??cutoff)*10)/10,slotsPerTeam:Math.round(Number(profile?.perTeam??leaguePositionDemandV89(pos))*100)/100,cutoff:idx+1,method:profile?.method||'canonical structural starter-slot demand'};}
 }
-function computeProjectedReplacementLevelsV89(){state.projectedReplacementLevels={};if(!state.league)return;for(const [pos,r] of Object.entries(state.replacementLevels||{})){const xs=PLAYERS.filter(p=>p.position===pos&&p.leagueEligible&&Number.isFinite(Number(p.engineSeasonProjection))).sort((a,b)=>Number(b.engineSeasonProjection)-Number(a.engineSeasonProjection));if(!xs.length)continue;const idx=replacementIndex(r.effectiveOwned,xs.length),rp=xs[idx];state.projectedReplacementLevels[pos]={points:Number(rp.engineSeasonProjection),player:rp.name,cutoff:idx+1,method:'canonical cutoff'};}for(const p of PLAYERS){const r=state.projectedReplacementLevels[p.position];p.projectedReplacementPoints=r?.points??null;p.projectedVOR=(r&&Number.isFinite(Number(p.engineSeasonProjection)))?Math.round((Number(p.engineSeasonProjection)-r.points)*10)/10:null;}}
+function computeProjectedReplacementLevelsV89(){state.projectedReplacementLevels={};if(!state.league)return;for(const [pos,r] of Object.entries(state.replacementLevels||{})){const xs=PLAYERS.filter(p=>p.position===pos&&p.leagueEligible&&Number.isFinite(Number(p.engineSeasonProjection))).sort((a,b)=>Number(b.engineSeasonProjection)-Number(a.engineSeasonProjection));if(!xs.length)continue;const idx=replacementIndex(r.cutoff,xs.length),rp=xs[idx];state.projectedReplacementLevels[pos]={points:Number(rp.engineSeasonProjection),player:rp.name,cutoff:idx+1,method:'FIECore ReplacementService structural cutoff'};}for(const p of PLAYERS){const r=state.projectedReplacementLevels[p.position];p.projectedReplacementPoints=r?.points??null;p.projectedVOR=(r&&Number.isFinite(Number(p.engineSeasonProjection)))?Math.round((Number(p.engineSeasonProjection)-r.points)*10)/10:null;}}
 
 // ---------- Time-safe weekly context ----------
 function gameForTeamV89(team,week=currentWeek()){const s=activeSeason();return (state.weekly.schedule||[]).find(g=>Number(g.season)===s&&String(g.game_type)==='REG'&&Number(g.week)===Number(week)&&(g.home_team===team||g.away_team===team))||null;}

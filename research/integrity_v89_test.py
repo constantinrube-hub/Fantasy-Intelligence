@@ -45,7 +45,7 @@ for bad in ('===2026','season=2026','end-2026','contractEnd<=2026'):
 assert '/api/data/nflverse/weekly/${c.season}' in html
 assert "if (parts.length === 3)" in proxy and "seasonalNflverse(parts[1], parts[2])" in proxy
 assert "const y = String(season);" in proxy
-assert 'FIE_RELEASE.release' in health and '"release": "9.3-decision-ux-reliability"' in release
+assert 'FIE_RELEASE.release' in health and '"release": "9.3.1-completion"' in release
 assert latest_completed_season(datetime(2027,1,10,tzinfo=timezone.utc))==2025
 assert latest_completed_season(datetime(2027,2,10,tzinfo=timezone.utc))==2026
 assert inferred_nfl_season(datetime(2027,1,10,tzinfo=timezone.utc))==2026

@@ -19,7 +19,12 @@ if(!(b.leagueStarterDemand.QB>a.leagueStarterDemand.QB))throw new Error(`Superfl
 const ca=ReplacementService.cutoff('QB',{league:oneQB,players,state:{replacement:{benchInfluence:0}},valueFn});
 const cb=ReplacementService.cutoff('QB',{league:superflex,players,state:{replacement:{benchInfluence:0}},valueFn});
 if(!(cb>ca))throw new Error(`Superflex must deepen QB replacement cutoff: 1QB=${ca}, SF=${cb}`);
+const stale=ReplacementService.cutoff('QB',{league:superflex,players,state:{replacement:{benchInfluence:0},projectedReplacementLevels:{QB:{cutoff:3}}},valueFn});
+if(stale!==cb)throw new Error(`Canonical replacement must ignore stale legacy projectedReplacementLevels feedback: expected ${cb}, got ${stale}`);
+const ownedPlayers=players.map((p,i)=>({...p,ownerRosterId:i<24?1:null,availability:i<24?'OWNED':'FA'}));
+const ownedCut=ReplacementService.cutoff('QB',{league:superflex,players:ownedPlayers,state:{replacement:{benchInfluence:0,ownershipInfluence:100}},valueFn});
+if(ownedCut!==cb)throw new Error(`Draft-board structural scarcity must not change with currently owned-player count: expected ${cb}, got ${ownedCut}`);
 const pool=[{id:'q',position:'QB',value:20},{id:'r',position:'RB',value:10},{id:'w',position:'WR',value:9},{id:'t',position:'TE',value:8}];
 const opt=LineupOptimizer.optimize(pool,['QB','RB','WR','TE'],valueFn);
 if(opt.unfilledSlots.length||opt.assignment.length!==4)throw new Error('Exact legal lineup optimizer failed canonical starter-slot assignment');
-console.log(`V9.3 scarcity runtime integrity OK: QB demand ${a.leagueStarterDemand.QB}->${b.leagueStarterDemand.QB}, replacement cutoff ${ca}->${cb}`);
+console.log(`V9.3.1 scarcity runtime integrity OK: QB demand ${a.leagueStarterDemand.QB}->${b.leagueStarterDemand.QB}, structural replacement cutoff ${ca}->${cb}, stale/ownership feedback blocked`);
