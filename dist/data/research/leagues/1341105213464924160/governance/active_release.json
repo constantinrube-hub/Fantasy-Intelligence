@@ -1,0 +1,176 @@
+{
+  "active_build": "V8.8-M6",
+  "checks": {
+    "artifact_scope_match": true,
+    "current_complete": true,
+    "current_contract": true,
+    "current_producer": true,
+    "current_profile_live_match": true,
+    "eligible_players": false,
+    "format_match": true,
+    "fresh_snapshot": true,
+    "global_operator_auto": true,
+    "league_id_match": true,
+    "m4_complete": true,
+    "m5_complete": true,
+    "m6_complete": true,
+    "operator_auto": true,
+    "profile_fingerprint_match": true,
+    "scoring_signature_match": true,
+    "target_week_leakage_guard": true
+  },
+  "control_build": "V8.2.2",
+  "current_snapshot": {
+    "age_hours": 0.0007892561111111111,
+    "eligible_players": 0,
+    "generated_at": "2026-08-25T17:49:08.322465+00:00",
+    "max_age_hours": 18.0,
+    "path": "data/research/leagues/1341105213464924160/current/milestone5_current.json",
+    "season": 2026,
+    "week": 1
+  },
+  "decision_gates": {
+    "decision_format_position_gates": {
+      "draft": {
+        "CHOPPED": [],
+        "DYNASTY": [],
+        "DYNASTY_BESTBALL": [],
+        "REDRAFT": [
+          "CB",
+          "EDGE",
+          "IDL",
+          "LB",
+          "QB",
+          "S",
+          "WR"
+        ],
+        "REDRAFT_BESTBALL": [
+          "CB",
+          "EDGE",
+          "IDL",
+          "LB",
+          "S"
+        ]
+      },
+      "waiver": {
+        "CHOPPED": [],
+        "DYNASTY": [],
+        "DYNASTY_BESTBALL": [],
+        "REDRAFT": [
+          "QB",
+          "RB",
+          "WR"
+        ],
+        "REDRAFT_BESTBALL": []
+      },
+      "weekly": {
+        "CHOPPED": [],
+        "DYNASTY": [],
+        "DYNASTY_BESTBALL": [],
+        "REDRAFT": [],
+        "REDRAFT_BESTBALL": []
+      }
+    },
+    "draft_policy_positions": [
+      "CB",
+      "EDGE",
+      "IDL",
+      "LB",
+      "QB",
+      "S",
+      "WR"
+    ],
+    "format_position_gates": {
+      "CHOPPED": [],
+      "DYNASTY": [],
+      "DYNASTY_BESTBALL": [],
+      "REDRAFT": [
+        "CB",
+        "EDGE",
+        "IDL",
+        "LB",
+        "QB",
+        "S",
+        "WR"
+      ],
+      "REDRAFT_BESTBALL": [
+        "CB",
+        "EDGE",
+        "IDL",
+        "LB",
+        "S"
+      ]
+    },
+    "validated_format_profiles": [
+      "REDRAFT_BESTBALL"
+    ],
+    "waiver_policy_positions": [
+      "QB",
+      "RB",
+      "WR"
+    ],
+    "weekly_mean_positions": [],
+    "weekly_risk_positions": []
+  },
+  "fallback": "V8.2.2",
+  "generated_at": "2026-08-25T17:49:11.163953+00:00",
+  "global_operator_mode": "AUTO",
+  "identity_contract": "structural-v2",
+  "league_format": "DYNASTY_BESTBALL",
+  "league_id": "1341105213464924160",
+  "league_operator_mode": "AUTO",
+  "model_lineage": {
+    "artifact_paths": {
+      "current_snapshot": "data/research/leagues/1341105213464924160/current/milestone5_current.json",
+      "milestone4": "data/research/leagues/1341105213464924160/milestone4.json",
+      "milestone5": "data/research/leagues/1341105213464924160/milestone5.json",
+      "milestone6": "data/research/leagues/1341105213464924160/milestone6.json"
+    },
+    "artifact_sha256": {
+      "current_snapshot": "c034d0b5df96b89cd02c34a55ff1c2c44774deb15fda3c4c298acfd54c2ddd74",
+      "milestone4": "1e898971b9aff7494c3186d2a5853738fdfcb458e2a65468218c000105a242fd",
+      "milestone5": "118c6ae43ceb4f7d4643bc17aad2ce3199837a22f5931d20869ff5206f854405",
+      "milestone6": "2bbc397751b708e7d607251311384e52075eb49733708142975d190460503993"
+    },
+    "audit_rule": "Feature lists, coefficients, sample sizes and holdout metrics remain versioned in the league-scoped milestone bundles; promotion requires matching League ID, profile fingerprint, scoring and hashes.",
+    "m4_research_build": "V8.6-M4",
+    "m4_validated_positions": [
+      "CB",
+      "EDGE",
+      "IDL",
+      "LB",
+      "QB",
+      "S",
+      "WR"
+    ],
+    "m5_research_build": "V8.7-M5",
+    "m6_research_build": "V8.8-M6",
+    "m6_validated_candidate_positions": [],
+    "research_window": "rollover-safe historical window; see milestone bundles",
+    "time_safe_folds": [
+      "2019-2021 -> 2022",
+      "2019-2022 -> 2023",
+      "2019-2023 -> 2024",
+      "2019-2024 -> 2025"
+    ]
+  },
+  "operator_mode": "AUTO",
+  "profile_fingerprint": "814e01b8908c385e9d402ac74af5f86162552afaa7b8b704c1297d53323ecb29",
+  "profile_scoring_signature": "fec2fca13ae53e1d",
+  "promotion": {
+    "mode": "AUTO",
+    "rule": "Every namespace, scoring, freshness and decision-gate check must pass on each rebuild; failure automatically falls back."
+  },
+  "reason": "eligible_players",
+  "rollback": {
+    "code_change_required": false,
+    "effect": "All M5/M6 decision overrides disabled; V8.2.2 remains live fallback.",
+    "global_operator_override": "data/research/governance/operator_override.json",
+    "mode": "CONTROL",
+    "operator_override": "data/research/leagues/1341105213464924160/governance/operator_override.json"
+  },
+  "runtime_allow_m5": false,
+  "runtime_enabled": false,
+  "schema_version": 2,
+  "scoring_signature": "fec2fca13ae53e1d"
+}
