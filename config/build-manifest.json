@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
-  "app_version": "9.1.0-consolidation",
-  "runtime_version": "9.1-foundation",
+  "app_version": "9.2.1-current-storage",
+  "runtime_version": "9.2.1-foundation",
   "draft_model_version": "9.1-decision-candidate",
   "value_finder_version": "8.9-VF2",
-  "research_generation": "M1-M6 structural-v2",
+  "research_generation": "M1-M6 structural-v2 + current-split-v1",
   "model_promotion": {
     "promoted": false,
     "decision_domain": "draft",
@@ -12,17 +12,17 @@
     "fallback": "V8.9 governed Draft Assistant"
   },
   "runtime_research_scope": "league_namespaced_only",
-  "generated_at": "2026-08-26T11:54:29.387118+00:00",
+  "generated_at": "2026-08-26T14:06:20.052332+00:00",
   "files": {
     "index": {
       "path": "index.html",
-      "sha256": "10692fc847b5a2acc03d4b87461e350694d6f137303be2509b7d6ae5cc326389",
-      "bytes": 1373759
+      "sha256": "e1aae0b821bb33d9c6064b87c5797220bbbfdc2c3aefd69123507a439230ed31",
+      "bytes": 1374777
     },
     "release_descriptor": {
       "path": "config/release.json",
-      "sha256": "61847a1fc3312d318feecdbe3bd39c6609c6fac3587d87c5fc19b07f0c3973c0",
-      "bytes": 241
+      "sha256": "2caf8b38be1d997a017601730a13adffc75ebf36c03f791b9e088bc69090e762",
+      "bytes": 264
     },
     "runtime_contract": {
       "path": "config/contracts/runtime-contracts.json",
@@ -54,6 +54,11 @@
       "sha256": "e6ce196880619c0eb2e2f5f29c7ee22b5003be5f9a5a4530d3cda1b94eafc0ef",
       "bytes": 1978
     },
+    "current_snapshot_store": {
+      "path": "app/current-snapshot-store.js",
+      "sha256": "d8db0f5633ca3605fac7f5e8eea71bc031d75eb05effbe44a953ff4b6414e4b3",
+      "bytes": 2978
+    },
     "decision_service": {
       "path": "app/core/decision-service.js",
       "sha256": "4fef8c64243f2744bb027f22a335d5f417f28090887266906af88e206429a910",
@@ -61,8 +66,8 @@
     },
     "runtime": {
       "path": "app/runtime-foundation.js",
-      "sha256": "b35869603d45b8469e027849a0e89f550fe3b63e155d284f08cf26fdf0664bc6",
-      "bytes": 24449
+      "sha256": "fe9f995252e8e91a1daafc5240977968fe6172412765957ee8f3aed7c5cb65ce",
+      "bytes": 24455
     },
     "current_player_features": {
       "path": "app/current-player-features.js",
@@ -101,8 +106,13 @@
     },
     "dst_intelligence": {
       "path": "app/dst-intelligence.js",
-      "sha256": "bdbed2c583b2c52392fa84896428cf0e5131651a29676b09d721a789863cfb99",
-      "bytes": 9943
+      "sha256": "6f0d8d0035feeafcf652fdd8d5a692643862031187794032bfadf36a4de2bcec",
+      "bytes": 10053
+    },
+    "kicker_intelligence": {
+      "path": "app/kicker-intelligence.js",
+      "sha256": "b6da535162caf7535424cf1723180a0033d23850aafc1fda3e5126b601f7a45d",
+      "bytes": 10003
     },
     "league_profile": {
       "path": "research/league_profile.py",
@@ -124,6 +134,21 @@
       "sha256": "ee7e02d68308f746aa6a47d2374feccd4555bf7e7cb0a29cee7a2a38f3a88e14",
       "bytes": 6197
     },
+    "kicker_contract": {
+      "path": "research/kicker_contract.py",
+      "sha256": "48c8c27abc1c0619a361c561ba253886daeb0302142fcd68bad5039d1aff509d",
+      "bytes": 2741
+    },
+    "kicker_research": {
+      "path": "research/fie_kicker.py",
+      "sha256": "49776a9f96f962c350a6c2ae7f99ae4749f7074f33908f5cf514c80787cd2b89",
+      "bytes": 23460
+    },
+    "kicker_integrity": {
+      "path": "research/integrity_kicker_test.py",
+      "sha256": "0b4cbbbc9063f887046dcc33076c67e4befedda88350fb9a1947ebd360aa39c9",
+      "bytes": 2299
+    },
     "scoring_relevance": {
       "path": "research/scoring_relevance.py",
       "sha256": "8c2021aba9540bdd6b1c66800cb4e6460a036b1e4c3dc8b44ae4d34356b2b445",
@@ -133,6 +158,21 @@
       "path": "research/build_current_snapshot.py",
       "sha256": "c05e327556c599d519199a56398fc647a21624e1147b68148ae3bb7660613e83",
       "bytes": 60489
+    },
+    "current_snapshot_storage": {
+      "path": "research/current_snapshot_storage.py",
+      "sha256": "142fb8933a0fd2a67133dfddafbf47f163f7db7ec71da3f2b12cab2d322be9c1",
+      "bytes": 5258
+    },
+    "current_snapshot_deduper": {
+      "path": "research/deduplicate_current_snapshots.py",
+      "sha256": "3844cd1a2e62c732de860d6949944c6874ecc46bbc25188f44cf5f8109753956",
+      "bytes": 9903
+    },
+    "current_snapshot_storage_integrity": {
+      "path": "research/integrity_current_storage_test.py",
+      "sha256": "49878f1e3ddabccf4ade9031f37dcb5fa1b05f6175eef398835d83800fdd1077",
+      "bytes": 3806
     },
     "decision_validation": {
       "path": "research/decision_validation.py",
@@ -146,8 +186,8 @@
     },
     "dist_builder": {
       "path": "tools/build_dist.py",
-      "sha256": "1317e2bf8bf9702eb428bd33ac0b095c5d1c3e5999420f66f926e2bfa829341e",
-      "bytes": 4513
+      "sha256": "e80ca88f14362a633141a53ac935f3e114191af64c6ea9214bb17eb74e70666c",
+      "bytes": 9504
     },
     "release_builder": {
       "path": "tools/release_build.py",
@@ -156,8 +196,8 @@
     },
     "release_gate": {
       "path": "research/release_gate.py",
-      "sha256": "219cc4cdd148316292fdd802543094bd6e5b64eb4284e65a0775d47d2ec0a341",
-      "bytes": 3257
+      "sha256": "a79a46fad567f34a31c18a5b81c481e45ef460945df9b290af90b10aa8cb513c",
+      "bytes": 3327
     }
   }
 }

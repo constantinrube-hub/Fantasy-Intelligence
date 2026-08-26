@@ -1,34 +1,50 @@
 {
+  "schema_version": 3,
   "active_build": "V8.8-M6",
+  "control_build": "V8.2.2",
+  "generated_at": "2026-08-26T14:01:41.754410+00:00",
+  "league_id": "1335691030116184065",
+  "league_format": "DYNASTY",
+  "profile_fingerprint": "8a3daf50bb93fb75150aa356d731af7c6b897f7e1ce52ea0abd737cec82c155c",
+  "profile_scoring_signature": "34391ae722b8b66d",
+  "operator_mode": "AUTO",
+  "global_operator_mode": "AUTO",
+  "league_operator_mode": "AUTO",
+  "runtime_enabled": false,
+  "runtime_allow_m5": false,
+  "fallback": "V8.2.2",
+  "reason": "current_profile_live_match; fresh_snapshot; eligible_players",
   "checks": {
-    "artifact_scope_match": true,
-    "current_complete": true,
-    "current_contract": true,
-    "current_producer": true,
-    "current_profile_live_match": false,
-    "eligible_players": false,
-    "format_match": true,
-    "fresh_snapshot": true,
     "global_operator_auto": true,
+    "operator_auto": true,
     "league_id_match": true,
+    "profile_fingerprint_match": true,
+    "current_profile_live_match": false,
+    "format_match": true,
+    "artifact_scope_match": true,
+    "current_storage_integrity": true,
     "m4_complete": true,
     "m5_complete": true,
     "m6_complete": true,
-    "operator_auto": true,
-    "profile_fingerprint_match": true,
+    "current_complete": true,
+    "current_producer": true,
+    "current_contract": true,
     "scoring_signature_match": true,
-    "target_week_leakage_guard": true
+    "fresh_snapshot": false,
+    "target_week_leakage_guard": true,
+    "eligible_players": false
   },
-  "control_build": "V8.2.2",
   "current_snapshot": {
-    "age_hours": 0.0009259858333333334,
-    "eligible_players": 0,
-    "generated_at": "2026-08-25T17:49:03.436350+00:00",
-    "max_age_hours": 18.0,
     "path": "data/research/leagues/1335691030116184065/current/milestone5_current.json",
     "season": 2026,
-    "week": 1
+    "week": 1,
+    "generated_at": "2026-08-25T17:49:03.436350+00:00",
+    "age_hours": 20.210642780277777,
+    "max_age_hours": 18.0,
+    "eligible_players": 0,
+    "storage_format": "fie-current-split-v1"
   },
+  "scoring_signature": "34391ae722b8b66d",
   "decision_gates": {
     "decision_format_position_gates": {
       "draft": {
@@ -145,28 +161,17 @@
       "LB"
     ]
   },
-  "fallback": "V8.2.2",
-  "generated_at": "2026-08-25T17:49:06.770010+00:00",
-  "global_operator_mode": "AUTO",
-  "identity_contract": "structural-v2",
-  "league_format": "DYNASTY",
-  "league_id": "1335691030116184065",
-  "league_operator_mode": "AUTO",
   "model_lineage": {
-    "artifact_paths": {
-      "current_snapshot": "data/research/leagues/1335691030116184065/current/milestone5_current.json",
-      "milestone4": "data/research/leagues/1335691030116184065/milestone4.json",
-      "milestone5": "data/research/leagues/1335691030116184065/milestone5.json",
-      "milestone6": "data/research/leagues/1335691030116184065/milestone6.json"
-    },
-    "artifact_sha256": {
-      "current_snapshot": "6b84b16493bf4f9b1b1a55ba37f722509a1a1a7310f8d30480e1772cfa3e8ede",
-      "milestone4": "9dce51469049a7313ebfd2db771fd01b12e9d4f40454e73d30fb89b481ed260a",
-      "milestone5": "9df84446d3e5cd532d3cd66f7cc75eb75ff6bcd3efad71c7fb1203b50d206edc",
-      "milestone6": "f21e7834dc189cfd7a3246b2772ab8dcc31b5be975b76008beed060166a3b042"
-    },
-    "audit_rule": "Feature lists, coefficients, sample sizes and holdout metrics remain versioned in the league-scoped milestone bundles; promotion requires matching League ID, profile fingerprint, scoring and hashes.",
+    "research_window": "rollover-safe historical window; see milestone bundles",
+    "time_safe_folds": [
+      "2019-2021 -> 2022",
+      "2019-2022 -> 2023",
+      "2019-2023 -> 2024",
+      "2019-2024 -> 2025"
+    ],
     "m4_research_build": "V8.6-M4",
+    "m5_research_build": "V8.7-M5",
+    "m6_research_build": "V8.8-M6",
     "m4_validated_positions": [
       "EDGE",
       "IDL",
@@ -175,34 +180,40 @@
       "TE",
       "WR"
     ],
-    "m5_research_build": "V8.7-M5",
-    "m6_research_build": "V8.8-M6",
     "m6_validated_candidate_positions": [],
-    "research_window": "rollover-safe historical window; see milestone bundles",
-    "time_safe_folds": [
-      "2019-2021 -> 2022",
-      "2019-2022 -> 2023",
-      "2019-2023 -> 2024",
-      "2019-2024 -> 2025"
-    ]
+    "artifact_paths": {
+      "milestone4": "data/research/leagues/1335691030116184065/milestone4.json",
+      "milestone5": "data/research/leagues/1335691030116184065/milestone5.json",
+      "milestone6": "data/research/leagues/1335691030116184065/milestone6.json",
+      "current_snapshot": "data/research/leagues/1335691030116184065/current/milestone5_current.json"
+    },
+    "artifact_sha256": {
+      "milestone4": "0b285e78d332008283ad64bd04216eee253a09b425bb3e6892a33f0af77f59fb",
+      "milestone5": "0684847a74b1d867a9bc770b5fb6a6c3e5ffc4f4fdae2a4c4322c9a6bc69303a",
+      "milestone6": "06bb18df63a5874c6042b89c73f41b18071d74b3d3a9562e887160aaaa84a5d5",
+      "current_snapshot": "6ef610c99092933d8406e61366f42a04069cf81f952cfb0bc2a18f8529ec99c8"
+    },
+    "shared_current_artifacts": {
+      "player_base": {
+        "path": "data/research/shared/current/player_base.4c480f0d1242cbee.json",
+        "sha256": "85814f982e95e9e57fd479d1792f95c194dd27c2b129d6d728531930e911277d"
+      },
+      "scoring_overlay": {
+        "path": "data/research/shared/current/scoring/34391ae722b8b66d.a95ada948f54819d.json",
+        "sha256": "bdea7b47e057141d91a0c196912ead0a28a7963fc3f65573a3835571dffc4188"
+      }
+    },
+    "audit_rule": "Feature lists, coefficients, sample sizes and holdout metrics remain versioned in the league-scoped milestone bundles; promotion requires matching League ID, profile fingerprint, scoring and hashes."
   },
-  "operator_mode": "AUTO",
-  "profile_fingerprint": "8a3daf50bb93fb75150aa356d731af7c6b897f7e1ce52ea0abd737cec82c155c",
-  "profile_scoring_signature": "34391ae722b8b66d",
+  "rollback": {
+    "mode": "CONTROL",
+    "operator_override": "data/research/leagues/1335691030116184065/governance/operator_override.json",
+    "global_operator_override": "data/research/governance/operator_override.json",
+    "effect": "All M5/M6 decision overrides disabled; V8.2.2 remains live fallback.",
+    "code_change_required": false
+  },
   "promotion": {
     "mode": "AUTO",
     "rule": "Every namespace, scoring, freshness and decision-gate check must pass on each rebuild; failure automatically falls back."
-  },
-  "reason": "current_profile_live_match; eligible_players",
-  "rollback": {
-    "code_change_required": false,
-    "effect": "All M5/M6 decision overrides disabled; V8.2.2 remains live fallback.",
-    "global_operator_override": "data/research/governance/operator_override.json",
-    "mode": "CONTROL",
-    "operator_override": "data/research/leagues/1335691030116184065/governance/operator_override.json"
-  },
-  "runtime_allow_m5": false,
-  "runtime_enabled": false,
-  "schema_version": 2,
-  "scoring_signature": "34391ae722b8b66d"
+  }
 }

@@ -1,11 +1,11 @@
-/* Fantasy Intelligence Engine runtime foundation, V9.1 consolidation.
+/* Fantasy Intelligence Engine runtime foundation, V9.2.1 consolidation.
  * Authoritative season, league profile, request scope, saved-league format,
  * scoring relevance, staged load, and runtime diagnostics layer.
  */
 (function(){
 'use strict';
-const VERSION='9.1-foundation';
-const RELEASE='9.1.0-consolidation';
+const VERSION='9.2.1-foundation';
+const RELEASE='9.2.1-current-storage';
 let BUILD_MANIFEST=null;
 const Core=()=>window.FIECore||{};
 const Data=()=>window.FIEDataClient;
