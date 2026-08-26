@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "purpose": "Decision-specific FIE V9 forward-validation contract. Projection accuracy alone cannot activate every fantasy decision domain.",
+  "domains": {
+    "draft": {"primary": ["reach_regret", "replacement_loss", "roster_utility_after_n_picks"], "minimum_rows": 250, "minimum_temporal_periods": 6},
+    "start_sit": {"primary": ["lineup_regret", "best_legal_player_hit_rate", "points_lost_vs_hindsight_best_legal_lineup"], "minimum_rows": 300, "minimum_temporal_periods": 8},
+    "waiver": {"primary": ["next_3_week_gain_vs_replacement", "faab_efficiency", "roster_usefulness"], "minimum_rows": 200, "minimum_temporal_periods": 6},
+    "chopped": {"primary": ["lineup_p10", "expected_shortfall", "elimination_risk_proxy"], "minimum_rows": 200, "minimum_temporal_periods": 6},
+    "best_ball": {"primary": ["roster_spike_contribution", "weekly_lineup_capture", "diversification_value"], "minimum_rows": 250, "minimum_temporal_periods": 6},
+    "dynasty": {"primary": ["future_production", "asset_value_retention", "multi_season_utility"], "minimum_rows": 250, "minimum_temporal_periods": 2}
+  },
+  "promotion_requirements": [
+    "paired temporal evaluation against the same baseline rows",
+    "positive paired temporal-block bootstrap lower confidence bound",
+    "minimum practical relative lift",
+    "no material rank-correlation regression",
+    "decision regret no worse than baseline when available",
+    "fail closed when required samples or temporal periods are unavailable"
+  ],
+  "selection_policy": "Feature/model selection and final evaluation must be temporally separated or nested. Do not promote the best of many searched candidates on the same final evaluation sample."
+}
