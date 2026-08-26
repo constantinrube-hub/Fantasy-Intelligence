@@ -1,0 +1,158 @@
+{
+  "status": "DEPLOYABLE_SOURCE",
+  "browser_preview_required": true,
+  "checks": [
+    {
+      "cmd": "/opt/pyvenv/bin/python research/production_readiness.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "   \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"eligible_players\"\n    },\n    {\n      \"league_id\": \"1335691030116184065\",\n      \"format\": \"DYNASTY\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"current_profile_live_match; eligible_players\"\n    },\n    {\n      \"league_id\": \"1341105213464924160\",\n      \"format\": \"DYNASTY_BESTBALL\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"eligible_players\"\n    },\n    {\n      \"league_id\": \"1341131690998788096\",\n      \"format\": \"DYNASTY_BESTBALL\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"current_profile_live_match; eligible_players\"\n    },\n    {\n      \"league_id\": \"1342896584593018880\",\n      \"format\": \"DYNASTY\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"eligible_players\"\n    },\n    {\n      \"league_id\": \"1343914986388353024\",\n      \"format\": \"CHOPPED\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"eligible_players\"\n    },\n    {\n      \"league_id\": \"1387106650413887488\",\n      \"format\": \"REDRAFT\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"eligible_players\"\n    },\n    {\n      \"league_id\": \"1387526015705690112\",\n      \"format\": \"CHOPPED\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"eligible_players\"\n    },\n    {\n      \"league_id\": \"1391803939736801280\",\n      \"format\": \"REDRAFT\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"eligible_players\"\n    },\n    {\n      \"league_id\": \"1397547920563171328\",\n      \"format\": \"CHOPPED\",\n      \"artifact_ready\": true,\n      \"current\": true,\n      \"governance\": true,\n      \"runtime_research_active\": false,\n      \"runtime_reason\": \"eligible_players\"\n    }\n  ],\n  \"market_snapshots\": 0,\n  \"issues\": [],\n  \"warnings\": []\n}\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_build_manifest_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS integrity_build_manifest_test\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_runtime_foundation_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK: V9 runtime foundation format, explicit precedence, 3RR, and scoring relevance\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_league_switch_runtime_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS integrity_league_switch_runtime_test\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_v9_model_runtime_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK: V9 is fail-closed, diagnostic architecture is stable, exact roster marginal is available, and replacement is league-wide\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_decision_service_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS integrity_decision_service_test\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_structural_profile_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS integrity_structural_profile_test\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_release_versions_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS integrity_release_versions_test\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_dist_hygiene_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS integrity_dist_hygiene_test files=219\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_monte_carlo_worker_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK: Monte Carlo preserves owned rosters, excludes starters from bench value, returns finite batches, and supports cancellation\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_decision_engines_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK decision-engine static integration\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_v89_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK: V8.9 runtime integrity, rollover, scoring, governance and statistical guardrails\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_m5_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK M5 policy + independent waiver-gate validator integrity\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_m6_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "M6 integrity tests passed\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_scoring_relevance_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS integrity_scoring_relevance_test\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_dst_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK: D/ST scorer, attribution, league gating and runtime integration\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_kicker_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "Kicker Intelligence integrity: PASS\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/pyvenv/bin/python research/integrity_value_finder_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK: V8.9-VF2 Value Finder + Top-100 Pick Optimizer static integrity\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_value_finder_runtime_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK: Value Finder runtime eligibility, same-position market ranking and role-first 200+ filter\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_top100_optimizer_runtime_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "OK: Top-100 optimizer eligible pool, capture, tier cost, survival, replacement and path proxy\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "artifact hygiene",
+      "ok": true,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "cmd": "dist hygiene",
+      "ok": true,
+      "stderr": "",
+      "stdout": ""
+    }
+  ]
+}
