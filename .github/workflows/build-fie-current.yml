@@ -47,6 +47,8 @@ jobs:
       - name: Verify multi-league production code
         run: |
           python research/integrity_m6_test.py
+          python research/integrity_dst_test.py
+          python research/integrity_kicker_test.py
           python research/integrity_v89_test.py
           python research/test_league_profile.py
           python research/integrity_multileague_test.py
@@ -55,6 +57,14 @@ jobs:
           python research/integrity_draft_rank_sort_test.py
           python research/integrity_portfolio_home_test.py
           python research/integrity_custom_league_rules_test.py
+          python research/integrity_decision_validation_test.py
+          python research/integrity_current_features_test.py
+          python research/integrity_current_storage_test.py
+          node research/integrity_runtime_foundation_test.js
+          node research/integrity_v9_model_runtime_test.js
+          node research/integrity_monte_carlo_worker_test.js
+          node research/integrity_value_finder_runtime_test.js
+          node research/integrity_top100_optimizer_runtime_test.js
           python research/integrity_bulk_onboarding_test.py --config-only
       - name: Resolve target leagues
         env:
@@ -76,14 +86,13 @@ jobs:
             exit 2
           fi
           cat /tmp/fie_leagues.txt
-      - name: Build league-specific current snapshots and governance
+      - name: Build league-specific current snapshots
         env:
           INPUT_SEASON: ${{ inputs.season }}
           INPUT_WEEK: ${{ inputs.week }}
-          GOV_MODE: ${{ inputs.governance_mode }}
         shell: bash
         run: |
-          MODE="${GOV_MODE:-KEEP}"
+          : > /tmp/fie_built_current_ids.txt
           while read -r LID; do
             [ -z "$LID" ] && continue
             ROOT="data/research/leagues/$LID"
@@ -103,24 +112,53 @@ jobs:
               echo "Current build failed for $LID; preserving previous snapshot." >&2
               continue
             fi
+            echo "$LID" >> /tmp/fie_built_current_ids.txt
+          done < /tmp/fie_leagues.txt
+      - name: Deduplicate current snapshot storage
+        run: python research/deduplicate_current_snapshots.py
+      - name: Build league-specific governance
+        env:
+          GOV_MODE: ${{ inputs.governance_mode }}
+        shell: bash
+        run: |
+          MODE="${GOV_MODE:-KEEP}"
+          python - <<'PY' > /tmp/fie_governance_ids.txt
+          import json
+          from pathlib import Path
+          reg=json.load(open('data/research/leagues/registry.json'))
+          for lid in sorted((reg.get('leagues') or {})):
+              if (Path('data/research/leagues')/lid/'current/milestone5_current.json').exists(): print(lid)
+          PY
+          while read -r LID; do
+            [ -z "$LID" ] && continue
+            ROOT="data/research/leagues/$LID"
+            PROFILE="$ROOT/profile.json"
             GOV="--league-id $LID --league-profile $PROFILE --m4-bundle $ROOT/milestone4.json --m5-bundle $ROOT/milestone5.json --m6-bundle $ROOT/milestone6.json --current-snapshot $ROOT/current/milestone5_current.json --operator-override $ROOT/governance/operator_override.json --global-operator-override data/research/governance/operator_override.json --output $ROOT/governance/active_release.json"
-            if [ "$MODE" = "AUTO" ] || [ "$MODE" = "CONTROL" ]; then
-              python research/fie_governance.py $GOV --mode "$MODE" --persist-mode
+            THIS_MODE="KEEP"
+            if grep -qx "$LID" /tmp/fie_built_current_ids.txt; then THIS_MODE="$MODE"; fi
+            if [ "$THIS_MODE" = "AUTO" ] || [ "$THIS_MODE" = "CONTROL" ]; then
+              python research/fie_governance.py $GOV --mode "$THIS_MODE" --persist-mode
             else
               python research/fie_governance.py $GOV
             fi
-          done < /tmp/fie_leagues.txt
+          done < /tmp/fie_governance_ids.txt
+      - name: Verify shared current storage
+        run: python research/integrity_current_storage_test.py
+      - name: Refresh specialist scoring inventories
+        run: |
+          python research/fie_dst.py inventory --registry data/research/leagues/registry.json --output data/research/dst/scoring_inventory.json
+          python research/fie_kicker.py inventory --registry data/research/leagues/registry.json --output data/research/kicker/scoring_inventory.json
       - name: Audit production readiness
         run: python research/production_readiness.py
       - name: Commit current snapshots, market captures, and governance
         run: |
-          if git diff --quiet -- data/research/leagues data/research/market/sleeper; then
+          if git diff --quiet -- data/research/leagues data/research/shared data/research/market/sleeper data/research/dst data/research/kicker; then
             echo "Current-season artifacts unchanged."
             exit 0
           fi
           git config user.name "FIE Current Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/research/leagues data/research/market/sleeper
+          git add data/research/leagues data/research/shared data/research/market/sleeper data/research/dst data/research/kicker
           git commit -m "Refresh FIE league-specific current intelligence"
           git fetch origin main
           git rebase origin/main
