@@ -65,3 +65,9 @@ Production code must never infer promotion from the presence of a model file.
 ## Release descriptor
 
 `config/release.json` is the canonical human-readable release identity. Generated browser/function descriptors derive from it.
+
+## Current snapshot storage contract
+
+The logical hydrated `milestone5_current` object remains the consumer contract. Physical storage may use `fie-current-split-v1`, where a namespaced league manifest references a content-addressed shared player base and a scoring overlay. Consumers must load through `app/current-snapshot-store.js` in the browser or `research/current_snapshot_storage.py` in Python when player rows are required. Top-level league metadata remains directly readable from the manifest for governance/readiness checks.
+
+Do not assume `players` or `scoring_settings` are physically embedded in the league manifest.

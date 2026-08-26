@@ -4,7 +4,7 @@ League-specific fantasy-football decision support for Sleeper leagues.
 
 ## Current release
 
-**9.1.0 Consolidation**
+**9.2.1 Current Snapshot Storage**
 
 This repository contains the browser application, Cloudflare Pages Functions, league-specific M1-M6 research artifacts, governance, tests, and deployment tooling.
 
@@ -19,10 +19,12 @@ The production architecture is intentionally fail-closed. Candidate research/mod
 - [Release checklist](docs/current/RELEASE_CHECKLIST.md)
 - [Model governance](docs/current/MODEL_GOVERNANCE.md)
 - [Data contracts](docs/current/DATA_CONTRACTS.md)
+- [Current snapshot storage](docs/current/CURRENT_SNAPSHOT_STORAGE.md)
 - [Testing](docs/current/TESTING.md)
 - [Security](docs/current/SECURITY.md)
 - [D/ST integration foundation](docs/current/DST_INTEGRATION_GUIDE.md)
 - [D/ST implementation & evaluation](docs/current/DST_IMPLEMENTATION_AND_EVALUATION.md)
+- [Kicker Intelligence implementation](docs/current/KICKER_INTELLIGENCE_IMPLEMENTATION.md)
 - [Release handoff / what to change](docs/current/HANDOFF.md)
 
 Historical milestone/version documents have been moved to `docs/archive/` so the repository root stays usable.
@@ -68,3 +70,7 @@ The current V9.1 decision model is a **candidate** unless `config/model-config.j
 
 ### Kicker Intelligence
 Leagues that start K now receive a specialist Kicker Intelligence path. The model projects kick opportunity, distance and conversion before applying exact league scoring, including per-yard FG scoring and distance-specific miss penalties. Weekly output includes replacement-aware streaming signals and a PAY / WAIT / STREAM draft recommendation. See `docs/current/KICKER_INTELLIGENCE_IMPLEMENTATION.md`.
+
+### Shared current-snapshot storage
+
+League-specific `milestone5_current.json` files are now lightweight manifests. Shared invariant player data and scoring-specific projection overlays live under `data/research/shared/current/`, and the browser hydrates the unchanged logical M5 contract through `app/current-snapshot-store.js`. This removes roughly 96% of duplicated current-snapshot source storage across the 19 managed leagues.

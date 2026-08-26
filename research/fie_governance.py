@@ -45,6 +45,29 @@ def namespace_ok(path: str, league_id: str) -> bool:
     needle=['data','research','leagues',str(league_id)]
     return len(parts)>=len(needle) and parts[:len(needle)]==needle
 
+def shared_current_ok(path: str) -> bool:
+    if not path:return False
+    try: parts=Path(path).as_posix().split('/')
+    except Exception:return False
+    return len(parts)>=4 and parts[:4]==['data','research','shared','current'] and '..' not in parts
+
+def shared_current_artifacts(cur: dict) -> tuple[bool, dict]:
+    storage=(cur or {}).get('storage') or {}
+    if storage.get('format')!='fie-current-split-v1':
+        return True, {}
+    out={}
+    for key in ('player_base','scoring_overlay'):
+        ref=str(storage.get(key) or '')
+        if not shared_current_ok(ref):return False,{}
+        p=Path(ref)
+        if not p.exists():return False,{}
+        out[key]={'path':ref,'sha256':sha256_file(ref)}
+    try:
+        overlay=load(storage.get('scoring_overlay'))
+        if str(overlay.get('scoring_signature') or '')!=str(cur.get('scoring_signature') or ''):return False,{}
+    except Exception:return False,{}
+    return True,out
+
 def build(args):
     m4=load(args.m4_bundle);m5=load(args.m5_bundle);m6=load(args.m6_bundle);cur=load(args.current_snapshot)
     profile=load(getattr(args,'league_profile',None)); local=load(args.operator_override); global_ov=load(getattr(args,'global_operator_override',None))
@@ -60,6 +83,7 @@ def build(args):
     fps=[x.get('profile_fingerprint') for x in (m4,m5,m6,cur)]
     fmts=[x.get('league_format') for x in (m4,m5,m6,cur) if x.get('league_format') is not None]
     paths=[args.m4_bundle,args.m5_bundle,args.m6_bundle,args.current_snapshot,args.operator_override,getattr(args,'output','')]
+    current_storage_ok,current_shared=shared_current_artifacts(cur)
     checks={
       'global_operator_auto':global_mode=='AUTO',
       'operator_auto':mode=='AUTO',
@@ -68,6 +92,7 @@ def build(args):
       'current_profile_live_match':cur.get('profile_current_match') is True and cur.get('live_profile_fingerprint')==profile_fp,
       'format_match':bool(profile_fmt and (not fmts or all(x==profile_fmt for x in fmts))),
       'artifact_scope_match':bool(league_id and all(namespace_ok(x,league_id) for x in paths)),
+      'current_storage_integrity':current_storage_ok,
       'm4_complete':m4.get('status')=='complete','m5_complete':m5.get('status')=='complete','m6_complete':m6.get('status')=='complete',
       'current_complete':str(cur.get('status') or '').lower() in {'complete','ready','active'},
       'current_producer':cur.get('producer_build')==ACTIVE_BUILD,'current_contract':cur.get('m5_build')=='V8.7-M5',
@@ -80,11 +105,11 @@ def build(args):
     gates=(m5.get('activation') or {}).get('decision_gates') or {}
     artifact_paths={'milestone4':args.m4_bundle,'milestone5':args.m5_bundle,'milestone6':args.m6_bundle,'current_snapshot':args.current_snapshot}
     return {
-      'schema_version':2,'active_build':ACTIVE_BUILD,'control_build':CONTROL_BUILD,'generated_at':iso(),
+      'schema_version':3,'active_build':ACTIVE_BUILD,'control_build':CONTROL_BUILD,'generated_at':iso(),
       'league_id':league_id or None,'league_format':profile_fmt,'profile_fingerprint':profile_fp,'profile_scoring_signature':profile_sig,
       'operator_mode':mode,'global_operator_mode':global_mode,'league_operator_mode':local_mode,
       'runtime_enabled':bool(enabled),'runtime_allow_m5':bool(enabled),'fallback':CONTROL_BUILD,'reason':reason,'checks':checks,
-      'current_snapshot':{'path':args.current_snapshot,'season':cur.get('season'),'week':cur.get('week'),'generated_at':cur.get('generated_at'),'age_hours':age,'max_age_hours':max_age,'eligible_players':int((cur.get('summary') or {}).get('activation_eligible') or 0)},
+      'current_snapshot':{'path':args.current_snapshot,'season':cur.get('season'),'week':cur.get('week'),'generated_at':cur.get('generated_at'),'age_hours':age,'max_age_hours':max_age,'eligible_players':int((cur.get('summary') or {}).get('activation_eligible') or 0),'storage_format':(cur.get('storage') or {}).get('format')},
       'scoring_signature':sig5,'decision_gates':gates,
       'model_lineage':{
         'research_window':str((m4.get('methodology') or {}).get('research_window') or 'rollover-safe historical window; see milestone bundles'),
@@ -93,6 +118,7 @@ def build(args):
         'm6_validated_candidate_positions':(m6.get('advanced_second_wave') or {}).get('validated_candidate_positions',[]),
         'artifact_paths':artifact_paths,
         'artifact_sha256':{k:sha256_file(v) for k,v in artifact_paths.items()},
+        'shared_current_artifacts':current_shared,
         'audit_rule':'Feature lists, coefficients, sample sizes and holdout metrics remain versioned in the league-scoped milestone bundles; promotion requires matching League ID, profile fingerprint, scoring and hashes.'
       },
       'rollback':{'mode':'CONTROL','operator_override':args.operator_override,'global_operator_override':getattr(args,'global_operator_override',None),'effect':'All M5/M6 decision overrides disabled; V8.2.2 remains live fallback.','code_change_required':False},

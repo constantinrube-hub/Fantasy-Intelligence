@@ -56,3 +56,9 @@ Use these terms consistently:
 - final browser-preview PASS
 
 Do not use a generic READY label for all of them.
+
+## Shared current-artifact integrity
+
+Split current storage does not weaken governance. `fie_governance.py` validates the shared player-base and scoring-overlay references, records their SHA-256 hashes, and exposes `current_storage_integrity` as a mandatory runtime check. The browser verifies those hashes in addition to M4, M5, M6 and the league current manifest.
+
+`tools/build_dist.py` deterministically compacts current data for Cloudflare and rewrites only the **served copy** of governance hashes so they bind to the served derivatives. Source governance continues to authenticate the source manifest/shared store.

@@ -30,6 +30,17 @@ python research/generate_model_config.py
 python research/generate_release_descriptor.py
 ```
 
+### 2a. Normalize current-snapshot storage when current data changed
+
+If any `build_current_snapshot.py` run produced or replaced a league current snapshot, normalize the portfolio before governance/release packaging:
+
+```bash
+python research/deduplicate_current_snapshots.py
+python research/integrity_current_storage_test.py
+```
+
+The scheduled current-season and bulk-onboarding GitHub workflows already do this automatically.
+
 ### 3. Run fast integrity tests
 
 At minimum:

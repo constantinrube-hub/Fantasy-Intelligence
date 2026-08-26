@@ -1,4 +1,4 @@
-# FIE 9.1 Consolidation Handoff
+# FIE 9.2.1 Handoff
 
 ## Status
 
@@ -49,6 +49,7 @@ Upload only the contents of `dist/`. This does **not** by itself deploy the Page
 | Change roster marginal value | `app/core/core-services.js` / `RosterValueService` |
 | Change production decision source | `app/core/decision-service.js` + governed model config |
 | Add current research feature | Python research pipeline → `CurrentPlayerFeatures` bridge |
+| Change current snapshot storage | `research/current_snapshot_storage.py`, `research/deduplicate_current_snapshots.py`, `app/current-snapshot-store.js` |
 | Promote new model coefficients | research validation → `config/model-config.json`, never client hard-code alone |
 | Add D/ST | follow `docs/current/DST_INTEGRATION_GUIDE.md` |
 
@@ -62,8 +63,9 @@ Upload only the contents of `dist/`. This does **not** by itself deploy the Page
 6. Do not add another `window.someFunction = wrapper(oldFunction)` patch layer.
 7. Do not let candidate research/model code alter production recommendations without governance.
 8. Do not deploy the repository root.
-9. Regenerate the final manifest after the last source/config change.
-10. Run the served-browser preview check before production.
+9. If current snapshots changed, run `python research/deduplicate_current_snapshots.py` before governance/release build.
+10. Regenerate the final manifest after the last source/config change.
+11. Run the served-browser preview check before production.
 
 ## Recommended post-upload verification
 

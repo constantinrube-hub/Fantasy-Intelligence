@@ -99,7 +99,7 @@ Direct feature code must not create its own competing league-switch lifecycle.
 
 ## Research architecture
 
-Research remains namespaced:
+Research remains namespaced, while large current-season payloads are shared by content hash:
 
 ```text
 data/research/leagues/<league_id>/
@@ -107,9 +107,15 @@ data/research/leagues/<league_id>/
   milestone1.json
   ...
   milestone6.json
-  current/milestone5_current.json
+  current/milestone5_current.json   # lightweight league manifest
   governance/active_release.json
+
+data/research/shared/current/
+  player_base.<hash>.json
+  scoring/<scoring_signature>.<hash>.json
 ```
+
+`app/current-snapshot-store.js` hydrates the manifest + shared artifacts back into the unchanged logical M5 current contract. This keeps league scoring exact without repeating the invariant player payload for every league. `tools/build_dist.py` performs a second portfolio-wide runtime compaction so Cloudflare ships only rows needed by at least one managed league. See `CURRENT_SNAPSHOT_STORAGE.md`.
 
 The profile uses a **structural-v2** fingerprint. Volatile Sleeper operational fields are retained for diagnostics but do not define model identity.
 

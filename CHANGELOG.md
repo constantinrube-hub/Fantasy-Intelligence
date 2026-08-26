@@ -1,5 +1,17 @@
 # Changelog
 
+## 9.2.1 Current Snapshot Storage, 2026-08-26
+
+- Replaced 19 repeated ~8 MB `milestone5_current.json` player payloads with lightweight league manifests.
+- Added content-addressed shared current player bases and scoring-specific projection overlays.
+- Preserved exact logical hydration of all 19 pre-refactor source snapshots, including row order.
+- Reduced namespaced current-snapshot source storage from ~154.2 MB to ~5.85 MB, about a 96% reduction.
+- Deduplicated 19 leagues into 1 compatible shared player base and 17 scoring overlays.
+- Added `app/current-snapshot-store.js` as the canonical browser hydrator for M5, D/ST and Kicker Intelligence.
+- Reworked `tools/build_dist.py` to perform portfolio-wide shared runtime compaction; the shared runtime current store is ~808 KB and the complete current-snapshot footprint is ~0.98 MB for the present portfolio instead of ~6.63 MB.
+- Updated current-season and bulk workflows so full snapshots are built first, deduplicated once, then governed and committed with shared artifacts.
+- Added current-storage and deployed-hydration integrity coverage plus living architecture/deployment documentation.
+
 ## 9.1.0 Consolidation, 2026-08-26
 
 ### D/ST first-class implementation

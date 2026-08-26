@@ -15,12 +15,15 @@
 - [ ] Monte Carlo bench excludes starters.
 - [ ] Value Finder consumes canonical production decision source.
 - [ ] Research features cannot bypass governance.
+- [ ] Shared current snapshot storage integrity PASS.
+- [ ] Governance hashes bind the league current manifest and both shared current dependencies.
 
 ## Release package
 
 - [ ] Build manifest generated last.
 - [ ] Build-manifest integrity PASS.
 - [ ] `dist/` regenerated.
+- [ ] Served current manifest/shared-store hashes match the rewritten `dist/` governance copy.
 - [ ] No Python/docs/backups/caches in `dist/`.
 - [ ] Deployment mode is intentional: personal or public.
 - [ ] No secrets in static files or diagnostics.
