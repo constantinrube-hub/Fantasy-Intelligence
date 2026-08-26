@@ -1,0 +1,48 @@
+{
+  "product": "Fantasy Intelligence Engine",
+  "release": "V8.9-RTS+MultiLeague-1",
+  "release_date": "2026-08-24",
+  "base": "V8.9-RTS / V8.8-M6 empirical stack",
+  "deployment": "Cloudflare Pages via GitHub repository root",
+  "runtime_status": "ready_for_migration_deploy",
+  "research_architecture": "League-ID namespaced M1-M6/current/governance",
+  "research_activation": "fail_closed_per_league_until_profile_current_governance_and_sha256_all_match",
+  "legacy_profile_source_league_id": "1313697754907697152",
+  "validation": {
+    "python_compileall": "PASS",
+    "integrity_m1_m6": "PASS",
+    "integrity_v89": "PASS",
+    "integrity_multileague": "PASS",
+    "bundle_validators_m1_m6_after_identity_stamp": "PASS",
+    "migration_non_destructive": "PASS",
+    "migration_idempotent": "PASS",
+    "yaml_parse": "PASS",
+    "javascript_syntax": "PASS",
+    "cross_league_governance_injection": "FAIL_CLOSED_PASS",
+    "global_control_rollback": "PASS",
+    "physical_browser_smoke": "REQUIRED_POST_DEPLOY"
+  },
+  "required_runtime_paths": [
+    "index.html",
+    "_routes.json",
+    "wrangler.toml",
+    "functions/",
+    "data/research/",
+    "research/",
+    ".github/workflows/"
+  ],
+  "new_multi_league_paths": [
+    "data/research/leagues/registry.json",
+    "data/research/leagues/<league_id>/profile.json",
+    "data/research/leagues/<league_id>/milestone1.json",
+    "data/research/leagues/<league_id>/milestone6.json",
+    "data/research/leagues/<league_id>/current/milestone5_current.json",
+    "data/research/leagues/<league_id>/governance/active_release.json"
+  ],
+  "documentation": [
+    "MULTI_LEAGUE_IMPLEMENTATION_CHANGELOG.md",
+    "MULTI_LEAGUE_DEPLOYMENT_STEPS.md",
+    "README_FINAL_V8_9_RTS.md",
+    "DEPLOYMENT_GUIDE_V8_9_RTS.md"
+  ]
+}
