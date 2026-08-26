@@ -1,0 +1,508 @@
+{
+  "schema_version": 1,
+  "position_aliases": {
+    "EDGE": "DL",
+    "IDL": "DL",
+    "DE": "DL",
+    "DT": "DL",
+    "CB": "DB",
+    "S": "DB",
+    "DST": "DEF"
+  },
+  "roster_slots": {
+    "QB": {
+      "positions": [
+        "QB"
+      ],
+      "starter": true
+    },
+    "RB": {
+      "positions": [
+        "RB"
+      ],
+      "starter": true
+    },
+    "WR": {
+      "positions": [
+        "WR"
+      ],
+      "starter": true
+    },
+    "TE": {
+      "positions": [
+        "TE"
+      ],
+      "starter": true
+    },
+    "FLEX": {
+      "positions": [
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "starter": true
+    },
+    "WRRB_FLEX": {
+      "positions": [
+        "WR",
+        "RB"
+      ],
+      "starter": true
+    },
+    "REC_FLEX": {
+      "positions": [
+        "WR",
+        "TE"
+      ],
+      "starter": true
+    },
+    "SUPER_FLEX": {
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "starter": true
+    },
+    "DL": {
+      "positions": [
+        "DL"
+      ],
+      "starter": true
+    },
+    "DE": {
+      "positions": [
+        "DL"
+      ],
+      "starter": true
+    },
+    "DT": {
+      "positions": [
+        "DL"
+      ],
+      "starter": true
+    },
+    "LB": {
+      "positions": [
+        "LB"
+      ],
+      "starter": true
+    },
+    "DB": {
+      "positions": [
+        "DB"
+      ],
+      "starter": true
+    },
+    "CB": {
+      "positions": [
+        "DB"
+      ],
+      "starter": true
+    },
+    "S": {
+      "positions": [
+        "DB"
+      ],
+      "starter": true
+    },
+    "IDP_FLEX": {
+      "positions": [
+        "DL",
+        "LB",
+        "DB"
+      ],
+      "starter": true
+    },
+    "K": {
+      "positions": [
+        "K"
+      ],
+      "starter": true
+    },
+    "P": {
+      "positions": [
+        "P"
+      ],
+      "starter": true
+    },
+    "OL": {
+      "positions": [
+        "OL"
+      ],
+      "starter": true
+    },
+    "T": {
+      "positions": [
+        "OL"
+      ],
+      "starter": true
+    },
+    "G": {
+      "positions": [
+        "OL"
+      ],
+      "starter": true
+    },
+    "C": {
+      "positions": [
+        "OL"
+      ],
+      "starter": true
+    },
+    "DEF": {
+      "positions": [
+        "DEF"
+      ],
+      "starter": true
+    },
+    "DST": {
+      "positions": [
+        "DEF"
+      ],
+      "starter": true
+    },
+    "BN": {
+      "positions": [],
+      "starter": false
+    },
+    "BENCH": {
+      "positions": [],
+      "starter": false
+    },
+    "IR": {
+      "positions": [],
+      "starter": false
+    },
+    "TAXI": {
+      "positions": [],
+      "starter": false
+    },
+    "RESERVE": {
+      "positions": [],
+      "starter": false
+    }
+  },
+  "scoring_rule_families": [
+    {
+      "id": "te_reception",
+      "match": "regex",
+      "pattern": "^(rec_te|bonus_rec_te)$",
+      "positions": [
+        "TE"
+      ],
+      "entity": "player",
+      "weekly_supported": true,
+      "season_supported": true
+    },
+    {
+      "id": "rb_reception",
+      "match": "regex",
+      "pattern": "^(rec_rb|bonus_rec_rb)$",
+      "positions": [
+        "RB"
+      ],
+      "entity": "player",
+      "weekly_supported": true,
+      "season_supported": true
+    },
+    {
+      "id": "wr_reception",
+      "match": "regex",
+      "pattern": "^(rec_wr|bonus_rec_wr)$",
+      "positions": [
+        "WR"
+      ],
+      "entity": "player",
+      "weekly_supported": true,
+      "season_supported": true
+    },
+    {
+      "id": "pass_threshold",
+      "match": "regex",
+      "pattern": "^bonus_pass_yd_[0-9]+$",
+      "positions": [
+        "QB"
+      ],
+      "entity": "player",
+      "weekly_supported": true,
+      "season_supported": false
+    },
+    {
+      "id": "rush_threshold",
+      "match": "regex",
+      "pattern": "^bonus_rush_yd_[0-9]+$",
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "entity": "player",
+      "weekly_supported": true,
+      "season_supported": false
+    },
+    {
+      "id": "rec_threshold",
+      "match": "regex",
+      "pattern": "^bonus_rec_yd_[0-9]+$",
+      "positions": [
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "entity": "player",
+      "weekly_supported": true,
+      "season_supported": false
+    },
+    {
+      "id": "idp_prefixed",
+      "match": "prefix",
+      "pattern": "idp_",
+      "positions": [
+        "DL",
+        "LB",
+        "DB"
+      ],
+      "entity": "player",
+      "weekly_supported": false,
+      "season_supported": false
+    },
+    {
+      "id": "team_dst_prefixed",
+      "match": "regex",
+      "pattern": "^(pts_allow_|yds_allow_|def_st_|def_kr_|def_pr_|def_fg_ret_)",
+      "positions": [
+        "DEF"
+      ],
+      "entity": "team_defense",
+      "weekly_supported": true,
+      "season_supported": false
+    },
+    {
+      "id": "team_dst_exact",
+      "match": "exact_set",
+      "pattern": [
+        "blk_kick",
+        "blk_kick_ret_yd",
+        "def_4_and_stop",
+        "def_fg_ret_yd",
+        "def_kr_yd",
+        "def_pass_def",
+        "def_pr_yd",
+        "def_st_ff",
+        "def_st_fum_rec",
+        "def_st_td",
+        "def_td",
+        "ff",
+        "fum_rec",
+        "fum_ret_yd",
+        "int",
+        "int_ret_yd",
+        "sack",
+        "sack_yd",
+        "safe"
+      ],
+      "positions": [
+        "DEF"
+      ],
+      "entity": "team_defense",
+      "weekly_supported": true,
+      "season_supported": true
+    },
+    {
+      "id": "kicker",
+      "match": "regex",
+      "pattern": "^(fgm|fgmiss|xpm|xpmiss)",
+      "positions": [
+        "K"
+      ],
+      "entity": "player",
+      "weekly_supported": true,
+      "season_supported": true,
+      "notes": "Exact support includes fgm_yds and arbitrary Sleeper fgm/fgmiss distance buckets through Kicker Intelligence raw-distance replay."
+    },
+    {
+      "id": "individual_return",
+      "match": "exact_set",
+      "pattern": [
+        "kr_yd",
+        "pr_yd",
+        "fg_ret_yd",
+        "st_td",
+        "st_ff",
+        "st_fum_rec"
+      ],
+      "positions": [
+        "RB",
+        "WR",
+        "TE",
+        "DB"
+      ],
+      "entity": "player",
+      "weekly_supported": "partial",
+      "season_supported": "partial"
+    },
+    {
+      "id": "passing",
+      "match": "prefix",
+      "pattern": "pass_",
+      "positions": [
+        "QB"
+      ],
+      "entity": "player",
+      "weekly_supported": "partial",
+      "season_supported": "partial"
+    },
+    {
+      "id": "rushing",
+      "match": "prefix",
+      "pattern": "rush_",
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "entity": "player",
+      "weekly_supported": "partial",
+      "season_supported": "partial"
+    },
+    {
+      "id": "receiving",
+      "match": "prefix",
+      "pattern": "rec_",
+      "positions": [
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "entity": "player",
+      "weekly_supported": "partial",
+      "season_supported": "partial"
+    },
+    {
+      "id": "receptions",
+      "match": "exact",
+      "pattern": "rec",
+      "positions": [
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "entity": "player",
+      "weekly_supported": true,
+      "season_supported": true
+    },
+    {
+      "id": "offensive_fumble",
+      "match": "exact_set",
+      "pattern": [
+        "fum",
+        "fum_lost",
+        "fum_rec_td"
+      ],
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE"
+      ],
+      "entity": "player",
+      "weekly_supported": "partial",
+      "season_supported": "partial"
+    },
+    {
+      "id": "legacy_idp",
+      "match": "regex",
+      "pattern": "^(tkl_|qb_hit|pass_def)$",
+      "positions": [
+        "DL",
+        "LB",
+        "DB"
+      ],
+      "entity": "player",
+      "weekly_supported": "partial",
+      "season_supported": "partial"
+    }
+  ],
+  "known_weekly_supported_scoring_keys": [
+    "pass_yd",
+    "pass_td",
+    "pass_int",
+    "pass_2pt",
+    "pass_fd",
+    "pass_cmp",
+    "pass_att",
+    "pass_inc",
+    "pass_sack",
+    "pass_sack_yd",
+    "rush_yd",
+    "rush_td",
+    "rush_2pt",
+    "rush_fd",
+    "rush_att",
+    "rec",
+    "rec_tgt",
+    "rec_yd",
+    "rec_td",
+    "rec_2pt",
+    "rec_fd",
+    "fum",
+    "fum_lost",
+    "tkl",
+    "tkl_solo",
+    "tkl_ast",
+    "tkl_loss",
+    "qb_hit",
+    "sack",
+    "sack_yd",
+    "int",
+    "int_ret_yd",
+    "pass_def",
+    "ff",
+    "fum_rec",
+    "fum_rec_yd",
+    "def_td",
+    "safe",
+    "blk_kick",
+    "kr_yd",
+    "pr_yd",
+    "kr_td",
+    "pr_td",
+    "fgm",
+    "fgm_0_19",
+    "fgm_20_29",
+    "fgm_30_39",
+    "fgm_40_49",
+    "fgm_50p",
+    "fgmiss",
+    "xpm",
+    "xpmiss",
+    "rec_te",
+    "bonus_rec_te",
+    "rec_rb",
+    "bonus_rec_rb",
+    "rec_wr",
+    "bonus_rec_wr",
+    "fgm_yds",
+    "fgmiss_0_19",
+    "fgmiss_20_29",
+    "fgmiss_30_39",
+    "fgmiss_40_49",
+    "fgmiss_50p"
+  ],
+  "known_weekly_supported_scoring_regex": [
+    "^bonus_(pass|rush|rec)_yd_[0-9]+$",
+    "^pts_allow_(0|[0-9]+_[0-9]+|[0-9]+p)$",
+    "^yds_allow_(0|[0-9]+_[0-9]+|[0-9]+p)$",
+    "^(def_st_|def_kr_|def_pr_|def_fg_ret_).+$",
+    "^(fgm|fgmiss)_(0|[0-9]+_[0-9]+|[0-9]+p)$"
+  ],
+  "season_distribution_dependent_regex": [
+    "^bonus_(pass|rush|rec)_yd_[0-9]+$",
+    "^pts_allow_(0|[0-9]+_[0-9]+|[0-9]+p)$",
+    "^yds_allow_(0|[0-9]+_[0-9]+|[0-9]+p)$"
+  ]
+}
