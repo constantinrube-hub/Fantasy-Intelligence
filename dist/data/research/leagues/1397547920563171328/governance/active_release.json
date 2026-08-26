@@ -1,0 +1,204 @@
+{
+  "active_build": "V8.8-M6",
+  "checks": {
+    "artifact_scope_match": true,
+    "current_complete": true,
+    "current_contract": true,
+    "current_producer": true,
+    "current_profile_live_match": true,
+    "eligible_players": false,
+    "format_match": true,
+    "fresh_snapshot": true,
+    "global_operator_auto": true,
+    "league_id_match": true,
+    "m4_complete": true,
+    "m5_complete": true,
+    "m6_complete": true,
+    "operator_auto": true,
+    "profile_fingerprint_match": true,
+    "scoring_signature_match": true,
+    "target_week_leakage_guard": true
+  },
+  "control_build": "V8.2.2",
+  "current_snapshot": {
+    "age_hours": 0.0009543897222222222,
+    "eligible_players": 0,
+    "generated_at": "2026-08-25T17:49:41.858354+00:00",
+    "max_age_hours": 18.0,
+    "path": "data/research/leagues/1397547920563171328/current/milestone5_current.json",
+    "season": 2026,
+    "week": 1
+  },
+  "decision_gates": {
+    "decision_format_position_gates": {
+      "draft": {
+        "CHOPPED": [
+          "EDGE",
+          "LB"
+        ],
+        "DYNASTY": [],
+        "DYNASTY_BESTBALL": [],
+        "REDRAFT": [
+          "EDGE",
+          "IDL",
+          "LB",
+          "QB",
+          "TE",
+          "WR"
+        ],
+        "REDRAFT_BESTBALL": [
+          "EDGE",
+          "IDL",
+          "LB"
+        ]
+      },
+      "waiver": {
+        "CHOPPED": [
+          "EDGE",
+          "LB"
+        ],
+        "DYNASTY": [],
+        "DYNASTY_BESTBALL": [],
+        "REDRAFT": [
+          "EDGE",
+          "IDL",
+          "LB",
+          "QB",
+          "RB",
+          "S",
+          "WR"
+        ],
+        "REDRAFT_BESTBALL": [
+          "EDGE",
+          "IDL",
+          "LB"
+        ]
+      },
+      "weekly": {
+        "CHOPPED": [
+          "EDGE",
+          "LB"
+        ],
+        "DYNASTY": [],
+        "DYNASTY_BESTBALL": [],
+        "REDRAFT": [
+          "EDGE",
+          "LB"
+        ],
+        "REDRAFT_BESTBALL": [
+          "EDGE",
+          "LB"
+        ]
+      }
+    },
+    "draft_policy_positions": [
+      "EDGE",
+      "IDL",
+      "LB",
+      "QB",
+      "TE",
+      "WR"
+    ],
+    "format_position_gates": {
+      "CHOPPED": [
+        "EDGE",
+        "LB"
+      ],
+      "DYNASTY": [],
+      "DYNASTY_BESTBALL": [],
+      "REDRAFT": [
+        "EDGE",
+        "IDL",
+        "LB",
+        "QB",
+        "TE",
+        "WR"
+      ],
+      "REDRAFT_BESTBALL": [
+        "EDGE",
+        "IDL",
+        "LB"
+      ]
+    },
+    "validated_format_profiles": [
+      "REDRAFT"
+    ],
+    "waiver_policy_positions": [
+      "EDGE",
+      "IDL",
+      "LB",
+      "QB",
+      "RB",
+      "S",
+      "WR"
+    ],
+    "weekly_mean_positions": [
+      "EDGE",
+      "LB"
+    ],
+    "weekly_risk_positions": [
+      "EDGE",
+      "LB"
+    ]
+  },
+  "fallback": "V8.2.2",
+  "generated_at": "2026-08-25T17:49:45.294265+00:00",
+  "global_operator_mode": "AUTO",
+  "identity_contract": "structural-v2",
+  "league_format": "CHOPPED",
+  "league_id": "1397547920563171328",
+  "league_operator_mode": "AUTO",
+  "model_lineage": {
+    "artifact_paths": {
+      "current_snapshot": "data/research/leagues/1397547920563171328/current/milestone5_current.json",
+      "milestone4": "data/research/leagues/1397547920563171328/milestone4.json",
+      "milestone5": "data/research/leagues/1397547920563171328/milestone5.json",
+      "milestone6": "data/research/leagues/1397547920563171328/milestone6.json"
+    },
+    "artifact_sha256": {
+      "current_snapshot": "7af74cace4262910299e704095a1e1e208299e00e6314ffa0752a6c89ea6e1de",
+      "milestone4": "c2a23b691d00fe65aee31955e27defa60a6380f44da8d4ecd34fc8068563106d",
+      "milestone5": "c0ae474a3c7668e8565f1ebdf34e4d192290aeba0dee5df0f40483ac213dace9",
+      "milestone6": "2e09714cf7ec31966be5d88c544d15c6d0ab20cc6381c4ee85688cbe3022c14c"
+    },
+    "audit_rule": "Feature lists, coefficients, sample sizes and holdout metrics remain versioned in the league-scoped milestone bundles; promotion requires matching League ID, profile fingerprint, scoring and hashes.",
+    "m4_research_build": "V8.6-M4",
+    "m4_validated_positions": [
+      "EDGE",
+      "IDL",
+      "LB",
+      "QB",
+      "TE",
+      "WR"
+    ],
+    "m5_research_build": "V8.7-M5",
+    "m6_research_build": "V8.8-M6",
+    "m6_validated_candidate_positions": [],
+    "research_window": "rollover-safe historical window; see milestone bundles",
+    "time_safe_folds": [
+      "2019-2021 -> 2022",
+      "2019-2022 -> 2023",
+      "2019-2023 -> 2024",
+      "2019-2024 -> 2025"
+    ]
+  },
+  "operator_mode": "AUTO",
+  "profile_fingerprint": "1130bb824e535b46ff234e80ebd5e529928b4f827dbc11e821d11cdc98269894",
+  "profile_scoring_signature": "109c22cb9edfa0c6",
+  "promotion": {
+    "mode": "AUTO",
+    "rule": "Every namespace, scoring, freshness and decision-gate check must pass on each rebuild; failure automatically falls back."
+  },
+  "reason": "eligible_players",
+  "rollback": {
+    "code_change_required": false,
+    "effect": "All M5/M6 decision overrides disabled; V8.2.2 remains live fallback.",
+    "global_operator_override": "data/research/governance/operator_override.json",
+    "mode": "CONTROL",
+    "operator_override": "data/research/leagues/1397547920563171328/governance/operator_override.json"
+  },
+  "runtime_allow_m5": false,
+  "runtime_enabled": false,
+  "schema_version": 2,
+  "scoring_signature": "109c22cb9edfa0c6"
+}
