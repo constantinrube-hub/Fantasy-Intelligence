@@ -1,0 +1,70 @@
+name: Validate FIE V9.3.1 Completion
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "app/**"
+      - "config/**"
+      - "functions/**"
+      - "research/**"
+      - "tools/**"
+      - ".github/workflows/validate-fie-v931.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-fie-v931-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+      - name: Build and run full V9.3.1 release gate
+        run: python tools/release_build.py --mode personal
+      - name: Summarize gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('config/release-gate.json')
+          if not p.exists():
+              print('release-gate.json was not generated')
+              raise SystemExit(1)
+          d=json.loads(p.read_text())
+          print('STATUS:',d.get('status'))
+          print('BROWSER PREVIEW REQUIRED:',d.get('browser_preview_required'))
+          for c in d.get('checks',[]):
+              print(('PASS' if c.get('ok') else 'FAIL'),c.get('cmd'))
+          if d.get('status')!='DEPLOYABLE_SOURCE': raise SystemExit(1)
+          PY
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-v9.3.1-validation-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            config/release-gate.json
+            config/build-manifest.json
+            app/generated/release.js
+            functions/release.js
+            dist/
