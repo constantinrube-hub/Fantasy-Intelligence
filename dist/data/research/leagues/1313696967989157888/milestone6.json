@@ -1,0 +1,816 @@
+{
+  "advanced_second_wave": {
+    "activation_status": "DIAGNOSTIC_ONLY",
+    "blocked_analyses": [
+      {
+        "analysis": "coordinator_tendency_portability",
+        "reason": "No trustworthy public historical coordinator/scheme assignment table is bundled across the full modelling window.",
+        "status": "blocked_missing_versioned_coordinator_source"
+      },
+      {
+        "analysis": "offensive_line_unit_quality",
+        "reason": "Public team/player inputs do not provide a consistent historical OL-unit quality measure comparable across the rollover-safe historical window.",
+        "status": "blocked_missing_consistent_player_unit_grades"
+      },
+      {
+        "analysis": "stadium_stat_crew_tackle_bias",
+        "reason": "Venue can be reconstructed, but attributing persistent tackle-credit effects to a stat crew requires an auditable official/scorer identifier rather than stadium name alone.",
+        "status": "blocked_missing_official_stat_crew_identifier"
+      },
+      {
+        "analysis": "all_route_alignment_and_separation",
+        "reason": "Public participation does not provide every eligible receiver's route/alignment/separation on every route; targeted-play separation cannot be used as if it were all-route target-earning evidence.",
+        "status": "blocked_missing_all_route_tracking"
+      },
+      {
+        "analysis": "individual_double_team_rate",
+        "reason": "No consistent free historical individual double-team series is bundled for all pass rushers/receivers across the primary window.",
+        "status": "blocked_missing_consistent_public_history"
+      }
+    ],
+    "opponent_role": {
+      "aggregate": [
+        {
+          "bootstrap_ci95_high": 0.014172683743165142,
+          "bootstrap_ci95_low": -0.005340241129898588,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": 0.00578482393392516,
+          "n_test": 7175,
+          "position": "CB",
+          "positive_folds": 2,
+          "status": "diagnostic_only"
+        },
+        {
+          "bootstrap_ci95_high": -0.016396439513939768,
+          "bootstrap_ci95_low": -0.03595837827800836,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": -0.023316098602921984,
+          "n_test": 5174,
+          "position": "EDGE",
+          "positive_folds": 0,
+          "status": "diagnostic_only"
+        },
+        {
+          "bootstrap_ci95_high": 0.002223407075726155,
+          "bootstrap_ci95_low": -0.041692531162640475,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": -0.019418022797079375,
+          "n_test": 4895,
+          "position": "IDL",
+          "positive_folds": 1,
+          "status": "diagnostic_only"
+        },
+        {
+          "bootstrap_ci95_high": -0.004480948725514033,
+          "bootstrap_ci95_low": -0.016652136078485525,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": -0.01203131501028606,
+          "n_test": 7689,
+          "position": "LB",
+          "positive_folds": 0,
+          "status": "diagnostic_only"
+        },
+        {
+          "bootstrap_ci95_high": 0.007153265628697201,
+          "bootstrap_ci95_low": -0.0018517467004043441,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": 0.0027830528436835634,
+          "n_test": 1991,
+          "position": "QB",
+          "positive_folds": 2,
+          "status": "diagnostic_only"
+        },
+        {
+          "bootstrap_ci95_high": 0.023380577178884115,
+          "bootstrap_ci95_low": 0.016764969196159975,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": 0.019136886133181603,
+          "n_test": 4585,
+          "position": "RB",
+          "positive_folds": 3,
+          "status": "diagnostic_only"
+        },
+        {
+          "bootstrap_ci95_high": 0.015313747463151913,
+          "bootstrap_ci95_low": -0.13387573936560124,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": -0.04300850819755065,
+          "n_test": 1005,
+          "position": "S",
+          "positive_folds": 1,
+          "status": "diagnostic_only"
+        },
+        {
+          "bootstrap_ci95_high": 0.003248386995926311,
+          "bootstrap_ci95_low": -0.0026890808016278565,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": 0.0002743869906516601,
+          "n_test": 3698,
+          "position": "TE",
+          "positive_folds": 2,
+          "status": "diagnostic_only"
+        },
+        {
+          "bootstrap_ci95_high": 0.004430501884583023,
+          "bootstrap_ci95_low": 0.00038108037151926794,
+          "family": "opponent_role_allowance",
+          "folds": 3,
+          "mean_incremental_mae_improvement": 0.0021677862710317427,
+          "n_test": 7428,
+          "position": "WR",
+          "positive_folds": 3,
+          "status": "diagnostic_only"
+        }
+      ],
+      "folds": [
+        {
+          "adjusted_mae": 6.300907864611461,
+          "adjusted_spearman": 0.46528317506231165,
+          "base_fie_mae": 6.346304667659873,
+          "base_spearman": 0.462762976191558,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.007153265628697201,
+          "n_test": 663,
+          "position": "QB",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 4.40356880686682,
+          "adjusted_spearman": 0.668085579997678,
+          "base_fie_mae": 4.508991633758862,
+          "base_spearman": 0.6671436839461272,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.023380577178884115,
+          "n_test": 1474,
+          "position": "RB",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 4.488994356944583,
+          "adjusted_spearman": 0.6274289599757041,
+          "base_fie_mae": 4.508971363066179,
+          "base_spearman": 0.6286613205466195,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.004430501884583023,
+          "n_test": 2476,
+          "position": "WR",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 3.5054272857821434,
+          "adjusted_spearman": 0.5466962943214517,
+          "base_fie_mae": 3.516851380071774,
+          "base_spearman": 0.545988428973574,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.0032483869959263104,
+          "n_test": 1188,
+          "position": "TE",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 0.5094183626609805,
+          "adjusted_spearman": 0.30022431737340205,
+          "base_fie_mae": 0.5012004596401323,
+          "base_spearman": 0.2999856759478978,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.016396439513939768,
+          "n_test": 1823,
+          "position": "EDGE",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 0.2925374237732152,
+          "adjusted_spearman": 0.27171541924354325,
+          "base_fie_mae": 0.2931893029439079,
+          "base_spearman": 0.2697470013326038,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.002223407075726155,
+          "n_test": 1596,
+          "position": "IDL",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 0.4351599269377217,
+          "adjusted_spearman": 0.2536686867637635,
+          "base_fie_mae": 0.4280322752443687,
+          "base_spearman": 0.2543266356180397,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.016652136078485525,
+          "n_test": 2272,
+          "position": "LB",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 0.6429515637236928,
+          "adjusted_spearman": -0.07145068213165584,
+          "base_fie_mae": 0.5670388221582565,
+          "base_spearman": 0.003147831251095794,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.13387573936560124,
+          "n_test": 439,
+          "position": "S",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 0.48897765597514403,
+          "adjusted_spearman": 0.10353421058618618,
+          "base_fie_mae": 0.4931805550605753,
+          "base_spearman": 0.10866063913126843,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.008522029188508924,
+          "n_test": 2383,
+          "position": "CB",
+          "test_season": 2023
+        },
+        {
+          "adjusted_mae": 6.404380221812808,
+          "adjusted_spearman": 0.4812773552586727,
+          "base_fie_mae": 6.392542851680016,
+          "base_spearman": 0.4858139653781509,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.0018517467004043441,
+          "n_test": 664,
+          "position": "QB",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 4.423357919383729,
+          "adjusted_spearman": 0.695316404732272,
+          "base_fie_mae": 4.501069386572962,
+          "base_spearman": 0.6939817435625312,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.017265112024500723,
+          "n_test": 1536,
+          "position": "RB",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 4.562384551404781,
+          "adjusted_spearman": 0.6406656550853954,
+          "base_fie_mae": 4.570116166798505,
+          "base_spearman": 0.6414000452871984,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.0016917765569929369,
+          "n_test": 2441,
+          "position": "WR",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 3.5969746408609797,
+          "adjusted_spearman": 0.5831519399549215,
+          "base_fie_mae": 3.5979239702901857,
+          "base_spearman": 0.5821202337718983,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.0002638547776565262,
+          "n_test": 1223,
+          "position": "TE",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 0.5183821584033963,
+          "adjusted_spearman": 0.2730987572135099,
+          "base_fie_mae": 0.5003889820989352,
+          "base_spearman": 0.27104209250754024,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.03595837827800836,
+          "n_test": 1731,
+          "position": "EDGE",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 0.31239089291655575,
+          "adjusted_spearman": 0.15139087900381662,
+          "base_fie_mae": 0.3066308494869558,
+          "base_spearman": 0.15665263667586057,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.018784944304323804,
+          "n_test": 1642,
+          "position": "IDL",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 0.4162617384730016,
+          "adjusted_spearman": 0.24122985601687533,
+          "base_fie_mae": 0.41012590217514494,
+          "base_spearman": 0.24367973092419734,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.014960860226858616,
+          "n_test": 2478,
+          "position": "LB",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 0.4642362523983928,
+          "adjusted_spearman": 0.12790211457570153,
+          "base_fie_mae": 0.45942900201696113,
+          "base_spearman": 0.14689833625134271,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.010463532690202644,
+          "n_test": 359,
+          "position": "S",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 0.43302110792365833,
+          "adjusted_spearman": 0.11368007597215533,
+          "base_fie_mae": 0.4307209541686975,
+          "base_spearman": 0.10977481746924032,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.005340241129898588,
+          "n_test": 2396,
+          "position": "CB",
+          "test_season": 2024
+        },
+        {
+          "adjusted_mae": 6.815223142168598,
+          "adjusted_spearman": 0.4073418855465753,
+          "base_fie_mae": 6.8360569801480064,
+          "base_spearman": 0.4047075244722997,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.0030476396027578337,
+          "n_test": 664,
+          "position": "QB",
+          "test_season": 2025
+        },
+        {
+          "adjusted_mae": 4.3567839253171,
+          "adjusted_spearman": 0.7191460420517836,
+          "base_fie_mae": 4.4310706889229,
+          "base_spearman": 0.7187032992733666,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.016764969196159975,
+          "n_test": 1575,
+          "position": "RB",
+          "test_season": 2025
+        },
+        {
+          "adjusted_mae": 4.280895423988988,
+          "adjusted_spearman": 0.6364686128664658,
+          "base_fie_mae": 4.282527411125861,
+          "base_spearman": 0.6366015782760245,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.00038108037151926794,
+          "n_test": 2511,
+          "position": "WR",
+          "test_season": 2025
+        },
+        {
+          "adjusted_mae": 3.5863310711306458,
+          "adjusted_spearman": 0.5905666075300547,
+          "base_fie_mae": 3.5767130008670813,
+          "base_spearman": 0.5900416225598348,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.0026890808016278565,
+          "n_test": 1287,
+          "position": "TE",
+          "test_season": 2025
+        },
+        {
+          "adjusted_mae": 0.4688965883946158,
+          "adjusted_spearman": 0.25862164508634644,
+          "base_fie_mae": 0.4607896950248204,
+          "base_spearman": 0.2582446282033624,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.017593478016817817,
+          "n_test": 1620,
+          "position": "EDGE",
+          "test_season": 2025
+        },
+        {
+          "adjusted_mae": 0.2961598742322342,
+          "adjusted_spearman": 0.15227195193221138,
+          "base_fie_mae": 0.2843064199583807,
+          "base_spearman": 0.15549220052319232,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.041692531162640475,
+          "n_test": 1657,
+          "position": "IDL",
+          "test_season": 2025
+        },
+        {
+          "adjusted_mae": 0.401489987090854,
+          "adjusted_spearman": 0.28160212381822375,
+          "base_fie_mae": 0.3996989565608633,
+          "base_spearman": 0.28211221003309805,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": -0.004480948725514033,
+          "n_test": 2939,
+          "position": "LB",
+          "test_season": 2025
+        },
+        {
+          "adjusted_mae": 0.557209366961602,
+          "adjusted_spearman": 0.10045065794377102,
+          "base_fie_mae": 0.5658750343330812,
+          "base_spearman": 0.10130739942955425,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.015313747463151915,
+          "n_test": 207,
+          "position": "S",
+          "test_season": 2025
+        },
+        {
+          "adjusted_mae": 0.4249347141539438,
+          "adjusted_spearman": 0.15556274416899712,
+          "base_fie_mae": 0.43104376105889597,
+          "base_spearman": 0.15465785249707967,
+          "family": "opponent_role_allowance",
+          "feature_count": 2,
+          "features": [
+            "opp_pos_fp_allowed_prior4",
+            "opp_pos_fp_allowed_prior8"
+          ],
+          "incremental_mae_improvement": 0.014172683743165144,
+          "n_test": 2396,
+          "position": "CB",
+          "test_season": 2025
+        }
+      ]
+    },
+    "player_archetypes": [
+      {
+        "centroid_raw": {
+          "carry_share_prior4": 0.2714951535616791,
+          "inside_5_carry_share_prior4": 0.11080208903484763,
+          "target_share_prior4": 0.06947828562994719
+        },
+        "cluster": 0,
+        "features": [
+          "carry_share_prior4",
+          "target_share_prior4",
+          "inside_5_carry_share_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 6.3683908045977,
+        "n_player_seasons": 174,
+        "position": "RB",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "carry_share_prior4": 0.11829371530196364,
+          "inside_5_carry_share_prior4": 0.4847413003663003,
+          "target_share_prior4": 0.0275691571427834
+        },
+        "cluster": 1,
+        "features": [
+          "carry_share_prior4",
+          "target_share_prior4",
+          "inside_5_carry_share_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 3.572952380952381,
+        "n_player_seasons": 630,
+        "position": "RB",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "carry_share_prior4": 0.5254440943234733,
+          "inside_5_carry_share_prior4": 0.6749772157666895,
+          "target_share_prior4": 0.09835698977953015
+        },
+        "cluster": 2,
+        "features": [
+          "carry_share_prior4",
+          "target_share_prior4",
+          "inside_5_carry_share_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 12.204832713754648,
+        "n_player_seasons": 269,
+        "position": "RB",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "offense_snap_share_prior4": 0.5122580645161291,
+          "target_share_prior4": 0.0700646323788933
+        },
+        "cluster": 0,
+        "features": [
+          "target_share_prior4",
+          "offense_snap_share_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 3.691467889908257,
+        "n_player_seasons": 436,
+        "position": "TE",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "offense_snap_share_prior4": 0.7758813263525305,
+          "target_share_prior4": 0.17932900654707284
+        },
+        "cluster": 1,
+        "features": [
+          "target_share_prior4",
+          "offense_snap_share_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 8.958638743455499,
+        "n_player_seasons": 191,
+        "position": "TE",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "offense_snap_share_prior4": 0.23039537712895375,
+          "target_share_prior4": 0.030101628616767462
+        },
+        "cluster": 2,
+        "features": [
+          "target_share_prior4",
+          "offense_snap_share_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 2.2656934306569343,
+        "n_player_seasons": 274,
+        "position": "TE",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "defense_snap_share_prior4": 0.7200590372388738,
+          "pfr_def_times_hurried_prior4": 0.20362103174603172
+        },
+        "cluster": 0,
+        "features": [
+          "defense_snap_share_prior4",
+          "pfr_def_times_hurried_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 0.4141689373297003,
+        "n_player_seasons": 367,
+        "position": "EDGE",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "defense_snap_share_prior4": 0.31816164817749604,
+          "pfr_def_times_hurried_prior4": 0.2523741690408357
+        },
+        "cluster": 1,
+        "features": [
+          "defense_snap_share_prior4",
+          "pfr_def_times_hurried_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 0.19784172661870503,
+        "n_player_seasons": 695,
+        "position": "EDGE",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "defense_snap_share_prior4": 0.6796033478893742,
+          "pfr_def_times_hurried_prior4": 1.0920669577874818
+        },
+        "cluster": 2,
+        "features": [
+          "defense_snap_share_prior4",
+          "pfr_def_times_hurried_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 0.5327510917030568,
+        "n_player_seasons": 229,
+        "position": "EDGE",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "defense_snap_share_prior4": 0.3133956109134045,
+          "pfr_def_times_hurried_prior4": 0.2323529411764706
+        },
+        "cluster": 0,
+        "features": [
+          "defense_snap_share_prior4",
+          "pfr_def_times_hurried_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 0.09118110236220472,
+        "n_player_seasons": 635,
+        "position": "IDL",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "defense_snap_share_prior4": 0.5981925207756232,
+          "pfr_def_times_hurried_prior4": 0.18661518661518658
+        },
+        "cluster": 1,
+        "features": [
+          "defense_snap_share_prior4",
+          "pfr_def_times_hurried_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 0.15789473684210525,
+        "n_player_seasons": 361,
+        "position": "IDL",
+        "status": "descriptive_only"
+      },
+      {
+        "centroid_raw": {
+          "defense_snap_share_prior4": 0.6418124999999999,
+          "pfr_def_times_hurried_prior4": 1.0090277777777776
+        },
+        "cluster": 2,
+        "features": [
+          "defense_snap_share_prior4",
+          "pfr_def_times_hurried_prior4"
+        ],
+        "mean_weekly_fp_at_profile": 0.2916666666666667,
+        "n_player_seasons": 120,
+        "position": "IDL",
+        "status": "descriptive_only"
+      }
+    ],
+    "position_interactions": {
+      "aggregate": [],
+      "folds": []
+    },
+    "validated_candidate_positions": []
+  },
+  "control_build": "V8.2.2",
+  "current_season_automation": {
+    "builder": "research/build_current_snapshot.py",
+    "first_write_sleeper_archive": "data/research/market/sleeper/{season}/week_{week}.jsonl.gz",
+    "freshness_rule_hours": 18,
+    "output": "data/research/current/milestone5_current.json",
+    "producer_build": "V8.8-M6",
+    "status": "implemented",
+    "target_week_rule": "all target-week realised stats are excluded from feature construction",
+    "workflow": ".github/workflows/build-fie-current.yml"
+  },
+  "generated_at": "2026-08-25T11:09:29.898232+00:00",
+  "governance": {
+    "active_manifest": "data/research/governance/active_release.json",
+    "builder": "research/fie_governance.py",
+    "control_fallback": "V8.2.2",
+    "default_mode": "AUTO",
+    "operator_override": "data/research/governance/operator_override.json",
+    "promotion_rule": "M6 bundle complete + M5 empirical bundle complete + compatible fresh current snapshot + at least one eligible player + operator mode AUTO",
+    "rollback_rule": "set operator_override.mode=CONTROL and rebuild/commit; browser then refuses all M5/M6 overrides and uses V8.2.2",
+    "status": "implemented"
+  },
+  "league_format": "CHOPPED",
+  "league_id": "1313696967989157888",
+  "limitations": [
+    "Step 28 does not silently fill missing premium data. Blocked research families remain explicit in the bundle.",
+    "Player archetypes are descriptive and cannot activate live decisions by themselves.",
+    "The current-season builder requires at least two completed prior games for FIE weekly activation; before that it can archive/display Sleeper projections while keeping the FIE gate off.",
+    "The current repository architecture is optimized around one empirical scoring profile at a time; materially different league scoring systems should regenerate M1-M6 with that league ID before live activation."
+  ],
+  "methodology": {
+    "step28": "Second-wave signals are tested only as incremental residual corrections on top of M4 OOS FIE projections. Opponent-role context and interaction hypotheses must improve expanding-window holdouts; archetypes remain descriptive.",
+    "step29": "Current-season automation is implemented by build_current_snapshot.py and a scheduled GitHub Action. Target-week rows exclude all results from that target week, and stale/incompatible snapshots fail closed.",
+    "step30": "Runtime promotion is governed by a separate versioned manifest with AUTO/CONTROL operator override. The immutable fallback remains V8.2.2 and rollback does not require changing scoring functions."
+  },
+  "milestone": "M6",
+  "profile_fingerprint": "ea9dc65408312fd4c0e919f272592a958c27eb78a6308d37fdce8fdf55a8fcb3",
+  "profile_scoring_signature": "6f4550e8aabe12a3",
+  "research_build": "V8.8-M6",
+  "schema_version": 6,
+  "scoring_signature": "6f4550e8aabe12a3",
+  "status": "complete",
+  "steps_completed": [
+    28,
+    29,
+    30
+  ],
+  "upstream": {
+    "m1_status": "complete",
+    "m2_status": "complete",
+    "m3_status": "complete",
+    "m4_status": "complete",
+    "m5_status": "complete"
+  }
+}
