@@ -59,7 +59,10 @@ jobs:
           python research/integrity_custom_league_rules_test.py
           python research/integrity_decision_validation_test.py
           python research/integrity_current_features_test.py
-          python research/integrity_current_storage_test.py
+          # Shared-current storage is intentionally verified AFTER the dedup/prune
+          # step below. This lets the workflow self-heal stale content-addressed
+          # artifacts left by partial/manual uploads instead of failing before
+          # it reaches the cleanup step.
           node research/integrity_runtime_foundation_test.js
           python research/integrity_v93_decision_ux_test.py
           python research/integrity_v931_completion_test.py
@@ -105,9 +108,7 @@ jobs:
             PROFILE="$ROOT/profile.json"
             echo "=== Refreshing league $LID ==="
             if [ ! -f "$PROFILE" ]; then echo "Skipping $LID: profile.json missing" >&2; continue; fi
-            if ! python research/validate_m4_bundle.py "$ROOT/milestone4.json" \
-              || ! python research/validate_m5_bundle.py "$ROOT/milestone5.json" \
-              || ! python research/validate_m6_bundle.py "$ROOT/milestone6.json"; then
+            if ! python research/validate_m4_bundle.py "$ROOT/milestone4.json"               || ! python research/validate_m5_bundle.py "$ROOT/milestone5.json"               || ! python research/validate_m6_bundle.py "$ROOT/milestone6.json"; then
               echo "Skipping $LID: historical bundles invalid/incomplete" >&2
               continue
             fi
