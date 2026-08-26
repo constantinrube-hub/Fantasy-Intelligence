@@ -1,5 +1,20 @@
 # Changelog
 
+## 9.3 Decision UX & Reliability Consolidation, 2026-08-26
+
+- Added canonical `LeagueContext` for starter slots, legal positions, FLEX/SF scarcity, K/DST/IDP capability and preferred Sleeper-owner resolution.
+- Auto-selects the `C0nstant1n` roster by Sleeper owner ID when present, independent of team display name.
+- Reworked consumer surfaces into purpose-built Draft, Draft Assistant, Value Finder, Team, Weekly, Waiver, Dynasty Buy, Trade, Players and League Intel decision views.
+- Kept Draft Board neutral to owned-player roster state while preserving exact league starter demand and replacement scarcity.
+- Added positional FIE-vs-market comparisons and Basic/Advanced context-aware player detail views.
+- Fixed runtime roster-slot contract consumers to use `.positions` rather than the obsolete `.eligible` property.
+- Hardened Value Finder optional-research loading and explicit action states.
+- Fixed post-trade roster legality evaluation and modernized the trade builder.
+- Added progressive league loading, request deduplication/caching, lazy League Intel history, stale-request protection and performance instrumentation.
+- Added V9.3 runtime smoke tests for LeagueContext, preferred-roster/K-DST/SF detection, scarcity and decision-UI initialization.
+- Centralized runtime release display on generated release metadata.
+- Added `docs/current/V9.3_DECISION_UX_RELIABILITY.md` as the implementation and QA handoff.
+
 ## 9.2.1 Current Snapshot Storage, 2026-08-26
 
 - Replaced 19 repeated ~8 MB `milestone5_current.json` player payloads with lightweight league manifests.
