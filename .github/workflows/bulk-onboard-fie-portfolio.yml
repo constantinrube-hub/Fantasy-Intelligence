@@ -185,6 +185,7 @@ jobs:
           for lid,row in sorted((reg.get('leagues') or {}).items()):
               if row.get('enabled',True) and row.get('current_refresh',True): print(lid)
           PY
+          : > /tmp/fie_built_current_ids.txt
           while read -r LID; do
             [ -n "$LID" ] || continue
             ROOT="data/research/leagues/$LID"
@@ -207,6 +208,20 @@ jobs:
               echo "Current build failed for $LID; preserving any previous snapshot." >&2
               continue
             fi
+            echo "$LID" >> /tmp/fie_built_current_ids.txt
+          done < /tmp/fie_refresh_ids.txt
+          python research/deduplicate_current_snapshots.py
+          python - <<'PY' > /tmp/fie_governance_ids.txt
+          import json
+          from pathlib import Path
+          reg=json.load(open('data/research/leagues/registry.json'))
+          for lid in sorted((reg.get('leagues') or {})):
+              if (Path('data/research/leagues')/lid/'current/milestone5_current.json').exists(): print(lid)
+          PY
+          while read -r LID; do
+            [ -n "$LID" ] || continue
+            ROOT="data/research/leagues/$LID"
+            if grep -qx "$LID" /tmp/fie_built_current_ids.txt; then EXTRA="--mode AUTO --persist-mode"; else EXTRA=""; fi
             python research/fie_governance.py \
               --league-id "$LID" \
               --league-profile "$ROOT/profile.json" \
@@ -216,9 +231,9 @@ jobs:
               --current-snapshot "$ROOT/current/milestone5_current.json" \
               --operator-override "$ROOT/governance/operator_override.json" \
               --global-operator-override data/research/governance/operator_override.json \
-              --output "$ROOT/governance/active_release.json" \
-              --mode AUTO --persist-mode
-          done < /tmp/fie_refresh_ids.txt
+              --output "$ROOT/governance/active_release.json" $EXTRA
+          done < /tmp/fie_governance_ids.txt
+          python research/integrity_current_storage_test.py
           python research/rebuild_league_registry.py \
             --config "$FIE_PORTFOLIO_CONFIG" \
             --plan /tmp/fie-plan/fie-bulk-plan.json
@@ -245,13 +260,13 @@ jobs:
           PY
       - name: Commit successful portfolio changes once
         run: |
-          if git diff --quiet -- data/research/leagues data/research/market/sleeper; then
+          if git diff --quiet -- data/research/leagues data/research/shared data/research/market/sleeper; then
             echo "No generated portfolio artifacts changed."
             exit 0
           fi
           git config user.name "FIE Portfolio Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/research/leagues data/research/market/sleeper
+          git add data/research/leagues data/research/shared data/research/market/sleeper
           git commit -m "Bulk onboard FIE league portfolio"
           git fetch origin main
           git rebase origin/main
