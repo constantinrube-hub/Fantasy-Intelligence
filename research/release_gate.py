@@ -33,6 +33,10 @@ def main():
   run([sys.executable,'research/integrity_dst_test.py']),
   run([sys.executable,'research/integrity_kicker_test.py']),
   run([sys.executable,'research/integrity_value_finder_test.py']),
+  run([sys.executable,'research/integrity_v93_decision_ux_test.py']),
+  run(['node','research/integrity_v93_scarcity_runtime_test.js']),
+  run(['node','research/integrity_v93_league_context_runtime_test.js']),
+  run(['node','research/integrity_v93_decision_ui_runtime_test.js']),
   run(['node','research/integrity_value_finder_runtime_test.js']),
   run(['node','research/integrity_top100_optimizer_runtime_test.js']),
  ]
