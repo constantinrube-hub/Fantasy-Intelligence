@@ -1,4 +1,4 @@
-name: Validate FIE V9.3.1 Completion
+name: Validate FIE V9.3.2 Browser QA
 
 on:
   workflow_dispatch:
@@ -36,7 +36,7 @@ jobs:
           node-version: "22"
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
-      - name: Build and run full V9.3.1 release gate
+      - name: Build and run full V9.3.2 release gate
         run: python tools/release_build.py --mode personal
       - name: Summarize gate
         if: always()
@@ -59,7 +59,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: fie-v9.3.1-validation-${{ github.sha }}
+          name: fie-v9.3.2-validation-${{ github.sha }}
           if-no-files-found: warn
           retention-days: 14
           path: |
