@@ -3,7 +3,8 @@
 
 This is the supported local release entry point. It regenerates all browser
 contracts/configuration, hashes the final source components, builds the isolated
-Cloudflare Pages output, and runs the bounded source release gate.
+Cloudflare Pages output, syncs compact league fast-switch snapshots, and runs
+the bounded source release gate.
 """
 from __future__ import annotations
 import argparse, os, subprocess, sys
@@ -25,6 +26,7 @@ def main() -> None:
     run('python', 'research/generate_release_descriptor.py')
     run('python', 'research/build_app_manifest.py')
     run('python', 'tools/build_dist.py', '--mode', ns.mode)
+    run('python', 'tools/sync_league_app_snapshots.py')
     run('python', 'research/release_gate.py')
     print(f'RELEASE BUILD COMPLETE: mode={ns.mode} output=dist/')
 
