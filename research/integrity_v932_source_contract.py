@@ -5,12 +5,13 @@ import json,re
 R=Path(__file__).resolve().parents[1]
 rel=json.loads((R/'config/release.json').read_text())
 idx=(R/'index.html').read_text();ui=(R/'app/decision-ui.js').read_text();vf=(R/'app/value-finder.js').read_text();dst=(R/'app/dst-intelligence.js').read_text();kick=(R/'app/kicker-intelligence.js').read_text();cur=(R/'research/build_current_snapshot.py').read_text();port=(R/'app/portfolio-config.js').read_text();core=(R/'app/core/core-services.js').read_text();rt=(R/'app/runtime-foundation.js').read_text()
-for f in ['numeric.js','projection-service.js','draft-state-service.js','surface-router.js','special-teams-series.js','draft-value-service.js']:
+for f in ['season-context.js','numeric.js','projection-service.js','draft-state-service.js','surface-router.js','special-teams-series.js','draft-value-service.js']:
     assert f'app/core/{f}' in idx,f'{f} not loaded by browser shell'
 assert rel['release'].startswith('9.3.2-') and rel['runtime'].startswith('9.3.2-') and rel['value_finder']=='9.3.2-VF4'
 # Season 0 and nullable semantics.
 assert "String(raw).trim()===''" in idx and 'a>0?a:' in idx
-assert 'n>1900?n:null' in idx and 'Blank selectors must never coerce to numeric 0' in idx
+assert 'FIESeasonContext' in idx and 'window.activeSeason=activeSeason' in idx
+assert "Number.isInteger(n)&&n>1900" in (R/'app/core/season-context.js').read_text()
 assert 'state.weekly.season=activeSeason();syncSeasonSelectV89();' in idx
 assert 'Season ${activeSeason()} · Week ${currentWeek()}' in idx
 assert "value===null||value===undefined" in (R/'app/core/numeric.js').read_text()

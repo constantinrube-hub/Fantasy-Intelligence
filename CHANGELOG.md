@@ -1,5 +1,15 @@
 # V9.3.2 Deployment Synchronization Hotfix, 2026-08-27
 
+## V9.3.2 bootstrap hotfix — season scope / league-universe startup
+
+- Fixed a browser-only startup regression where the staged league loader invoked `buildPlayerUniverse()` before the later V8.9 compatibility IIFE had defined its private `activeSeason()` helper, causing `League universe build failed: activeSeason is not defined`.
+- Added `app/core/season-context.js`, loaded before the first inline application script, as the canonical strict season parser/resolver.
+- Added a global bootstrap `activeSeason()` binding before any league-universe caller and made the later V8.9 layer delegate to that binding rather than maintaining a second implementation.
+- Preserved Sleeper league season as authoritative and explicitly rejects null, blank, `0`, and `"0"` as valid NFL seasons.
+- Updated M5 current compatibility to consume the canonical resolved season rather than independently coercing the season selector.
+- Strengthened the season runtime regression to verify actual browser script ordering/scope, not only the helper algorithm. The test now fails if `activeSeason()` is defined after `buildPlayerUniverse()`, which is the exact defect that escaped the previous gate.
+
+
 The V9.3.2 source update and both validation/refresh workflows executed correctly, but the browser remained on V9.3.1 because Cloudflare Pages is configured to serve the tracked `dist/` directory and the original V9.3.2 overlay patch did not include `dist/`. The validation workflow rebuilt a correct V9.3.2 `dist/` only inside the temporary Actions runner and uploaded it as an artifact; it did not commit that generated tree back to `main`. The Current Season workflow likewise refreshed source research artifacts without rebuilding `dist/`.
 
 This hotfix makes deployment synchronization enforceable:

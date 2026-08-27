@@ -16,6 +16,7 @@ COMPONENTS={
  'model_config_js':'app/generated/model-config.js',
  'core_services':'app/core/core-services.js',
  'numeric_contract':'app/core/numeric.js',
+ 'season_context':'app/core/season-context.js',
  'projection_service':'app/core/projection-service.js',
  'draft_state_service':'app/core/draft-state-service.js',
  'surface_router':'app/core/surface-router.js',
