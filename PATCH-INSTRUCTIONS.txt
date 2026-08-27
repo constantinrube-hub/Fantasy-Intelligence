@@ -1,14 +1,24 @@
-FIE V9.2.1 GitHub Patch
+FIE CONSOLIDATED 15-POINT COMPLETION PATCH
+Baseline: current GitHub main / V9.3.2 line audited 2026-08-27.
 
-This patch contains only files that are new or changed versus the uploaded V9.2 Kicker Intelligence repository.
+UPLOAD
+1. Upload every file in this ZIP to the repository using the same relative path.
+2. Replace files when paths already exist. New files are additive.
+3. Do not delete other repository files.
 
-- New files: 42
-- Modified files: 109
-- Deleted files: 0
+RUN
+1. Refresh FIE Current Season
+   - league_id: blank
+   - season/week: blank
+   - governance_mode: KEEP
+   This builds all compact league snapshots and synchronized dist.
+2. Validate FIE V9.3.2 Browser QA
 
-Copy the contents of this folder into the ROOT of your GitHub repository and overwrite matching files.
-Do not create an extra FIE-9.2.1-GitHub-Patch directory inside the repository.
+PASS EXPECTATION
+- fast-switch integrity PASS
+- fast-switch runtime PASS
+- consolidated 15-point implementation contract PASS
+- existing V9.3.2 release gate PASS
+- committed dist synchronized PASS
 
-Important: the 19 data/research/leagues/*/current/milestone5_current.json files must be overwritten. They are now lightweight manifests.
-The new data/research/shared/current/ directory must also be added.
-If Cloudflare deploys from dist/, replace/upload the changed dist/ contents as included here.
+Then open Cloudflare FIE, load one league, wait a few seconds, and switch between several saved leagues. Prefetched switches should render first and live Sleeper roster/user/league state should update non-blockingly afterward.
