@@ -10,9 +10,14 @@ for f in ['season-context.js','numeric.js','projection-service.js','draft-state-
 assert rel['release'].startswith('9.3.2-') and rel['runtime'].startswith('9.3.2-') and rel['value_finder']=='9.3.2-VF4'
 # Season 0 and nullable semantics.
 assert "String(raw).trim()===''" in idx and 'a>0?a:' in idx
-assert 'FIESeasonContext' in idx and 'window.activeSeason=activeSeason' in idx and 'FIE_SEASON_CONTEXT_BOOTSTRAP_FALLBACK' in idx
+assert 'FIESeasonBootstrapResolver' in idx and 'window.activeSeason=activeSeason' in idx and 'FIE_SEASON_BOOTSTRAP_FALLBACK' in idx
+assert 'window.FIESeasonContext.resolve({' not in idx
+assert 'window.FIECore?.SeasonResolver?.resolve' in idx
+assert 'window.FIESeasonContext=SeasonContext' in rt and 'resolve({league=window.state?.league' in rt
 assert "Number.isInteger(n)&&n>1900" in (R/'app/core/season-context.js').read_text()
-assert '/app/core/season-context.js?v=932-bootstrap-resilience' in idx
+assert '/app/core/season-context.js?v=932-season-namespace-fix' in idx
+assert 'window.FIESeasonBootstrapResolver=API' in (R/'app/core/season-context.js').read_text()
+assert 'window.FIESeasonContext=API' not in (R/'app/core/season-context.js').read_text()
 assert 'state.weekly.season=activeSeason();syncSeasonSelectV89();' in idx
 assert 'Season ${activeSeason()} · Week ${currentWeek()}' in idx
 assert "value===null||value===undefined" in (R/'app/core/numeric.js').read_text()

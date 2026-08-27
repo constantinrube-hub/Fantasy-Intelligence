@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 COMPONENTS={
  'index':'index.html',
+ 'deployment_headers':'_headers',
  'release_descriptor':'config/release.json',
  'runtime_contract':'config/contracts/runtime-contracts.json',
  'runtime_contract_js':'app/generated/runtime-contracts.js',
