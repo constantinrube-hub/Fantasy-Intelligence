@@ -1,3 +1,18 @@
+# V9.3.2 Deployment Synchronization Hotfix, 2026-08-27
+
+The V9.3.2 source update and both validation/refresh workflows executed correctly, but the browser remained on V9.3.1 because Cloudflare Pages is configured to serve the tracked `dist/` directory and the original V9.3.2 overlay patch did not include `dist/`. The validation workflow rebuilt a correct V9.3.2 `dist/` only inside the temporary Actions runner and uploaded it as an artifact; it did not commit that generated tree back to `main`. The Current Season workflow likewise refreshed source research artifacts without rebuilding `dist/`.
+
+This hotfix makes deployment synchronization enforceable:
+
+- adds a manual **Rebuild FIE Deploy Dist** workflow that runs the deterministic release builder and commits the validated `dist/` tree;
+- makes **Validate FIE V9.3.2 Browser QA** fail if committed `dist/` differs from the deterministic release build;
+- makes **Refresh FIE Current Season** rebuild and commit `dist/` after refreshing league data so deployed current snapshots cannot lag the source store;
+- adds `dist/**` to validation triggers.
+
+The source-side Season-0 fix was already present in V9.3.2. The live Season 0 display persisted because the deployed `dist/index.html` was still V9.3.1.
+
+---
+
 # V9.3.2 Browser QA & Ranking Integrity, 2026-08-27
 
 ## Why this release exists
