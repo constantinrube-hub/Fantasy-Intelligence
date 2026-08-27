@@ -7,11 +7,18 @@
 const C=window.FIERuntimeContracts||{};
 const SLOT=C.roster_slots||{};
 const ALIAS=C.position_aliases||{};
-function finite(x){const n=Number(x);return Number.isFinite(n)?n:null;}
+function finite(x){if(x===null||x===undefined||(typeof x==='string'&&x.trim()===''))return null;const n=Number(x);return Number.isFinite(n)?n:null;}
 function canonicalPos(p){const x=String(p||'').toUpperCase();return ALIAS[x]||x;}
 function playerId(p){const id=p?.sleeperId??p?.player_id??p?.playerId??p?.id;if(id!==undefined&&id!==null&&String(id).trim())return String(id);const name=String(p?.name||p?.full_name||'unknown').trim().toLowerCase(),team=String(p?.team||'FA').toUpperCase(),pos=canonicalPos(p?.position||p?.fantasy_positions?.[0]||'UNK');return `synthetic:${pos}:${team}:${name}`;}
 function fnv(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,'0');}
 function stable(value){if(value===null||typeof value!=='object')return JSON.stringify(value);if(Array.isArray(value))return '['+value.map(stable).join(',')+']';return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}';}
+
+const Numeric={finiteOrNull:finite,optionalCap(x){const n=finite(x);return n!==null&&n>=0?Math.trunc(n):null;},positiveIntOrNull(x){const n=finite(x);return n!==null&&n>0?Math.trunc(n):null;}};
+
+const PlayerIdentity={
+  byId(id){const key=String(id??'');return (window.PLAYERS||[]).find(p=>String(p?.sleeperId??p?.player_id??'')===key)||null;},
+  positionForId(id){const p=this.byId(id);return p?canonicalPos(p.position):'UNK';}
+};
 
 const PositionRegistry={
   canonical:canonicalPos,
@@ -60,5 +67,5 @@ const ContextFingerprint={
 
 const Diagnostics={buffer:[],max:200,redact(value){let s=String(value??'');s=s.replace(/([?&](?:api_?key|key|token|secret|authorization)=)[^&#\s]*/gi,'$1[REDACTED]');s=s.replace(/(Bearer\s+)[A-Za-z0-9._~+\/-]+/gi,'$1[REDACTED]');return s;},capture(error,context={}){const row={at:new Date().toISOString(),message:this.redact(error?.message||error),stack:this.redact(error?.stack||''),leagueId:window.state?.league?.league_id||null,release:window.FIE_BUILD_MANIFEST?.app_version||window.FIE?.VERSION||null,...context};this.buffer.push(row);if(this.buffer.length>this.max)this.buffer.splice(0,this.buffer.length-this.max);return row;},snapshot(){return this.buffer.slice();}};
 
-window.FIECore={version:'9.3.1-consolidation',PositionRegistry,PlayerIdentity:{id:playerId,canonicalPosition:canonicalPos},LineupOptimizer,LeagueDemandService,ReplacementService,RosterValueService,ContextFingerprint,Diagnostics};
+window.FIECore={version:'9.3.2-browser-qa',Numeric,PositionRegistry,PlayerIdentity:Object.assign(PlayerIdentity,{id:playerId,canonicalPosition:canonicalPos}),LineupOptimizer,LeagueDemandService,ReplacementService,RosterValueService,ContextFingerprint,Diagnostics};
 })();
