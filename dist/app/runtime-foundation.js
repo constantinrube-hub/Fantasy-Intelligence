@@ -18,7 +18,19 @@ function ruleMatch(rule,key){const k=String(key||'').toLowerCase(),p=rule?.patte
 function ruleSpec(key){for(const r of Contracts().scoring_rule_families||[])if(ruleMatch(r,key))return r;return null;}
 
 const SeasonContext={
-  active(){const s=window.FIECore?.SeasonResolver?.resolve?.({league:window.state?.league,selected:document.getElementById('seasonSelect')?.value,weekly:window.state?.weekly?.season});if(Number.isFinite(Number(s))&&Number(s)>1900)return Math.round(Number(s));const d=new Date();return d.getUTCMonth()<=1?d.getUTCFullYear()-1:d.getUTCFullYear();},
+  // Runtime facade. `resolve` is kept as a compatibility delegate so a cached
+  // V9.3.2 shell that still calls FIESeasonContext.resolve cannot crash while
+  // assets roll over. Canonical season semantics live in FIECore.SeasonResolver.
+  resolve({league=window.state?.league,selected=document.getElementById('seasonSelect')?.value,weekly=window.state?.weekly?.season,leagueSeason=null,selectorValue=null,weeklySeason=null}={}){
+    const resolver=window.FIECore?.SeasonResolver?.resolve;
+    const targetLeague=leagueSeason!==null&&leagueSeason!==undefined?{...(league||{}),season:leagueSeason}:league;
+    const targetSelected=selectorValue!==null&&selectorValue!==undefined?selectorValue:selected;
+    const targetWeekly=weeklySeason!==null&&weeklySeason!==undefined?weeklySeason:weekly;
+    const s=typeof resolver==='function'?resolver({league:targetLeague,selected:targetSelected,weekly:targetWeekly}):null;
+    if(Number.isFinite(Number(s))&&Number(s)>1900)return Math.round(Number(s));
+    const d=new Date();return d.getUTCMonth()<=1?d.getUTCFullYear()-1:d.getUTCFullYear();
+  },
+  active(){return this.resolve();},
   prior(){return this.active()-1;},next(){return this.active()+1;},
   week(){const w=finite(document.getElementById('weekSelect')?.value??window.state?.weekly?.week);return w?Math.max(1,Math.round(w)):1;},
   seasonType(){return String(window.state?.league?.season_type||'regular').toLowerCase();},

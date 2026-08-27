@@ -1,7 +1,8 @@
-/* Fantasy Intelligence Engine V9.3.2 season context.
- * Loaded before the legacy inline application so every startup path has one
- * strict, globally available season parser/resolver. Missing/blank/zero values
- * never become a valid NFL season.
+/* Fantasy Intelligence Engine V9.3.2 early season bootstrap resolver.
+ *
+ * This module intentionally does NOT write window.FIESeasonContext. That name is
+ * owned by runtime-foundation.js for the active/prior/week/snapshot facade. The
+ * canonical post-bootstrap resolver lives at FIECore.SeasonResolver (numeric.js).
  */
 (function(){
 'use strict';
@@ -19,5 +20,5 @@ function resolve({leagueSeason=null,selectorValue=null,weeklySeason=null,now=nul
   return parse(leagueSeason)??parse(selectorValue)??parse(weeklySeason)??fallback(now||new Date());
 }
 const API=Object.freeze({parse,resolve,fallback});
-window.FIESeasonContext=API;
+window.FIESeasonBootstrapResolver=API;
 })();
