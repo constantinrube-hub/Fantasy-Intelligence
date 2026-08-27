@@ -190,7 +190,7 @@ jobs:
           fi
           git config user.name "FIE Current Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add -- "${TRACKED[@]}"
+          git add -A -- "${TRACKED[@]}"
           git commit -m "Refresh FIE current intelligence and deploy dist"
           git fetch origin main
           git rebase origin/main
