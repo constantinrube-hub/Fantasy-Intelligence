@@ -1,3 +1,15 @@
+# V9.3.2 Season Bootstrap Resilience + Dist Determinism Hotfix, 2026-08-27
+
+- Fixed the browser failure `League universe build failed: FIE season context is unavailable`. The canonical external `app/core/season-context.js` remains the preferred season service, but `index.html` now installs an equivalent strict inline bootstrap only when the external helper is unavailable. League loading therefore no longer hard-fails because one tiny static asset was missed, stale, or temporarily unavailable at the edge.
+- Changed the season-context request to an absolute, cache-busted asset path so Cloudflare/browser cache state cannot accidentally reuse an older missing asset response.
+- Preserved the core season contract: loaded Sleeper league season is authoritative; null, blank, `0`, and `"0"` are invalid; a loaded 2026 league resolves to 2026 in both canonical-service and bootstrap-fallback modes.
+- Strengthened `integrity_v932_season_runtime_test.js` to execute the exact failure mode with the external season service deliberately absent. The test now requires league startup to resolve Season 2026 without throwing.
+- Fixed a separate release-validation defect where `research/build_app_manifest.py` used wall-clock `datetime.now()` for `generated_at`, making every otherwise identical validation build change `dist/config/build-manifest.json`. The manifest now uses the canonical release descriptor `built_at`, so unchanged release builds are byte-stable.
+- Added `integrity_v932_build_determinism_test.py` to the full release gate.
+- Full deterministic release build after both fixes: `DEPLOYABLE_SOURCE`, 19-league current-storage integrity PASS, 19/19 structural-profile regression PASS, dist hygiene PASS.
+
+---
+
 # V9.3.2 Deployment Synchronization Hotfix, 2026-08-27
 
 ## V9.3.2 bootstrap hotfix — season scope / league-universe startup
