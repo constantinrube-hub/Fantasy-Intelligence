@@ -58,7 +58,7 @@ jobs:
           fi
           git config user.name "FIE Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add -- "${TRACKED[@]}"
+          git add -A -- "${TRACKED[@]}"
           git commit -m "Rebuild FIE V9.3.2 deploy dist"
           git fetch origin main
           git rebase origin/main
