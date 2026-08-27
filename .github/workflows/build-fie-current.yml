@@ -42,6 +42,9 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: research/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
       - name: Verify multi-league production code
@@ -161,16 +164,34 @@ jobs:
           python research/fie_kicker.py inventory --registry data/research/leagues/registry.json --output data/research/kicker/scoring_inventory.json
       - name: Audit production readiness
         run: python research/production_readiness.py
-      - name: Commit current snapshots, market captures, and governance
+      - name: Rebuild validated Cloudflare deploy tree
+        run: python tools/release_build.py --mode personal
+      - name: Commit current intelligence and synchronized deploy tree
         run: |
-          if git diff --quiet -- data/research/leagues data/research/shared data/research/market/sleeper data/research/dst data/research/kicker; then
-            echo "Current-season artifacts unchanged."
+          TRACKED=(
+            data/research/leagues
+            data/research/shared
+            data/research/market/sleeper
+            data/research/dst
+            data/research/kicker
+            app/generated/model-config.js
+            app/generated/release.js
+            app/generated/runtime-contracts.js
+            functions/release.js
+            config/build-manifest.json
+            config/model-config.json
+            config/release.json
+            config/release-gate.json
+            dist
+          )
+          if git diff --quiet -- "${TRACKED[@]}" && [ -z "$(git status --porcelain -- "${TRACKED[@]}")" ]; then
+            echo "Current-season and deploy artifacts unchanged."
             exit 0
           fi
           git config user.name "FIE Current Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/research/leagues data/research/shared data/research/market/sleeper data/research/dst data/research/kicker
-          git commit -m "Refresh FIE league-specific current intelligence"
+          git add -- "${TRACKED[@]}"
+          git commit -m "Refresh FIE current intelligence and deploy dist"
           git fetch origin main
           git rebase origin/main
           git push origin HEAD:main

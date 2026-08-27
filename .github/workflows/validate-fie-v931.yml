@@ -11,7 +11,9 @@ on:
       - "functions/**"
       - "research/**"
       - "tools/**"
+      - "dist/**"
       - ".github/workflows/validate-fie-v931.yml"
+      - ".github/workflows/rebuild-fie-dist.yml"
 
 permissions:
   contents: read
@@ -38,6 +40,16 @@ jobs:
         run: pip install -r research/requirements.txt
       - name: Build and run full V9.3.2 release gate
         run: python tools/release_build.py --mode personal
+      - name: Verify committed Cloudflare dist is synchronized
+        run: |
+          if [ -n "$(git status --porcelain -- dist)" ]; then
+            echo "::error::Committed dist/ is stale relative to the validated source/data tree."
+            echo "Cloudflare Pages serves dist/ (wrangler.toml), so a green source build is not enough when tracked dist is stale."
+            echo "Run the 'Rebuild FIE Deploy Dist' workflow, then rerun validation."
+            git status --short -- dist
+            exit 1
+          fi
+          echo "PASS committed dist/ matches deterministic release build"
       - name: Summarize gate
         if: always()
         run: |
