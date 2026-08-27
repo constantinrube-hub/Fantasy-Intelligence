@@ -1,6 +1,8 @@
 const fs=require('fs'),vm=require('vm');
 const ctx={console,FIE_MODEL_CONFIG:{production:{promoted:false}},FIEModelV9:{buildDraftValueRows:()=>[{model:'v9'}],buildDiagnosticRows:()=>[{model:'diag'}]},FIE_DRAFT_V71:{buildDraftValueRows:()=>[{model:'fallback'}]},FIE_M6_GOVERNANCE_STATE:{runtime_enabled:true},FIE_M6_GOVERNANCE_ALLOW:true};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(fs.readFileSync('app/core/decision-service.js','utf8'),ctx);
-if(ctx.FIEDecisionService.draftRows(1)[0].model!=='fallback')throw new Error('unpromoted V9 leaked through canonical decision service');
-ctx.FIE_MODEL_CONFIG.production.promoted=true;if(ctx.FIEDecisionService.draftRows(1)[0].model!=='v9')throw new Error('promoted V9 not selected');
+if(ctx.FIEDecisionService.draftRows(1)[0].model!=='diag')throw new Error('canonical diagnostic architecture was not selected while empirical promotion is gated');
+if(ctx.FIEDecisionService.productionModel()!=='V9_CANONICAL_ARCHITECTURE_RESEARCH_GATED')throw new Error('unpromoted architecture label is not explicitly research-gated');
+ctx.FIE_MODEL_CONFIG.production.promoted=true;if(ctx.FIEDecisionService.draftRows(1)[0].model!=='diag')throw new Error('diagnostic/canonical architecture unexpectedly disappeared after promotion');
+if(ctx.FIEDecisionService.productionModel()!=='V9_PROMOTED')throw new Error('promoted model label not selected');
 const p={currentFeatureLineage:{leakageSafe:true,activationEligible:true,weeklyActivationEligible:true,waiverActivationEligible:true}};if(!ctx.FIEDecisionService.researchFeatureMayAffect(p,'draft'))throw new Error('valid governed feature rejected');ctx.FIE_M6_GOVERNANCE_ALLOW=false;if(ctx.FIEDecisionService.researchFeatureMayAffect(p,'draft'))throw new Error('feature bypassed governance');
-console.log('PASS integrity_decision_service_test');
+console.log('PASS integrity_decision_service_test: canonical architecture remains available while research influence stays fail-closed');

@@ -1,3 +1,91 @@
+# V9.3.2 Browser QA & Ranking Integrity, 2026-08-27
+
+## Why this release exists
+
+V9.3.1 passed the deterministic source/release gates but the first real browser QA exposed runtime-semantic defects that static and isolated tests did not catch. V9.3.2 treats those findings as one integrity sprint rather than a collection of cosmetic fixes. The release repairs missing-data semantics, season resolution, current-research fingerprinting, cross-surface ranking consistency, draft-state synchronization, panel routing, waiver/trade legality, League Intel identity resolution, Weekly refresh reliability, D/ST/Kicker future-week UX, and tiering.
+
+## P0 correctness fixes
+
+- Added a strict nullable numeric contract in `app/core/numeric.js`. `null`, `undefined`, blank strings and whitespace now stay unavailable instead of becoming JavaScript numeric zero. Genuine `0` and `"0"` remain legitimate zeroes.
+- Replaced unsafe optional-number coercion across Weekly, Draft/Players, Value Finder, D/ST, Kicker, roster rules and supporting services with the shared numeric semantics.
+- Added `app/core/projection-service.js` as the canonical weekly projection resolver. Projection precedence is governed FIE current projection, direct weekly projection, Sleeper weekly projection, explicitly labelled fallback estimate, then unavailable. A verified bye remains a genuine zero and is never confused with unavailable data.
+- Fixed the separate `Season 0` defect. Blank or `"0"` season-selector values can no longer win over the loaded Sleeper league season. The loaded league season is authoritative across Weekly URLs, schedule matching, projection loading, weather/odds matching and season-sensitive runtime diagnostics.
+- Corrected current-profile fingerprint generation in `research/build_current_snapshot.py` to use the same `structural_contract()` as `research/league_profile.py`. Operational Sleeper settings such as `leg` and `daily_waivers_last_ran` no longer cause false research invalidation.
+- Added an offline 19-league structural regression. All 19 captured live Sleeper profiles reproduce their stored structural fingerprint under the corrected contract, proving the prior portfolio-wide mismatch was contract drift rather than 19 genuine structural changes.
+- Fixed optional managed-roster cap parsing. `null`, undefined and blank mean unlimited; explicit `0` remains a real zero-player cap. This removes false trade violations such as `R 7/0` and prevents the same bad caps from eliminating otherwise legal waiver candidates.
+- Added canonical Sleeper-ID-to-position resolution for transaction analysis so League Intel no longer fails on the missing `playerPosBySleeperId` helper.
+
+## Canonical ranking and decision architecture
+
+- Added `app/core/draft-value-service.js` as the canonical roster-neutral Draft Base Value service.
+- Draft Board, Players, Value Finder and Draft Assistant now share one underlying FIE player-quality/positional-rank foundation.
+- Market price is explicitly excluded from canonical FIE player-quality rank. ADP/market position is compared after FIE valuation for price, timing and value-gap decisions.
+- Value Finder no longer manufactures a competing "FIE positional rank" from its discovery policy score. It consumes the canonical FIE rank and then layers market inefficiency, role path, evidence and timing on top.
+- Draft Assistant now starts from the same canonical Draft Board base value before applying intentionally roster-aware/current-pick effects such as exact roster marginal, timing, next-pick survival and Best Ball portfolio fit.
+- Draft Assistant displays the intended three recommendation cards: Best Pick, Alternative and Value Play, with Board rank, Decision rank, FIE-vs-market positional context, roster delta, survival estimate and explanation.
+- Large Board-to-Assistant rank movements are now traceable to roster/timing effects rather than appearing as an unexplained second valuation system.
+- Added `app/core/draft-state-service.js` so Draft Board-related workflows use one synchronized draft ID/pick set/picked-player state. Value Finder's "Undrafted only" filter and Draft Assistant consume the same picked-player IDs.
+- Replaced the old adjacent-gap tiering heuristic with canonical value-based tiering that uses normalized base value, local gap behavior, cumulative decay, league size and a Tier-1 sanity constraint. Runaway 70-player Tier 1 outputs are blocked by regression tests.
+- Best Ball ranking now combines normalized base/replacement value with normalized ceiling/spike inputs rather than adding incompatible raw scales. Player detail explains Spike/Balanced/Volume-style profiles and labels heuristic ranges as estimates.
+
+## Weekly reliability and season handling
+
+- Weekly now renders missing data as unavailable rather than `0`.
+- Added explicit source lineage and fallback status to weekly projection resolution.
+- Split Weekly refresh into bounded essential and optional work. Schedule/Sleeper projections are prioritized; odds, weather, snaps, depth and other enrichment are allowed to finish independently.
+- Added per-source deadlines, stale-generation protection, league-ID checks and reliable finalization so a failed/stale refresh cannot leave the Refresh button stuck indefinitely.
+- Season resolution now rejects blank, zero and invalid selectors and synchronizes back to the real Sleeper league season.
+- Added an executable regression against the actual `index.html` `activeSeason()` implementation proving a loaded 2026 league cannot display or request Season 0 because the selector is blank or `"0"`.
+
+## D/ST and Kicker
+
+- Rebuilt D/ST and Kicker nullable projection handling so absent P10/P90/Next-3 values display as unavailable instead of fabricated `0.0`.
+- Added `app/core/special-teams-series.js` for shared special-teams week-series logic.
+- Added Week 1-18 selectors to D/ST and Kicker decision surfaces.
+- Future-week rows use published Sleeper projections when available and otherwise remain clearly labelled baseline estimates.
+- An unknown future schedule can no longer masquerade as a bye. Only a verified schedule with no team game produces a true BYE zero.
+- D/ST and Kicker rows now open the normal player/detail drawer architecture with Overview and Weeks 1-18 views, replacement context, action, source and confidence.
+
+## Surface routing and browser-state integrity
+
+- Added `app/core/surface-router.js` as the authoritative panel visibility/transition helper.
+- Registered the dynamically created Matchup & Playoff panel with the shared surface router.
+- Leaving Matchup for Team, Roster Assets, Market, Waivers, Trade, Players, Draft or other sections now explicitly hides/unmounts the Matchup panel instead of allowing it to leak into unrelated tabs.
+- Added runtime navigation regression coverage that opens Matchup and then transitions away, asserting the panel is inactive and hidden.
+
+## League Intel, Waivers and Trade
+
+- Added canonical player-identity lookup for transaction profiling and repaired League Intel's add/drop/FAAB position resolution.
+- Waiver empty states now preserve diagnostics about candidate counts and legality/upgrade rejection rather than presenting a mysterious empty board.
+- Trade and waiver portfolio-rule evaluation share corrected optional-cap semantics.
+- Dynasty Players visually prioritizes Asset Rank immediately after Player, matching the default cross-positional sort.
+
+## Data quality and diagnostics
+
+- Public enrichment diagnostics retain per-source status, rows, latency/error and checked time instead of relying only on a 3/4 summary.
+- Added ranking/source lineage to the player drawer so canonical FIE position/overall rank, market position, value gap, base value, tier, projection source, evidence confidence and relevant format inputs are traceable.
+- Corrected feature copy to emphasize what each surface does rather than repeatedly explaining format differences in boilerplate.
+
+## New/updated integrity coverage
+
+- `research/integrity_v932_structural_profile_test.py`: validates the corrected structural fingerprint contract against all 19 captured league profiles.
+- `research/integrity_v932_source_contract.py`: static/source contract for V9.3.2 modules and corrected semantics.
+- `research/integrity_v932_browser_qa_runtime_test.js`: executable runtime regression for null semantics, projection fallback, byes, roster caps, canonical rank/tiers, draft-state exclusion, panel cleanup and special-teams future-week behavior.
+- `research/integrity_v932_season_runtime_test.js`: executes the actual `index.html` season resolver and proves blank/zero selector state cannot produce Season 0 for a loaded 2026 league.
+- V9.3.2 checks are included in both the full release gate and the Refresh FIE Current Season workflow.
+- The GitHub validation workflow is renamed in the Actions UI to `Validate FIE V9.3.2 Browser QA` and uploads a complete validation artifact.
+
+## Final local release result
+
+- Deterministic command: `python tools/release_build.py --mode personal`
+- Result: `STATUS: DEPLOYABLE_SOURCE`
+- Current-storage integrity: 19 leagues PASS
+- V9.3.2 structural regression: 19/19 PASS
+- V9.3.2 browser-QA runtime: PASS
+- Actual Season-2026/Season-0 runtime regression: PASS
+- Existing V9.3.1 persistent-cache, scarcity, LeagueContext, Decision UI, Value Finder, Top-100, D/ST, Kicker, M5/M6, Monte Carlo and artifact/dist hygiene gates continue to pass.
+- Release remains `release-candidate` until the uploaded repository has completed a fresh connected Current Season refresh and live browser acceptance pass.
+
 # V9.3.1 Completion Patch
 
 - Finished the V9.3 runtime consolidation with a persistent browser cache for stable shared NFL/projection proxy data while keeping live league endpoints network-fresh.

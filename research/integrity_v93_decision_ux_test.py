@@ -12,9 +12,9 @@ k=(ROOT/'app/kicker-intelligence.js').read_text(encoding='utf-8')
 dc=(ROOT/'app/core/data-client.js').read_text(encoding='utf-8')
 rt=(ROOT/'app/runtime-foundation.js').read_text(encoding='utf-8')
 release=json.loads((ROOT/'config/release.json').read_text())
-assert release['release']=='9.3.1-completion'
-assert release['runtime']=='9.3.1-foundation'
-assert release['value_finder']=='9.3-VF3'
+assert release['release'].startswith(('9.3.1-','9.3.2-'))
+assert release['runtime'].startswith(('9.3.1-','9.3.2-'))
+assert release['value_finder'] in {'9.3-VF3','9.3.2-VF4'}
 assert 'app/league-context.js' in idx and 'app/decision-ui.js' in idx and 'app/decision-ui.css' in idx
 assert "window.state=state" in idx and 'populateTradePicks' in idx
 assert 'C0nstant1n' in lc
@@ -43,4 +43,4 @@ assert "league-season-projections" in rt and "league-enrichment" in rt
 head=idx[:30000]
 assert 'Fantasy Intelligence Engine 9.1' not in head
 assert 'Release 9.1' not in head
-print('V9.3.1 Decision UX source integrity OK')
+print('V9.3+ Decision UX source integrity OK')

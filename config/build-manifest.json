@@ -1,28 +1,28 @@
 {
   "schema_version": 2,
-  "app_version": "9.3.1-completion",
-  "runtime_version": "9.3.1-foundation",
+  "app_version": "9.3.2-browser-qa-ranking-integrity",
+  "runtime_version": "9.3.2-foundation",
   "draft_model_version": "9.1-decision-candidate",
-  "value_finder_version": "9.3-VF3",
+  "value_finder_version": "9.3.2-VF4",
   "research_generation": "M1-M6 structural-v2 + current-split-v1",
   "model_promotion": {
     "promoted": false,
     "decision_domain": "draft",
-    "reason": "Candidate V9.1 architecture is available for diagnostics, but production promotion requires a governed decision-validation artifact.",
-    "fallback": "V8.9 governed Draft Assistant"
+    "reason": "Canonical V9.3.2 decision architecture is production-visible, while empirical research-feature influence remains fail-closed until the governed decision-validation artifact clears promotion.",
+    "fallback": "V9.3.2 canonical base + Sleeper/current validated baselines; unpromoted empirical research signals do not affect decisions"
   },
   "runtime_research_scope": "league_namespaced_only",
-  "generated_at": "2026-08-26T21:22:33.182829+00:00",
+  "generated_at": "2026-08-27T07:55:43.831840+00:00",
   "files": {
     "index": {
       "path": "index.html",
-      "sha256": "bf55ba80e4ffbe80a117a87661c2bd2329fd993959b7ad5be843bb527ee45c63",
-      "bytes": 1376216
+      "sha256": "606724cfee51d179198afb029b5466f24c7db69ecc86cfec913f0c0098daba65",
+      "bytes": 1378960
     },
     "release_descriptor": {
       "path": "config/release.json",
-      "sha256": "e55ce68cfb61e38ecd527bea09c2f5f5665f78a183abd9b30f6f92c0c27e34ba",
-      "bytes": 282
+      "sha256": "def1503b2abf5579f7a440a592a2901332877c2cd68949cb07a337706309c4d4",
+      "bytes": 302
     },
     "runtime_contract": {
       "path": "config/contracts/runtime-contracts.json",
@@ -36,22 +36,52 @@
     },
     "model_config": {
       "path": "config/model-config.json",
-      "sha256": "70d965c5493e73b5c8a1ca09ae407a0cceb4d30ea75d9ec641ebc43cc98bfc79",
-      "bytes": 754
+      "sha256": "18a23f0a5bf7ab86efd1cafbc0c996d0d7d987165280f016dd39b58520e7b2c7",
+      "bytes": 982
     },
     "model_config_js": {
       "path": "app/generated/model-config.js",
-      "sha256": "b510a5a7b1ae7af15c830292c484bcd80d1b749810e3be26b1d592dda6cb39f7",
-      "bytes": 829
+      "sha256": "c20cf2ddf9424b1aa47925c986e06dbb9d5db3b151ecfa400e1e90f76da31a92",
+      "bytes": 980
     },
     "core_services": {
       "path": "app/core/core-services.js",
-      "sha256": "4b598b626e7c7d97ad34b9bca4099d768fcab0e4a40c47da35ed0c5777fcba44",
-      "bytes": 11432
+      "sha256": "95ab3342bddbf1e7823134994d5f0082bbee3a547ac34b97a7f8021b9496411d",
+      "bytes": 11977
+    },
+    "numeric_contract": {
+      "path": "app/core/numeric.js",
+      "sha256": "1273af23913f83b32fde4a5d9add76a441b2c1b76ce3283cbc914ec19f7f2fae",
+      "bytes": 2225
+    },
+    "projection_service": {
+      "path": "app/core/projection-service.js",
+      "sha256": "7706ecf3b808bf9df524121e3748cdd667d77373e2bb132b8f45966d2a44ede9",
+      "bytes": 4330
+    },
+    "draft_state_service": {
+      "path": "app/core/draft-state-service.js",
+      "sha256": "f443c2ae1d59c50e9b7677fa7863d1de270fbf1a2b510b5642be99b6b6ac1f52",
+      "bytes": 856
+    },
+    "surface_router": {
+      "path": "app/core/surface-router.js",
+      "sha256": "d69209800560518f0ab146643eb2efc43b603e2f36cc06d3cc7ac13f8c7aff3c",
+      "bytes": 1031
+    },
+    "special_teams_series": {
+      "path": "app/core/special-teams-series.js",
+      "sha256": "7fac3fabea7ea4a05e4ba869c534f15703154245b85f338102259ce0c4dbf8d2",
+      "bytes": 4049
+    },
+    "draft_value_service": {
+      "path": "app/core/draft-value-service.js",
+      "sha256": "c3af548d20417ed1f307a87ddee358636e0cfdb26977063db0baea83473bff62",
+      "bytes": 8251
     },
     "data_client": {
       "path": "app/core/data-client.js",
-      "sha256": "a01f96b4540860ed76339cc816b22c435fb399e4d399fe5cca591b7ec0d0ae68",
+      "sha256": "157277d6573792982099e3cf60a1a6eb0b0a028aa1b7d4afb53961d2bce79dc8",
       "bytes": 6284
     },
     "current_snapshot_store": {
@@ -61,13 +91,13 @@
     },
     "decision_service": {
       "path": "app/core/decision-service.js",
-      "sha256": "4fef8c64243f2744bb027f22a335d5f417f28090887266906af88e206429a910",
-      "bytes": 1323
+      "sha256": "258823227ca98a55250c0c38e40918b3eb75d8de49e756caa1a4541ef75af877",
+      "bytes": 2106
     },
     "runtime": {
       "path": "app/runtime-foundation.js",
-      "sha256": "acbe27ed09bd04751f9afa22d1ef13b9758446c396a607780f26ec72feab9533",
-      "bytes": 26112
+      "sha256": "7c999aa4f30edfb6603dbc1d34c344565f539f2181c215d16b517c47d87fb322",
+      "bytes": 26522
     },
     "current_player_features": {
       "path": "app/current-player-features.js",
@@ -81,8 +111,8 @@
     },
     "decision_engines": {
       "path": "app/decision-engines.js",
-      "sha256": "02a4d98ebfbd351683304fe6b70d58773e9fcf6097e4efe590fee817278605e5",
-      "bytes": 70140
+      "sha256": "cd0152016445ea3bdd9540c916af54db2cd90ab9b1fe41cc33a2f776ea620dd2",
+      "bytes": 70177
     },
     "monte_carlo_worker": {
       "path": "app/draft-monte-carlo-worker.js",
@@ -91,8 +121,8 @@
     },
     "value_finder": {
       "path": "app/value-finder.js",
-      "sha256": "cb8350046484b041ea735d0269c631fa1da216286355bc497cf0d3aca8cfc921",
-      "bytes": 49245
+      "sha256": "01862e9a72ddc88e75bcdab997a745a1c24a20f4b8410d176e0e94154144de54",
+      "bytes": 50046
     },
     "portfolio_home": {
       "path": "app/portfolio-home.js",
@@ -101,18 +131,18 @@
     },
     "portfolio_config": {
       "path": "app/portfolio-config.js",
-      "sha256": "ec0bcbef5b82b8a52a5466b3d88905c3b213cafff870b096d30e8c00b687049d",
-      "bytes": 8028
+      "sha256": "5eb402ad66ac5b1c19b752f79ac48ea1cb90b48298ca0f1ef9b62528936b08f3",
+      "bytes": 8066
     },
     "dst_intelligence": {
       "path": "app/dst-intelligence.js",
-      "sha256": "4b77d188939ca78ca6144c3e86e6081f507d5f6d2cd7264382d965f2bdb46623",
-      "bytes": 9997
+      "sha256": "a4e3839d822af5954103d32eb01c69f86a0194689e5f04f75f34365e891171b8",
+      "bytes": 12774
     },
     "kicker_intelligence": {
       "path": "app/kicker-intelligence.js",
-      "sha256": "c28a39f8bbc0a6a3f50f0fa8a15513c941d8704d0584da4f5b44c5639dd28280",
-      "bytes": 9896
+      "sha256": "15292bf29ac8a2cacbe8401c08ff0a27c011793a86e0403c3c1d6a0ddc1f4d98",
+      "bytes": 13278
     },
     "league_context": {
       "path": "app/league-context.js",
@@ -121,8 +151,8 @@
     },
     "decision_ui": {
       "path": "app/decision-ui.js",
-      "sha256": "1576f35c16696e2f02cd159f3db981e6192a2bcd988abbf4bb6a557a9fcd299f",
-      "bytes": 70460
+      "sha256": "dc81a36bd709e07d7170e6d6dd2501d6f446a2745a1dc1c2b773950f24e337cf",
+      "bytes": 73786
     },
     "decision_ui_css": {
       "path": "app/decision-ui.css",
@@ -171,8 +201,8 @@
     },
     "current_snapshot_builder": {
       "path": "research/build_current_snapshot.py",
-      "sha256": "c05e327556c599d519199a56398fc647a21624e1147b68148ae3bb7660613e83",
-      "bytes": 60489
+      "sha256": "d824f0701ea1659e3a3d14f94d4fdabe528b0ce6cb50005ca47acd80020000b6",
+      "bytes": 61076
     },
     "current_snapshot_storage": {
       "path": "research/current_snapshot_storage.py",
@@ -211,8 +241,8 @@
     },
     "release_gate": {
       "path": "research/release_gate.py",
-      "sha256": "fb56f91d3235cbdde6bb3217d55d55b4d1992c3c2cd94d5fb81cc852f342e99c",
-      "bytes": 3745
+      "sha256": "65bd27ad5755f839a2d81bb16531394f005c3fd7d7a617112621c46ab9f70a26",
+      "bytes": 4029
     }
   }
 }

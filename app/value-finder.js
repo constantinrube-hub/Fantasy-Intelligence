@@ -6,7 +6,7 @@
 (function(){
 'use strict';
 
-const VERSION='9.3-VF3';
+const VERSION='9.3.2-VF4';
 const BAND_LABELS={
   'ALL':'All ADP',
   'LT100':'Top 100 · Pick Optimizer',
@@ -40,10 +40,10 @@ state.valueFinder={
 };
 
 function vfNow(){return typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();}
-function vfNum(v,fallback=null){const n=Number(v);return Number.isFinite(n)?n:fallback;}
+function vfNum(v,fallback=null){const n=window.FIECore?.Numeric?.finiteOrNull?.(v);if(n!==null&&n!==undefined)return n;if(v===null||v===undefined||(typeof v==='string'&&v.trim()===''))return fallback;const z=Number(v);return Number.isFinite(z)?z:fallback;}
 function vfClamp(x,lo=0,hi=100){return Math.max(lo,Math.min(hi,Number(x)||0));}
-function vfMean(xs){const a=xs.map(Number).filter(Number.isFinite);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
-function vfPct(v,d=1){return Number.isFinite(Number(v))?`${(Number(v)*100).toFixed(d)}%`:'—';}
+function vfMean(xs){const a=xs.map(x=>vfNum(x,null)).filter(x=>x!==null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
+function vfPct(v,d=1){const n=vfNum(v,null);return n!==null?`${(n*100).toFixed(d)}%`:'—';}
 function vfFmt(v,d=1){return Number.isFinite(Number(v))?Number(v).toFixed(d).replace(/\.0$/,''):'—';}
 function vfEsc(s){return typeof esc==='function'?esc(s):String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function vfName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
@@ -55,8 +55,8 @@ function vfEligiblePool(){
   const legal=window.isLeagueEligible||((p)=>p.leagueEligible!==false);
   return PLAYERS.filter(p=>legal(p));
 }
-function vfDraftedSet(){return new Set((state.draftIntel?.picks||[]).map(x=>String(x.player_id||x.playerId||'')));}
-function vfAvailable(p){return !vfDraftedSet().has(String(p?.sleeperId||''));}
+function vfDraftedSet(){return window.FIEDraftStateService?.state?.().pickedPlayerIds||new Set((state.draftIntel?.picks||[]).map(x=>String(x.player_id||x.playerId||'')));}
+function vfAvailable(p){return !window.FIEDraftStateService?.isDrafted?.(p?.sleeperId)&&!vfDraftedSet().has(String(p?.sleeperId||''));}
 
 function vfM5Research(){return window.FIE_M5?.getResearchBundle?.()||null;}
 function vfM5Current(){return window.FIE_M5?.getCurrentBundle?.()||null;}
@@ -95,11 +95,11 @@ function vfProfile(){
   return vfM5Research()?.format_strategy?.profiles?.[key]||null;
 }
 function vfPercentileMap(pool,getter){
-  const a=pool.map(p=>({p,v:Number(getter(p))})).filter(x=>Number.isFinite(x.v)).sort((x,y)=>x.v-y.v),m=new Map();
+  const a=pool.map(p=>({p,v:vfNum(getter(p),null)})).filter(x=>x.v!==null).sort((x,y)=>x.v-y.v),m=new Map();
   a.forEach((x,i)=>m.set(String(x.p.sleeperId),a.length<=1?50:100*i/(a.length-1)));
   return m;
 }
-function vfWeighted(weights,vals){let n=0,d=0,covered=0,total=0;for(const[k,w0]of Object.entries(weights||{})){const w=Number(w0);if(!(w>0))continue;total+=w;const v=Number(vals[k]);if(!Number.isFinite(v))continue;n+=v*w;d+=w;covered+=w;}return{score:d?n/d:null,coverage:total?covered/total:0};}
+function vfWeighted(weights,vals){let n=0,d=0,covered=0,total=0;for(const[k,w0]of Object.entries(weights||{})){const w=vfNum(w0,null);if(!(w>0))continue;total+=w;const v=vfNum(vals[k],null);if(v===null)continue;n+=v*w;d+=w;covered+=w;}return{score:d?n/d:null,coverage:total?covered/total:0};}
 function vfHealth(p){try{const f=window.FIE_DRAFT_V71?.healthScore;if(typeof f==='function')return f(p);}catch{}const inj=String(p?.injuryStatus||'').toLowerCase();return /out|ir|pup/.test(inj)?25:/questionable|doubtful/.test(inj)?60:90;}
 function vfTalent(p){return vfMean([p?.tfgModelScore,p?.pffScore])??50;}
 function vfMarketGrade(p){return Number.isFinite(Number(p?.marketEdge))?vfClamp(50+Number(p.marketEdge)*1.5,5,95):50;}
@@ -107,13 +107,13 @@ function vfOpportunityResidualGrade(p){const cf=p?.currentResearchFeatures||{},t
 
 function vfPolicyContext(pool){
   const currentMap=vfM5CurrentMap();
-  const weekly=vfPercentileMap(pool,p=>vfNum(p.weeklyProjection,0));
-  const floor=vfPercentileMap(pool,p=>vfNum(p.weeklyFloor,0));
-  const ceiling=vfPercentileMap(pool,p=>vfNum(p.weeklyCeiling,0));
+  const weekly=vfPercentileMap(pool,p=>vfNum(window.FIEProjectionResolver?.week?.(p)?.value,null));
+  const floor=vfPercentileMap(pool,p=>vfNum(window.FIEProjectionResolver?.range?.(p)?.low,null));
+  const ceiling=vfPercentileMap(pool,p=>vfNum(window.FIEProjectionResolver?.range?.(p)?.high,null));
   return{
     currentMap,
-    season:vfPercentileMap(pool,p=>vfNum(p.engineSeasonProjection,0)),
-    vor:vfPercentileMap(pool,p=>vfNum(p.projectedVOR,0)),
+    season:vfPercentileMap(pool,p=>vfNum(p.engineSeasonProjection,null)??vfNum(p.sleeperSeasonProjection,null)),
+    vor:vfPercentileMap(pool,p=>vfNum(p.projectedVOR,null)),
     weekly,floor,ceiling
   };
 }
@@ -122,15 +122,16 @@ function vfPolicyScore(p,ctx,profile){
   const w=profile?.draft_weights;
   if(!w){const fallback=vfNum(p.seasonScore,vfNum(window.seasonDraftScoreFor?.(p),50));return{score:fallback,coverage:0.55,row:r};}
   const wv=ctx.weekly.get(id)??50,fv=ctx.floor.get(id)??50,cv=ctx.ceiling.get(id)??50;
-  const young=Number.isFinite(Number(r?.young_role_probability))?vfClamp(Number(r.young_role_probability)*100):vfNum(p.futureOpportunity,50);
-  const spike=Number.isFinite(Number(r?.spike_probability))?vfClamp(Number(r.spike_probability)*100):cv;
-  const bust=Number.isFinite(Number(r?.bust_probability))?vfClamp(Number(r.bust_probability),0,1):null;
+  const youngRaw=vfNum(r?.young_role_probability,null),spikeRaw=vfNum(r?.spike_probability,null),bustRaw=vfNum(r?.bust_probability,null);
+  const young=youngRaw!==null?vfClamp(youngRaw*100):vfNum(p.futureOpportunity,50);
+  const spike=spikeRaw!==null?vfClamp(spikeRaw*100):cv;
+  const bust=bustRaw!==null?vfClamp(bustRaw,0,1):null;
   const vals={
     season_projection:ctx.season.get(id)??50,
     vor:ctx.vor.get(id)??50,
     current_role:vfOpportunityResidualGrade(p),
     weekly_shape:vfMean([wv,fv,cv])??50,
-    market_edge:vfMarketGrade(p),
+    market_edge:50, // market is excluded from canonical/player-quality inputs; compared explicitly below
     future_role:young,
     age_curve:vfNum(p.ageCurveScore,50),
     talent:vfTalent(p),
@@ -164,21 +165,20 @@ function vfBuildRows(){
   const started=vfNow();
   const pool=vfEligiblePool(),profile=vfProfile(),ctx=vfPolicyContext(pool),hist=vfHistoricalEvidenceMap();
   const base=pool.map(p=>{const policy=vfPolicyScore(p,ctx,profile),snap=vfSnapPath(p);return{p,policy,snap,adp:vfUsableAdp(p)};});
-  // Same-position market comparison is re-based inside the exact legal pool. This automatically
-  // handles Genesis hard eligibility without counting excluded veterans.
-  const byPos=new Map();for(const x of base){if(!byPos.has(x.p.position))byPos.set(x.p.position,[]);byPos.get(x.p.position).push(x);}
+  // Canonical FIE ranks come from the one roster-neutral Draft Base Value service.
+  // Value Finder may build a discovery score, but it must never redefine "FIE Pos Rank".
+  const canonicalRows=window.FIEDraftBaseValueService?.rows?.()||[],canonical=new Map(canonicalRows.map(x=>[String(x.id),x]));
+  const byPos=new Map();for(const x of base){const c=canonical.get(String(x.p.sleeperId||x.p.name));x.canonical=c||null;x.fiePosRank=c?.positionRank??null;x.fieLeagueRank=c?.overallRank??null;x.canonicalValue=c?.baseValue??x.policy.score;x.canonicalTier=c?.tier??null;if(!byPos.has(x.p.position))byPos.set(x.p.position,[]);byPos.get(x.p.position).push(x);}
   for(const rows of byPos.values()){
     const covered=rows.filter(x=>x.adp!==null);
     [...covered].sort((a,b)=>a.adp-b.adp).forEach((x,i)=>x.marketPosRank=i+1);
-    [...covered].sort((a,b)=>b.policy.score-a.policy.score).forEach((x,i)=>x.fiePosRank=i+1);
     for(const x of rows)x.posEdge=Number.isFinite(x.marketPosRank)&&Number.isFinite(x.fiePosRank)?x.marketPosRank-x.fiePosRank:null;
   }
-  // Overall market/model ranks use the same league-eligible ADP-covered sample.
-  // This is the Top-100 optimizer's apples-to-apples value comparison.
+  // Overall price comparison uses an ADP-covered comparable rank, while display retains
+  // the canonical full-pool FIE League Rank.
   const overallCovered=base.filter(x=>x.adp!==null);
   [...overallCovered].sort((a,b)=>a.adp-b.adp).forEach((x,i)=>x.marketOverallRank=i+1);
-  [...overallCovered].sort((a,b)=>b.policy.score-a.policy.score).forEach((x,i)=>x.fieOverallRank=i+1);
-  [...base].sort((a,b)=>b.policy.score-a.policy.score).forEach((x,i)=>x.fieLeagueRank=i+1);
+  [...overallCovered].sort((a,b)=>(b.canonicalValue??-Infinity)-(a.canonicalValue??-Infinity)).forEach((x,i)=>x.fieOverallRank=i+1);
   for(const x of base)x.overallEdge=Number.isFinite(x.marketOverallRank)&&Number.isFinite(x.fieOverallRank)?x.marketOverallRank-x.fieOverallRank:null;
   for(const x of base){
     const h=hist.get(vfM5Position(x.p))||null,improve=vfNum(h?.mean_mae_improvement_vs_baseline,0),validated=/validated/i.test(String(h?.status||''));
@@ -186,11 +186,12 @@ function vfBuildRows(){
     const histScore=vfClamp(50+improve*100*(validated?1.25:.55));
     const fit=vfNum(x.p.leagueFit,50);
     const deep=x.adp!==null&&x.adp>=200;
+    const canonicalScore=vfNum(x.canonicalValue,x.policy.score);
     const strength=deep?
-      x.policy.score*.20+edgeScore*.20+x.snap.score*.40+histScore*.15+fit*.05:
-      x.policy.score*.28+edgeScore*.28+x.snap.score*.19+histScore*.15+fit*.10;
+      canonicalScore*.25+edgeScore*.20+x.snap.score*.35+histScore*.15+fit*.05:
+      canonicalScore*.36+edgeScore*.26+x.snap.score*.14+histScore*.14+fit*.10;
     x.hist=h;x.histImprovement=improve;x.histValidated=validated;x.strength=Math.round(strength*10)/10;
-    const meaningful=x.posEdge!==null&&x.posEdge>=4 || x.policy.score>=72&&x.snap.score>=75 || x.snap.score>=88&&x.policy.score>=62;
+    const meaningful=x.posEdge!==null&&x.posEdge>=4 || canonicalScore>=72&&x.snap.score>=75 || x.snap.score>=88&&canonicalScore>=62;
     x.meaningful=meaningful;
     if(x.snap.score>=85&&validated&&(meaningful||x.strength>=72))x.confidence='HIGH';
     else if(x.snap.score>=62&&(meaningful||x.strength>=62))x.confidence='MEDIUM';
@@ -333,7 +334,7 @@ function renderTop100Optimizer(){
   const key=f.top100SortKey||'optimizer',dir=Number(f.top100SortDir)||-1,get=x=>key==='adp'?x.adp:key==='edge'?x.overallEdge:key==='tier'?x.tierRisk:key==='survive'?x.survive:key==='capture'?x.valueCapture:key==='path'?x.pathDelta:key==='player'?x.p.name:x.optimizerScore;
   rows=[...rows].sort((a,b)=>{const av=get(a),bv=get(b);if(typeof av==='string')return av.localeCompare(String(bv))*dir;if(av===null||av===undefined)return 1;if(bv===null||bv===undefined)return-1;return(Number(av)-Number(bv))*dir;});
   const shown=rows.slice(0,Number(f.limit)||10),take=rows.filter(x=>x.optimizerAction==='TAKE NOW').length,wait=rows.filter(x=>x.optimizerAction==='WAIT').length,cliffs=rows.filter(x=>x.tierRisk>=65).length,avgCap=Math.round(vfMean(rows.map(x=>x.valueCapture).filter(Number.isFinite))||0);
-  status.innerHTML=`<b>${vfEsc(state.league.name||state.league.league_id)}</b> · Top 100 Pick Optimizer · planning pick #${ctx.planPick} · ${rows.length} available candidates. This mode optimizes <b>price and timing</b>, not merely who FIE likes most.`;
+  status.innerHTML=`<b>${vfEsc(state.league.name||state.league.league_id)}</b> · Top 100 Pick Optimizer · planning pick #${ctx.planPick} · ${rows.length} available candidates. This mode optimizes <b>price and timing</b> around the canonical FIE player rank. ${vfEsc(window.FIEDraftStateService?.label?.()||'Draft state unavailable')}.`;
   const rowHtml=shown.map(vfTop100RowHTML).join('')||'<tr><td colspan="9"><div class="empty">No Top-100 candidates meet the current filters.</div></td></tr>';
   box.innerHTML=`${vfControlsHTML()}${vfTop100ControlsHTML(ctx)}<div class="vf-opt-grid"><div class="vf-opt-card"><span class="filter-label">TAKE NOW</span><div class="big">${take}</div><div class="tiny">waiting has meaningful EV cost</div></div><div class="vf-opt-card"><span class="filter-label">WAIT</span><div class="big">${wait}</div><div class="tiny">good player, price can improve</div></div><div class="vf-opt-card"><span class="filter-label">Tier cliffs</span><div class="big">${cliffs}</div><div class="tiny">Tier Drop Risk 65+</div></div><div class="vf-opt-card"><span class="filter-label">Avg value captured</span><div class="big">${avgCap}%</div><div class="tiny">of available FIE→market discount</div></div><div class="vf-opt-card"><span class="filter-label">Path horizon</span><div class="big">3 picks</div><div class="tiny">take-now vs wait proxy</div></div></div><div class="scroll" style="max-height:62vh"><table class="vf-table"><thead><tr><th>#</th><th data-vf100-sort="player">Player</th><th>FIE Pos</th><th>Market Pos</th><th data-vf100-sort="edge">Pos Edge</th><th data-vf100-sort="adp">ADP</th><th data-vf100-sort="capture">Value Capture</th><th>Wait Cost</th><th data-vf100-sort="optimizer">Action / Target window</th></tr></thead><tbody>${rowHtml}</tbody></table></div><div class="notice" style="margin-top:10px"><b>Top-100 logic:</b> this is a timing surface, not a second Draft Board. Positional FIE-vs-market disagreement is shown directly; Value Capture and Wait Cost determine whether a good player is also worth taking now. Next-pick availability, wait cost and the three-pick planning path are explicitly <b>Estimate</b> signals until calibrated.</div>`;
   bindValueFinderControls();bindTop100Controls();box.querySelectorAll('tr[data-vf-id]').forEach(tr=>tr.onclick=e=>{if(e.target.closest('select,input,button'))return;window.openDrawer?.(tr.dataset.vfId);});box.querySelectorAll('th[data-vf100-sort]').forEach(th=>{th.style.cursor='pointer';th.onclick=()=>{const k=th.dataset.vf100Sort;f.top100SortDir=f.top100SortKey===k?-f.top100SortDir:(k==='player'?1:-1);f.top100SortKey=k;renderTop100Optimizer();};});

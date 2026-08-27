@@ -33,7 +33,7 @@ from fie_research import (
 )
 from fie_m2 import add_change_signals, add_competition_features, add_position_shares, add_team_context
 from fie_m3 import add_lagged_advanced, add_public_enrichment
-from league_profile import sha256_json
+from league_profile import sha256_json, structural_contract
 from scoring_relevance import relevant_scoring_audit, position_support
 from dst_contract import dst_enabled, dst_profile_fields
 from fie_dst import predict_dst_from_bundle, score_dst_stats
@@ -659,15 +659,26 @@ def build_snapshot(args) -> dict:
     league_format = str(profile.get("format") or "").upper() or None
     live_profile_fp = None
     profile_current_match = True
+    profile_diff = {}
     if profile and league_id:
         pf = scoring_prov.get("profile_fields") or {}
-        live_contract = {"league_id": league_id, "format": profile.get("format"), "scoring_settings": scoring,
-          "roster_positions": pf.get("roster_positions") or [], "settings": pf.get("settings") or {},
-          "total_rosters": pf.get("total_rosters"), "season": pf.get("season"), "season_type": pf.get("season_type")}
-        if profile.get("research_constraints"):
-            live_contract["research_constraints"] = profile.get("research_constraints")
+        live_contract = structural_contract(
+            str(league_id), str(profile.get("format") or "AUTO"), scoring,
+            pf.get("roster_positions") or [], pf.get("settings") or {},
+            pf.get("total_rosters"), pf.get("season"), pf.get("season_type"),
+            profile.get("research_constraints") or None,
+        )
         live_profile_fp = sha256_json(live_contract)
         profile_current_match = bool(profile_fp and live_profile_fp == profile_fp)
+        stored_contract = structural_contract(
+            str(league_id), str(profile.get("format") or "AUTO"), profile.get("scoring_settings") or {},
+            profile.get("roster_positions") or [], profile.get("settings") or {},
+            profile.get("total_rosters"), profile.get("season"), profile.get("season_type"),
+            profile.get("research_constraints") or None,
+        )
+        profile_diff = {k: {"stored": stored_contract.get(k), "live": live_contract.get(k)}
+                        for k in sorted(set(stored_contract) | set(live_contract))
+                        if stored_contract.get(k) != live_contract.get(k)}
     artifact_identity_ok = True
     if profile:
         for label, bundle in (("M4",m4),("M5",m5),("M6",m6)):
@@ -936,7 +947,7 @@ def build_snapshot(args) -> dict:
         "analysis_week_policy": "explicit --week when supplied; otherwise preseason maps to upcoming regular Week 1",
         "league_id": league_id, "league_format": profile.get("format") if profile else None,
         "profile_fingerprint": profile_fp, "profile_scoring_signature": profile_sig,
-        "live_profile_fingerprint": live_profile_fp, "profile_current_match": profile_current_match,
+        "live_profile_fingerprint": live_profile_fp, "profile_current_match": profile_current_match, "profile_diff": profile_diff,
         "scoring_signature": sig, "scoring_settings": scoring, "scoring_provenance": scoring_prov,
         "scoring_support_relevant": scoring_support_relevant,
         "research_compatible": research_compatible, "snapshot_max_age_hours": 18,
