@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Build the canonical release component/hash manifest.
 Run this only after code/config generation and immediately before dist build.
+
+The manifest is intentionally reproducible. Its timestamp comes from the
+canonical release descriptor rather than wall-clock build time so rebuilding an
+unchanged release produces byte-identical deploy metadata.
 """
 from __future__ import annotations
 import argparse,hashlib,json
-from datetime import datetime,timezone
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 COMPONENTS={
@@ -54,6 +57,8 @@ COMPONENTS={
  'decision_validation_contract':'research/decision_validation_contract.json',
  'dist_builder':'tools/build_dist.py',
  'release_builder':'tools/release_build.py',
+ 'manifest_builder':'research/build_app_manifest.py',
+ 'build_determinism_integrity':'research/integrity_v932_build_determinism_test.py',
  'release_gate':'research/release_gate.py',
 }
 def sha(path):
@@ -61,6 +66,11 @@ def sha(path):
  with path.open('rb') as f:
   for chunk in iter(lambda:f.read(1<<20),b''):h.update(chunk)
  return h.hexdigest()
+def release_timestamp(release):
+ ts=str(release.get('built_at') or '').strip()
+ if not ts:
+  raise ValueError('config/release.json built_at is required for deterministic build manifests')
+ return ts
 def build():
  release=json.loads((ROOT/'config/release.json').read_text())
  files={}
@@ -68,7 +78,7 @@ def build():
   p=ROOT/rel
   if not p.exists():raise FileNotFoundError(rel)
   files[name]={'path':rel,'sha256':sha(p),'bytes':p.stat().st_size}
- return {'schema_version':2,'app_version':release['release'],'runtime_version':release['runtime'],'draft_model_version':release['decision_model'],'value_finder_version':release['value_finder'],'research_generation':release['research_schema'],'model_promotion':json.loads((ROOT/'config/model-config.json').read_text()).get('production',{}),'runtime_research_scope':'league_namespaced_only','generated_at':datetime.now(timezone.utc).isoformat(),'files':files}
+ return {'schema_version':2,'app_version':release['release'],'runtime_version':release['runtime'],'draft_model_version':release['decision_model'],'value_finder_version':release['value_finder'],'research_generation':release['research_schema'],'model_promotion':json.loads((ROOT/'config/model-config.json').read_text()).get('production',{}),'runtime_research_scope':'league_namespaced_only','generated_at':release_timestamp(release),'files':files}
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--output',default='config/build-manifest.json');a=ap.parse_args();out=ROOT/a.output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(build(),indent=2)+'\n');print(out.relative_to(ROOT))
 if __name__=='__main__':main()

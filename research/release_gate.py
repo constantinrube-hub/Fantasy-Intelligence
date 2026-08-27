@@ -16,6 +16,7 @@ def main():
  checks=[
   run([sys.executable,'research/production_readiness.py']),
   run([sys.executable,'research/integrity_build_manifest_test.py']),
+  run([sys.executable,'research/integrity_v932_build_determinism_test.py']),
   run(['node','research/integrity_runtime_foundation_test.js']),
   run(['node','research/integrity_league_switch_runtime_test.js']),
   run(['node','research/integrity_v9_model_runtime_test.js']),
