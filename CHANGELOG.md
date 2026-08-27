@@ -1,3 +1,12 @@
+# V9.3.2 Season Namespace Integrity Hotfix, 2026-08-27
+
+- Fixed the root cause behind the three successive live Season bootstrap failures introduced during V9.3.2 browser QA. The new early resolver had reused `window.FIESeasonContext`, but `runtime-foundation.js` already owned that global for its `active/prior/week/snapshot` facade and overwrote the resolver during startup.
+- Established non-overlapping season APIs: `FIESeasonBootstrapResolver` for pre-core startup, `FIECore.SeasonResolver` for canonical strict season resolution after core load, and `FIESeasonContext` for the runtime active/prior/next/week/snapshot facade.
+- `activeSeason()` no longer calls `FIESeasonContext.resolve`; it prefers the canonical `FIECore.SeasonResolver` and otherwise uses the isolated bootstrap resolver.
+- Added a compatibility `resolve()` delegate to the runtime `FIESeasonContext` so a stale cached V9.3.2 shell cannot crash while Cloudflare assets roll over.
+- Cache-busted the season/numeric/runtime scripts and added Cloudflare revalidation headers for `index.html` and `/app/*` to reduce mixed-version HTML/JS during deploys.
+- Strengthened the actual season runtime regression to reproduce the namespace overwrite that caused `window.FIESeasonContext.resolve is not a function`.
+
 # V9.3.2 Season Bootstrap Resilience + Dist Determinism Hotfix, 2026-08-27
 
 - Fixed the browser failure `League universe build failed: FIE season context is unavailable`. The canonical external `app/core/season-context.js` remains the preferred season service, but `index.html` now installs an equivalent strict inline bootstrap only when the external helper is unavailable. League loading therefore no longer hard-fails because one tiny static asset was missed, stale, or temporarily unavailable at the edge.
