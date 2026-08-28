@@ -85,11 +85,24 @@ jobs:
           python research/fie_m9.py --fixture --derived-dir /tmp/fie789/derived --output /tmp/fie789/m9.json
           python research/validate_m9_bundle.py /tmp/fie789/m9.json
 
-      - name: Rebuild canonical M1-M6 backbone and build M7-M9
+      - name: Restore M1-M8 performance checkpoint
+        id: restore-m8
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+            data/research/leagues/registry.json
+            data/research/dst
+            data/research/kicker
+          key: >-
+            fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-${{ inputs.full_raw_cache }}-${{ hashFiles('research/build_league_research.py', 'research/league_profile.py', 'research/fie_research.py', 'research/fie_m2.py', 'research/fie_m3.py', 'research/fie_m4.py', 'research/fie_m5.py', 'research/fie_m6.py', 'research/fie_dst.py', 'research/fie_kicker.py', 'research/fie_governance.py', 'research/stamp_league_artifacts.py', 'research/fie_m7.py', 'research/fie_m8.py', 'research/performance_source_contract.py', 'research/statistical_guardrails.py', 'config/league-portfolio.json') }}
+
+      - name: Rebuild canonical M1-M6 backbone and build through M8
+        if: steps.restore-m8.outputs.cache-hit != 'true'
         env:
           LEAGUE_FORMAT: ${{ inputs.league_format }}
           FULL_RAW: ${{ inputs.full_raw_cache }}
-          BUILD_REPORT: ${{ inputs.build_report }}
         shell: bash
         run: |
           ARGS=(
@@ -97,9 +110,36 @@ jobs:
             --format "$LEAGUE_FORMAT"
             --season "$FIE_SEASON"
             --rebuild-base
-            --capture-market
+            --stop-after-m8
           )
           if [ "$FULL_RAW" = "true" ]; then ARGS+=(--full-raw-cache); fi
+          python research/build_performance_research.py "${ARGS[@]}"
+
+      - name: Save M1-M8 performance checkpoint
+        if: steps.restore-m8.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+            data/research/leagues/registry.json
+            data/research/dst
+            data/research/kicker
+          key: ${{ steps.restore-m8.outputs.cache-primary-key }}
+
+      - name: Build M9, freeze market, and generate report
+        env:
+          LEAGUE_FORMAT: ${{ inputs.league_format }}
+          BUILD_REPORT: ${{ inputs.build_report }}
+        shell: bash
+        run: |
+          ARGS=(
+            --league-id "$FIE_LEAGUE_ID"
+            --format "$LEAGUE_FORMAT"
+            --season "$FIE_SEASON"
+            --resume-from-m9
+            --capture-market
+          )
           if [ "$BUILD_REPORT" = "true" ]; then ARGS+=(--build-report); fi
           python research/build_performance_research.py "${ARGS[@]}"
 
