@@ -30,10 +30,12 @@ from fie_research import BONUS_RULES, SCORING_MAP, score_rows
 from fie_m9 import RETURN_SCORING_ALIASES, score_return_stats, simulate_player_season
 
 
-# Diagnostic reports are allowed to compare FIE and Sleeper on the common,
-# materially important scoring components even when a sparse auxiliary scoring
-# event cannot be estimated reliably.  This never grants production activation:
-# production still requires exact_linear_replay below.
+# Diagnostics and production intentionally use different evidence contracts.
+# Production requires exact replay of every relevant nonzero league-scoring key.
+# The diagnostic report only needs a stable FIE allocation signal built from the
+# materially important scoring components that FIE itself can model.  That signal
+# is then anchored to Sleeper's TOTAL position-level market projection; it never
+# depends on Sleeper exposing a complete raw-stat component feed.
 DIAGNOSTIC_CORE_KEYS = {
     'QB': {'pass_yd','pass_td','pass_int','rush_yd','rush_td'},
     'RB': {'rush_yd','rush_td','rec','rec_yd','rec_td'},
@@ -93,30 +95,89 @@ def target_point_weight(target: str, scoring: dict, pos: str) -> float:
     return float(w)
 
 
-def market_points(stats: dict, scoring: dict, position: str) -> Optional[float]:
-    pts = 0.0; used = 0
+def _published_market_total(stats: dict, scoring: dict) -> tuple[Optional[float], Optional[str]]:
+    """Choose Sleeper's published total matching the league reception format.
+
+    This is a market anchor, not an exact league-scoring replay.  It is used only
+    when Sleeper's raw component feed omits a materially important core stat.
+    """
+    try:
+        rec = float(scoring.get('rec') or 0.0)
+    except Exception:
+        rec = 0.0
+    preferred = 'pts_ppr' if rec >= 0.75 else ('pts_half_ppr' if rec >= 0.25 else 'pts_std')
+    for key in (preferred, 'pts_ppr', 'pts_half_ppr', 'pts_std', 'pts'):
+        try:
+            x = float(stats.get(key))
+            if math.isfinite(x):
+                return x, key
+        except Exception:
+            pass
+    return None, None
+
+
+def market_points_info(stats: dict, scoring: dict, position: str) -> dict:
+    """Build the Sleeper market baseline with an explicit completeness rule.
+
+    Raw league-scoring replay is preferred when every active position-core key is
+    present in Sleeper.  If a core field is omitted (the observed QB issue), use
+    Sleeper's published PPR/half/standard total as the market anchor rather than
+    silently treating a partial raw-stat sum as complete.  Sparse auxiliary fields
+    may still be absent from raw replay and are disclosed through coverage metadata.
+    """
+    pts = 0.0; used = 0; available = set()
+    relevant = {
+        'QB': {'pass_yd','pass_td','pass_int','pass_cmp','pass_att','pass_2pt','pass_fd','rush_yd','rush_td','rush_att','rush_2pt','rush_fd','fum_lost'},
+        'RB': {'rush_yd','rush_td','rush_att','rush_2pt','rush_fd','rec','rec_yd','rec_td','rec_tgt','rec_2pt','rec_fd','fum_lost','bonus_rec_rb','rec_rb'},
+        'WR': {'rush_yd','rush_td','rush_att','rush_2pt','rush_fd','rec','rec_yd','rec_td','rec_tgt','rec_2pt','rec_fd','fum_lost','bonus_rec_wr','rec_wr'},
+        'TE': {'rush_yd','rush_td','rush_att','rush_2pt','rush_fd','rec','rec_yd','rec_td','rec_tgt','rec_2pt','rec_fd','fum_lost','bonus_rec_te','rec_te'},
+    }.get(position, set())
+    active = set()
     for key, w in scoring.items():
         try: weight = float(w)
         except Exception: continue
-        if not weight: continue
+        if not weight or key not in relevant: continue
+        active.add(str(key))
         if key in {'bonus_rec_te','rec_te','bonus_rec_rb','rec_rb','bonus_rec_wr','rec_wr'}:
             target = 'TE' if '_te' in key else ('RB' if '_rb' in key else 'WR')
-            if position == target and stats.get('rec') is not None:
-                pts += float(stats.get('rec') or 0) * weight; used += 1
-            continue
-        v = stats.get(key)
+            if position != target:
+                available.add(str(key))
+                continue
+            v = stats.get('rec')
+        else:
+            v = stats.get(key)
         try:
             if v is not None and math.isfinite(float(v)):
-                pts += float(v) * weight; used += 1
-        except Exception: pass
+                pts += float(v) * weight
+                used += 1
+                available.add(str(key))
+        except Exception:
+            pass
+
+    active_core = {k for k in DIAGNOSTIC_CORE_KEYS.get(position,set()) if k in active}
+    core_complete = active_core.issubset(available)
+    raw_coverage = len(available & active) / len(active) if active else 1.0
+    published, published_key = _published_market_total(stats, scoring)
+
+    if used and core_complete:
+        return {'points':float(pts),'source':'SLEEPER_RAW_LEAGUE_REPLAY',
+                'raw_coverage':raw_coverage,'missing_keys':sorted(active-available),
+                'published_key':published_key}
+    if published is not None:
+        return {'points':float(published),'source':'SLEEPER_PUBLISHED_TOTAL_FALLBACK',
+                'raw_coverage':raw_coverage,'missing_keys':sorted(active-available),
+                'published_key':published_key}
     if used:
-        return float(pts)
-    for key in ('pts_ppr','pts_half_ppr','pts_std','pts'):
-        try:
-            x = float(stats.get(key))
-            if math.isfinite(x): return x
-        except Exception: pass
-    return None
+        return {'points':float(pts),'source':'SLEEPER_PARTIAL_RAW_LAST_RESORT',
+                'raw_coverage':raw_coverage,'missing_keys':sorted(active-available),
+                'published_key':None}
+    return {'points':None,'source':'SLEEPER_MARKET_UNAVAILABLE',
+            'raw_coverage':raw_coverage,'missing_keys':sorted(active-available),
+            'published_key':published_key}
+
+
+def market_points(stats: dict, scoring: dict, position: str) -> Optional[float]:
+    return market_points_info(stats, scoring, position).get('points')
 
 
 def active_return_scoring(scoring: dict) -> List[str]:
@@ -200,20 +261,6 @@ def _nonzero_scoring_subset(scoring: dict, keys) -> dict:
     return out
 
 
-def _market_key_available(stats: dict, key: str, pos: str) -> bool:
-    if key in {'bonus_rec_te','rec_te','bonus_rec_rb','rec_rb','bonus_rec_wr','rec_wr'}:
-        target = 'TE' if '_te' in key else ('RB' if '_rb' in key else 'WR')
-        if pos != target:
-            return True
-        value = stats.get('rec')
-    else:
-        value = stats.get(key)
-    try:
-        return value is not None and math.isfinite(float(value))
-    except Exception:
-        return False
-
-
 def _score_model_keys(raw: dict, rr: dict, scoring: dict, pos: str, keys) -> Optional[float]:
     subset = _nonzero_scoring_subset(scoring, keys)
     if not subset or not raw:
@@ -226,34 +273,49 @@ def _score_model_keys(raw: dict, rr: dict, scoring: dict, pos: str, keys) -> Opt
     return pts
 
 
-def diagnostic_component_bridge(diag_eval: dict, market_stats: dict, scoring: dict, pos: str, games: int) -> dict:
-    """Compare FIE vs market only on mutually observable scoring components.
+def diagnostic_market_anchor(diag_eval: dict, scoring: dict, pos: str, games: int) -> dict:
+    """Build a report-only FIE allocation signal without Sleeper raw-stat fields.
 
-    Missing sparse auxiliary components are deliberately assigned zero diagnostic
-    deviation, i.e. they remain at the Sleeper baseline.  This is a report-only
-    market bridge, not an independent projection and never satisfies production's
-    exact-scoring requirement.
+    The signal scores every active league-scoring component that the FIE shadow
+    model can replay.  All active *core* position components must be present and
+    at least DIAGNOSTIC_MIN_KEY_COVERAGE of relevant active scoring keys must be
+    modeled.  Missing auxiliary components are excluded from the diagnostic
+    allocation signal rather than imputed from Sleeper.
+
+    The caller later recenters this FIE signal to the mean Sleeper TOTAL projection
+    for the eligible position cohort.  Thus diagnostic values answer where FIE
+    reallocates the same position-level point pool, while production remains
+    independently gated by exact_linear_replay.
     """
     cov = diag_eval.get('coverage',{}) or {}
     model_supported = set(cov.get('supported_keys') or [])
     active = set(cov.get('active_keys') or [])
-    market_supported = {k for k in model_supported if _market_key_available(market_stats, k, pos)}
-    common = sorted(model_supported & market_supported)
+    common = sorted(model_supported & active)
     active_core = {k for k in DIAGNOSTIC_CORE_KEYS.get(pos,set()) if k in active}
-    core_ok = active_core.issubset(set(common))
+    core_ok = active_core.issubset(model_supported)
     key_cov = len(common)/len(active) if active else 1.0
-    model_ppg = _score_model_keys(diag_eval.get('raw') or {}, diag_eval.get('return_raw') or {}, scoring, pos, common)
-    market_subset = _nonzero_scoring_subset(scoring, common)
-    market_season = market_points(market_stats, market_subset, pos) if market_subset else None
-    if model_ppg is None or market_season is None or not core_ok or key_cov < DIAGNOSTIC_MIN_KEY_COVERAGE:
-        return {'eligible':False,'common_keys':common,'unsupported_keys':sorted(active-set(common)),
-                'coverage_rate':key_cov,'core_supported':core_ok,'model_supported_mean':None,
-                'market_supported_mean':market_season,'raw_delta':None}
-    model_season = float(model_ppg) * games
-    return {'eligible':True,'common_keys':common,'unsupported_keys':sorted(active-set(common)),
-            'coverage_rate':key_cov,'core_supported':True,'model_supported_mean':model_season,
-            'market_supported_mean':float(market_season),'raw_delta':float(model_season-market_season)}
-
+    model_ppg = _score_model_keys(
+        diag_eval.get('raw') or {},
+        diag_eval.get('return_raw') or {},
+        scoring, pos, common
+    )
+    if model_ppg is None or not core_ok or key_cov < DIAGNOSTIC_MIN_KEY_COVERAGE:
+        return {
+            'eligible':False,
+            'model_keys':common,
+            'unsupported_keys':sorted(active-model_supported),
+            'coverage_rate':key_cov,
+            'core_supported':core_ok,
+            'model_supported_mean':None,
+        }
+    return {
+        'eligible':True,
+        'model_keys':common,
+        'unsupported_keys':sorted(active-model_supported),
+        'coverage_rate':key_cov,
+        'core_supported':True,
+        'model_supported_mean':float(model_ppg) * games,
+    }
 
 def evaluate_position_spec(pspec: Optional[dict], profile: Optional[dict], scoring: dict, pos: str, return_raw: Optional[dict] = None) -> dict:
     if not pspec or not profile:
@@ -326,7 +388,8 @@ def board(args) -> pd.DataFrame:
         pos = str(rec.get('position_model') or '').upper()
         if pos not in {'QB','RB','WR','TE'}: continue
         cid = str(rec.get('canonical_player_id') or ''); stats = rec.get('stats') or {}; adps = rec.get('adp') or {}
-        mkt = market_points(stats, scoring, pos)
+        market_info = market_points_info(stats, scoring, pos)
+        mkt = market_info.get('points')
         p = by_pid.get(cid) if cid else None; join_method = 'canonical_id' if p is not None else 'unmatched'; identity_row = None
         if p is None:
             sid = norm_sleeper_id(rec.get('sleeper_id')); identity_row = by_sid.get(sid)
@@ -350,23 +413,23 @@ def board(args) -> pd.DataFrame:
 
         diagnostic_raw_ppg = diag_eval.get('ppg') if not team_changed else None
         diagnostic_raw_mean = float(diagnostic_raw_ppg) * args.games if diagnostic_raw_ppg is not None else None
-        diag_bridge = diagnostic_component_bridge(diag_eval, stats, scoring, pos, args.games) if (p is not None and not team_changed and mkt is not None) else {'eligible':False,'common_keys':[],'unsupported_keys':[],'coverage_rate':0.0,'raw_delta':None}
-        diagnostic_eligible = bool(diag_bridge.get('eligible')) and mkt is not None
+        diag_anchor = diagnostic_market_anchor(diag_eval, scoring, pos, args.games) if (p is not None and not team_changed and mkt is not None) else {'eligible':False,'model_keys':[],'unsupported_keys':[],'coverage_rate':0.0,'model_supported_mean':None}
+        diagnostic_eligible = bool(diag_anchor.get('eligible')) and mkt is not None
         pos_gate = str((aggregate.get(pos) or {}).get('status') or 'diagnostic_only')
         if diagnostic_eligible and diag_eval.get('coverage',{}).get('exact_linear_replay'):
             diagnostic_status = 'VALIDATED_POSITION_SHADOW' if pos_gate == 'validated_candidate' else 'DIAGNOSTIC_ONLY_POSITION'
         elif diagnostic_eligible:
-            diagnostic_status = 'DIAGNOSTIC_PARTIAL_SCORING_BRIDGE'
+            diagnostic_status = 'DIAGNOSTIC_MARKET_ANCHORED_PARTIAL'
         elif team_changed and p is not None:
             diagnostic_status = 'UNAVAILABLE_TEAM_CHANGE'
         elif p is None:
             diagnostic_status = 'UNAVAILABLE_PROFILE'
         elif not diagnostic_specs.get(pos):
             diagnostic_status = 'UNAVAILABLE_MODEL_SPEC'
-        elif not diag_bridge.get('core_supported',False):
+        elif not diag_anchor.get('core_supported',False):
             diagnostic_status = 'UNAVAILABLE_CORE_SCORING'
         else:
-            diagnostic_status = 'UNAVAILABLE_MARKET_COMPARISON'
+            diagnostic_status = 'UNAVAILABLE_MODEL_COVERAGE'
 
         source = 'MARKET_FALLBACK'; ppg = None; production_raw = {}; production_contrib = {}
         if production_specs.get(pos) and p and not team_changed and prod_eval.get('ppg') is not None:
@@ -403,6 +466,10 @@ def board(args) -> pd.DataFrame:
             'sleeper_id':rec.get('sleeper_id'), 'canonical_player_id':matched_cid or None, 'full_name':display_name,
             'identity_join_method':join_method, 'position_model':pos, 'team':rec.get('team'), 'profile_team':(p or {}).get('profile_team'),
             'team_changed':team_changed, 'market_adp':adp, 'market_adp_key':args.adp_key, 'sleeper_market_projection':mkt,
+            'sleeper_market_projection_source':market_info.get('source'),
+            'sleeper_market_raw_coverage':market_info.get('raw_coverage'),
+            'sleeper_market_missing_keys':'|'.join(market_info.get('missing_keys') or []),
+            'sleeper_market_published_key':market_info.get('published_key'),
             'fie_season_mean':mean, 'fie_ppg':ppg, **q, 'confidence':min(95,conf), 'projection_source':source,
             'scoring_coverage':prod_cov.get('coverage_rate'), 'scoring_unsupported':'|'.join(prod_cov.get('unsupported_keys',[])),
             'raw_projected_stats_per_game':json.dumps(production_raw,separators=(',',':')) if production_raw else '{}',
@@ -410,12 +477,19 @@ def board(args) -> pd.DataFrame:
             'driver_contributions_ppg':json.dumps(dict(sorted(production_contrib.items(),key=lambda kv:abs(kv[1]),reverse=True)[:8]),separators=(',',':')) if production_contrib else '{}',
             'diagnostic_position_gate':pos_gate, 'diagnostic_status':diagnostic_status, 'diagnostic_eligible':bool(diagnostic_eligible),
             'diagnostic_raw_mean':diagnostic_raw_mean, 'diagnostic_raw_ppg':diagnostic_raw_ppg,
-            'diagnostic_component_model_mean':diag_bridge.get('model_supported_mean'),
-            'diagnostic_component_market_mean':diag_bridge.get('market_supported_mean'),
-            'diagnostic_component_raw_delta':diag_bridge.get('raw_delta'),
-            'diagnostic_common_scoring_keys':'|'.join(diag_bridge.get('common_keys') or []),
-            'diagnostic_bridge_unsupported':'|'.join(diag_bridge.get('unsupported_keys') or []),
-            'diagnostic_bridge_coverage':diag_bridge.get('coverage_rate'),
+            'diagnostic_model_supported_mean':diag_anchor.get('model_supported_mean'),
+            'diagnostic_model_scoring_keys':'|'.join(diag_anchor.get('model_keys') or []),
+            'diagnostic_model_unsupported':'|'.join(diag_anchor.get('unsupported_keys') or []),
+            'diagnostic_model_coverage':diag_anchor.get('coverage_rate'),
+            # Backward-compatible audit aliases.  They now describe FIE model
+            # coverage only; diagnostic comparison no longer consumes Sleeper raw
+            # stat components.
+            'diagnostic_component_model_mean':diag_anchor.get('model_supported_mean'),
+            'diagnostic_component_market_mean':None,
+            'diagnostic_component_raw_delta':None,
+            'diagnostic_common_scoring_keys':'|'.join(diag_anchor.get('model_keys') or []),
+            'diagnostic_bridge_unsupported':'|'.join(diag_anchor.get('unsupported_keys') or []),
+            'diagnostic_bridge_coverage':diag_anchor.get('coverage_rate'),
             'diagnostic_scoring_coverage':diag_cov.get('coverage_rate'), 'diagnostic_scoring_unsupported':'|'.join(diag_cov.get('unsupported_keys',[])),
             'diagnostic_driver_contributions_ppg':json.dumps(dict(sorted((diag_eval.get('contrib') or {}).items(),key=lambda kv:abs(kv[1]),reverse=True)[:8]),separators=(',',':')) if diag_eval.get('contrib') else '{}',
             'diagnostic_confidence':min(95,diag_conf),
@@ -431,24 +505,48 @@ def board(args) -> pd.DataFrame:
     out['rank_edge'] = np.where(out.comparison_eligible, out.market_position_rank - out.fie_position_rank, np.nan)
     out['fie_production_mean'] = np.where(out.comparison_eligible, out.fie_season_mean, np.nan)
 
-    # Market-anchored diagnostic view.  The raw diagnostic signal is the FIE-vs-
-    # Sleeper difference on mutually supported scoring components only.  Unsupported
-    # sparse components therefore contribute zero disagreement and stay at the market
-    # baseline.  Centering removes the position-wide average component difference.
-    # Production logic above remains exact-replay-only.
+    # Market-anchored diagnostic view.
+    #
+    # FIE's shadow model supplies the *allocation signal* using the league-scored
+    # raw outcomes that FIE itself supports.  Sleeper supplies only the total
+    # position-level market anchor.  We intentionally do NOT depend on Sleeper raw
+    # component completeness.  Within the eligible cohort:
+    #
+    #   diagnostic = mean(Sleeper total) + (FIE supported score - mean(FIE score))
+    #
+    # Therefore the eligible-cohort mean diagnostic projection equals the eligible-
+    # cohort mean Sleeper projection exactly.  Ineligible rows remain at Sleeper, so
+    # the full-position mean also remains identical.  Production logic above remains
+    # exact-replay-only and is not affected by this report calibration.
     out['diagnostic_center_offset'] = np.nan
+    out['diagnostic_market_anchor_mean'] = np.nan
+    out['diagnostic_model_anchor_mean'] = np.nan
     out['fie_diagnostic_mean'] = pd.to_numeric(out.sleeper_market_projection, errors='coerce')
     for pos, idx in out.groupby('position_model').groups.items():
         ix = list(idx); g = out.loc[ix]
-        eligible = g.diagnostic_eligible.fillna(False).astype(bool) & pd.to_numeric(g.diagnostic_component_raw_delta,errors='coerce').notna() & pd.to_numeric(g.sleeper_market_projection,errors='coerce').notna()
+        eligible = (
+            g.diagnostic_eligible.fillna(False).astype(bool)
+            & pd.to_numeric(g.diagnostic_model_supported_mean,errors='coerce').notna()
+            & pd.to_numeric(g.sleeper_market_projection,errors='coerce').notna()
+        )
         if eligible.any():
-            raw_delta = pd.to_numeric(g.loc[eligible,'diagnostic_component_raw_delta'],errors='coerce')
-            offset = float(raw_delta.mean())
-            centered = raw_delta - offset
-            out.loc[ix, 'diagnostic_center_offset'] = offset
-            out.loc[g.index[eligible], 'fie_diagnostic_mean'] = pd.to_numeric(g.loc[eligible,'sleeper_market_projection'],errors='coerce') + centered
+            model_signal = pd.to_numeric(g.loc[eligible,'diagnostic_model_supported_mean'],errors='coerce')
+            market_total = pd.to_numeric(g.loc[eligible,'sleeper_market_projection'],errors='coerce')
+            model_anchor = float(model_signal.mean())
+            market_anchor = float(market_total.mean())
+            centered_model = model_signal - model_anchor
+            diagnostic = market_anchor + centered_model
+            out.loc[ix, 'diagnostic_center_offset'] = market_anchor - model_anchor
+            out.loc[ix, 'diagnostic_market_anchor_mean'] = market_anchor
+            out.loc[ix, 'diagnostic_model_anchor_mean'] = model_anchor
+            out.loc[g.index[eligible], 'fie_diagnostic_mean'] = diagnostic
 
     out['diagnostic_delta_points'] = pd.to_numeric(out.fie_diagnostic_mean,errors='coerce') - pd.to_numeric(out.sleeper_market_projection,errors='coerce')
+    out['diagnostic_component_raw_delta'] = np.where(
+        out.diagnostic_eligible.fillna(False).astype(bool),
+        out['diagnostic_delta_points'],
+        np.nan
+    )
     denom = pd.to_numeric(out.sleeper_market_projection,errors='coerce').abs()
     out['diagnostic_delta_pct'] = np.where(denom > 1e-9, out.diagnostic_delta_points / denom * 100.0, np.nan)
     out['diagnostic_position_rank'] = out.groupby('position_model').fie_diagnostic_mean.rank(method='min', ascending=False)
