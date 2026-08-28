@@ -166,12 +166,37 @@ def norm_name(value: object) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
 
 
+def norm_sleeper_id(value: object) -> str:
+    """Normalize Sleeper IDs read through pandas without changing non-numeric IDs."""
+    if value is None:
+        return ""
+    s = str(value).strip()
+    if not s or s.lower() in {"nan", "none"}:
+        return ""
+    if re.fullmatch(r"\d+\.0", s):
+        s = s[:-2]
+    return s
+
+
 def board(args) -> pd.DataFrame:
     m1=load_json(args.m1_bundle); m9=load_json(args.m9_bundle); scoring=m1.get('scoring',{}).get('settings',{})
     market=load_market(args.market_snapshot)
     prof_path=Path(args.profile_table or m9.get('preseason_season_projection',{}).get('latest_profiles_derived_table') or '')
     profiles=pd.read_csv(prof_path,low_memory=False) if prof_path.is_file() else pd.DataFrame()
     by_pid={str(r.canonical_player_id):r._asdict() for r in profiles.itertuples(index=False)} if not profiles.empty else {}
+
+    # Preserve the immutable market snapshot and repair only identity at read time.
+    # Pandas can deserialize numeric Sleeper IDs as floats (e.g. 6786.0), which must
+    # be normalized before matching the string IDs returned by the Sleeper endpoint.
+    identity_path = prof_path.parent / "player_identity.csv.gz"
+    identity = pd.read_csv(identity_path, low_memory=False) if identity_path.is_file() else pd.DataFrame()
+    by_sid={}
+    if not identity.empty and {"sleeper_id","canonical_player_id"}.issubset(identity.columns):
+        for r in identity.dropna(subset=["sleeper_id","canonical_player_id"]).to_dict("records"):
+            sid=norm_sleeper_id(r.get("sleeper_id"))
+            if sid:
+                by_sid[sid]=r
+
     by_name={}
     if not profiles.empty and {'full_name','position_model'}.issubset(profiles.columns):
         tmp=profiles.copy(); tmp['_name_key']=tmp.full_name.map(norm_name); tmp['_pos_key']=tmp.position_model.astype(str).str.upper()
@@ -188,6 +213,16 @@ def board(args) -> pd.DataFrame:
         cid=str(rec.get('canonical_player_id') or ''); stats=rec.get('stats') or {}; adps=rec.get('adp') or {}
         mkt=market_points(stats,scoring,pos)
         p=by_pid.get(cid) if cid else None; join_method='canonical_id' if p is not None else 'unmatched'
+        identity_row=None
+        if p is None:
+            sid=norm_sleeper_id(rec.get('sleeper_id'))
+            identity_row=by_sid.get(sid)
+            identity_cid=str((identity_row or {}).get('canonical_player_id') or '')
+            if identity_cid:
+                p=by_pid.get(identity_cid)
+                cid=identity_cid
+                if p is not None:
+                    join_method='sleeper_id_to_canonical'
         if p is None:
             p=by_name.get((norm_name(rec.get('full_name')),pos))
             if p is not None: join_method='unique_name_position'
@@ -235,7 +270,8 @@ def board(args) -> pd.DataFrame:
         conf=90 if source.startswith('FIE') else (62 if mkt is not None else 10)
         if p: conf+=min(5,int(p.get('prev_games') or 0)//4)
         if team_changed: conf=min(conf,55)
-        rows.append({'sleeper_id':rec.get('sleeper_id'),'canonical_player_id':matched_cid or None,'full_name':rec.get('full_name'),
+        display_name=(p or {}).get('full_name') or (identity_row or {}).get('full_name') or rec.get('full_name')
+        rows.append({'sleeper_id':rec.get('sleeper_id'),'canonical_player_id':matched_cid or None,'full_name':display_name,
                      'identity_join_method':join_method,
                      'position_model':pos,'team':rec.get('team'),'profile_team':p.get('profile_team') if p else None,
                      'team_changed':team_changed,'market_adp':adp,'market_adp_key':args.adp_key,'sleeper_market_projection':mkt,

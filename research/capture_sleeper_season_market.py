@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import gzip
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -25,6 +26,27 @@ ADP_KEYS = [
 
 
 def now(): return datetime.now(timezone.utc).isoformat()
+
+
+def norm_sleeper_id(value: object) -> str:
+    if value is None:
+        return ""
+    s = str(value).strip()
+    if not s or s.lower() in {"nan", "none"}:
+        return ""
+    if re.fullmatch(r"\d+\.0", s):
+        s = s[:-2]
+    return s
+
+
+def sleeper_full_name(player: dict, row: dict) -> str | None:
+    explicit = player.get("full_name") or row.get("full_name")
+    if explicit:
+        return str(explicit).strip() or None
+    parts = [player.get("first_name") or row.get("first_name"),
+             player.get("last_name") or row.get("last_name")]
+    name = " ".join(str(x).strip() for x in parts if x not in (None, ""))
+    return name or None
 
 
 def get_json(url):
@@ -52,7 +74,10 @@ def main(argv=None):
     by_sid = {}
     if not ident.empty and "sleeper_id" in ident:
         for r in ident.dropna(subset=["sleeper_id"]).itertuples(index=False):
-            by_sid[str(getattr(r, "sleeper_id"))] = {
+            sid = norm_sleeper_id(getattr(r, "sleeper_id"))
+            if not sid:
+                continue
+            by_sid[sid] = {
                 "canonical_player_id": str(getattr(r, "canonical_player_id", "") or "") or None,
                 "full_name": getattr(r, "full_name", None), "position_model": getattr(r, "position", None),
             }
@@ -66,7 +91,7 @@ def main(argv=None):
     out.parent.mkdir(parents=True, exist_ok=True); kept = 0
     with gzip.open(out, "wt", encoding="utf-8") as h:
         for r in rows:
-            sid = str(r.get("player_id") or (r.get("player") or {}).get("player_id") or "")
+            sid = norm_sleeper_id(r.get("player_id") or (r.get("player") or {}).get("player_id"))
             if not sid: continue
             stats = r.get("stats") or r; player = r.get("player") or {}; ident_row = by_sid.get(sid, {})
             adp = {k: (stats.get(k) if stats.get(k) is not None else r.get(k)) for k in ADP_KEYS if (stats.get(k) is not None or r.get(k) is not None)}
@@ -74,7 +99,7 @@ def main(argv=None):
                 "season": int(a.season), "captured_at": captured, "market_as_of": day,
                 "source": "Sleeper season projection endpoint", "sleeper_id": sid,
                 "canonical_player_id": ident_row.get("canonical_player_id"),
-                "full_name": ident_row.get("full_name") or player.get("full_name") or r.get("full_name") or player.get("first_name"),
+                "full_name": ident_row.get("full_name") or sleeper_full_name(player, r),
                 "position_model": ident_row.get("position_model") or player.get("position") or r.get("position"),
                 "team": player.get("team") or r.get("team"), "adp": adp, "stats": stats,
             }
