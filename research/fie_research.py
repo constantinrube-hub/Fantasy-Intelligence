@@ -289,7 +289,7 @@ def load_scoring(args) -> Tuple[dict, dict]:
 
 # Sleeper scoring key -> nflverse raw-stat aliases.
 SCORING_MAP = {
-    "pass_yd": ["passing_yards"], "pass_td": ["passing_tds"], "pass_int": ["interceptions"],
+    "pass_yd": ["passing_yards"], "pass_td": ["passing_tds"], "pass_int": ["passing_interceptions", "interceptions"],
     "pass_cmp": ["completions"], "pass_att": ["attempts", "passing_attempts"],
     "pass_2pt": ["passing_2pt_conversions"], "pass_fd": ["passing_first_downs"],
     "rush_yd": ["rushing_yards"], "rush_td": ["rushing_tds"], "rush_att": ["carries", "rushing_attempts"],
@@ -452,6 +452,18 @@ def prep_player_week(frames: List[pd.DataFrame], identity: pd.DataFrame, scoring
     df["week"] = pd.to_numeric(df["week"], errors="coerce").astype("Int64")
     if "season_type" in df.columns:
         df = df[df["season_type"].astype(str).str.upper().str.startswith("REG")]
+
+    # nflverse renamed QB passing interceptions from `interceptions` to
+    # `passing_interceptions`. Preserve a canonical legacy alias in the derived
+    # backbone so downstream M4/M7-M9 code and older caches remain compatible.
+    if "passing_interceptions" in df.columns:
+        current_int = pd.to_numeric(df["passing_interceptions"], errors="coerce")
+        if "interceptions" not in df.columns:
+            df["interceptions"] = current_int
+        else:
+            legacy_int = pd.to_numeric(df["interceptions"], errors="coerce")
+            df["interceptions"] = legacy_int.where(legacy_int.notna(), current_int)
+
     audit = scoring_audit(df, scoring)
     df["fantasy_points"] = score_rows(df, scoring)
     return df, match, audit
