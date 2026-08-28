@@ -1,23 +1,40 @@
 #!/usr/bin/env python3
-"""Static guards for Draft Assistant rank-sample consistency and table sorting."""
+"""Static guards for current Draft/Decision rank and sortable-table consistency."""
 from pathlib import Path
 
-root=Path(__file__).resolve().parents[1]
-idx=(root/'index.html').read_text(encoding='utf-8')
-tsort=(root/'app'/'table-sort.js').read_text(encoding='utf-8')
+ROOT=Path(__file__).resolve().parents[1]
+ui=(ROOT/'app'/'decision-ui.js').read_text(encoding='utf-8')
+tsort=(ROOT/'app'/'table-sort.js').read_text(encoding='utf-8')
+engine=(ROOT/'app'/'decision-engines.js').read_text(encoding='utf-8')
 
-assert 'function draftFullEligiblePool()' in idx
-assert 'const marketRanks=draftMarketRanks(fullPool)' in idx
-assert 'leagueRank:leagueRanks.get(id)' in idx
-assert 'marketSampleRank=marketRanks.get(id)' in idx
-assert 'Number(x.marketSampleRank)-Number(x.leagueComparableRank)' in idx
-assert 'leagueRows.filter(x=>marketRanks.has(x.id))' in idx
-assert 'including players already selected' in idx
-assert 'available decision #' in idx
-assert 'data-da-sort="market"' in idx
-assert 'data-da-sort="leagueRank"' in idx
-assert 'draftAssistantSortRows(buildDraftValueRows(rosterId))' in idx
-assert '<script src="app/table-sort.js"></script>' in idx
-assert 'th.dataset.sort||th.dataset.daSort' in tsort  # avoid double-binding model-aware tables
+# Current Decision UX owns ranking and table sorting. Do not require the old
+# inline draftFullEligiblePool implementation from index.html.
+for token in [
+    'function rankMap(',
+    'function marketRanks(',
+    'function sortRows(',
+    'function renderTable(',
+    'data-fie93-sort',
+    'UI.sort',
+    'marketADP',
+    'FIEDraftBaseValueService',
+]:
+    assert token in ui, token
+
+# Draft simulation must still consume a full draft candidate pool and preserve
+# market/ranking context rather than reducing everything to current table rows.
+for token in [
+    'draftCandidatePool()',
+    'marketRankMap(',
+    'staticDecisionMap(',
+    'simulationContext(',
+]:
+    assert token in engine, token
+
+# Generic sorter must not double-bind model-aware tables.
+assert 'th.dataset.sort||th.dataset.daSort' in tsort
 assert 'MutationObserver' in tsort
-print('OK Draft Assistant stable rank sample + sortable-table integration')
+assert 'sortDomTable' in tsort
+assert 'window.FIE_TABLE_SORT' in tsort
+
+print('OK current Draft/Decision rank + sortable-table integration')
