@@ -1,0 +1,98 @@
+name: Validate Refresh Current Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Run every refresh validation and report all failures
+        shell: bash
+        run: |
+          set +e
+          FAILURES=()
+
+          run_check() {
+            echo ""
+            echo "================================================================"
+            echo "RUN: $*"
+            echo "================================================================"
+            "$@"
+            RC=$?
+            if [ "$RC" -ne 0 ]; then
+              echo "::error::FAILED ($RC): $*"
+              FAILURES+=("$*")
+            else
+              echo "PASS: $*"
+            fi
+          }
+
+          run_check python research/integrity_m6_test.py
+          run_check python research/integrity_dst_test.py
+          run_check python research/integrity_kicker_test.py
+          run_check python research/integrity_v89_test.py
+          run_check python research/test_league_profile.py
+          run_check python research/integrity_multileague_test.py
+          run_check python research/integrity_market_archive_test.py
+          run_check python research/integrity_decision_engines_test.py
+          run_check python research/integrity_draft_rank_sort_test.py
+          run_check python research/integrity_portfolio_home_test.py
+          run_check python research/integrity_custom_league_rules_test.py
+          run_check python research/integrity_decision_validation_test.py
+          run_check python research/integrity_current_features_test.py
+
+          run_check node research/integrity_runtime_foundation_test.js
+          run_check python research/integrity_v93_decision_ux_test.py
+          run_check python research/integrity_v931_completion_test.py
+          run_check python research/integrity_v932_structural_profile_test.py
+          run_check python research/integrity_v932_source_contract.py
+          run_check node research/integrity_v932_browser_qa_runtime_test.js
+          run_check node research/integrity_v932_season_runtime_test.js
+          run_check node research/integrity_v931_persistent_cache_test.js
+          run_check node research/integrity_v93_scarcity_runtime_test.js
+          run_check node research/integrity_v93_league_context_runtime_test.js
+          run_check node research/integrity_v93_decision_ui_runtime_test.js
+          run_check node research/integrity_v9_model_runtime_test.js
+          run_check node research/integrity_monte_carlo_worker_test.js
+          run_check node research/integrity_value_finder_runtime_test.js
+          run_check node research/integrity_top100_optimizer_runtime_test.js
+          run_check python research/integrity_bulk_onboarding_test.py --config-only
+
+          run_check python research/integrity_league_fast_switch_test.py
+          run_check node research/integrity_league_fast_switch_runtime_test.js
+          run_check node research/integrity_cross_position_calibration_test.js
+          run_check python research/integrity_15point_completion_test.py
+
+          # Existing-artifact gates that Refresh Current reaches later.
+          run_check python research/integrity_current_storage_test.py
+          run_check python research/integrity_fast_switch_artifacts_test.py
+          run_check python research/production_readiness.py
+
+          echo ""
+          echo "================================================================"
+          if [ "${#FAILURES[@]}" -gt 0 ]; then
+            echo "PREFLIGHT FAILED: ${#FAILURES[@]} check(s)"
+            printf ' - %s\n' "${FAILURES[@]}"
+            exit 1
+          fi
+          echo "PREFLIGHT PASS: all refresh-current checks passed"
