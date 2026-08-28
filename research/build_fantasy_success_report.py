@@ -115,8 +115,10 @@ def reason_text(r, m7, m8, m9) -> str:
         return 'No diagnostic deviation: no usable prior-season FIE profile.'
     if status == 'UNAVAILABLE_MODEL_SPEC':
         return 'No diagnostic deviation: insufficient year-to-year model specification.'
-    if status == 'UNAVAILABLE_SCORING':
-        return 'No diagnostic deviation: exact league-scoring replay is incomplete.'
+    if status == 'UNAVAILABLE_CORE_SCORING':
+        gap = str(getattr(r,'diagnostic_bridge_unsupported','') or '').replace('|',', ')
+        return 'No diagnostic deviation: core league-scoring components are not jointly observable in FIE and the market' + (f' ({gap}).' if gap else '.')
+    partial = status == 'DIAGNOSTIC_PARTIAL_SCORING_BRIDGE'
     delta = getattr(r,'diagnostic_delta_points',None)
     try:
         direction = 'higher' if float(delta) > .05 else ('lower' if float(delta) < -.05 else 'near market')
@@ -124,10 +126,17 @@ def reason_text(r, m7, m8, m9) -> str:
         direction = 'near market'
     c = parse_contrib(getattr(r,'diagnostic_driver_contributions_ppg','{}'))
     signals = [feature_label(k) for k,v in c[:3]]
+    bridge_note = ''
+    if partial:
+        gap = [x for x in str(getattr(r,'diagnostic_bridge_unsupported','') or '').split('|') if x]
+        if gap:
+            bridge_note = ' Unsupported auxiliary scoring components stay at the Sleeper baseline: ' + ', '.join(gap) + '.'
+        else:
+            bridge_note = ' Diagnostic comparison uses only mutually supported scoring components; other components stay market-neutral.'
     if signals:
-        return f"FIE diagnostic is {direction}; main model signals: {', '.join(signals)}."
+        return f"FIE diagnostic is {direction}; main model signals: {', '.join(signals)}." + bridge_note
     ev = position_evidence(m7, str(r.position_model))[:2]
-    return f"FIE diagnostic is {direction}; position evidence: {', '.join(ev) if ev else 'limited'}."
+    return f"FIE diagnostic is {direction}; position evidence: {', '.join(ev) if ev else 'limited'}." + bridge_note
 
 
 def agreement_row(p: pd.DataFrame, pos: str, m9: dict) -> dict:
@@ -258,11 +267,27 @@ def main():
         for r in negative.itertuples(index=False):
             lines.append(f"| {r.full_name} | {r.position_model} | {fmt(r.market_position_rank,0)} | {fmt(r.diagnostic_position_rank,0)} | {fmt(r.diagnostic_rank_delta,0)} | {fmt(r.sleeper_market_projection)} | {fmt(r.fie_diagnostic_mean)} | {fmt(r.diagnostic_delta_points)} | {r.evidence_status} | {str(r.reason).replace('|','/')} |")
 
+    lines += ['', '## Diagnostic scoring bridge audit','',
+              'Production projections still require exact replay of every relevant nonzero scoring component. The diagnostic layer may compare FIE and Sleeper on their mutually supported core components; any unsupported auxiliary component contributes zero model disagreement and therefore remains at the Sleeper baseline.','',
+              '| Pos | Comparable players | Partial-bridge players | Mean bridge coverage | Unsupported auxiliary keys observed |',
+              '|---|---:|---:|---:|---|']
+    for pos in LIMITS:
+        z = df[df.position_model.eq(pos)].copy()
+        comp = z[z.diagnostic_comparison_eligible] if 'diagnostic_comparison_eligible' in z else pd.DataFrame()
+        partial = comp[comp.diagnostic_status.astype(str).eq('DIAGNOSTIC_PARTIAL_SCORING_BRIDGE')] if not comp.empty else pd.DataFrame()
+        cov = pd.to_numeric(comp.get('diagnostic_bridge_coverage'),errors='coerce') if not comp.empty and 'diagnostic_bridge_coverage' in comp else pd.Series(dtype=float)
+        gaps = []
+        if not comp.empty and 'diagnostic_bridge_unsupported' in comp:
+            for raw in comp.diagnostic_bridge_unsupported.fillna('').astype(str):
+                gaps.extend(x for x in raw.split('|') if x and x.lower() not in {'nan','none'})
+        lines.append(f"| {pos} | {len(comp)} | {len(partial)} | {fmt(100*cov.mean()) if not cov.empty and cov.notna().any() else '—'}% | {', '.join(sorted(set(gaps))) or 'none'} |")
+
     lines += ['', '## Interpretation rules','',
               '- The FIE diagnostic view is centered by position. Its average fantasy-point projection equals Sleeper on the comparison population by construction.',
               '- A diagnostic deviation answers **where FIE allocates value differently**, not which model is better.',
               '- Production eligibility is separate. Only positions in the validated production model registry may replace market/fallback values in runtime consumers.',
-              '- Players blocked by missing profiles, team changes, or incomplete scoring replay remain at the market baseline in the diagnostic comparison and are labelled explicitly.',
+              '- Missing profiles and team changes remain hard diagnostic guardrails. Exact scoring replay remains mandatory for production projections.',
+              '- For diagnostics only, unsupported auxiliary scoring components can remain market-neutral when all position-core scoring components are jointly supported; the report discloses this bridge and its coverage.',
               '- P10/P50/P90 retain empirically calibrated historical OOS spread and are recentered on the diagnostic mean.',
               '- M7/M8 diagnostic feature evidence can explain football mechanisms but does not stack onto projections unless its own sequential activation gate validates.',
               '- Return production affects fantasy values only when the league scores it and the corresponding M9 return target independently validates.']

@@ -30,6 +30,19 @@ from fie_research import BONUS_RULES, SCORING_MAP, score_rows
 from fie_m9 import RETURN_SCORING_ALIASES, score_return_stats, simulate_player_season
 
 
+# Diagnostic reports are allowed to compare FIE and Sleeper on the common,
+# materially important scoring components even when a sparse auxiliary scoring
+# event cannot be estimated reliably.  This never grants production activation:
+# production still requires exact_linear_replay below.
+DIAGNOSTIC_CORE_KEYS = {
+    'QB': {'pass_yd','pass_td','pass_int','rush_yd','rush_td'},
+    'RB': {'rush_yd','rush_td','rec','rec_yd','rec_td'},
+    'WR': {'rec','rec_yd','rec_td'},
+    'TE': {'rec','rec_yd','rec_td'},
+}
+DIAGNOSTIC_MIN_KEY_COVERAGE = 0.60
+
+
 def load_json(path: str) -> dict:
     return json.loads(Path(path).read_text())
 
@@ -173,6 +186,75 @@ def model_scoring_coverage(targets: List[str], scoring: dict, pos: str, return_t
             'exact_linear_replay':not unsupported}
 
 
+def _nonzero_scoring_subset(scoring: dict, keys) -> dict:
+    out = {}
+    for k in keys:
+        if k not in scoring:
+            continue
+        try:
+            v = float(scoring.get(k) or 0)
+        except Exception:
+            continue
+        if v != 0 and math.isfinite(v):
+            out[k] = v
+    return out
+
+
+def _market_key_available(stats: dict, key: str, pos: str) -> bool:
+    if key in {'bonus_rec_te','rec_te','bonus_rec_rb','rec_rb','bonus_rec_wr','rec_wr'}:
+        target = 'TE' if '_te' in key else ('RB' if '_rb' in key else 'WR')
+        if pos != target:
+            return True
+        value = stats.get('rec')
+    else:
+        value = stats.get(key)
+    try:
+        return value is not None and math.isfinite(float(value))
+    except Exception:
+        return False
+
+
+def _score_model_keys(raw: dict, rr: dict, scoring: dict, pos: str, keys) -> Optional[float]:
+    subset = _nonzero_scoring_subset(scoring, keys)
+    if not subset or not raw:
+        return None
+    f = pd.DataFrame([{**raw, 'position_model':pos}])
+    pts = float(score_rows(f, subset).iloc[0])
+    ret_subset = {k:v for k,v in subset.items() if k in RETURN_SCORING_ALIASES}
+    if ret_subset:
+        pts += float(score_return_stats(rr or {}, ret_subset).get('points') or 0.0)
+    return pts
+
+
+def diagnostic_component_bridge(diag_eval: dict, market_stats: dict, scoring: dict, pos: str, games: int) -> dict:
+    """Compare FIE vs market only on mutually observable scoring components.
+
+    Missing sparse auxiliary components are deliberately assigned zero diagnostic
+    deviation, i.e. they remain at the Sleeper baseline.  This is a report-only
+    market bridge, not an independent projection and never satisfies production's
+    exact-scoring requirement.
+    """
+    cov = diag_eval.get('coverage',{}) or {}
+    model_supported = set(cov.get('supported_keys') or [])
+    active = set(cov.get('active_keys') or [])
+    market_supported = {k for k in model_supported if _market_key_available(market_stats, k, pos)}
+    common = sorted(model_supported & market_supported)
+    active_core = {k for k in DIAGNOSTIC_CORE_KEYS.get(pos,set()) if k in active}
+    core_ok = active_core.issubset(set(common))
+    key_cov = len(common)/len(active) if active else 1.0
+    model_ppg = _score_model_keys(diag_eval.get('raw') or {}, diag_eval.get('return_raw') or {}, scoring, pos, common)
+    market_subset = _nonzero_scoring_subset(scoring, common)
+    market_season = market_points(market_stats, market_subset, pos) if market_subset else None
+    if model_ppg is None or market_season is None or not core_ok or key_cov < DIAGNOSTIC_MIN_KEY_COVERAGE:
+        return {'eligible':False,'common_keys':common,'unsupported_keys':sorted(active-set(common)),
+                'coverage_rate':key_cov,'core_supported':core_ok,'model_supported_mean':None,
+                'market_supported_mean':market_season,'raw_delta':None}
+    model_season = float(model_ppg) * games
+    return {'eligible':True,'common_keys':common,'unsupported_keys':sorted(active-set(common)),
+            'coverage_rate':key_cov,'core_supported':True,'model_supported_mean':model_season,
+            'market_supported_mean':float(market_season),'raw_delta':float(model_season-market_season)}
+
+
 def evaluate_position_spec(pspec: Optional[dict], profile: Optional[dict], scoring: dict, pos: str, return_raw: Optional[dict] = None) -> dict:
     if not pspec or not profile:
         return {'raw':{}, 'ppg':None, 'coverage':{'exact_linear_replay':False,'coverage_rate':0.0,'unsupported_keys':['no_model_or_profile']}, 'contrib':{}}
@@ -268,18 +350,21 @@ def board(args) -> pd.DataFrame:
 
         diagnostic_raw_ppg = diag_eval.get('ppg') if not team_changed else None
         diagnostic_raw_mean = float(diagnostic_raw_ppg) * args.games if diagnostic_raw_ppg is not None else None
-        diagnostic_eligible = diagnostic_raw_mean is not None and mkt is not None
+        diag_bridge = diagnostic_component_bridge(diag_eval, stats, scoring, pos, args.games) if (p is not None and not team_changed and mkt is not None) else {'eligible':False,'common_keys':[],'unsupported_keys':[],'coverage_rate':0.0,'raw_delta':None}
+        diagnostic_eligible = bool(diag_bridge.get('eligible')) and mkt is not None
         pos_gate = str((aggregate.get(pos) or {}).get('status') or 'diagnostic_only')
-        if diagnostic_eligible:
+        if diagnostic_eligible and diag_eval.get('coverage',{}).get('exact_linear_replay'):
             diagnostic_status = 'VALIDATED_POSITION_SHADOW' if pos_gate == 'validated_candidate' else 'DIAGNOSTIC_ONLY_POSITION'
+        elif diagnostic_eligible:
+            diagnostic_status = 'DIAGNOSTIC_PARTIAL_SCORING_BRIDGE'
         elif team_changed and p is not None:
             diagnostic_status = 'UNAVAILABLE_TEAM_CHANGE'
         elif p is None:
             diagnostic_status = 'UNAVAILABLE_PROFILE'
         elif not diagnostic_specs.get(pos):
             diagnostic_status = 'UNAVAILABLE_MODEL_SPEC'
-        elif not diag_eval.get('coverage',{}).get('exact_linear_replay'):
-            diagnostic_status = 'UNAVAILABLE_SCORING'
+        elif not diag_bridge.get('core_supported',False):
+            diagnostic_status = 'UNAVAILABLE_CORE_SCORING'
         else:
             diagnostic_status = 'UNAVAILABLE_MARKET_COMPARISON'
 
@@ -325,6 +410,12 @@ def board(args) -> pd.DataFrame:
             'driver_contributions_ppg':json.dumps(dict(sorted(production_contrib.items(),key=lambda kv:abs(kv[1]),reverse=True)[:8]),separators=(',',':')) if production_contrib else '{}',
             'diagnostic_position_gate':pos_gate, 'diagnostic_status':diagnostic_status, 'diagnostic_eligible':bool(diagnostic_eligible),
             'diagnostic_raw_mean':diagnostic_raw_mean, 'diagnostic_raw_ppg':diagnostic_raw_ppg,
+            'diagnostic_component_model_mean':diag_bridge.get('model_supported_mean'),
+            'diagnostic_component_market_mean':diag_bridge.get('market_supported_mean'),
+            'diagnostic_component_raw_delta':diag_bridge.get('raw_delta'),
+            'diagnostic_common_scoring_keys':'|'.join(diag_bridge.get('common_keys') or []),
+            'diagnostic_bridge_unsupported':'|'.join(diag_bridge.get('unsupported_keys') or []),
+            'diagnostic_bridge_coverage':diag_bridge.get('coverage_rate'),
             'diagnostic_scoring_coverage':diag_cov.get('coverage_rate'), 'diagnostic_scoring_unsupported':'|'.join(diag_cov.get('unsupported_keys',[])),
             'diagnostic_driver_contributions_ppg':json.dumps(dict(sorted((diag_eval.get('contrib') or {}).items(),key=lambda kv:abs(kv[1]),reverse=True)[:8]),separators=(',',':')) if diag_eval.get('contrib') else '{}',
             'diagnostic_confidence':min(95,diag_conf),
@@ -340,26 +431,22 @@ def board(args) -> pd.DataFrame:
     out['rank_edge'] = np.where(out.comparison_eligible, out.market_position_rank - out.fie_position_rank, np.nan)
     out['fie_production_mean'] = np.where(out.comparison_eligible, out.fie_season_mean, np.nan)
 
-    # Market-anchored diagnostic view.  Eligible shadow estimates are shifted by the
-    # mean raw FIE-vs-market difference within the position.  Ineligible rows remain
-    # exactly at market, so the full comparison universe is also mean-neutral.
+    # Market-anchored diagnostic view.  The raw diagnostic signal is the FIE-vs-
+    # Sleeper difference on mutually supported scoring components only.  Unsupported
+    # sparse components therefore contribute zero disagreement and stay at the market
+    # baseline.  Centering removes the position-wide average component difference.
+    # Production logic above remains exact-replay-only.
     out['diagnostic_center_offset'] = np.nan
     out['fie_diagnostic_mean'] = pd.to_numeric(out.sleeper_market_projection, errors='coerce')
     for pos, idx in out.groupby('position_model').groups.items():
-        ix = list(idx)
-        g = out.loc[ix]
-        eligible = g.diagnostic_eligible.fillna(False).astype(bool) & pd.to_numeric(g.diagnostic_raw_mean,errors='coerce').notna() & pd.to_numeric(g.sleeper_market_projection,errors='coerce').notna()
+        ix = list(idx); g = out.loc[ix]
+        eligible = g.diagnostic_eligible.fillna(False).astype(bool) & pd.to_numeric(g.diagnostic_component_raw_delta,errors='coerce').notna() & pd.to_numeric(g.sleeper_market_projection,errors='coerce').notna()
         if eligible.any():
-            raw = pd.to_numeric(g.loc[eligible,'diagnostic_raw_mean'],errors='coerce')
-            mkt = pd.to_numeric(g.loc[eligible,'sleeper_market_projection'],errors='coerce')
-            offset = float((raw - mkt).mean())
+            raw_delta = pd.to_numeric(g.loc[eligible,'diagnostic_component_raw_delta'],errors='coerce')
+            offset = float(raw_delta.mean())
+            centered = raw_delta - offset
             out.loc[ix, 'diagnostic_center_offset'] = offset
-            out.loc[g.index[eligible], 'fie_diagnostic_mean'] = raw - offset
-        # Players without a market projection cannot be centered against market;
-        # expose the raw shadow estimate but mark them non-comparable.
-        nomarket = pd.to_numeric(g.sleeper_market_projection,errors='coerce').isna() & pd.to_numeric(g.diagnostic_raw_mean,errors='coerce').notna()
-        if nomarket.any():
-            out.loc[g.index[nomarket], 'fie_diagnostic_mean'] = pd.to_numeric(g.loc[nomarket,'diagnostic_raw_mean'],errors='coerce')
+            out.loc[g.index[eligible], 'fie_diagnostic_mean'] = pd.to_numeric(g.loc[eligible,'sleeper_market_projection'],errors='coerce') + centered
 
     out['diagnostic_delta_points'] = pd.to_numeric(out.fie_diagnostic_mean,errors='coerce') - pd.to_numeric(out.sleeper_market_projection,errors='coerce')
     denom = pd.to_numeric(out.sleeper_market_projection,errors='coerce').abs()
