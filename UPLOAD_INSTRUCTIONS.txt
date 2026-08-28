@@ -1,0 +1,23 @@
+FIE Refresh-Current Validation Hardening
+
+Upload the contents preserving paths.
+
+REPLACE:
+research/integrity_dst_test.py
+research/integrity_v89_test.py
+research/integrity_v93_decision_ux_test.py
+research/integrity_v931_completion_test.py
+research/integrity_v932_source_contract.py
+research/integrity_v932_season_runtime_test.js
+
+ADD:
+.github/workflows/validate-refresh-current-preflight.yml
+
+Then run:
+Actions -> Validate Refresh Current Preflight -> Run workflow
+
+This workflow intentionally runs every refresh-current integrity check and
+reports all failures in one run instead of stopping at the first failure.
+
+Once preflight is green:
+Actions -> Refresh FIE Current Season -> Run workflow
