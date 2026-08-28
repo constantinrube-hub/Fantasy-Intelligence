@@ -1,11 +1,11 @@
-/* FIE 9.3.4A3 · shared current-snapshot storage hydrator.
+/* FIE 9.3.4C-E · shared current-snapshot storage hydrator.
  * V9.3.3A fixes missing projection semantics: absent overlays remain null,
  * never synthetic zeroes. V9.3.3C also rejects degenerate shared D/ST/K
  * uncertainty templates so they cannot be presented as empirical P10/P90.
  */
 (function(){
 'use strict';
-const VERSION='9.3.4A3';
+const VERSION='9.3.4C-E';
 const FORMAT='fie-current-split-v1';
 const cache=new Map();
 function q(path,force){return `${path}${force?`${String(path).includes('?')?'&':'?'}t=${Date.now()}`:''}`;}
@@ -59,13 +59,34 @@ async function load(path,{force=false,fetchResponse=null,sourceId='research-arti
 function clear(){cache.clear();}
 window.FIECurrentSnapshotStore={VERSION,FORMAT,load,clear,sanitizeUncertainty};
 
-/* Keep the stable V9.3.4A-B runtime asset, then layer A2 and A3 on top.
- * This avoids editing the generated application shell and guarantees the
- * scoring accelerator wraps the already-installed A2 runtime. */
+/* Keep the stable V9.3.4A-B -> A2 -> A3 performance baseline, then
+ * layer the roadmap modules C, D and E in order. No generated application
+ * shell edit is required. */
+function bootE(){
+  if(document.querySelector('script[data-fie934e-runtime]'))return;
+  const e=document.createElement('script');e.src='app/v9.3.4e-return-scoring.js?v=9.3.4E';e.async=false;e.dataset.fie934eRuntime='1';
+  e.onerror=()=>console.error('FIE V9.3.4E return scoring module failed to load');
+  (document.head||document.documentElement).appendChild(e);
+}
+function bootD(){
+  const existing=document.querySelector('script[data-fie934d-runtime]');
+  if(existing){if(window.FIE934D?.installed)bootE();else existing.addEventListener('load',bootE,{once:true});return;}
+  const d=document.createElement('script');d.src='app/v9.3.4d-starter-economics.js?v=9.3.4D';d.async=false;d.dataset.fie934dRuntime='1';
+  d.onload=bootE;d.onerror=()=>console.error('FIE V9.3.4D starter economics module failed to load');
+  (document.head||document.documentElement).appendChild(d);
+}
+function bootC(){
+  const existing=document.querySelector('script[data-fie934c-runtime]');
+  if(existing){if(window.FIE934C?.installed)bootD();else existing.addEventListener('load',bootD,{once:true});return;}
+  const c=document.createElement('script');c.src='app/v9.3.4c-weekly-context.js?v=9.3.4C';c.async=false;c.dataset.fie934cRuntime='1';
+  c.onload=bootD;c.onerror=()=>console.error('FIE V9.3.4C weekly context module failed to load');
+  (document.head||document.documentElement).appendChild(c);
+}
 function bootA3(){
-  if(document.querySelector('script[data-fie934a3-runtime]'))return;
+  const existing=document.querySelector('script[data-fie934a3-runtime]');
+  if(existing){if(window.FIE934A3?.installed)bootC();else existing.addEventListener('load',bootC,{once:true});return;}
   const b=document.createElement('script');b.src='app/v9.3.4a3-score-performance.js?v=9.3.4A3';b.async=false;b.dataset.fie934a3Runtime='1';
-  b.onerror=()=>console.error('FIE V9.3.4A3 scoring hotfix failed to load');
+  b.onload=bootC;b.onerror=()=>console.error('FIE V9.3.4A3 scoring hotfix failed to load');
   (document.head||document.documentElement).appendChild(b);
 }
 function bootA2(){
