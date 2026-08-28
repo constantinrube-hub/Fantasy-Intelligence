@@ -63,7 +63,6 @@ def test_points_allowed_attribution():
     assert a.points_allowed==11,(a.points_allowed,tw[['team','points_allowed']].to_dict('records'))
     assert a.sack==1
 
-
 def test_market_context_normalization():
     common={'game_id':'2026_01_B_A','season':2026,'week':1,'home_team':'A','away_team':'B'}
     rows=[
@@ -80,12 +79,16 @@ def test_integration_files():
     contracts=json.loads((ROOT/'config/contracts/runtime-contracts.json').read_text())
     dst=[r for r in contracts['scoring_rule_families'] if r['id'].startswith('team_dst')]
     assert dst and all(r.get('weekly_supported') is True for r in dst)
-    html=(ROOT/'index.html').read_text()
-    assert "['dst','D/ST Intelligence']" in html
-    assert "DEF:['DEF']" in html
-    assert "'DEF'].includes(p.position)" in html
+
+    # D/ST is now a modular runtime surface. Do not couple the integrity gate
+    # to obsolete literal navigation strings from the legacy monolithic shell.
+    ui=(ROOT/'app/decision-ui.js').read_text()
     js=(ROOT/'app/dst-intelligence.js').read_text()
+
+    assert 'dstPanel' in ui
     assert 'FIEDST' in js and 'Replacement' in js
+    assert 'hasDST' in js
+    assert "position||'').toUpperCase()==='DEF'" in js
 
 if __name__=='__main__':
     for fn in [test_contract,test_scoring_buckets,test_genesis_extras,test_points_allowed_attribution,test_market_context_normalization,test_integration_files]: fn()
