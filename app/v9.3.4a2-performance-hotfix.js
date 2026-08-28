@@ -75,6 +75,7 @@ function wantedPositions(){
   if(has('WR')||has('FLEX')||has('WRRB_FLEX')||has('REC_FLEX')||has('RB_WR')||has('WR_TE'))out.add('WR');
   if(has('TE')||has('FLEX')||has('REC_FLEX')||has('WR_TE'))out.add('TE');
   if(has('K'))out.add('K');
+  if(has('DEF')||has('DST'))out.add('DEF');
   if(has('DL')||has('IDP_FLEX')){out.add('DL');out.add('DE');out.add('DT');}
   if(has('LB')||has('IDP_FLEX'))out.add('LB');
   if(has('DB')||has('IDP_FLEX')){out.add('DB');out.add('CB');out.add('S');}

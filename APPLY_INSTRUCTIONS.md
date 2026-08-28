@@ -1,18 +1,34 @@
-# Apply V9.3.4A-B
+# Apply V9.3.4A3
 
-This archive contains repository-relative paths. Copy the listed `app`, `research`, `tools` and `.github` files over the same paths in Fantasy-Intelligence.
+Base checked: `0daf3525074eef1c9075cef4019dcdcec64fa5cb`.
 
-Base commit used to build the patch:
+Copy the repository-path files from this package into the same paths on `main`:
 
-`dbe35983a9932a4e5ba540dc4606e5f4215055cb`
+- replace `app/current-snapshot-store.js`
+- replace `app/v9.3.4a2-performance-hotfix.js`
+- add `app/v9.3.4a3-score-performance.js`
+- add `functions/api/data/nflverse/contracts.js`
+- add `research/integrity_v934a3_test.py`
+- add `.github/workflows/validate-fie-v934a3.yml`
+- optionally add `docs/current/V9.3.4A3-SCORE-FIX.md`
 
-Do not replace unrelated files or the repository wholesale.
+Then run:
 
-After the source commit:
+1. **Validate FIE V9.3.4A3**
+2. **Refresh FIE current season**
+3. Existing broader validation workflow
+4. Wait for Cloudflare Pages deployment and hard-refresh the browser
 
-1. Run **Validate FIE V9.3.4A-B**.
-2. Run **Refresh FIE Current Season** once. The new shared player catalog is a generated artifact and must be built before the cold-load fast path can be measured in production.
-3. Wait for the refreshed `dist` commit and Cloudflare deployment.
-4. Perform the timing and correctness QA in `RELEASE_NOTES_V9.3.4A-B.md`.
+Browser check after Genesis and Chopped enrichment:
 
-If `main` has moved beyond the base commit before you apply this package, compare the eight paths before overwriting them. Generated current-data commits that only touch data/dist are normally safe, but source changes to any of these eight paths should be merged rather than blindly replaced.
+```js
+FIE934A3.report()
+```
+
+The combined A2 diagnostic also contains the A3 report:
+
+```js
+FIE934A2.report()
+```
+
+Verify `diagnostics.lastTotalMs`, `diagnostics.fallbacks === 0`, and that Public Data reaches `4/4` without a contracts 404.

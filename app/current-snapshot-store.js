@@ -1,11 +1,11 @@
-/* FIE 9.3.4A2 · shared current-snapshot storage hydrator.
+/* FIE 9.3.4A3 · shared current-snapshot storage hydrator.
  * V9.3.3A fixes missing projection semantics: absent overlays remain null,
  * never synthetic zeroes. V9.3.3C also rejects degenerate shared D/ST/K
  * uncertainty templates so they cannot be presented as empirical P10/P90.
  */
 (function(){
 'use strict';
-const VERSION='9.3.4A2';
+const VERSION='9.3.4A3';
 const FORMAT='fie-current-split-v1';
 const cache=new Map();
 function q(path,force){return `${path}${force?`${String(path).includes('?')?'&':'?'}t=${Date.now()}`:''}`;}
@@ -59,13 +59,20 @@ async function load(path,{force=false,fetchResponse=null,sourceId='research-arti
 function clear(){cache.clear();}
 window.FIECurrentSnapshotStore={VERSION,FORMAT,load,clear,sanitizeUncertainty};
 
-/* Keep the stable V9.3.4A-B runtime asset, then layer A2 on top. This avoids
- * another edit to the generated application shell while guaranteeing A2 wraps
- * the already-installed V9.3.4 services rather than racing them. */
+/* Keep the stable V9.3.4A-B runtime asset, then layer A2 and A3 on top.
+ * This avoids editing the generated application shell and guarantees the
+ * scoring accelerator wraps the already-installed A2 runtime. */
+function bootA3(){
+  if(document.querySelector('script[data-fie934a3-runtime]'))return;
+  const b=document.createElement('script');b.src='app/v9.3.4a3-score-performance.js?v=9.3.4A3';b.async=false;b.dataset.fie934a3Runtime='1';
+  b.onerror=()=>console.error('FIE V9.3.4A3 scoring hotfix failed to load');
+  (document.head||document.documentElement).appendChild(b);
+}
 function bootA2(){
-  if(document.querySelector('script[data-fie934a2-runtime]'))return;
+  const existing=document.querySelector('script[data-fie934a2-runtime]');
+  if(existing){if(window.FIE934A2?.installed)bootA3();else existing.addEventListener('load',bootA3,{once:true});return;}
   const a=document.createElement('script');a.src='app/v9.3.4a2-performance-hotfix.js?v=9.3.4A2';a.async=false;a.dataset.fie934a2Runtime='1';
-  a.onerror=()=>console.error('FIE V9.3.4A2 performance hotfix failed to load');
+  a.onload=bootA3;a.onerror=()=>console.error('FIE V9.3.4A2 performance hotfix failed to load');
   (document.head||document.documentElement).appendChild(a);
 }
 function boot934(){
