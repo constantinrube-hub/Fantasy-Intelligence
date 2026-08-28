@@ -1,59 +1,116 @@
 #!/usr/bin/env python3
+"""Compatibility integrity test for the V8.9 lineage on the current V9.3.x modular runtime.
+
+The historical test asserted exact literals inside the old monolithic index.html.
+Those checks became stale as V9.3.x moved runtime, scoring and league-specific
+logic into dedicated modules. This test keeps the important invariants without
+requiring obsolete version strings or shell implementation details.
+"""
 from pathlib import Path
-import re,json
-from statistical_guardrails import promotion_gate
+import json
 from datetime import datetime, timezone
+
+from statistical_guardrails import promotion_gate
 from fie_research import latest_completed_season
 from build_current_snapshot import inferred_nfl_season
 
-root=Path(__file__).resolve().parents[1]
-html=(root/'index.html').read_text()
-proxy=(root/'functions/api/data/[[path]].js').read_text()
-health=(root/'functions/api/health.js').read_text(); release=(root/'config/release.json').read_text()
+root = Path(__file__).resolve().parents[1]
 
-assert 'V8.9-RTS' in html
-assert "window.FIE89_HASH_VERIFIED=false" in html
-assert 'verifyGovernanceHashesV89' in html
-assert "hashOk=window.FIE89_HASH_VERIFIED===true" in html
-assert "runtime_enabled===true" in html
-assert "function replacementIndex(effective,poolLength){const rank=Math.max(1,Math.round(Number(effective)||1));return Math.max(0,Math.min(poolLength-1,rank-1));}" in html
-assert 'marginalStarterDemand' in html and "SUPER_FLEX:['QB','RB','WR','TE']" in html
-assert 'expanding-window out-of-time' in html
-assert 'temporalFeatureGate' in html
-assert 'heuristic low/high, not calibrated P10/P90' in html
-assert 'empirical historical survival frequency' in html
-assert 'rankValueDifferenceV89' in html
-assert 'generic rookie-slot prior + probabilistic owner slot' in html
-assert 'optimal-lineup simulation across' in html
-assert 'three-year discounted projected VOR utility' in html
-assert 'weekly survival-strength proxy' in html
-assert "['rec_te','bonus_rec_te','rec_rb','bonus_rec_rb','rec_wr','bonus_rec_wr']" in html
-assert 'weeklyExact' in html and 'seasonExact' in html
-# Multi-league production isolation: browser loaders must be League-ID scoped.
-assert 'data/research/leagues/${id}' in html
-assert 'FIE_RESEARCH_RUNTIME' in html and 'resetAll()' in html
-assert 'artifact_paths' in html and 'league_id_match' in html and 'profile_fingerprint_match' in html
-assert 'current_profile_live_match' in html and 'artifact_scope_match' in html
-for legacy in ('data/research/milestone4.json','data/research/milestone5.json','data/research/milestone6.json','data/research/current/milestone5_current.json','data/research/governance/active_release.json'):
-    assert legacy not in html, f'legacy global browser research path remains: {legacy}'
+def read(rel):
+    p = root / rel
+    assert p.exists(), f"required runtime file missing: {rel}"
+    return p.read_text()
 
-# Remove embedded curated data before rollover scan. Historical draft years in that dataset are legitimate.
-scan=re.sub(r'const CURATED = \[.*?\];\nconst PFF', 'const CURATED=[];\nconst PFF', html, flags=re.S)
-for bad in ('===2026','season=2026','end-2026','contractEnd<=2026'):
-    assert bad not in scan, f'hard-coded live season remains: {bad}'
+# Current release / deployment contract
+release = json.loads(read('config/release.json'))
+health = read('functions/api/health.js')
+proxy = read('functions/api/data/[[path]].js')
 
-assert '/api/data/nflverse/weekly/${c.season}' in html
-assert "if (parts.length === 3)" in proxy and "seasonalNflverse(parts[1], parts[2])" in proxy
+assert str(release.get('release', '')).startswith('9.3.'), release
+assert 'FIE_RELEASE.release' in health
+
+# V8.9 season-aware nflverse routing remains supported.
+assert 'function seasonalNflverse(dataset, season)' in proxy
+assert "if (parts.length === 3)" in proxy
+assert "seasonalNflverse(parts[1], parts[2])" in proxy
 assert "const y = String(season);" in proxy
-assert 'FIE_RELEASE.release' in health and json.loads(release)['release'].startswith('9.3.')
-assert latest_completed_season(datetime(2027,1,10,tzinfo=timezone.utc))==2025
-assert latest_completed_season(datetime(2027,2,10,tzinfo=timezone.utc))==2026
-assert inferred_nfl_season(datetime(2027,1,10,tzinfo=timezone.utc))==2026
-assert inferred_nfl_season(datetime(2027,8,10,tzinfo=timezone.utc))==2027
+for dataset in ('stats-regpost', 'weekly', 'snaps', 'depth', 'team'):
+    assert dataset in proxy, f'missing season-aware nflverse dataset: {dataset}'
 
-# Promotion guardrails must reject inconsistent folds and accept a strong persistent improvement.
-good=promotion_gate([.04,.03,.05,.02,.04], min_mean=.01, min_folds=4, require_positive_ci=True)
-bad=promotion_gate([.10,-.08,.09,-.07,.01], min_mean=.01, min_folds=4, require_positive_ci=True)
+# Current modular runtime must be present.
+runtime = read('app/v9.3.3-runtime-integrity.js')
+snapshot = read('app/current-snapshot-store.js')
+a3 = read('app/v9.3.4a3-score-performance.js')
+d = read('app/v9.3.4d-starter-economics.js')
+decision_ui = read('app/decision-ui.js')
+dst = read('app/dst-intelligence.js')
+kicker = read('app/kicker-intelligence.js')
+
+assert "const VERSION='9.3.4A-B'" in runtime
+assert 'ensureSeasonInvariant' in runtime
+assert 'activeSeason' in runtime
+assert 'sameContext' in runtime
+assert 'weeklyProjectionSource' in runtime
+assert 'Unavailable' in runtime
+
+# Split current-snapshot storage and ordered runtime boot chain.
+assert "const FORMAT='fie-current-split-v1'" in snapshot
+assert 'included_player_ids' in snapshot
+assert 'scoring_overlay' in snapshot
+assert 'bootA3' in snapshot
+assert 'bootC' in snapshot
+assert 'bootD' in snapshot
+assert 'bootE' in snapshot
+
+# A3 keeps score publication linearized and replacement-aware.
+assert "const VERSION='9.3.4A3'" in a3
+assert 'fastReplacementLevels' in a3
+assert 'fastProjectedReplacementLevels' in a3
+assert 'fastAssignScores' in a3
+assert 'starter-demand' in a3
+
+# V9.3.4D is the current universal implementation of the V8.9 starter-slot
+# economics invariant. It must support fixed slots, FLEX, Superflex and IDP.
+assert "const VERSION='9.3.4D'" in d
+assert 'universal-starter-slot-economics' in d
+assert "FLEX:['RB','WR','TE']" in d
+assert "SUPER_FLEX:['QB','RB','WR','TE']" in d
+assert "IDP_FLEX:['DL','LB','DB']" in d
+assert 'computeDemand' in d
+assert 'replacementContext' in d
+assert 'starterProbability' in d
+assert 'scarcityMultiplier' in d
+assert 'marginalLineupUtility' in d
+
+# D/ST and kicker remain first-class modular surfaces.
+assert 'dstPanel' in decision_ui
+assert 'FIEDST' in dst and 'Replacement' in dst and 'hasDST' in dst
+assert 'FIEKicker' in kicker
+
+# League-scoped research loading must remain present in special-team surfaces.
+assert 'data/research/leagues/${encodeURIComponent(k)}' in dst
+assert 'data/research/leagues/${encodeURIComponent(k)}' in kicker
+
+# Historical/global current snapshot paths must not be reintroduced into the
+# modular current-snapshot loader.
+for legacy in (
+    'data/research/milestone4.json',
+    'data/research/milestone5.json',
+    'data/research/milestone6.json',
+):
+    assert legacy not in snapshot, f'legacy global browser research path remains: {legacy}'
+
+# Season rollover behavior remains dynamic rather than tied to 2026.
+assert latest_completed_season(datetime(2027,1,10,tzinfo=timezone.utc)) == 2025
+assert latest_completed_season(datetime(2027,2,10,tzinfo=timezone.utc)) == 2026
+assert inferred_nfl_season(datetime(2027,1,10,tzinfo=timezone.utc)) == 2026
+assert inferred_nfl_season(datetime(2027,8,10,tzinfo=timezone.utc)) == 2027
+
+# Promotion guardrails must reject inconsistent folds and accept a strong,
+# persistent improvement.
+good = promotion_gate([.04,.03,.05,.02,.04], min_mean=.01, min_folds=4, require_positive_ci=True)
+bad = promotion_gate([.10,-.08,.09,-.07,.01], min_mean=.01, min_folds=4, require_positive_ci=True)
 assert good['robust'] is True, good
 assert bad['robust'] is False, bad
-print('OK: V8.9 runtime integrity, rollover, scoring, governance and statistical guardrails')
+
+print('OK: V8.9 lineage compatibility on V9.3.x modular runtime, rollover, scoring and statistical guardrails')

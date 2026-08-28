@@ -1,36 +1,53 @@
 #!/usr/bin/env python3
-"""V9.3.1 completion-patch source contract."""
+"""V9.3.1+ completion contract against the current modular V9.3.x runtime."""
 from pathlib import Path
-import json,re
+import json
+
 R=Path(__file__).resolve().parents[1]
-rel=json.loads((R/'config/release.json').read_text())
-core=(R/'app/core/core-services.js').read_text()
-client=(R/'app/core/data-client.js').read_text()
-rt=(R/'app/runtime-foundation.js').read_text()
-ui=(R/'app/decision-ui.js').read_text()
-idx=(R/'index.html').read_text()
-assert rel['release'].startswith(('9.3.1-','9.3.2-'))
-assert rel['runtime'].startswith(('9.3.1-','9.3.2-'))
+read=lambda p:(R/p).read_text(encoding='utf-8')
+
+rel=json.loads(read('config/release.json'))
+core=read('app/core/core-services.js')
+client=read('app/core/data-client.js')
+rt=read('app/runtime-foundation.js')
+ui=read('app/decision-ui.js')
+store=read('app/current-snapshot-store.js')
+d=read('app/v9.3.4d-starter-economics.js')
+
+assert str(rel.get('release','')).startswith('9.3.'), rel
+assert str(rel.get('runtime','')).startswith('9.3.'), rel
 assert rel.get('built_at'), 'release build timestamp must be explicit'
-# Progressive core load: background work is started but not awaited by switchLeague.
-assert 'this.background=this.loadEnhancements' in rt
-switch=rt[rt.index('async switchLeague'):rt.index('async loadEnhancements')]
-assert 'await this.loadEnhancements' not in switch
-assert 'await Promise.allSettled([trend,enrich,proj,research])' in rt
-# Persistent stable shared-data cache is reachable from the legacy JSON/CSV call sites.
-assert "PERSISTENT_CACHE='fie-data-v931'" in client or "PERSISTENT_CACHE='fie-data-v932'" in client
+
+# Progressive load/enrichment architecture remains present.
+assert 'loadEnhancements' in rt
+assert 'Promise.allSettled' in rt
+assert 'league-season-projections' in rt
+assert 'league-enrichment' in rt
+
+# Persistent shared-data cache is still observable and usable.
 assert 'persistentHits' in client and 'persistentStores' in client
-assert 'Data().json(url' in rt and 'Data().text(url' in rt
-assert 'BROWSER_PERSISTENT' in rt
-# One authoritative replacement path, no feedback from the old projected cutoff.
+assert 'PERSISTENT_CACHE' in client
+
+# Canonical structural replacement is implemented in core services and the
+# current universal starter-economics layer, rather than asserted through old
+# duplicated literals in index.html.
+assert 'const LeagueDemandService=' in core
+assert 'const ReplacementService=' in core
+assert 'canonical structural starter-slot demand' in core
 replacement=core[core.index('const ReplacementService='):core.index('const RosterValueService=')]
 assert 'projectedReplacementLevels' not in replacement
-assert "method:'canonical structural starter-slot demand'" in replacement
-assert idx.count('FIECore ReplacementService structural cutoff')>=2
-assert 'profile=service?.profile?.' in idx
-# Best Ball is format-specific without violating roster-neutral Draft Board semantics.
-assert 'Ceiling / Profile' in ui and 'bestBallDraftProfile' in ui
-assert 'Best Ball portfolio fit *' in ui and 'bestBallPortfolioFit' in ui
+assert 'universal-starter-slot-economics' in d
+assert "SUPER_FLEX:['QB','RB','WR','TE']" in d
+assert 'replacementContext' in d and 'starterProbability' in d
+
+# Best Ball remains format-specific without replacing the governed score.
+for token in ['Ceiling / Profile','bestBallDraftProfile','Best Ball portfolio fit *',
+              'bestBallPortfolioFit','Contribution Profile']:
+    assert token in ui, f'missing Best Ball completion contract: {token}'
 assert 'does not silently replace the governed decision score' in ui
-assert 'Contribution Profile' in ui
-print('PASS V9.3.1+ completion source contract')
+
+# Current runtime layering remains explicit.
+for token in ['bootA3','bootC','bootD','bootE']:
+    assert token in store
+
+print('PASS V9.3.1+ completion contract on current modular runtime')

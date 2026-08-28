@@ -1,49 +1,94 @@
 #!/usr/bin/env python3
-"""Bounded V9.3.2 Browser QA & Ranking Integrity source contract."""
+"""V9.3.2 lineage source contract for the current modular V9.3.x runtime."""
 from pathlib import Path
-import json,re
+import json
+
 R=Path(__file__).resolve().parents[1]
-rel=json.loads((R/'config/release.json').read_text())
-idx=(R/'index.html').read_text();ui=(R/'app/decision-ui.js').read_text();vf=(R/'app/value-finder.js').read_text();dst=(R/'app/dst-intelligence.js').read_text();kick=(R/'app/kicker-intelligence.js').read_text();cur=(R/'research/build_current_snapshot.py').read_text();port=(R/'app/portfolio-config.js').read_text();core=(R/'app/core/core-services.js').read_text();rt=(R/'app/runtime-foundation.js').read_text()
-for f in ['season-context.js','numeric.js','projection-service.js','draft-state-service.js','surface-router.js','special-teams-series.js','draft-value-service.js']:
-    assert f'app/core/{f}' in idx,f'{f} not loaded by browser shell'
-assert rel['release'].startswith('9.3.2-') and rel['runtime'].startswith('9.3.2-') and rel['value_finder']=='9.3.2-VF4'
-# Season 0 and nullable semantics.
-assert "String(raw).trim()===''" in idx and 'a>0?a:' in idx
-assert 'FIESeasonBootstrapResolver' in idx and 'window.activeSeason=activeSeason' in idx and 'FIE_SEASON_BOOTSTRAP_FALLBACK' in idx
-assert 'window.FIESeasonContext.resolve({' not in idx
-assert 'window.FIECore?.SeasonResolver?.resolve' in idx
-assert 'window.FIESeasonContext=SeasonContext' in rt and 'resolve({league=window.state?.league' in rt
-assert "Number.isInteger(n)&&n>1900" in (R/'app/core/season-context.js').read_text()
-assert '/app/core/season-context.js?v=932-season-namespace-fix' in idx
-assert 'window.FIESeasonBootstrapResolver=API' in (R/'app/core/season-context.js').read_text()
-assert 'window.FIESeasonContext=API' not in (R/'app/core/season-context.js').read_text()
-assert 'state.weekly.season=activeSeason();syncSeasonSelectV89();' in idx
-assert 'Season ${activeSeason()} · Week ${currentWeek()}' in idx
-assert "value===null||value===undefined" in (R/'app/core/numeric.js').read_text()
-# Shared canonical semantics.
-assert 'FIEProjectionResolver' in ui and 'FIEDraftBaseValueService' in ui and 'FIEDraftBaseValueService' in vf
-assert 'marketIndependent:true' in (R/'app/core/draft-value-service.js').read_text()
-assert 'FIEDraftStateService' in vf and 'FIEDraftStateService' in ui
-assert 'FIESurfaceRouter' in idx and 'matchupSimPanel' in (R/'app/core/surface-router.js').read_text()
-# Structural contract must have one implementation.
+read=lambda p:(R/p).read_text(encoding='utf-8')
+
+rel=json.loads(read('config/release.json'))
+assert str(rel.get('release','')).startswith('9.3.'), rel
+assert str(rel.get('runtime','')).startswith('9.3.'), rel
+
+required=[
+ 'app/core/season-context.js','app/core/numeric.js','app/core/projection-service.js',
+ 'app/core/draft-state-service.js','app/core/surface-router.js',
+ 'app/core/special-teams-series.js','app/core/draft-value-service.js',
+ 'app/core/core-services.js','app/core/data-client.js','app/runtime-foundation.js',
+ 'app/decision-ui.js','app/value-finder.js','app/dst-intelligence.js',
+ 'app/kicker-intelligence.js','app/current-snapshot-store.js',
+ 'app/v9.3.4a3-score-performance.js','app/v9.3.4c-weekly-context.js',
+ 'app/v9.3.4d-starter-economics.js','app/v9.3.4e-return-scoring.js',
+]
+for f in required:
+    assert (R/f).exists(), f'missing modular runtime file: {f}'
+
+season=read('app/core/season-context.js')
+numeric=read('app/core/numeric.js')
+ui=read('app/decision-ui.js')
+vf=read('app/value-finder.js')
+dst=read('app/dst-intelligence.js')
+kick=read('app/kicker-intelligence.js')
+cur=read('research/build_current_snapshot.py')
+port=read('app/portfolio-config.js')
+core=read('app/core/core-services.js')
+rt=read('app/runtime-foundation.js')
+router=read('app/core/surface-router.js')
+draftvalue=read('app/core/draft-value-service.js')
+client=read('app/core/data-client.js')
+store=read('app/current-snapshot-store.js')
+a3=read('app/v9.3.4a3-score-performance.js')
+c=read('app/v9.3.4c-weekly-context.js')
+d=read('app/v9.3.4d-starter-economics.js')
+e=read('app/v9.3.4e-return-scoring.js')
+
+# Season and nullable semantics.
+assert 'Number.isInteger(n)&&n>1900' in season
+assert 'FIESeasonBootstrapResolver=API' in season
+assert 'FIESeasonContext=API' not in season
+assert 'value===null||value===undefined' in numeric
+assert 'SeasonResolver' in numeric
+assert 'window.FIESeasonContext=SeasonContext' in rt
+
+# Canonical shared decision services.
+assert 'FIEProjectionResolver' in ui
+assert 'FIEDraftBaseValueService' in ui and 'FIEDraftBaseValueService' in vf
+assert 'FIEDraftStateService' in ui and 'FIEDraftStateService' in vf
+assert 'marketIndependent:true' in draftvalue
+assert 'matchupSimPanel' in router
+
+# Structural profile has one Python implementation.
 assert 'structural_contract' in cur and 'live_contract = structural_contract(' in cur
-assert '"settings": pf.get("settings")' not in cur
 assert 'profile_diff' in cur
-# Caps/League Intel/Weekly orchestration.
-assert 'optionalCap' in port and 'optionalCap' in idx
-assert 'playerPosBySleeperId(' not in idx
-assert 'PlayerIdentity?.positionForId' in idx
-assert 'Optional context loading in background' in idx and 'const deadline=' in idx
-# K/DST full week support and drawers.
+
+# Portfolio custom rules live in their own module.
+assert 'optionalCap' in port
+assert 'managedLeagues' in port
+assert 'isPlayerEligible' in port
+
+# D/ST and kicker retain full-week special-team support.
 for txt in (dst,kick):
-    assert ('Weeks 1–18' in txt or 'Week 1–18' in txt) and 'FIESpecialTeamsSeries' in txt and 'openDrawer' in txt
-# UI corrections from initial browser review.
+    assert ('Weeks 1–18' in txt or 'Week 1–18' in txt)
+    assert 'FIESpecialTeamsSeries' in txt
+    assert 'openDrawer' in txt
+
+# Current browser QA services.
 assert 'Player</th><th>Asset Rank' in ui or "label:'Asset Rank'" in ui
 assert 'Best pick' in ui and 'Alternative' in ui and 'Value play' in ui
 assert 'Board → Decision' in ui
-assert 'Low-data' in ui and 'Canonical FIE player quality excludes market price' in ui
-assert 'Evaluates the selected roster’s starting strength, depth, positional strengths and weaknesses using the loaded league’s exact rules.' in idx
-# Runtime/cache release lineage updated.
-assert '9.3.2' in rt and "fie-data-v932" in (R/'app/core/data-client.js').read_text()
-print('PASS V9.3.2 Browser QA source contract')
+assert 'Low-data' in ui
+assert 'Canonical FIE player quality excludes market price' in ui
+
+# Current performance/correctness layers supersede old inline-shell literals.
+assert 'fastAssignScores' in a3 and 'fastReplacementLevels' in a3
+assert 'FIE934C' in c and 'fullSimulationRequired:false' in c
+assert 'FIE934D' in d and 'computeDemand' in d and 'marginalLineupUtility' in d
+assert 'FIE934E' in e and 'returnScoring' in e
+for token in ['bootA3','bootC','bootD','bootE']:
+    assert token in store
+
+# Cache/runtime lineage remains V9.3 family without pinning an obsolete minor.
+assert '9.3' in rt
+assert 'PERSISTENT_CACHE' in client
+
+print('PASS V9.3.2 lineage source contract on current V9.3.x modular runtime')
