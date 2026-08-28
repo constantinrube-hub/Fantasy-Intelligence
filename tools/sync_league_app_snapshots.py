@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy generated compact league app snapshots into an already-built dist tree."""
+"""Copy generated compact league app snapshots and shared fast inputs into dist."""
 from __future__ import annotations
 import argparse, shutil
 from pathlib import Path
@@ -22,11 +22,16 @@ def main():
     dist=ROOT/a.dist
     if not dist.exists(): raise SystemExit(f'dist tree missing: {dist}')
     inject_calibration(dist)
-    index=ROOT/'data/research/app/league-index.json'
+    app_data=ROOT/'data/research/app'
+    index=app_data/'league-index.json'
     if not index.exists():
         print('No league app index yet; fast-switch artifacts skipped.')
         return
     copy(index,dist/'data/research/app/league-index.json')
+    catalog=app_data/'player-catalog.json'
+    if not catalog.exists():
+        raise SystemExit('Shared player-catalog.json missing: cold-load fast path cannot be deployed')
+    copy(catalog,dist/'data/research/app/player-catalog.json')
     count=0
     leagues=ROOT/'data/research/leagues'
     if leagues.exists():
@@ -36,5 +41,5 @@ def main():
                 src=d/name
                 if src.exists(): copy(src,dist/'data/research/leagues'/d.name/name)
             if (d/'app/core.json').exists(): count+=1
-    print(f'Synced {count} league fast-switch snapshots into {dist.relative_to(ROOT)}')
+    print(f'Synced {count} league fast-switch snapshots + shared player catalog into {dist.relative_to(ROOT)}')
 if __name__=='__main__':main()

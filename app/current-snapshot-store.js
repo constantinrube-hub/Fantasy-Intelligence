@@ -1,11 +1,11 @@
-/* FIE 9.3.3A-C · shared current-snapshot storage hydrator.
+/* FIE 9.3.4A-B · shared current-snapshot storage hydrator.
  * V9.3.3A fixes missing projection semantics: absent overlays remain null,
  * never synthetic zeroes. V9.3.3C also rejects degenerate shared D/ST/K
  * uncertainty templates so they cannot be presented as empirical P10/P90.
  */
 (function(){
 'use strict';
-const VERSION='9.3.3A-C';
+const VERSION='9.3.4A-B';
 const FORMAT='fie-current-split-v1';
 const cache=new Map();
 function q(path,force){return `${path}${force?`${String(path).includes('?')?'&':'?'}t=${Date.now()}`:''}`;}
@@ -59,13 +59,13 @@ async function load(path,{force=false,fetchResponse=null,sourceId='research-arti
 function clear(){cache.clear();}
 window.FIECurrentSnapshotStore={VERSION,FORMAT,load,clear,sanitizeUncertainty};
 
-/* Load the V9.3.3A-C compatibility/runtime patch without editing the very large
+/* Load the V9.3.4A-B compatibility/runtime patch without editing the very large
  * generated application shell. Static scripts have completed by DOMContentLoaded,
  * so this module can safely wrap final renderers and services afterwards. */
 function boot933(){
   if(document.querySelector('script[data-fie933-runtime]'))return;
-  const s=document.createElement('script');s.src='app/v9.3.3-runtime-integrity.js?v=9.3.3';s.async=false;s.dataset.fie933Runtime='1';
-  s.onerror=()=>console.error('FIE V9.3.3 runtime integrity module failed to load');
+  const s=document.createElement('script');s.src='app/v9.3.3-runtime-integrity.js?v=9.3.4';s.async=false;s.dataset.fie933Runtime='1';
+  s.onerror=()=>console.error('FIE V9.3.4 runtime integrity module failed to load');
   (document.head||document.documentElement).appendChild(s);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot933,{once:true});else setTimeout(boot933,0);
