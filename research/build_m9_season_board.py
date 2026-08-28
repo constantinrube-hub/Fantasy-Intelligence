@@ -133,8 +133,8 @@ def model_scoring_coverage(targets: List[str], scoring: dict, pos: str, return_t
     relevant={
         'QB': {'pass_yd','pass_td','pass_int','pass_cmp','pass_att','pass_2pt','pass_fd','rush_yd','rush_td','rush_att','rush_2pt','rush_fd','fum_lost'},
         'RB': {'rush_yd','rush_td','rush_att','rush_2pt','rush_fd','rec','rec_yd','rec_td','rec_tgt','rec_2pt','rec_fd','fum_lost','bonus_rec_rb','rec_rb'},
-        'WR': {'rush_yd','rush_td','rush_att','rec','rec_yd','rec_td','rec_tgt','rec_2pt','rec_fd','fum_lost','bonus_rec_wr','rec_wr'},
-        'TE': {'rec','rec_yd','rec_td','rec_tgt','rec_2pt','rec_fd','fum_lost','bonus_rec_te','rec_te'},
+        'WR': {'rush_yd','rush_td','rush_att','rush_2pt','rush_fd','rec','rec_yd','rec_td','rec_tgt','rec_2pt','rec_fd','fum_lost','bonus_rec_wr','rec_wr'},
+        'TE': {'rush_yd','rush_td','rush_att','rush_2pt','rush_fd','rec','rec_yd','rec_td','rec_tgt','rec_2pt','rec_fd','fum_lost','bonus_rec_te','rec_te'},
     }.get(pos,set())
     active=[]
     for k,v in scoring.items():

@@ -29,6 +29,62 @@ from fie_m7 import OFFENSE_POSITIONS, DRIVER_CATALOG, add_derived_driver_feature
 from statistical_guardrails import promotion_gate
 
 
+# M9 season projection must cover every material offensive scoring outcome for
+# the position before the board may claim exact league-scoring replay.  Keep
+# these additions local to M9 so the validated M1-M8 weekly stack and checkpoint
+# remain unchanged.
+SEASON_EXTRA_TARGETS: Dict[str, Dict[str, Sequence[str]]] = {
+    "QB": {
+        "passing_2pt_conversions": ["passing_2pt_conversions"],
+        "rushing_2pt_conversions": ["rushing_2pt_conversions"],
+        "fumbles_lost": ["fumbles_lost"],
+    },
+    "RB": {
+        "rushing_2pt_conversions": ["rushing_2pt_conversions"],
+        "receiving_2pt_conversions": ["receiving_2pt_conversions"],
+        "fumbles_lost": ["fumbles_lost"],
+    },
+    "WR": {
+        "rushing_yards": ["rushing_yards"],
+        "rushing_tds": ["rushing_tds"],
+        "rushing_2pt_conversions": ["rushing_2pt_conversions"],
+        "receiving_2pt_conversions": ["receiving_2pt_conversions"],
+        "fumbles_lost": ["fumbles_lost"],
+    },
+    "TE": {
+        "rushing_yards": ["rushing_yards"],
+        "rushing_tds": ["rushing_tds"],
+        "rushing_2pt_conversions": ["rushing_2pt_conversions"],
+        "receiving_2pt_conversions": ["receiving_2pt_conversions"],
+        "fumbles_lost": ["fumbles_lost"],
+    },
+}
+
+
+def _season_target_catalog(pos: str) -> Dict[str, Sequence[str]]:
+    out = {str(k): list(v) for k, v in (RAW_TARGETS.get(pos, {}) or {}).items()}
+    for k, v in (SEASON_EXTRA_TARGETS.get(pos, {}) or {}).items():
+        out[str(k)] = list(v)
+    return out
+
+
+def add_scoring_completion_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Canonicalize sparse scoring outcomes already present in nflverse history.
+
+    nflverse can split fumbles lost by play type.  FIE's score_rows already knows
+    how to sum those fields; the season model needs the same total as one target.
+    No value is fabricated: absent source columns remain absent/NaN.
+    """
+    d = df.copy()
+    if "fumbles_lost" not in d.columns or pd.to_numeric(d.get("fumbles_lost"), errors="coerce").notna().sum() == 0:
+        split = [c for c in ["rushing_fumbles_lost", "receiving_fumbles_lost", "sack_fumbles_lost"] if c in d.columns]
+        if split:
+            vals = [pd.to_numeric(d[c], errors="coerce") for c in split]
+            present = pd.concat([v.notna() for v in vals], axis=1).any(axis=1)
+            total = sum((v.fillna(0.0) for v in vals), start=pd.Series(0.0, index=d.index))
+            d["fumbles_lost"] = total.where(present, np.nan)
+    return d
+
 def _first(df: pd.DataFrame, names: Sequence[str]) -> Optional[str]:
     for x in names:
         if x in df.columns and pd.to_numeric(df[x], errors="coerce").notna().any():
@@ -57,7 +113,7 @@ def _driver_features(df: pd.DataFrame, pos: str) -> List[str]:
 
 def _targets(df: pd.DataFrame, pos: str) -> Dict[str, str]:
     out = {}
-    for canonical, aliases in RAW_TARGETS.get(pos, {}).items():
+    for canonical, aliases in _season_target_catalog(pos).items():
         c = _first(df, aliases)
         if c:
             out[canonical] = c
@@ -65,7 +121,8 @@ def _targets(df: pd.DataFrame, pos: str) -> Dict[str, str]:
 
 
 def build_transition_table(df: pd.DataFrame, pos: str) -> Tuple[pd.DataFrame, List[str], Dict[str, str]]:
-    d = add_derived_driver_features(df[df.position_model.eq(pos)].copy())
+    d = add_scoring_completion_columns(df[df.position_model.eq(pos)].copy())
+    d = add_derived_driver_features(d)
     if d.empty:
         return pd.DataFrame(), [], {}
     features = _driver_features(d, pos)
@@ -115,7 +172,8 @@ def validate_preseason(df: pd.DataFrame, scoring: dict) -> dict:
     for pos in OFFENSE_POSITIONS:
         trans, features, targets = build_transition_table(df, pos)
         # Also save the most recent profile whether or not the model clears.
-        dpos = add_derived_driver_features(df[df.position_model.eq(pos)].copy())
+        dpos = add_scoring_completion_columns(df[df.position_model.eq(pos)].copy())
+        dpos = add_derived_driver_features(dpos)
         if not dpos.empty:
             max_season = int(pd.to_numeric(dpos.season, errors="coerce").max())
             for pid, g in dpos[dpos.season.eq(max_season)].sort_values("week").groupby("canonical_player_id"):
