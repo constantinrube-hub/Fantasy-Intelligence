@@ -167,7 +167,7 @@ def _score_stat_frame(values: Dict[str, np.ndarray], pos: str, scoring: dict, n:
 
 
 def validate_preseason(df: pd.DataFrame, scoring: dict) -> dict:
-    folds = []; specs = {}; latest_profiles = []; residuals_by_pos: Dict[str, List[float]] = {}
+    folds = []; specs = {}; diagnostic_specs = {}; latest_profiles = []; residuals_by_pos: Dict[str, List[float]] = {}
     per_position = {}
     for pos in OFFENSE_POSITIONS:
         trans, features, targets = build_transition_table(df, pos)
@@ -233,22 +233,32 @@ def validate_preseason(df: pd.DataFrame, scoring: dict) -> dict:
                "bootstrap_ci95_low": gate.get("ci95_low"), "bootstrap_ci95_high": gate.get("ci95_high")}
         per_position[pos] = agg
 
-        if agg["status"] == "validated_candidate":
-            target_specs = []
-            for canonical in targets:
-                target_col = f"target__{canonical}"; prev_col = f"prev__{canonical}"
-                if target_col not in trans or pd.to_numeric(trans[target_col], errors="coerce").notna().sum() < 50:
-                    continue
-                fs = list(dict.fromkeys(["prev_fantasy_ppg", prev_col] + [f for f in features if f in trans]))
-                z = trans.dropna(subset=[target_col]).copy()
-                m = _model(); m.fit(z[fs], pd.to_numeric(z[target_col], errors="coerce"))
-                imp, sc, reg = m.named_steps["impute"], m.named_steps["scale"], m.named_steps["ridge"]
-                target_specs.append({"target": canonical, "features": fs, "imputer_medians": [float(x) for x in imp.statistics_],
-                                     "scaler_mean": [float(x) for x in sc.mean_], "scaler_scale": [float(x) if x else 1.0 for x in sc.scale_],
-                                     "coefficients": [float(x) for x in reg.coef_], "intercept": float(reg.intercept_),
-                                     "prediction_floor": 0.0, "n_train": int(len(z))})
-            specs[pos] = {"targets": target_specs, "gate": agg, "profile_features": features,
-                          "semantics": "prior-season profile -> next-season per-game raw football outcomes"}
+        # Always serialize an auditable shadow/diagnostic specification when the
+        # year-to-year sample is large enough to estimate it.  The production
+        # `model_specs` dictionary remains strictly gated; diagnostic specs never
+        # gain activation rights merely by existing.
+        target_specs = []
+        for canonical in targets:
+            target_col = f"target__{canonical}"; prev_col = f"prev__{canonical}"
+            if target_col not in trans or pd.to_numeric(trans[target_col], errors="coerce").notna().sum() < 50:
+                continue
+            fs = list(dict.fromkeys(["prev_fantasy_ppg", prev_col] + [f for f in features if f in trans]))
+            z = trans.dropna(subset=[target_col]).copy()
+            if len(z) < 50:
+                continue
+            m = _model(); m.fit(z[fs], pd.to_numeric(z[target_col], errors="coerce"))
+            imp, sc, reg = m.named_steps["impute"], m.named_steps["scale"], m.named_steps["ridge"]
+            target_specs.append({"target": canonical, "features": fs, "imputer_medians": [float(x) for x in imp.statistics_],
+                                 "scaler_mean": [float(x) for x in sc.mean_], "scaler_scale": [float(x) if x else 1.0 for x in sc.scale_],
+                                 "coefficients": [float(x) for x in reg.coef_], "intercept": float(reg.intercept_),
+                                 "prediction_floor": 0.0, "n_train": int(len(z))})
+        if target_specs:
+            shadow = {"targets": target_specs, "gate": agg, "profile_features": features,
+                      "semantics": "market-comparison shadow model: prior-season profile -> next-season per-game raw football outcomes",
+                      "activation_eligible": agg["status"] == "validated_candidate"}
+            diagnostic_specs[pos] = shadow
+            if agg["status"] == "validated_candidate":
+                specs[pos] = shadow
 
     residual_cal = {}
     for pos, vals in residuals_by_pos.items():
@@ -258,8 +268,10 @@ def validate_preseason(df: pd.DataFrame, scoring: dict) -> dict:
                                  "q10": float(np.quantile(a,.10)), "q25": float(np.quantile(a,.25)), "q50": float(np.quantile(a,.50)),
                                  "q75": float(np.quantile(a,.75)), "q90": float(np.quantile(a,.90))}
     return {"folds": folds, "aggregate": per_position, "model_specs": specs,
+            "diagnostic_model_specs": diagnostic_specs,
             "latest_profiles": latest_profiles, "oos_residual_calibration": residual_cal,
-            "activation_status": "POSITION_SPEC_AVAILABLE" if specs else "DIAGNOSTIC_ONLY"}
+            "activation_status": "POSITION_SPEC_AVAILABLE" if specs else "DIAGNOSTIC_ONLY",
+            "diagnostic_semantics": "Shadow specs are serialized for market-relative explanation even when a position fails the production gate. They never activate runtime projections unless the corresponding production model_specs gate also clears."}
 
 
 def write_latest_profiles(rows: List[dict], derived_dir: str) -> Optional[str]:
