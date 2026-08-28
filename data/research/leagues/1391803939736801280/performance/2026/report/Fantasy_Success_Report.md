@@ -113,80 +113,126 @@ This report is fail-closed. A player uses the independent FIE preseason projecti
 
 | Player | Sleeper rank | FIE rank | Edge | Projection | P10 | P50 | P90 | Confidence | Source | Why |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
-| Ja'Marr Chase | 1 | 2 | — | 311.1 | 279.3 | 310.6 | 343.5 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Puka Nacua | 2 | 1 | — | 312.5 | 280.0 | 312.5 | 344.7 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Jaxon Smith-Njigba | 3 | 3 | — | 284.6 | 253.3 | 284.4 | 316.6 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Amon-Ra St. Brown | 4 | 4 | — | 280.5 | 248.6 | 280.1 | 313.1 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| CeeDee Lamb | 5 | 5 | — | 270.5 | 239.0 | 270.1 | 302.6 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Justin Jefferson | 6 | 7 | — | 250.4 | 218.8 | 250.4 | 281.8 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Drake London | 7 | 8 | — | 250.2 | 219.3 | 249.6 | 281.6 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| A.J. Brown | 8 | 9 | — | 247.2 | 216.4 | 246.7 | 278.6 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| George Pickens | 9 | 10 | — | 245.7 | 214.7 | 245.5 | 277.3 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Nico Collins | 10 | 6 | — | 262.0 | 229.8 | 261.8 | 293.7 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Malik Nabers | 11 | 11 | — | 236.7 | 205.8 | 236.3 | 268.3 | 63% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Rashee Rice | 12 | 13 | — | 229.3 | 197.7 | 229.1 | 260.7 | 64% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Chris Olave | 13 | 12 | — | 235.9 | 204.6 | 235.8 | 267.8 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Tee Higgins | 14 | 18 | — | 224.4 | 193.2 | 224.2 | 256.3 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| DeVonta Smith | 15 | 14 | — | 229.2 | 198.2 | 228.9 | 261.3 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Tetairoa McMillan | 16 | 20 | — | 223.0 | 192.1 | 222.5 | 253.8 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Ladd McConkey | 17 | 16 | — | 228.2 | 197.4 | 227.7 | 259.7 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Emeka Egbuka | 18 | 19 | — | 224.0 | 192.8 | 223.7 | 255.4 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Zay Flowers | 19 | 15 | — | 228.2 | 196.5 | 228.2 | 259.7 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Garrett Wilson | 20 | 17 | — | 224.9 | 194.1 | 224.4 | 256.2 | 63% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Jaylen Waddle | 21 | 22 | — | 221.0 | 190.0 | 220.8 | 252.1 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Davante Adams | 22 | 31 | — | 192.5 | 161.4 | 192.2 | 223.9 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Luther Burden III | 23 | 25 | — | 209.0 | 178.5 | 208.3 | 240.3 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Terry McLaurin | 24 | 23 | — | 213.8 | 182.6 | 213.1 | 245.2 | 64% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| DJ Moore | 25 | 34 | — | 179.0 | 149.3 | 178.5 | 209.8 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Jameson Williams | 26 | 28 | — | 206.2 | 175.0 | 205.6 | 237.7 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Mike Evans | 27 | 21 | — | 222.2 | 191.0 | 221.7 | 253.4 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Rome Odunze | 28 | 26 | — | 207.9 | 177.1 | 207.2 | 239.3 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Carnell Tate | 29 | 36 | — | 177.3 | 147.3 | 176.9 | 208.4 | 62% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: no_validated_preseason_spec |
-| Christian Watson | 30 | 27 | — | 207.6 | 176.4 | 207.1 | 239.4 | 64% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Brian Thomas Jr. | 31 | 30 | — | 195.4 | 165.0 | 195.3 | 226.0 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| DK Metcalf | 32 | 33 | — | 183.3 | 153.1 | 182.7 | 214.5 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Marvin Harrison Jr. | 33 | 32 | — | 186.2 | 155.6 | 185.8 | 216.9 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Parker Washington | 34 | 24 | — | 212.4 | 181.7 | 211.9 | 243.7 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Courtland Sutton | 35 | 37 | — | 174.3 | 144.6 | 173.8 | 204.4 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
-| Michael Wilson | 36 | 47 | — | 166.0 | 135.8 | 165.4 | 196.3 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt/rush_td/rush_yd |
+| Ja'Marr Chase | 1 | 3 | -2 | 285.8 | 254.2 | 285.3 | 318.1 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +4.34 PPG; prev__receiving_yards +2.61 PPG; offense_snap_share_prior4 -0.18 PPG |
+| Puka Nacua | 2 | 1 | — | 312.5 | 280.0 | 312.5 | 344.7 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed |
+| Jaxon Smith-Njigba | 3 | 2 | 1 | 309.4 | 277.9 | 309.2 | 341.4 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +4.91 PPG; prev__receiving_yards +3.45 PPG; offense_snap_share_prior4 -0.17 PPG; opportunity_change_score_prior1 -0.11 PPG |
+| Amon-Ra St. Brown | 4 | 4 | 0 | 278.0 | 246.2 | 277.7 | 310.6 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +4.15 PPG; prev__receiving_yards +2.33 PPG; offense_snap_share_prior4 -0.19 PPG; opportunity_change_score_prior1 -0.16 PPG |
+| CeeDee Lamb | 5 | 10 | -5 | 232.8 | 201.7 | 232.3 | 264.6 | 93% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +2.85 PPG; prev__receiving_yards +2.35 PPG; offense_snap_share_prior4 -0.11 PPG; opportunity_change_score_prior1 -0.05 PPG |
+| Justin Jefferson | 6 | 19 | -13 | 196.7 | 166.3 | 196.4 | 227.4 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.55 PPG; prev__receiving_yards +1.33 PPG; offense_snap_share_prior4 -0.19 PPG |
+| Drake London | 7 | 7 | 0 | 242.2 | 211.4 | 241.5 | 273.5 | 93% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +3.34 PPG; prev__receiving_yards +2.05 PPG; offense_snap_share_prior4 -0.18 PPG |
+| A.J. Brown | 8 | 6 | — | 247.2 | 216.4 | 246.7 | 278.6 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed |
+| George Pickens | 9 | 9 | 0 | 238.5 | 207.5 | 238.2 | 270.1 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +3.46 PPG; prev__receiving_yards +2.41 PPG; offense_snap_share_prior4 -0.16 PPG; prev__rushing_yards -0.05 PPG |
+| Nico Collins | 10 | 14 | -4 | 219.8 | 188.3 | 219.4 | 251.1 | 93% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +2.71 PPG; prev__receiving_yards +1.95 PPG; xfp_residual_prior4 -0.13 PPG; offense_snap_share_prior4 -0.12 PPG |
+| Malik Nabers | 11 | 16 | -5 | 215.6 | 184.9 | 215.1 | 247.0 | 91% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +2.42 PPG; prev__receiving_yards +1.62 PPG; offense_snap_share_prior4 -0.21 PPG |
+| Rashee Rice | 12 | 5 | 7 | 264.6 | 232.3 | 264.5 | 296.1 | 92% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +4.04 PPG; prev__receiving_yards +1.80 PPG |
+| Chris Olave | 13 | 8 | 5 | 240.1 | 208.6 | 239.9 | 272.0 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +3.36 PPG; prev__receiving_yards +1.86 PPG; offense_snap_share_prior4 -0.16 PPG; receiving_competitor_count -0.12 PPG |
+| Tee Higgins | 14 | 23 | -9 | 189.3 | 158.9 | 189.0 | 220.6 | 93% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +2.36 PPG; prev__receiving_yards +1.07 PPG; xfp_residual_prior4 -0.14 PPG; offense_snap_share_prior4 -0.06 PPG |
+| DeVonta Smith | 15 | 27 | -12 | 180.7 | 150.8 | 180.1 | 211.9 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.55 PPG; prev__receiving_yards +1.21 PPG; receiving_competitor_count -0.16 PPG; offense_snap_share_prior4 -0.13 PPG |
+| Tetairoa McMillan | 16 | 25 | -9 | 185.8 | 155.6 | 185.3 | 216.1 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.80 PPG; prev__receiving_yards +1.23 PPG; offense_snap_share_prior4 -0.14 PPG; prev__rushing_yards -0.05 PPG |
+| Ladd McConkey | 17 | 39 | -22 | 167.3 | 137.9 | 166.6 | 197.6 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.35 PPG; prev__receiving_yards +0.73 PPG; offense_snap_share_prior4 -0.12 PPG; pfr_receiving_drop_pct_prior4 -0.08 PPG |
+| Emeka Egbuka | 18 | 31 | -13 | 178.7 | 148.6 | 178.3 | 209.2 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.42 PPG; prev__receiving_yards +1.02 PPG |
+| Zay Flowers | 19 | 11 | 8 | 226.5 | 194.7 | 226.4 | 257.9 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +2.43 PPG; prev__receiving_yards +1.79 PPG; xfp_residual_prior4 -0.15 PPG; offense_snap_share_prior4 -0.14 PPG |
+| Garrett Wilson | 20 | 15 | 5 | 215.6 | 184.9 | 215.1 | 246.8 | 91% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +2.40 PPG; target_share_prior4 +1.24 PPG; offense_snap_share_prior4 -0.20 PPG |
+| Jaylen Waddle | 21 | 13 | — | 221.0 | 190.0 | 220.8 | 252.1 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed |
+| Davante Adams | 22 | 21 | — | 192.5 | 161.4 | 192.2 | 223.9 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed |
+| Luther Burden III | 23 | 55 | -32 | 139.3 | 110.8 | 138.4 | 169.1 | 93% | FIE_M9_VALIDATED_PRESEASON | prev__receiving_yards +0.45 PPG; target_share_prior4 +0.43 PPG; opportunity_change_score_prior1 -0.13 PPG; xfp_residual_prior4 -0.11 PPG |
+| Terry McLaurin | 24 | 35 | -11 | 172.3 | 142.2 | 171.7 | 203.0 | 92% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.39 PPG; prev__receiving_yards +1.16 PPG; offense_snap_share_prior4 -0.11 PPG; opportunity_change_score_prior1 -0.10 PPG |
+| DJ Moore | 25 | 30 | — | 179.0 | 149.3 | 178.5 | 209.8 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed |
+| Jameson Williams | 26 | 22 | 4 | 189.4 | 158.7 | 188.8 | 220.7 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.94 PPG; prev__receiving_yards +1.52 PPG; offense_snap_share_prior4 -0.18 PPG; red_zone_target_share_prior4 -0.08 PPG |
+| Mike Evans | 27 | 12 | — | 222.2 | 191.0 | 221.7 | 253.4 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed |
+| Rome Odunze | 28 | 28 | 0 | 180.2 | 149.9 | 179.6 | 211.2 | 93% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.66 PPG; prev__receiving_yards +1.01 PPG; offense_snap_share_prior4 -0.15 PPG |
+| Carnell Tate | 29 | 32 | — | 177.3 | 147.3 | 176.9 | 208.4 | 62% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: no_validated_preseason_spec |
+| Christian Watson | 30 | 24 | 6 | 188.6 | 157.9 | 188.0 | 220.3 | 92% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +2.05 PPG; prev__receiving_yards +1.30 PPG; pfr_receiving_drop_pct_prior4 -0.08 PPG |
+| Brian Thomas Jr. | 31 | 47 | -16 | 153.7 | 124.4 | 153.3 | 183.4 | 93% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +0.85 PPG; prev__receiving_yards +0.79 PPG; offense_snap_share_prior4 -0.12 PPG; prev__receiving_tds -0.04 PPG |
+| DK Metcalf | 32 | 26 | 6 | 183.4 | 153.2 | 182.7 | 214.6 | 93% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.77 PPG; prev__receiving_yards +1.09 PPG; offense_snap_share_prior4 -0.15 PPG; pfr_receiving_drop_pct_prior4 -0.08 PPG |
+| Marvin Harrison Jr. | 33 | 41 | -8 | 165.6 | 135.7 | 165.1 | 195.8 | 93% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.11 PPG; prev__receiving_yards +0.80 PPG; offense_snap_share_prior4 -0.07 PPG |
+| Parker Washington | 34 | 40 | -6 | 167.2 | 137.6 | 166.6 | 197.5 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.25 PPG; prev__receiving_yards +0.91 PPG; xfp_residual_prior4 -0.08 PPG |
+| Courtland Sutton | 35 | 17 | 18 | 202.0 | 171.7 | 201.8 | 232.6 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.93 PPG; prev__receiving_yards +1.24 PPG; offense_snap_share_prior4 -0.14 PPG; opportunity_change_score_prior1 -0.11 PPG |
+| Michael Wilson | 36 | 20 | 16 | 193.6 | 162.6 | 193.1 | 224.5 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.95 PPG; prev__receiving_yards +1.21 PPG; offense_snap_share_prior4 -0.15 PPG; xfp_residual_prior4 -0.13 PPG |
 
 ### TE Top 24
 
 | Player | Sleeper rank | FIE rank | Edge | Projection | P10 | P50 | P90 | Confidence | Source | Why |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
-| Trey McBride | 1 | 2 | — | 234.9 | 209.0 | 234.5 | 261.2 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Brock Bowers | 2 | 1 | — | 253.5 | 228.4 | 253.3 | 279.1 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Colston Loveland | 3 | 3 | — | 215.4 | 190.3 | 215.1 | 240.7 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Tyler Warren | 4 | 4 | — | 201.1 | 176.2 | 200.8 | 226.4 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Sam LaPorta | 5 | 5 | — | 196.5 | 171.5 | 196.3 | 221.7 | 64% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Tucker Kraft | 6 | 7 | — | 174.4 | 149.4 | 174.0 | 199.8 | 64% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Harold Fannin Jr. | 7 | 6 | — | 180.4 | 155.4 | 180.1 | 205.2 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Kyle Pitts | 8 | 8 | — | 171.6 | 146.8 | 171.6 | 196.5 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Dalton Kincaid | 9 | 11 | — | 163.6 | 138.9 | 163.3 | 188.4 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| George Kittle | 10 | 10 | — | 169.3 | 144.6 | 169.1 | 194.2 | 64% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Travis Kelce | 11 | 9 | — | 171.4 | 146.5 | 171.3 | 196.3 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Jake Ferguson | 12 | 14 | — | 159.8 | 134.8 | 159.6 | 185.0 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Isaiah Likely | 13 | 15 | — | 157.3 | 132.9 | 156.9 | 181.7 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed; scoring gaps: fum_lost/rec_2pt |
-| Dallas Goedert | 14 | 23 | — | 136.0 | 111.9 | 135.8 | 160.5 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Oronde Gadsden II | 15 | 21 | — | 141.8 | 117.7 | 141.7 | 166.3 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Mark Andrews | 16 | 12 | — | 162.5 | 137.5 | 162.1 | 187.9 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Hunter Henry | 17 | 17 | — | 153.5 | 128.9 | 153.0 | 178.6 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Brenton Strange | 18 | 13 | — | 161.0 | 136.2 | 160.9 | 185.8 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Kenyon Sadiq | 19 | 31 | — | 100.2 | 77.7 | 99.6 | 123.4 | 62% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: no_validated_preseason_spec |
-| T.J. Hockenson | 20 | 16 | — | 155.0 | 130.6 | 154.7 | 179.8 | 65% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| AJ Barner | 21 | 20 | — | 142.4 | 118.4 | 142.4 | 167.1 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Chig Okonkwo | 22 | 19 | — | 144.1 | 120.3 | 143.9 | 168.4 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed; scoring gaps: fum_lost/rec_2pt |
-| Juwan Johnson | 23 | 22 | — | 140.9 | 116.6 | 140.5 | 165.5 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
-| Dalton Schultz | 24 | 18 | — | 150.9 | 126.6 | 150.6 | 175.3 | 66% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: fum_lost/rec_2pt |
+| Trey McBride | 1 | 1 | 0 | 253.3 | 227.3 | 252.9 | 279.7 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +2.70 PPG; prev_fantasy_ppg +2.31 PPG; opportunity_change_score_prior1 -0.73 PPG |
+| Brock Bowers | 2 | 4 | -2 | 201.7 | 176.8 | 201.5 | 227.1 | 93% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +1.70 PPG; prev_fantasy_ppg +1.64 PPG |
+| Colston Loveland | 3 | 19 | -16 | 145.6 | 121.6 | 145.1 | 170.0 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +1.18 PPG; prev__receiving_yards +1.04 PPG; receiving_competition_index_prior4 -0.31 PPG; opportunity_change_score_prior1 -0.29 PPG |
+| Tyler Warren | 4 | 7 | -3 | 183.9 | 159.1 | 183.6 | 209.1 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +1.51 PPG; prev__receiving_yards +1.19 PPG |
+| Sam LaPorta | 5 | 8 | -3 | 176.3 | 151.5 | 176.1 | 201.3 | 92% | FIE_M9_VALIDATED_PRESEASON | prev__receiving_yards +1.47 PPG; target_share_prior4 +1.43 PPG; xfp_residual_prior4 -0.17 PPG |
+| Tucker Kraft | 6 | 6 | 0 | 189.3 | 164.1 | 189.0 | 215.0 | 92% | FIE_M9_VALIDATED_PRESEASON | prev__receiving_yards +1.77 PPG; prev_fantasy_ppg +1.63 PPG; opportunity_change_score_prior1 -0.30 PPG |
+| Harold Fannin Jr. | 7 | 5 | 2 | 191.2 | 166.0 | 191.0 | 216.1 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +2.40 PPG; prev_fantasy_ppg +1.12 PPG; opportunity_change_score_prior1 -0.41 PPG |
+| Kyle Pitts | 8 | 3 | 5 | 205.5 | 180.2 | 205.5 | 230.8 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +2.26 PPG; prev__receiving_yards +1.48 PPG; xfp_residual_prior4 -0.18 PPG |
+| Dalton Kincaid | 9 | 23 | -14 | 129.3 | 105.7 | 128.8 | 153.4 | 93% | FIE_M9_VALIDATED_PRESEASON | prev__receiving_yards +1.17 PPG; prev_fantasy_ppg +0.92 PPG; offense_snap_share_prior4 -0.19 PPG; red_zone_target_share_prior4 -0.11 PPG |
+| George Kittle | 10 | 2 | 8 | 212.2 | 186.8 | 212.0 | 237.3 | 92% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +2.26 PPG; prev_fantasy_ppg +1.64 PPG |
+| Travis Kelce | 11 | 10 | 1 | 171.3 | 146.4 | 171.2 | 196.2 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +1.73 PPG; prev__receiving_yards +1.28 PPG; opportunity_change_score_prior1 -0.38 PPG |
+| Jake Ferguson | 12 | 13 | -1 | 157.9 | 133.0 | 157.7 | 183.0 | 94% | FIE_M9_VALIDATED_PRESEASON | prev_fantasy_ppg +1.01 PPG; opportunity_change_score_prior1 +0.99 PPG |
+| Isaiah Likely | 13 | 14 | — | 157.3 | 132.9 | 156.9 | 181.7 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed |
+| Dallas Goedert | 14 | 12 | 2 | 164.7 | 139.7 | 164.5 | 189.7 | 93% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +1.71 PPG; prev_fantasy_ppg +1.24 PPG; opportunity_change_score_prior1 -0.86 PPG |
+| Oronde Gadsden II | 15 | 18 | -3 | 146.2 | 121.9 | 146.1 | 170.7 | 93% | FIE_M9_VALIDATED_PRESEASON | prev__receiving_yards +1.02 PPG; target_share_prior4 +0.63 PPG |
+| Mark Andrews | 16 | 28 | -12 | 124.8 | 101.0 | 124.4 | 149.5 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +1.31 PPG; prev_fantasy_ppg +0.43 PPG; opportunity_change_score_prior1 -0.10 PPG |
+| Hunter Henry | 17 | 15 | 2 | 157.2 | 132.5 | 156.7 | 182.4 | 94% | FIE_M9_VALIDATED_PRESEASON | prev__receiving_yards +1.06 PPG; prev_fantasy_ppg +0.92 PPG |
+| Brenton Strange | 18 | 21 | -3 | 141.3 | 117.0 | 141.1 | 165.8 | 93% | FIE_M9_VALIDATED_PRESEASON | prev__receiving_yards +1.05 PPG; target_share_prior4 +0.87 PPG; pfr_receiving_drop_pct_prior4 -0.24 PPG; opportunity_change_score_prior1 -0.11 PPG |
+| Kenyon Sadiq | 19 | 37 | — | 100.2 | 77.7 | 99.6 | 123.4 | 62% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; scoring gaps: no_validated_preseason_spec |
+| T.J. Hockenson | 20 | 27 | -7 | 127.9 | 104.4 | 127.5 | 152.1 | 93% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +1.33 PPG; prev_fantasy_ppg +0.40 PPG; opportunity_change_score_prior1 -0.26 PPG |
+| AJ Barner | 21 | 26 | -5 | 128.2 | 104.6 | 128.2 | 152.4 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +0.76 PPG; prev_fantasy_ppg +0.60 PPG; opportunity_change_score_prior1 -0.30 PPG |
+| Chig Okonkwo | 22 | 20 | — | 144.1 | 120.3 | 143.9 | 168.4 | 55% | MARKET_FALLBACK | market fallback: preseason FIE gate/player profile unavailable; team change: prior-team role features fail closed |
+| Juwan Johnson | 23 | 11 | 12 | 165.0 | 140.2 | 164.7 | 190.0 | 94% | FIE_M9_VALIDATED_PRESEASON | prev__receiving_yards +1.38 PPG; target_share_prior4 +0.98 PPG; receiving_competition_index_prior4 -0.24 PPG |
+| Dalton Schultz | 24 | 9 | 15 | 172.6 | 147.9 | 172.4 | 197.3 | 94% | FIE_M9_VALIDATED_PRESEASON | target_share_prior4 +1.25 PPG; prev__receiving_yards +1.09 PPG |
 
 ## Largest FIE vs Sleeper ranking differences
 
 | Player | Pos | Sleeper rank | FIE rank | Edge | Mean | P10 | P90 | Confidence | Why |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Luther Burden III | WR | 23 | 55 | -32 | 139.3 | 110.8 | 169.1 | 93% | prev__receiving_yards +0.45 PPG; target_share_prior4 +0.43 PPG; opportunity_change_score_prior1 -0.13 PPG; xfp_residual_prior4 -0.11 PPG |
+| Ladd McConkey | WR | 17 | 39 | -22 | 167.3 | 137.9 | 197.6 | 94% | prev_fantasy_ppg +1.35 PPG; prev__receiving_yards +0.73 PPG; offense_snap_share_prior4 -0.12 PPG; pfr_receiving_drop_pct_prior4 -0.08 PPG |
+| Courtland Sutton | WR | 35 | 17 | 18 | 202.0 | 171.7 | 232.6 | 94% | prev_fantasy_ppg +1.93 PPG; prev__receiving_yards +1.24 PPG; offense_snap_share_prior4 -0.14 PPG; opportunity_change_score_prior1 -0.11 PPG |
+| Michael Wilson | WR | 36 | 20 | 16 | 193.6 | 162.6 | 224.5 | 94% | prev_fantasy_ppg +1.95 PPG; prev__receiving_yards +1.21 PPG; offense_snap_share_prior4 -0.15 PPG; xfp_residual_prior4 -0.13 PPG |
+| Brian Thomas Jr. | WR | 31 | 47 | -16 | 153.7 | 124.4 | 183.4 | 93% | prev_fantasy_ppg +0.85 PPG; prev__receiving_yards +0.79 PPG; offense_snap_share_prior4 -0.12 PPG; prev__receiving_tds -0.04 PPG |
+| Colston Loveland | TE | 3 | 19 | -16 | 145.6 | 121.6 | 170.0 | 94% | target_share_prior4 +1.18 PPG; prev__receiving_yards +1.04 PPG; receiving_competition_index_prior4 -0.31 PPG; opportunity_change_score_prior1 -0.29 PPG |
+| Dalton Schultz | TE | 24 | 9 | 15 | 172.6 | 147.9 | 197.3 | 94% | target_share_prior4 +1.25 PPG; prev__receiving_yards +1.09 PPG |
+| Dalton Kincaid | TE | 9 | 23 | -14 | 129.3 | 105.7 | 153.4 | 93% | prev__receiving_yards +1.17 PPG; prev_fantasy_ppg +0.92 PPG; offense_snap_share_prior4 -0.19 PPG; red_zone_target_share_prior4 -0.11 PPG |
+| Emeka Egbuka | WR | 18 | 31 | -13 | 178.7 | 148.6 | 209.2 | 94% | prev_fantasy_ppg +1.42 PPG; prev__receiving_yards +1.02 PPG |
+| Justin Jefferson | WR | 6 | 19 | -13 | 196.7 | 166.3 | 227.4 | 94% | prev_fantasy_ppg +1.55 PPG; prev__receiving_yards +1.33 PPG; offense_snap_share_prior4 -0.19 PPG |
+| DeVonta Smith | WR | 15 | 27 | -12 | 180.7 | 150.8 | 211.9 | 94% | prev_fantasy_ppg +1.55 PPG; prev__receiving_yards +1.21 PPG; receiving_competitor_count -0.16 PPG; offense_snap_share_prior4 -0.13 PPG |
+| Juwan Johnson | TE | 23 | 11 | 12 | 165.0 | 140.2 | 190.0 | 94% | prev__receiving_yards +1.38 PPG; target_share_prior4 +0.98 PPG; receiving_competition_index_prior4 -0.24 PPG |
+| Mark Andrews | TE | 16 | 28 | -12 | 124.8 | 101.0 | 149.5 | 94% | target_share_prior4 +1.31 PPG; prev_fantasy_ppg +0.43 PPG; opportunity_change_score_prior1 -0.10 PPG |
+| Terry McLaurin | WR | 24 | 35 | -11 | 172.3 | 142.2 | 203.0 | 92% | prev_fantasy_ppg +1.39 PPG; prev__receiving_yards +1.16 PPG; offense_snap_share_prior4 -0.11 PPG; opportunity_change_score_prior1 -0.10 PPG |
+| Tetairoa McMillan | WR | 16 | 25 | -9 | 185.8 | 155.6 | 216.1 | 94% | prev_fantasy_ppg +1.80 PPG; prev__receiving_yards +1.23 PPG; offense_snap_share_prior4 -0.14 PPG; prev__rushing_yards -0.05 PPG |
+| Tee Higgins | WR | 14 | 23 | -9 | 189.3 | 158.9 | 220.6 | 93% | prev_fantasy_ppg +2.36 PPG; prev__receiving_yards +1.07 PPG; xfp_residual_prior4 -0.14 PPG; offense_snap_share_prior4 -0.06 PPG |
+| Marvin Harrison Jr. | WR | 33 | 41 | -8 | 165.6 | 135.7 | 195.8 | 93% | prev_fantasy_ppg +1.11 PPG; prev__receiving_yards +0.80 PPG; offense_snap_share_prior4 -0.07 PPG |
+| Zay Flowers | WR | 19 | 11 | 8 | 226.5 | 194.7 | 257.9 | 94% | prev_fantasy_ppg +2.43 PPG; prev__receiving_yards +1.79 PPG; xfp_residual_prior4 -0.15 PPG; offense_snap_share_prior4 -0.14 PPG |
+| George Kittle | TE | 10 | 2 | 8 | 212.2 | 186.8 | 237.3 | 92% | target_share_prior4 +2.26 PPG; prev_fantasy_ppg +1.64 PPG |
+| Rashee Rice | WR | 12 | 5 | 7 | 264.6 | 232.3 | 296.1 | 92% | prev_fantasy_ppg +4.04 PPG; prev__receiving_yards +1.80 PPG |
+| T.J. Hockenson | TE | 20 | 27 | -7 | 127.9 | 104.4 | 152.1 | 93% | target_share_prior4 +1.33 PPG; prev_fantasy_ppg +0.40 PPG; opportunity_change_score_prior1 -0.26 PPG |
+| Christian Watson | WR | 30 | 24 | 6 | 188.6 | 157.9 | 220.3 | 92% | prev_fantasy_ppg +2.05 PPG; prev__receiving_yards +1.30 PPG; pfr_receiving_drop_pct_prior4 -0.08 PPG |
+| DK Metcalf | WR | 32 | 26 | 6 | 183.4 | 153.2 | 214.6 | 93% | prev_fantasy_ppg +1.77 PPG; prev__receiving_yards +1.09 PPG; offense_snap_share_prior4 -0.15 PPG; pfr_receiving_drop_pct_prior4 -0.08 PPG |
+| Parker Washington | WR | 34 | 40 | -6 | 167.2 | 137.6 | 197.5 | 94% | prev_fantasy_ppg +1.25 PPG; prev__receiving_yards +0.91 PPG; xfp_residual_prior4 -0.08 PPG |
+| Malik Nabers | WR | 11 | 16 | -5 | 215.6 | 184.9 | 247.0 | 91% | prev_fantasy_ppg +2.42 PPG; prev__receiving_yards +1.62 PPG; offense_snap_share_prior4 -0.21 PPG |
+| CeeDee Lamb | WR | 5 | 10 | -5 | 232.8 | 201.7 | 264.6 | 93% | prev_fantasy_ppg +2.85 PPG; prev__receiving_yards +2.35 PPG; offense_snap_share_prior4 -0.11 PPG; opportunity_change_score_prior1 -0.05 PPG |
+| Kyle Pitts | TE | 8 | 3 | 5 | 205.5 | 180.2 | 230.8 | 94% | target_share_prior4 +2.26 PPG; prev__receiving_yards +1.48 PPG; xfp_residual_prior4 -0.18 PPG |
+| Chris Olave | WR | 13 | 8 | 5 | 240.1 | 208.6 | 272.0 | 94% | prev_fantasy_ppg +3.36 PPG; prev__receiving_yards +1.86 PPG; offense_snap_share_prior4 -0.16 PPG; receiving_competitor_count -0.12 PPG |
+| AJ Barner | TE | 21 | 26 | -5 | 128.2 | 104.6 | 152.4 | 94% | target_share_prior4 +0.76 PPG; prev_fantasy_ppg +0.60 PPG; opportunity_change_score_prior1 -0.30 PPG |
+| Garrett Wilson | WR | 20 | 15 | 5 | 215.6 | 184.9 | 246.8 | 91% | prev_fantasy_ppg +2.40 PPG; target_share_prior4 +1.24 PPG; offense_snap_share_prior4 -0.20 PPG |
 
 ## Sleeper candidates outside the requested market cutoffs
 
-No qualified FIE-vs-market sleeper edges were available under the current gates.
+| Player | Pos | Sleeper rank | FIE rank | Edge | Mean | P10 | P90 | Why |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Hunter Renfrow | WR | 606 | 99 | 507 | 88.5 | 62.4 | 116.1 | prev__receiving_tds +0.08 PPG; prev__receiving_yards -0.94 PPG; prev_fantasy_ppg -0.57 PPG |
+| Justin Watson | WR | 613 | 167 | 446 | 44.4 | 21.9 | 68.5 | prev_fantasy_ppg -2.01 PPG; prev__receiving_yards -1.17 PPG |
+| Allen Lazard | WR | 609 | 164 | 445 | 45.9 | 22.7 | 70.7 | offense_snap_share_prior4 +0.07 PPG; prev_fantasy_ppg -1.81 PPG; prev__receiving_yards -1.28 PPG |
+| Jonathan Mingo | WR | 634 | 190 | 444 | 31.8 | 10.2 | 54.7 | pfr_receiving_drop_pct_prior4 +0.39 PPG; offense_snap_share_prior4 +0.19 PPG; prev_fantasy_ppg -2.48 PPG; prev__receiving_yards -1.41 PPG |
+| Jared Wayne | WR | 556 | 118 | 438 | 73.3 | 48.5 | 99.5 | prev_fantasy_ppg -1.29 PPG; prev__receiving_yards -0.69 PPG |
+| Ronnie Bell | WR | 571 | 140 | 431 | 63.7 | 39.2 | 89.4 | prev__receiving_tds +0.18 PPG; prev__receiving_yards -1.10 PPG; prev_fantasy_ppg -0.87 PPG |
+| Curtis Samuel | WR | 587 | 158 | 429 | 50.9 | 27.7 | 75.2 | offense_snap_share_prior4 +0.08 PPG; prev_fantasy_ppg -1.46 PPG; prev__receiving_yards -1.00 PPG |
+| Bo Melton | WR | 610 | 182 | 428 | 37.0 | 15.2 | 60.3 | offense_snap_share_prior4 +0.20 PPG; prev_fantasy_ppg -2.06 PPG; prev__receiving_yards -1.25 PPG |
+| Jalen Brooks | WR | 595 | 171 | 424 | 41.4 | 18.9 | 65.2 | pfr_receiving_drop_pct_prior4 +0.23 PPG; offense_snap_share_prior4 +0.12 PPG; prev_fantasy_ppg -2.15 PPG; prev__receiving_yards -1.16 PPG |
+| Xavier Restrepo | WR | 524 | 123 | 401 | 71.0 | 46.3 | 97.5 | receiving_competitor_count +0.12 PPG; prev_fantasy_ppg -1.45 PPG; prev__receiving_yards -0.66 PPG |
+| Brock Wright | TE | 280 | 41 | 239 | 83.7 | 61.8 | 106.6 | receiving_competitor_count +0.20 PPG; opportunity_change_score_prior1 +0.11 PPG; prev__receiving_yards -0.35 PPG; prev_fantasy_ppg -0.10 PPG |
+| Will Mallory | TE | 298 | 72 | 226 | 51.4 | 31.7 | 71.9 | pfr_receiving_drop_pct_prior4 +0.09 PPG; target_share_prior4 -0.74 PPG; prev_fantasy_ppg -0.45 PPG |
+| Josh Whyle | TE | 290 | 65 | 225 | 55.4 | 36.0 | 76.5 | receiving_competitor_count +0.69 PPG; pfr_receiving_drop_pct_prior4 +0.09 PPG; target_share_prior4 -0.74 PPG; prev__receiving_yards -0.68 PPG |
+| Grant Calcaterra | TE | 275 | 55 | 220 | 61.9 | 41.6 | 82.9 | receiving_competitor_count +0.53 PPG; opportunity_change_score_prior1 +0.42 PPG; target_share_prior4 -0.75 PPG; prev__receiving_yards -0.57 PPG |
+| Adam Trautman | TE | 271 | 52 | 219 | 63.1 | 42.6 | 84.7 | receiving_competition_index_prior4 +0.16 PPG; offense_snap_share_prior4 +0.14 PPG; target_share_prior4 -0.48 PPG; prev_fantasy_ppg -0.29 PPG |
 
 ## Interpretation rules
 
