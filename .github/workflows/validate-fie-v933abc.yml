@@ -1,4 +1,4 @@
-name: Validate FIE V9.3.3A-C
+name: Validate FIE V9.3.4A-B
 
 on:
   workflow_dispatch:
@@ -6,29 +6,44 @@ on:
     paths:
       - 'app/current-snapshot-store.js'
       - 'app/v9.3.3-runtime-integrity.js'
-      - 'research/integrity_v933abc_test.py'
+      - 'app/workers/csv-parse-worker.js'
+      - 'research/build_league_app_snapshots.py'
+      - 'research/integrity_fast_switch_artifacts_test.py'
+      - 'research/integrity_v934ab_test.py'
+      - 'tools/sync_league_app_snapshots.py'
       - '.github/workflows/validate-fie-v933abc.yml'
 
 permissions:
   contents: read
 
 jobs:
-  validate-v933abc:
+  validate-v934ab:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: JavaScript syntax
+
+      - name: Syntax
         run: |
           node --check app/current-snapshot-store.js
           node --check app/v9.3.3-runtime-integrity.js
-      - name: V9.3.3A-C runtime integrity
+          node --check app/workers/csv-parse-worker.js
+          python -m py_compile research/build_league_app_snapshots.py
+          python -m py_compile research/integrity_fast_switch_artifacts_test.py
+          python -m py_compile tools/sync_league_app_snapshots.py
+
+      - name: V9.3.3 compatibility regression
         run: python research/integrity_v933abc_test.py
+
+      - name: V9.3.4A-B performance and correctness contracts
+        run: python research/integrity_v934ab_test.py
