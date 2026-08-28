@@ -19,7 +19,7 @@ import pandas as pd
 import numpy as np
 
 from fie_m7 import add_future_targets
-from fie_m9 import return_season_frame, score_return_stats, simulate_player_season
+from fie_m9 import return_season_frame, score_return_stats, simulate_player_season, json_safe
 from performance_source_contract import (
     TRENCH_COLUMNS,
     ROUTE_COLUMNS,
@@ -202,5 +202,16 @@ a = simulate_player_season(15.0, 17, cal, n=2000, seed=123)
 b = simulate_player_season(15.0, 17, cal, n=2000, seed=123)
 assert a == b, "M9 season distributions must be deterministic for a fixed seed"
 assert a["p10"] <= a["p25"] <= a["p50"] <= a["p75"] <= a["p90"]
+
+# Strict JSON boundary must preserve missing research diagnostics as null rather than
+# emitting invalid NaN/Infinity tokens or fabricating zero-valued information.
+_nonfinite = {
+    "nested": [float("nan"), np.float64(float("inf")), np.float32(float("-inf"))],
+    "finite": np.float64(2.5),
+}
+_clean = json_safe(_nonfinite)
+assert _clean["nested"] == [None, None, None]
+assert close(_clean["finite"], 2.5)
+json.dumps(_clean, allow_nan=False)
 
 print("PASS M7-M9 integrity: leakage, source contracts, fail-closed ranking, deterministic distributions")

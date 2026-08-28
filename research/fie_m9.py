@@ -46,6 +46,23 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def json_safe(value):
+    """Recursively convert non-finite research diagnostics to strict JSON null.
+
+    This is an artifact-boundary conversion only. It does not impute model inputs,
+    change validation gates, or turn missing football information into zero.
+    """
+    if isinstance(value, dict):
+        return {str(k): json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [json_safe(v) for v in value]
+    if isinstance(value, np.generic):
+        value = value.item()
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    return value
+
+
 def _num(s, default=np.nan):
     if isinstance(s, pd.Series):
         return pd.to_numeric(s, errors="coerce")
@@ -550,7 +567,7 @@ def parse_args(argv=None):
 def main(argv=None):
     args = parse_args(argv); bundle = run(args)
     out = Path(args.output); out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(bundle, indent=2, allow_nan=False))
+    out.write_text(json.dumps(json_safe(bundle), indent=2, allow_nan=False))
     print(f"Wrote {out} status={bundle['status']} validated={len(bundle['returner_intelligence']['validated_candidates'])}")
 
 
