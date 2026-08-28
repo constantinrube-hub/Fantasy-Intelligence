@@ -1,0 +1,159 @@
+name: Build FIE Performance Research M7-M9
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id:
+        description: "Sleeper League ID"
+        required: true
+        type: string
+      league_format:
+        description: "Strategic league format. CHOPPED must be explicit."
+        required: true
+        default: "REDRAFT"
+        type: choice
+        options: [REDRAFT, DYNASTY, CHOPPED, REDRAFT_BESTBALL, DYNASTY_BESTBALL, AUTO]
+      season:
+        description: "Season used for frozen Sleeper market comparison/report"
+        required: true
+        default: "2026"
+        type: string
+      full_raw_cache:
+        description: "Also cache broader historical M1 raw inputs during this run"
+        required: false
+        default: false
+        type: boolean
+      build_report:
+        description: "Freeze current Sleeper season market and generate Top-24/36 + sleeper report"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-research-main
+  cancel-in-progress: false
+
+jobs:
+  performance-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Validate inputs and define namespace
+        env:
+          INPUT_LEAGUE_ID: ${{ inputs.league_id }}
+          INPUT_SEASON: ${{ inputs.season }}
+        shell: bash
+        run: |
+          if ! [[ "$INPUT_LEAGUE_ID" =~ ^[0-9]{6,32}$ ]]; then
+            echo "Invalid Sleeper League ID" >&2
+            exit 2
+          fi
+          if ! [[ "$INPUT_SEASON" =~ ^20[0-9]{2}$ ]]; then
+            echo "Invalid season" >&2
+            exit 2
+          fi
+          echo "FIE_LEAGUE_ID=$INPUT_LEAGUE_ID" >> "$GITHUB_ENV"
+          echo "FIE_LEAGUE_ROOT=data/research/leagues/$INPUT_LEAGUE_ID" >> "$GITHUB_ENV"
+          echo "FIE_SEASON=$INPUT_SEASON" >> "$GITHUB_ENV"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Run M7-M9 deterministic integrity tests
+        run: |
+          python -m compileall -q research
+          python research/integrity_m789_test.py
+          rm -rf /tmp/fie789
+          mkdir -p /tmp/fie789
+          python research/fie_m7.py --fixture --derived-dir /tmp/fie789/derived --output /tmp/fie789/m7.json
+          python research/validate_m7_bundle.py /tmp/fie789/m7.json
+          python research/fie_m8.py --fixture --derived-dir /tmp/fie789/derived --output /tmp/fie789/m8.json
+          python research/validate_m8_bundle.py /tmp/fie789/m8.json
+          python research/fie_m9.py --fixture --derived-dir /tmp/fie789/derived --output /tmp/fie789/m9.json
+          python research/validate_m9_bundle.py /tmp/fie789/m9.json
+
+      - name: Rebuild canonical M1-M6 backbone and build M7-M9
+        env:
+          LEAGUE_FORMAT: ${{ inputs.league_format }}
+          FULL_RAW: ${{ inputs.full_raw_cache }}
+          BUILD_REPORT: ${{ inputs.build_report }}
+        shell: bash
+        run: |
+          ARGS=(
+            --league-id "$FIE_LEAGUE_ID"
+            --format "$LEAGUE_FORMAT"
+            --season "$FIE_SEASON"
+            --rebuild-base
+            --capture-market
+          )
+          if [ "$FULL_RAW" = "true" ]; then ARGS+=(--full-raw-cache); fi
+          if [ "$BUILD_REPORT" = "true" ]; then ARGS+=(--build-report); fi
+          python research/build_performance_research.py "${ARGS[@]}"
+
+      - name: Revalidate generated M7-M9 bundles
+        run: |
+          python research/validate_m7_bundle.py "$FIE_LEAGUE_ROOT/milestone7.json"
+          python research/validate_m8_bundle.py "$FIE_LEAGUE_ROOT/milestone8.json"
+          python research/validate_m9_bundle.py "$FIE_LEAGUE_ROOT/milestone9.json"
+
+      - name: Summarize research gates
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ['FIE_LEAGUE_ROOT'])
+          m7=json.loads((root/'milestone7.json').read_text())
+          m8=json.loads((root/'milestone8.json').read_text())
+          m9=json.loads((root/'milestone9.json').read_text())
+          print('M7 validated:', m7.get('driver_research',{}).get('validated_candidate_families',[]))
+          print('M8 validated:', m8.get('matchup_validation',{}).get('validated_candidate_families',[]))
+          print('M8 sequential position specs:', sorted((m8.get('matchup_validation',{}).get('sequential_activation',{}).get('model_specs') or {}).keys()))
+          print('M9 weekly return:', m9.get('returner_intelligence',{}).get('validated_candidates',[]))
+          print('M9 season return:', sorted((m9.get('returner_intelligence',{}).get('season_projection',{}).get('model_specs') or {}).keys()))
+          print('M9 preseason positions:', sorted((m9.get('preseason_season_projection',{}).get('model_specs') or {}).keys()))
+          PY
+
+      - name: Upload M7-M9 evaluation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-m7-m9-${{ inputs.league_id }}-${{ inputs.season }}
+          if-no-files-found: error
+          path: |
+            data/research/leagues/${{ inputs.league_id }}/milestone7.json
+            data/research/leagues/${{ inputs.league_id }}/milestone8.json
+            data/research/leagues/${{ inputs.league_id }}/milestone9.json
+            data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/**
+            data/research/market/sleeper/${{ inputs.season }}/season_market_*.jsonl.gz
+            data/research/market/sleeper/${{ inputs.season }}/season_market_*.meta.json
+
+      - name: Commit namespaced research and frozen market
+        shell: bash
+        run: |
+          git config user.name "FIE Research Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add "$FIE_LEAGUE_ROOT" data/research/leagues/registry.json
+          if [ -d data/research/dst ]; then git add data/research/dst; fi
+          if [ -d data/research/kicker ]; then git add data/research/kicker; fi
+          git add "data/research/market/sleeper/$FIE_SEASON" || true
+          if git diff --cached --quiet; then
+            echo "No M7-M9 research changes to commit."
+            exit 0
+          fi
+          git commit -m "Build FIE M7-M9 performance research for league $FIE_LEAGUE_ID"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
