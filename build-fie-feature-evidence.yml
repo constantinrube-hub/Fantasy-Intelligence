@@ -1,0 +1,184 @@
+name: Build FIE Feature Evidence Research
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id:
+        description: "Sleeper League ID"
+        required: true
+        type: string
+      league_format:
+        description: "League format used when a fresh M1-M8 rebuild is required"
+        required: true
+        default: "REDRAFT"
+        type: choice
+        options: [REDRAFT, DYNASTY, CHOPPED, REDRAFT_BESTBALL, DYNASTY_BESTBALL, AUTO]
+      report_season:
+        description: "Folder season for the evidence report"
+        required: true
+        default: "2026"
+        type: string
+      start_season:
+        description: "Earliest history to request for the evidence audit"
+        required: true
+        default: "2016"
+        type: string
+      end_season:
+        description: "Latest completed season"
+        required: true
+        default: "2025"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-feature-evidence-${{ inputs.league_id }}
+  cancel-in-progress: false
+
+jobs:
+  feature-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Validate inputs
+        shell: bash
+        env:
+          LEAGUE_ID: ${{ inputs.league_id }}
+          REPORT_SEASON: ${{ inputs.report_season }}
+          START_SEASON: ${{ inputs.start_season }}
+          END_SEASON: ${{ inputs.end_season }}
+        run: |
+          [[ "$LEAGUE_ID" =~ ^[0-9]{6,32}$ ]] || { echo "Invalid league id" >&2; exit 2; }
+          [[ "$REPORT_SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid report season" >&2; exit 2; }
+          [[ "$START_SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid start season" >&2; exit 2; }
+          [[ "$END_SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid end season" >&2; exit 2; }
+          [ "$START_SEASON" -le "$END_SEASON" ] || { echo "start season after end season" >&2; exit 2; }
+          echo "FIE_LEAGUE_ROOT=data/research/leagues/$LEAGUE_ID" >> "$GITHUB_ENV"
+          echo "FIE_DERIVED=.cache/fie-research/leagues/$LEAGUE_ID/derived" >> "$GITHUB_ENV"
+          echo "FIE_CACHE=.cache/fie-research/leagues/$LEAGUE_ID" >> "$GITHUB_ENV"
+          echo "FIE_EVIDENCE_OUT=data/research/leagues/$LEAGUE_ID/performance/$REPORT_SEASON/evidence" >> "$GITHUB_ENV"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Run feature-evidence integrity tests
+        run: |
+          python -m compileall -q research
+          python research/integrity_feature_evidence_test.py
+
+      - name: Restore M1-M8 research checkpoint
+        id: restore-m8
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+            data/research/leagues/registry.json
+            data/research/dst
+            data/research/kicker
+          key: >-
+            fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-false-${{ hashFiles('research/build_league_research.py', 'research/league_profile.py', 'research/fie_research.py', 'research/fie_m2.py', 'research/fie_m3.py', 'research/fie_m4.py', 'research/fie_m5.py', 'research/fie_m6.py', 'research/fie_dst.py', 'research/fie_kicker.py', 'research/fie_governance.py', 'research/stamp_league_artifacts.py', 'research/fie_m7.py', 'research/fie_m8.py', 'research/performance_source_contract.py', 'research/statistical_guardrails.py', 'config/league-portfolio.json') }}
+          restore-keys: |
+            fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-
+
+      - name: Rebuild through M8 when checkpoint is unavailable
+        if: steps.restore-m8.outputs.cache-hit != 'true'
+        shell: bash
+        env:
+          LEAGUE_ID: ${{ inputs.league_id }}
+          LEAGUE_FORMAT: ${{ inputs.league_format }}
+          REPORT_SEASON: ${{ inputs.report_season }}
+        run: |
+          python research/build_performance_research.py \
+            --league-id "$LEAGUE_ID" \
+            --format "$LEAGUE_FORMAT" \
+            --season "$REPORT_SEASON" \
+            --rebuild-base \
+            --stop-after-m8
+
+      - name: Save rebuilt M1-M8 research checkpoint
+        if: steps.restore-m8.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+            data/research/leagues/registry.json
+            data/research/dst
+            data/research/kicker
+          key: ${{ steps.restore-m8.outputs.cache-primary-key }}
+
+      - name: Build phases 1-7 feature evidence
+        shell: bash
+        env:
+          START_SEASON: ${{ inputs.start_season }}
+          END_SEASON: ${{ inputs.end_season }}
+        run: |
+          python research/fie_feature_evidence.py \
+            --league-root "$FIE_LEAGUE_ROOT" \
+            --derived-dir "$FIE_DERIVED" \
+            --cache-dir "$FIE_CACHE" \
+            --seasons "$START_SEASON-$END_SEASON" \
+            --output-dir "$FIE_EVIDENCE_OUT"
+          python research/validate_feature_evidence_bundle.py "$FIE_EVIDENCE_OUT/feature_evidence.json"
+
+      - name: Summarize evidence
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          from collections import Counter
+          from pathlib import Path
+          p=Path(os.environ['FIE_EVIDENCE_OUT'])/'feature_evidence.json'
+          b=json.loads(p.read_text())
+          for pos in ('QB','RB','WR','TE'):
+              rows=[r for r in b['phase1_feature_evidence_matrix'] if r['position']==pos]
+              print(pos, dict(Counter(r['evidence_status'] for r in rows)))
+          print('Eligible challenger specs:', b['phase7_production_gate']['eligible_challengers'])
+          print('Top data-expansion priorities:')
+          for r in b['phase6_data_expansion_plan'][:10]:
+              print(' ',r['position'],r['feature'],r['recommended_action'],r['priority_score'])
+          PY
+
+      - name: Upload feature-evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-feature-evidence-${{ inputs.league_id }}-${{ inputs.report_season }}
+          if-no-files-found: error
+          path: ${{ env.FIE_EVIDENCE_OUT }}/**
+
+      - name: Commit feature-evidence research
+        shell: bash
+        run: |
+          git config user.name "FIE Research Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add "$FIE_EVIDENCE_OUT"
+          if git diff --cached --quiet; then
+            echo "No feature-evidence changes to commit."
+            exit 0
+          fi
+          git commit -m "Build FIE feature-evidence research for league ${{ inputs.league_id }}"
+
+          # The M1-M8 checkpoint/rebuild can modify tracked input artifacts outside
+          # this workflow's evidence output. The evidence commit is already safe at
+          # this point, so discard only those remaining uncommitted tracked changes.
+          echo "Working tree before cleanup:"
+          git status --short
+          git restore --worktree .
+          echo "Working tree after tracked-input cleanup:"
+          git status --short
+
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
