@@ -169,6 +169,16 @@ jobs:
             exit 0
           fi
           git commit -m "Build FIE feature-evidence research for league ${{ inputs.league_id }}"
+
+          # The M1-M8 checkpoint/rebuild can modify tracked input artifacts outside
+          # this workflow's evidence output. The evidence commit is already safe at
+          # this point, so discard only those remaining uncommitted tracked changes.
+          echo "Working tree before cleanup:"
+          git status --short
+          git restore --worktree .
+          echo "Working tree after tracked-input cleanup:"
+          git status --short
+
           git fetch origin main
           git rebase origin/main
           git push origin HEAD:main
