@@ -68,6 +68,9 @@ jobs:
           echo "FIE_DERIVED=.cache/fie-research/leagues/$LEAGUE_ID/derived" >> "$GITHUB_ENV"
           echo "FIE_CACHE=.cache/fie-research/leagues/$LEAGUE_ID" >> "$GITHUB_ENV"
           echo "FIE_EVIDENCE_OUT=data/research/leagues/$LEAGUE_ID/performance/$REPORT_SEASON/evidence" >> "$GITHUB_ENV"
+          echo "FIE_EXTENDED_ROOT=.cache/fie-research/leagues/$LEAGUE_ID/feature-evidence/extended-core" >> "$GITHUB_ENV"
+          echo "FIE_EXTENDED_DERIVED=.cache/fie-research/leagues/$LEAGUE_ID/feature-evidence/extended-core/derived" >> "$GITHUB_ENV"
+          echo "FIE_EXTENDED_M1=.cache/fie-research/leagues/$LEAGUE_ID/feature-evidence/extended-core/milestone1_extended.json" >> "$GITHUB_ENV"
 
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
@@ -76,6 +79,7 @@ jobs:
         run: |
           python -m compileall -q research
           python research/integrity_feature_evidence_test.py
+          python research/integrity_feature_evidence_hardening_test.py
 
       - name: Restore M1-M8 research checkpoint
         id: restore-m8
@@ -119,19 +123,49 @@ jobs:
             data/research/kicker
           key: ${{ steps.restore-m8.outputs.cache-primary-key }}
 
-      - name: Build phases 1-7 feature evidence
+      - name: Restore/save extended M4 evidence OOS cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/fie-research/leagues/${{ inputs.league_id }}/feature-evidence
+          key: >-
+            fie-feature-evidence-hardening-oos-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ hashFiles('research/fie_research.py', 'research/fie_m2.py', 'research/fie_m3.py', 'research/fie_m4.py', 'research/fie_feature_evidence.py', 'research/fie_feature_evidence_hardening.py', 'config/league-portfolio.json') }}
+
+      - name: Build evidence-only extended core history
         shell: bash
         env:
           START_SEASON: ${{ inputs.start_season }}
           END_SEASON: ${{ inputs.end_season }}
         run: |
-          python research/fie_feature_evidence.py \
+          if [ ! -s "$FIE_EXTENDED_DERIVED/player_week.csv.gz" ] || [ ! -s "$FIE_EXTENDED_M1" ]; then
+            mkdir -p "$FIE_EXTENDED_ROOT" "$FIE_EXTENDED_DERIVED"
+            python research/fie_research.py \
+              --seasons "$START_SEASON-$END_SEASON" \
+              --extended-seasons "$START_SEASON-$END_SEASON" \
+              --output "$FIE_EXTENDED_M1" \
+              --derived-dir "$FIE_EXTENDED_DERIVED" \
+              --cache-dir "$FIE_EXTENDED_ROOT/raw" \
+              --scoring-json "$FIE_CACHE/scoring_settings_from_profile.json" \
+              --skip-pbp-opportunity
+          else
+            echo "Extended evidence core cache already present."
+          fi
+
+      - name: Build hardened phases 1-7 feature evidence
+        shell: bash
+        env:
+          START_SEASON: ${{ inputs.start_season }}
+          END_SEASON: ${{ inputs.end_season }}
+        run: |
+          python research/fie_feature_evidence_hardening.py \
             --league-root "$FIE_LEAGUE_ROOT" \
             --derived-dir "$FIE_DERIVED" \
             --cache-dir "$FIE_CACHE" \
+            --extended-derived-dir "$FIE_EXTENDED_DERIVED" \
+            --extended-m1-bundle "$FIE_EXTENDED_M1" \
             --seasons "$START_SEASON-$END_SEASON" \
             --output-dir "$FIE_EVIDENCE_OUT"
           python research/validate_feature_evidence_bundle.py "$FIE_EVIDENCE_OUT/feature_evidence.json"
+          python research/validate_feature_evidence_hardening.py "$FIE_EVIDENCE_OUT/feature_evidence.json"
 
       - name: Summarize evidence
         shell: bash
@@ -146,6 +180,11 @@ jobs:
               rows=[r for r in b['phase1_feature_evidence_matrix'] if r['position']==pos]
               print(pos, dict(Counter(r['evidence_status'] for r in rows)))
           print('Eligible challenger specs:', b['phase7_production_gate']['eligible_challengers'])
+          audit=(b.get('source_contract') or {}).get('hardening_oos') or {}
+          print('Second-stage residual folds:', {p:v.get('second_stage_residual_fold_count') for p,v in (audit.get('positions') or {}).items()})
+          routes=b.get('phase7_consumer_routing') or []
+          print('Research-only consumer routes:', len(routes))
+          print('Tier-2 multiplicity-supported routes:', sum(r.get('evidence_tier')=='tier2_multiplicity_supported' for r in routes))
           print('Top data-expansion priorities:')
           for r in b['phase6_data_expansion_plan'][:10]:
               print(' ',r['position'],r['feature'],r['recommended_action'],r['priority_score'])
