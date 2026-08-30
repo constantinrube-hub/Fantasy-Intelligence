@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-BUILD = "V10.4-STRATEGY-STACK-SHADOW-2"
+BUILD = "V10.4.1-STRATEGY-RELEVANCE-HARDENED-1"
 OFFENSE = ("QB", "RB", "WR", "TE")
 
 
@@ -249,22 +249,58 @@ def _curve_lookup(curves: pd.DataFrame, pos: str, adp: Optional[float]) -> dict:
     return {k:finite(r.get(k)) for k in ["expected_points","median_points","expected_ppg","top12_rate","top24_rate","n"]}
 
 
+def _valid_team(v: Any) -> bool:
+    s=str(v or "").strip().upper()
+    return bool(s and s not in {"FA","FREE AGENT","NONE","NAN","UNK","UNKNOWN"})
+
+
+def _valid_full_name(v: Any) -> bool:
+    s=str(v or "").strip()
+    return bool(len(s)>=4 and " " in s and s.lower() not in {"none","nan","unknown player"})
+
+
+def _current_player_maps(current: Optional[dict]) -> Tuple[dict,dict]:
+    by_canonical, by_sleeper = {}, {}
+    for p in (current or {}).get("players") or []:
+        cid=normalize_player_id(p.get("canonical_player_id")); sid=normalize_player_id(p.get("sleeper_id"))
+        if cid: by_canonical[cid]=p
+        if sid: by_sleeper[sid]=p
+    return by_canonical, by_sleeper
+
+
+def _current_active(row: dict) -> bool:
+    active=row.get("active")
+    if isinstance(active,bool): return active
+    if isinstance(active,(int,float)) and not isinstance(active,bool) and finite(active) is not None:
+        return bool(int(float(active)))
+    txt=str(row.get("player_status") or row.get("roster_status") or row.get("status") or "").strip().upper()
+    if txt in {"INACTIVE","RETIRED"}: return False
+    return _valid_team(row.get("team"))
+
+
+def _draft_horizons(profile: dict) -> dict:
+    s=league_structure(profile)
+    roster_slots=len(s.get("roster_positions") or [])
+    if roster_slots <= 0:
+        roster_slots=sum((s.get("fixed_starters_per_team") or {}).values()) + int(s.get("flex_per_team") or 0) + int(s.get("superflex_per_team") or 0) + int(s.get("bench_per_team") or 0)
+    draft=max(1,int(s.get("teams") or 12) * max(1,roster_slots))
+    return {"draft_horizon":draft,"watchlist_horizon":int(math.ceil(draft*1.5)),"roster_slots_per_team":roster_slots}
+
+
 def build_league_value_board(board: pd.DataFrame, profile: dict, movement: Optional[pd.DataFrame]=None,
-                             curves: Optional[pd.DataFrame]=None) -> Tuple[pd.DataFrame,dict]:
+                             curves: Optional[pd.DataFrame]=None, current: Optional[dict]=None) -> Tuple[pd.DataFrame,dict]:
     d=board.copy(); d["position_model"]=d.position_model.map(normalize_pos); d["fie_value_projection"]=_projection_col(d)
     repl,structure=replacement_levels(d,profile)
+    horizons=_draft_horizons(profile)
     d["replacement_points"]=d.position_model.map(repl); d["fie_vorp"]=d.fie_value_projection-d.replacement_points
     if movement is not None and not movement.empty:
         metrics=["adp_change_from_open","adp_change_7d","adp_change_21d","market_snapshot_count","latest_market_as_of"]
-        # Prefer canonical identity.  Scheduled market capture may not have a derived
-        # identity table, so fall back to Sleeper ID without collapsing all null IDs.
         if "canonical_player_id" in d and "canonical_player_id" in movement:
             d["_canonical_join_key"] = d["canonical_player_id"].map(normalize_player_id)
             mc=movement[["canonical_player_id"]+metrics].copy()
             mc["_canonical_join_key"] = mc["canonical_player_id"].map(normalize_player_id)
             mc=mc[mc._canonical_join_key.ne("")].drop_duplicates("_canonical_join_key").drop(columns=["canonical_player_id"])
-            if not mc.empty:
-                d=d.merge(mc,on="_canonical_join_key",how="left")
+            if not mc.empty: d=d.merge(mc,on="_canonical_join_key",how="left")
             else:
                 for c in metrics: d[c]=np.nan
         else:
@@ -281,6 +317,7 @@ def build_league_value_board(board: pd.DataFrame, profile: dict, movement: Optio
         d=d.drop(columns=[c for c in ["_canonical_join_key","_sleeper_join_key"] if c in d.columns])
     else:
         for c in ["adp_change_from_open","adp_change_7d","adp_change_21d","market_snapshot_count","latest_market_as_of"]: d[c]=np.nan
+
     market_expect=[]
     for r in d.itertuples(index=False):
         info=_curve_lookup(curves, str(getattr(r,"position_model")), finite(getattr(r,"market_adp",None)))
@@ -288,17 +325,74 @@ def build_league_value_board(board: pd.DataFrame, profile: dict, movement: Optio
     d["adp_implied_expected_points"]=[x.get("expected_points") for x in market_expect]
     d["adp_implied_top12_rate"]=[x.get("top12_rate") for x in market_expect]
     d["point_edge_vs_adp_history"]=d.fie_value_projection-pd.to_numeric(d.adp_implied_expected_points,errors="coerce")
-    d["fie_value_position_rank"]=d.groupby("position_model").fie_value_projection.rank(method="min",ascending=False)
-    if "market_position_rank" not in d:
-        d["market_position_rank"]=d.groupby("position_model").market_adp.rank(method="min",ascending=True)
+
+    # Keep the unrestricted ranks for diagnosis, but never use them directly for
+    # draft actions. Thousands of historical/deep catalog rows can make an ADP-650
+    # player look like a huge rank value while remaining far below replacement.
+    d["fie_value_position_rank_raw"]=d.groupby("position_model").fie_value_projection.rank(method="min",ascending=False)
+    if "market_position_rank" in d:
+        d["market_position_rank_raw"]=pd.to_numeric(d["market_position_rank"],errors="coerce")
+    else:
+        d["market_position_rank_raw"]=d.groupby("position_model").market_adp.rank(method="min",ascending=True)
+
+    by_cid,by_sid=_current_player_maps(current)
+    current_available=bool(by_cid or by_sid)
+    matches=[]
+    for r in d.to_dict("records"):
+        cid=normalize_player_id(r.get("canonical_player_id")); sid=normalize_player_id(r.get("sleeper_id"))
+        cp=by_cid.get(cid) if cid else None
+        if cp is None and sid: cp=by_sid.get(sid)
+        matches.append(cp)
+    d["current_player_match"]=[m is not None for m in matches]
+    d["current_team"]=[(m or {}).get("team") for m in matches]
+    d["current_active"]=[_current_active(m or {}) if m is not None else False for m in matches]
+    d["current_full_name"]=[(m or {}).get("full_name") or (m or {}).get("name") for m in matches]
+    d["current_canonical_player_id"]=[normalize_player_id((m or {}).get("canonical_player_id")) or None for m in matches]
+    d["current_sleeper_id"]=[normalize_player_id((m or {}).get("sleeper_id")) or None for m in matches]
+    # Prefer the current catalog name when identity has matched; this also removes
+    # malformed market-only labels such as a first name with no stable player id.
+    if "full_name" not in d: d["full_name"]=None
+    d["full_name"]=d["current_full_name"].where(d["current_full_name"].notna(),d["full_name"])
+    stable_identity=d["current_canonical_player_id"].notna() | d["current_sleeper_id"].notna()
+    current_core=(d.position_model.isin(OFFENSE) & d.current_player_match & d.current_active &
+                  d.current_team.map(_valid_team) & stable_identity & d.full_name.map(_valid_full_name))
+    d["current_relevant_player"]=current_core if current_available else False
+    madp=pd.to_numeric(d.get("market_adp"),errors="coerce")
+    d["within_draft_horizon"]=madp.gt(0) & madp.le(horizons["draft_horizon"])
+    d["within_watchlist_horizon"]=madp.gt(0) & madp.le(horizons["watchlist_horizon"])
+    d["draft_relevant"]=d.current_relevant_player & d.fie_value_projection.notna() & d.within_watchlist_horizon
+
+    d["fie_value_position_rank"]=np.nan; d["market_position_rank"]=np.nan
+    q=d[d.draft_relevant].copy()
+    if not q.empty:
+        d.loc[q.index,"fie_value_position_rank"]=q.groupby("position_model").fie_value_projection.rank(method="min",ascending=False)
+        d.loc[q.index,"market_position_rank"]=q.groupby("position_model").market_adp.rank(method="min",ascending=True)
     d["rank_edge"]=pd.to_numeric(d.market_position_rank,errors="coerce")-pd.to_numeric(d.fie_value_position_rank,errors="coerce")
-    # Keep components separate until historical research validates a combined score.
-    d["market_edge_status"]="component_only_not_composite"
-    d["value_label"]=np.select([
-        d.rank_edge>=18,d.rank_edge>=8,d.rank_edge<=-18,d.rank_edge<=-8],
-        ["STRONG_VALUE","VALUE","STRONG_FADE","OVERPRICED"], default="FAIR")
+
+    d["market_edge_status"]="relevance_hardened_component_only"
+    d["value_label"]="IRRELEVANT"
     d.loc[d.fie_value_projection.isna(),"value_label"]="UNAVAILABLE"
+    relevant=d.draft_relevant & d.rank_edge.notna()
+    d.loc[relevant,"value_label"]="FAIR"
+    undervalued=relevant & d.rank_edge.ge(8)
+    d.loc[undervalued & d.fie_vorp.lt(0),"value_label"]="MARKET_UNDERRATED"
+    d.loc[undervalued & d.fie_vorp.ge(0),"value_label"]="VALUE"
+    d.loc[relevant & d.rank_edge.ge(18) & d.fie_vorp.ge(0),"value_label"]="STRONG_VALUE"
+    # A fade is actionable only when the market is actually spending draft capital
+    # inside this league's roster-sized draft horizon.
+    fade=relevant & d.within_draft_horizon & d.rank_edge.le(-8)
+    d.loc[fade,"value_label"]="OVERPRICED"
+    d.loc[relevant & d.within_draft_horizon & d.rank_edge.le(-18),"value_label"]="STRONG_FADE"
+    deep=(d.current_relevant_player & d.fie_value_projection.notna() & madp.gt(horizons["watchlist_horizon"]) & d.fie_vorp.ge(0))
+    d.loc[deep,"value_label"]="DEEP_MARKET_OUTLIER"
+    d["actionable_draft_signal"]=d.value_label.isin(["STRONG_VALUE","VALUE","STRONG_FADE","OVERPRICED"])
+    d["draft_horizon"]=horizons["draft_horizon"]; d["watchlist_horizon"]=horizons["watchlist_horizon"]
+
     meta={"build":BUILD,"status":"complete_research_only","league_structure":structure,"replacement_points":repl,
+          "draft_relevance":{**horizons,"current_catalog_available":current_available,
+                             "current_relevant_players":int(d.current_relevant_player.sum()),
+                             "ranked_watchlist_players":int(d.draft_relevant.sum()),
+                             "actionable_draft_signals":int(d.actionable_draft_signal.sum())},
           "composite_outlier_score_enabled":False,"reason":"component weights require historical ADP validation",
           "football_projection_uses_adp":False,"runtime_projection_modified":False}
     return d,meta
@@ -307,16 +401,22 @@ def build_league_value_board(board: pd.DataFrame, profile: dict, movement: Optio
 def draft_actions(value_board: pd.DataFrame, current_pick: Optional[int]=None, next_pick: Optional[int]=None) -> pd.DataFrame:
     d=value_board.copy(); out=[]
     for r in d.to_dict("records"):
-        edge=finite(r.get("rank_edge")); adp=finite(r.get("market_adp")); action="NO_SIGNAL"; reason="insufficient_market_edge"
-        if edge is not None:
-            if edge<=-10: action="AVOID_AT_MARKET"; reason="market_price_materially_above_fie_value"
-            elif edge>=10:
-                action="VALUE_TARGET"; reason="fie_value_materially_above_market_rank"
+        edge=finite(r.get("rank_edge")); adp=finite(r.get("market_adp")); vorp=finite(r.get("fie_vorp"))
+        label=str(r.get("value_label") or ""); action="NO_SIGNAL"; reason="outside_actionable_relevance_gate"
+        if bool(r.get("actionable_draft_signal")) and edge is not None:
+            if label in {"STRONG_FADE","OVERPRICED"}:
+                action="AVOID_AT_MARKET"; reason="market_price_materially_above_fie_value_inside_draft_horizon"
+            elif label in {"STRONG_VALUE","VALUE"} and vorp is not None and vorp >= 0:
+                action="VALUE_TARGET"; reason="positive_vorp_and_fie_rank_edge_inside_relevant_universe"
                 if current_pick is not None and next_pick is not None and adp is not None:
                     if adp <= next_pick:
-                        action="DRAFT_NOW_MARKET_MEAN"; reason="value_edge_and_mean_adp_before_next_pick"
+                        action="DRAFT_NOW_MARKET_MEAN"; reason="positive_vorp_value_edge_and_mean_adp_before_next_pick"
                     elif adp > next_pick+10:
-                        action="WAIT_MARKET_MEAN_ONLY"; reason="value_edge_but_mean_adp_well_after_next_pick"
+                        action="WAIT_MARKET_MEAN_ONLY"; reason="positive_vorp_value_edge_but_mean_adp_well_after_next_pick"
+        elif label=="MARKET_UNDERRATED":
+            action="WATCHLIST_ONLY"; reason="relative_rank_edge_but_below_league_replacement"
+        elif label=="DEEP_MARKET_OUTLIER":
+            action="RESEARCH_OUTLIER_ONLY"; reason="positive_vorp_but_market_price_outside_watchlist_horizon"
         r["draft_action"]=action; r["draft_action_reason"]=reason
         r["availability_probability"]=None
         r["availability_probability_status"]="blocked_no_empirical_pick_distribution"
@@ -372,13 +472,27 @@ def actionable_findings(value_board: pd.DataFrame, current: Optional[dict]=None)
     d=value_board.copy()
     for r in d.to_dict("records"):
         label=str(r.get("value_label") or "")
-        if label in {"STRONG_VALUE","VALUE","STRONG_FADE","OVERPRICED"}:
-            findings.append({"surface":"DRAFT","player_id":r.get("canonical_player_id"),"player":r.get("full_name"),
-                             "action":"TARGET" if "VALUE" in label else "FADE","priority":"HIGH" if "STRONG" in label else "MEDIUM",
-                             "reason_codes":["MARKET_RANK_EDGE","LEAGUE_SPECIFIC_VORP"],
-                             "evidence":{"market_adp":finite(r.get("market_adp")),"rank_edge":finite(r.get("rank_edge")),
-                                         "fie_vorp":finite(r.get("fie_vorp")),"adp_change_7d":finite(r.get("adp_change_7d"))},
-                             "confidence":finite(r.get("confidence") or r.get("diagnostic_confidence")),"status":"research_only"})
+        if not bool(r.get("actionable_draft_signal")):
+            continue
+        cid=normalize_player_id(r.get("current_canonical_player_id") or r.get("canonical_player_id"))
+        sid=normalize_player_id(r.get("current_sleeper_id") or r.get("sleeper_id"))
+        pid=cid or ("sleeper:"+sid if sid else "")
+        name=str(r.get("full_name") or "").strip()
+        if not pid or not _valid_full_name(name):
+            continue
+        is_value=label in {"STRONG_VALUE","VALUE"}
+        if is_value and (finite(r.get("fie_vorp")) is None or float(r.get("fie_vorp")) < 0):
+            continue
+        if not is_value and not bool(r.get("within_draft_horizon")):
+            continue
+        findings.append({"surface":"DRAFT","player_id":pid,"sleeper_id":sid or None,"player":name,
+                         "team":r.get("current_team"),"action":"TARGET" if is_value else "FADE",
+                         "priority":"HIGH" if "STRONG" in label else "MEDIUM",
+                         "reason_codes":["RELEVANT_UNIVERSE_RANK_EDGE","LEAGUE_SPECIFIC_VORP","CURRENT_PLAYER_MATCH"],
+                         "evidence":{"market_adp":finite(r.get("market_adp")),"rank_edge":finite(r.get("rank_edge")),
+                                     "fie_vorp":finite(r.get("fie_vorp")),"adp_change_7d":finite(r.get("adp_change_7d")),
+                                     "draft_horizon":finite(r.get("draft_horizon")),"watchlist_horizon":finite(r.get("watchlist_horizon"))},
+                         "confidence":finite(r.get("confidence") or r.get("diagnostic_confidence")),"status":"research_only"})
     if current:
         overlay=(current.get("v96_runtime") or {}).get("players") or {}
         index={str(p.get("canonical_player_id")):p for p in current.get("players") or [] if p.get("canonical_player_id")}

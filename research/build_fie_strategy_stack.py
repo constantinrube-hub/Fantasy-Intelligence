@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Orchestrate the V9.7-V10.4 FIE strategy research stack for one league."""
+"""Orchestrate the V9.7.1-V10.4.1 FIE strategy research stack for one league."""
 from __future__ import annotations
 import argparse, hashlib, json, math, os
 from pathlib import Path
@@ -133,13 +133,15 @@ def main(argv=None):
     curves,cmeta=adp_outcome_curves(a.market_root,pw,adp_key,vindex)
     curves.to_csv(out/"adp_outcome_curves.csv",index=False)
 
-    # C/E: league value and price-aware draft decisions on top of existing M9 board.
-    value,vmeta=build_league_value_board(board,profile,movement,curves)
+    # C/E: league value and price-aware draft decisions. Current player identity/status
+    # is a required relevance boundary so historical/deep catalog rows cannot become
+    # actionable merely because their ADP is even deeper.
+    current=load_current_snapshot(current_path) if current_path.is_file() else {}
+    value,vmeta=build_league_value_board(board,profile,movement,curves,current=current)
     value.to_csv(out/"league_value_board.csv",index=False)
     draft=draft_actions(value,a.current_pick,a.next_pick); draft.to_csv(out/"draft_actions.csv",index=False)
 
     # F/G/H: current action consumers; blocked cleanly when current/V9.6 data are absent.
-    current=load_current_snapshot(current_path) if current_path.is_file() else {}
     injury=injury_redistribution(current) if current else {"status":"current_snapshot_unavailable","rows":[],"production_activation":False}
     write_strict_json(out/"injury_opportunity.json", injury)
     findings=actionable_findings(value,current)

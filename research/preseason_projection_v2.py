@@ -31,7 +31,7 @@ from sklearn.preprocessing import StandardScaler
 from fie_research import BONUS_RULES, score_rows, scoring_audit
 from statistical_guardrails import promotion_gate
 
-BUILD = "V9.7-PRESEASON-COMPONENTS-1"
+BUILD = "V9.7.1-PRESEASON-COMPONENTS-FUMBLE-REPLAY-1"
 POSITIONS = ("QB", "RB", "WR", "TE")
 
 RAW_TARGETS: Dict[str, Dict[str, Sequence[str]]] = {
@@ -48,6 +48,7 @@ RAW_TARGETS: Dict[str, Dict[str, Sequence[str]]] = {
         "rushing_tds": ("rushing_tds",),
         "rushing_2pt_conversions": ("rushing_2pt_conversions",),
         "rushing_first_downs": ("rushing_first_downs",),
+        "fumbles": ("fumbles",),
         "fumbles_lost": ("fumbles_lost",),
     },
     "RB": {
@@ -62,6 +63,7 @@ RAW_TARGETS: Dict[str, Dict[str, Sequence[str]]] = {
         "receiving_tds": ("receiving_tds",),
         "receiving_2pt_conversions": ("receiving_2pt_conversions",),
         "receiving_first_downs": ("receiving_first_downs",),
+        "fumbles": ("fumbles",),
         "fumbles_lost": ("fumbles_lost",),
     },
     "WR": {
@@ -76,6 +78,7 @@ RAW_TARGETS: Dict[str, Dict[str, Sequence[str]]] = {
         "receiving_tds": ("receiving_tds",),
         "receiving_2pt_conversions": ("receiving_2pt_conversions",),
         "receiving_first_downs": ("receiving_first_downs",),
+        "fumbles": ("fumbles",),
         "fumbles_lost": ("fumbles_lost",),
     },
     "TE": {
@@ -90,6 +93,7 @@ RAW_TARGETS: Dict[str, Dict[str, Sequence[str]]] = {
         "receiving_tds": ("receiving_tds",),
         "receiving_2pt_conversions": ("receiving_2pt_conversions",),
         "receiving_first_downs": ("receiving_first_downs",),
+        "fumbles": ("fumbles",),
         "fumbles_lost": ("fumbles_lost",),
     },
 }
@@ -98,10 +102,10 @@ RAW_TARGETS: Dict[str, Dict[str, Sequence[str]]] = {
 # end-of-season profile known before the following season.  Missing features stay
 # missing and are handled by the train-fold imputer rather than filled with zero.
 POSITION_SCORING_KEYS = {
-    "QB": {"pass_yd","pass_td","pass_int","pass_cmp","pass_att","pass_2pt","pass_fd","rush_yd","rush_td","rush_att","rush_2pt","rush_fd","fum_lost","bonus_pass_yd_300","bonus_pass_yd_400","bonus_rush_yd_100","bonus_rush_yd_200"},
-    "RB": {"rush_yd","rush_td","rush_att","rush_2pt","rush_fd","rec","rec_yd","rec_td","rec_tgt","rec_2pt","rec_fd","fum_lost","bonus_rush_yd_100","bonus_rush_yd_200","bonus_rec_yd_100","bonus_rec_yd_200","bonus_rec_rb","rec_rb"},
-    "WR": {"rush_yd","rush_td","rush_att","rush_2pt","rush_fd","rec","rec_yd","rec_td","rec_tgt","rec_2pt","rec_fd","fum_lost","bonus_rush_yd_100","bonus_rush_yd_200","bonus_rec_yd_100","bonus_rec_yd_200","bonus_rec_wr","rec_wr"},
-    "TE": {"rush_yd","rush_td","rush_att","rush_2pt","rush_fd","rec","rec_yd","rec_td","rec_tgt","rec_2pt","rec_fd","fum_lost","bonus_rush_yd_100","bonus_rush_yd_200","bonus_rec_yd_100","bonus_rec_yd_200","bonus_rec_te","rec_te"},
+    "QB": {"pass_yd","pass_td","pass_int","pass_cmp","pass_att","pass_2pt","pass_fd","rush_yd","rush_td","rush_att","rush_2pt","rush_fd","fum","fum_lost","bonus_pass_yd_300","bonus_pass_yd_400","bonus_rush_yd_100","bonus_rush_yd_200"},
+    "RB": {"rush_yd","rush_td","rush_att","rush_2pt","rush_fd","rec","rec_yd","rec_td","rec_tgt","rec_2pt","rec_fd","fum_lost","bonus_rush_yd_100","bonus_rush_yd_200","bonus_rec_yd_100","bonus_rec_yd_200","bonus_rec_rb","rec_rb","fum"},
+    "WR": {"rush_yd","rush_td","rush_att","rush_2pt","rush_fd","rec","rec_yd","rec_td","rec_tgt","rec_2pt","rec_fd","fum_lost","bonus_rush_yd_100","bonus_rush_yd_200","bonus_rec_yd_100","bonus_rec_yd_200","bonus_rec_wr","rec_wr","fum"},
+    "TE": {"rush_yd","rush_td","rush_att","rush_2pt","rush_fd","rec","rec_yd","rec_td","rec_tgt","rec_2pt","rec_fd","fum_lost","bonus_rush_yd_100","bonus_rush_yd_200","bonus_rec_yd_100","bonus_rec_yd_200","bonus_rec_te","rec_te","fum"},
 }
 
 BASE_FEATURES = [
@@ -144,6 +148,34 @@ def _series(df: pd.DataFrame, aliases: Sequence[str]) -> pd.Series:
     return _num(df[c]) if c else pd.Series(np.nan, index=df.index, dtype=float)
 
 
+def _fumbles_series(df: pd.DataFrame) -> pd.Series:
+    """Canonical total fumbles from aggregate or split nflverse weekly fields."""
+    aggregate = _num(df["fumbles"]) if "fumbles" in df.columns else pd.Series(np.nan, index=df.index, dtype=float)
+    split_cols = [c for c in ["rushing_fumbles", "receiving_fumbles", "sack_fumbles"] if c in df.columns]
+    if not split_cols:
+        return aggregate
+    split = pd.concat([_num(df[c]) for c in split_cols], axis=1).sum(axis=1, min_count=1)
+    return aggregate.where(aggregate.notna(), split)
+
+
+def _fumbles_lost_series(df: pd.DataFrame) -> pd.Series:
+    """Canonical fumbles-lost outcome from nflverse weekly schemas.
+
+    nflverse seasons/caches may expose either one aggregate ``fumbles_lost``
+    column or split rushing/receiving/sack fumble-loss columns.  Scoring already
+    supports both representations; V9.7.1 mirrors that contract in the season
+    profile builder so exact replay is audited against data that actually exists.
+    If no fumble-loss source exists at all, the result stays missing rather than
+    fabricating zero.
+    """
+    aggregate = _num(df["fumbles_lost"]) if "fumbles_lost" in df.columns else pd.Series(np.nan, index=df.index, dtype=float)
+    split_cols = [c for c in ["rushing_fumbles_lost", "receiving_fumbles_lost", "sack_fumbles_lost"] if c in df.columns]
+    if not split_cols:
+        return aggregate
+    split = pd.concat([_num(df[c]) for c in split_cols], axis=1).sum(axis=1, min_count=1)
+    return aggregate.where(aggregate.notna(), split)
+
+
 def _season_identity(identity_path: Optional[str]) -> pd.DataFrame:
     if not identity_path or not Path(identity_path).is_file():
         return pd.DataFrame()
@@ -181,6 +213,11 @@ def build_season_profiles(player_week: pd.DataFrame, identity: Optional[pd.DataF
         for pos in POSITIONS:
             aliases.extend(RAW_TARGETS[pos].get(canonical, ()))
         d[f"raw__{canonical}"] = _series(d, tuple(dict.fromkeys([canonical] + aliases)))
+    # Keep the canonical scoring/profile representation aligned with score_rows().
+    # This is the only special multi-column raw target because fumble losses may be
+    # split by play type in nflverse rather than published as one aggregate field.
+    d["raw__fumbles"] = _fumbles_series(d)
+    d["raw__fumbles_lost"] = _fumbles_lost_series(d)
 
     # Team opportunity pools for season-level role shares.  Team can be absent in a
     # tiny fixture; those shares remain missing rather than fabricated.
@@ -330,7 +367,42 @@ def _score(pred: Dict[str, np.ndarray], pos: str, scoring: dict, n: int) -> np.n
     for k, v in pred.items():
         f[k] = np.maximum(0.0, np.asarray(v, dtype=float))
     f["position_model"] = pos
-    return score_rows(f, scoring).to_numpy(float)
+    # ``fum`` is an active Sleeper offensive scoring key in the pilot league but
+    # the older M1 SCORING_MAP does not yet map it. Keep V9.7.1 isolated: score
+    # total fumbles locally and delegate all established keys to score_rows().
+    local_scoring=dict(scoring or {})
+    fum_weight=local_scoring.pop("fum",0)
+    out=score_rows(f, local_scoring).to_numpy(float)
+    try:
+        fw=float(fum_weight or 0)
+    except Exception:
+        fw=0.0
+    if fw and "fumbles" in f.columns:
+        out = out + pd.to_numeric(f["fumbles"],errors="coerce").fillna(0).to_numpy(float) * fw
+    return out
+
+
+def _position_scoring_audit(targets: Sequence[str], pos: str, scoring: dict) -> dict:
+    """Exact position audit including V9.7.1's local total-fumbles mapping."""
+    audit_frame = pd.DataFrame([{**{t: 1.0 for t in targets}, "position_model": pos}])
+    position_scoring = {k:v for k,v in scoring.items() if k in POSITION_SCORING_KEYS[pos]}
+    fum_weight=position_scoring.pop("fum",0) if "fum" in position_scoring else 0
+    audit=scoring_audit(audit_frame, position_scoring)
+    try: fum_active=math.isfinite(float(fum_weight)) and float(fum_weight)!=0
+    except Exception: fum_active=False
+    if fum_active:
+        supported=list(audit.get("supported_keys") or [])
+        unsupported=list(audit.get("unsupported") or [])
+        if "fumbles" in targets:
+            supported.append("fum")
+        else:
+            unsupported.append({"key":"fum","reason":"mapped raw-stat field absent"})
+        audit["supported_keys"]=sorted(set(supported))
+        audit["unsupported"]=unsupported
+        audit["nonzero_keys"]=len(audit["supported_keys"])+len(unsupported)
+        audit["exact_replay_eligible"]=len(unsupported)==0
+        audit["coverage_rate"]=len(audit["supported_keys"])/audit["nonzero_keys"] if audit["nonzero_keys"] else 1.0
+    return audit
 
 
 def validate_component_preseason(player_week: pd.DataFrame, scoring: dict, identity: Optional[pd.DataFrame] = None) -> dict:
@@ -346,6 +418,9 @@ def validate_component_preseason(player_week: pd.DataFrame, scoring: dict, ident
             "weekly_runtime_modified": False,
             "requires_four_folds": True,
             "nonlinear_scoring_keys": nonlinear,
+            "evaluation_target_source": "reconstructed_raw_components",
+            "local_total_fumble_replay": True,
+            "canonical_m1_scoring_modified": False,
         },
         "profiles": int(len(profiles)),
         "transitions": int(len(trans)),
@@ -381,8 +456,10 @@ def validate_component_preseason(player_week: pd.DataFrame, scoring: dict, ident
                 usable.append(target)
             if not usable:
                 continue
+            fold_audit=_position_scoring_audit(usable,pos,scoring)
             pred, base = _score(pred_stats, pos, scoring, len(te)), _score(base_stats, pos, scoring, len(te))
-            y = _num(te.target_fantasy_ppg).to_numpy(float)
+            actual_stats={t:_num(te[f"target__{t}"]).to_numpy(float) for t in usable}
+            y = _score(actual_stats, pos, scoring, len(te))
             ok = np.isfinite(y) & np.isfinite(pred) & np.isfinite(base)
             if int(ok.sum()) < 12:
                 continue
@@ -391,7 +468,9 @@ def validate_component_preseason(player_week: pd.DataFrame, scoring: dict, ident
             imp = (bmae - pmae) / bmae if bmae > 0 else None
             rec = {"position": pos, "test_season": int(test), "n_test": int(ok.sum()),
                    "component_targets": usable, "model_mae": pmae, "persistence_mae": bmae,
-                   "incremental_mae_improvement": imp}
+                   "incremental_mae_improvement": imp,
+                   "exact_scoring_replay_fold":bool(fold_audit.get("exact_replay_eligible")),
+                   "scoring_unsupported_fold":fold_audit.get("unsupported") or []}
             pfolds.append(rec); output["folds"].append(rec)
 
         vals = [r["incremental_mae_improvement"] for r in pfolds if r["incremental_mae_improvement"] is not None]
@@ -402,11 +481,10 @@ def validate_component_preseason(player_week: pd.DataFrame, scoring: dict, ident
         # Exact league-scoring coverage is a separate production requirement.  A
         # strong component model may remain useful diagnostically even when the
         # current target catalog cannot replay every non-zero scoring key.
-        audit_frame = pd.DataFrame([{**{t: 1.0 for t in targets}, "position_model": pos}])
-        position_scoring = {k:v for k,v in scoring.items() if k in POSITION_SCORING_KEYS[pos]}
-        audit = scoring_audit(audit_frame, position_scoring)
+        audit = _position_scoring_audit(targets, pos, scoring)
         pos_nonlinear = [k for k in nonlinear if k in POSITION_SCORING_KEYS[pos]]
-        exact_scoring = bool(audit.get("exact_replay_eligible")) and not pos_nonlinear
+        fold_exact=bool(pfolds) and all(bool(r.get("exact_scoring_replay_fold")) for r in pfolds)
+        exact_scoring = bool(audit.get("exact_replay_eligible")) and fold_exact and not pos_nonlinear
         robust = bool(gate.get("robust")) and exact_scoring
         agg = {
             "status": "validated_candidate" if robust else "diagnostic_only",
@@ -419,6 +497,7 @@ def validate_component_preseason(player_week: pd.DataFrame, scoring: dict, ident
             "exact_scoring_replay": exact_scoring,
             "scoring_coverage_rate": audit.get("coverage_rate"),
             "scoring_unsupported": audit.get("unsupported"),
+            "all_folds_exact_scoring_replay": fold_exact,
             "reason": None if robust else (
                 "nonlinear_scoring_requires_separate_simulation_validation" if pos_nonlinear else
                 ("incomplete_exact_scoring_replay" if not exact_scoring else "promotion_gate_not_cleared")

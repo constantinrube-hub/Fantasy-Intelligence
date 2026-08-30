@@ -19,6 +19,16 @@ def main():
     assert f.get("governance",{}).get("auto_activation") is False
     board=pd.read_csv(root/"league_value_board.csv",low_memory=False)
     if not board.empty:
-        assert {"fie_value_projection","fie_vorp","replacement_points","rank_edge","value_label"}.issubset(board.columns)
+        assert {"fie_value_projection","fie_vorp","replacement_points","rank_edge","value_label","draft_relevant","actionable_draft_signal","draft_horizon","watchlist_horizon"}.issubset(board.columns)
+        targets=board[board.get("actionable_draft_signal",False).astype(bool) & board.value_label.isin(["STRONG_VALUE","VALUE"])]
+        if not targets.empty:
+            assert (pd.to_numeric(targets.fie_vorp,errors="coerce") >= 0).all(), "actionable TARGET below replacement"
+            assert targets.current_player_match.astype(bool).all(), "actionable TARGET without current player match"
+            assert targets.within_watchlist_horizon.astype(bool).all(), "actionable TARGET beyond watchlist horizon"
+    for row in f.get("findings") or []:
+        if row.get("surface")=="DRAFT":
+            assert row.get("player_id"), "draft finding lacks stable identity"
+            ev=row.get("evidence") or {}
+            if row.get("action")=="TARGET": assert float(ev.get("fie_vorp")) >= 0
     print(f"PASS strategy-stack validation rows={len(board)} findings={f.get('finding_count',0)} preseason_positions={pv.get('production_eligible_positions',[])}")
 if __name__=="__main__": main()
