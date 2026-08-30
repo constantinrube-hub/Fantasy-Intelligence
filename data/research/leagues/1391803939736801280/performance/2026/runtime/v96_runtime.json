@@ -1,0 +1,497 @@
+{
+  "schema_version": 1,
+  "runtime_build": "V9.6-CONTROLLED-RUNTIME-1",
+  "generated_at": "2026-08-30T09:28:50.579145+00:00",
+  "status": "approved_controlled_runtime",
+  "league_id": "1391803939736801280",
+  "league_format": "REDRAFT",
+  "report_season": 2026,
+  "profile_fingerprint": "475871bb61493e02a1de7ddcd46303097b00d4c57b6beb993823c001ad9a8bc8",
+  "scoring_signature": "2cc8ac7dccb0df61",
+  "model_file": "v96_runtime_models.joblib",
+  "model_sha256": "ef6de5c2c0adeb257aa5e5b8ec804266666968379a4964832f8bfc727cccd621",
+  "source_shadow": {
+    "path": "data/research/leagues/1391803939736801280/performance/2026/shadow/production_shadow.json",
+    "sha256": "5c5cb22c09d601d5a5e668af935254e41b6158587200c23bf38916edfae84bf7",
+    "shadow_build": "V9.5-PRODUCTION-SHADOW-1",
+    "generated_at": "2026-08-30T08:52:08.945323+00:00"
+  },
+  "source_evidence": {
+    "path": "data/research/leagues/1391803939736801280/performance/2026/evidence/feature_evidence.json",
+    "sha256": "fc0d220091228f7e0e865a958717d2297aa3483d02ffa2ef60303bb16b46ed85",
+    "research_build": "V9.4-FEATURE-EVIDENCE-HARDENED-1",
+    "generated_at": "2026-08-29T11:28:48.117788+00:00"
+  },
+  "approved_consumers": [
+    "QB:pass_volume:ridge_component_all_features",
+    "QB:rush_volume:ridge_component_all_features",
+    "QB:weekly_projection_residual:histgb",
+    "RB:breakout:ridge_multivariate_horizon",
+    "RB:carry_volume:ridge_component_all_features",
+    "RB:ceiling:ridge_multivariate_horizon",
+    "RB:floor:ridge_multivariate_horizon",
+    "RB:next_3_games:ridge_multivariate_horizon",
+    "RB:next_week:ridge_multivariate_horizon",
+    "RB:rest_of_season:ridge_multivariate_horizon",
+    "RB:target_volume:ridge_component_all_features",
+    "RB:weekly_projection_residual:histgb",
+    "RB:weekly_projection_residual:ridge_backfield_competitor_count",
+    "TE:breakout:ridge_multivariate_horizon",
+    "TE:ceiling:ridge_multivariate_horizon",
+    "TE:floor:ridge_multivariate_horizon",
+    "TE:next_3_games:ridge_multivariate_horizon",
+    "TE:next_week:ridge_multivariate_horizon",
+    "TE:rest_of_season:ridge_multivariate_horizon",
+    "TE:target_volume:ridge_component_all_features",
+    "WR:breakout:ridge_multivariate_horizon",
+    "WR:ceiling:ridge_multivariate_horizon",
+    "WR:floor:ridge_multivariate_horizon",
+    "WR:next_3_games:ridge_multivariate_horizon",
+    "WR:next_week:ridge_multivariate_horizon",
+    "WR:rest_of_season:ridge_multivariate_horizon",
+    "WR:target_volume:ridge_component_all_features"
+  ],
+  "consumer_count": 27,
+  "consumer_validation": [
+    {
+      "position": "QB",
+      "consumer": "weekly_projection_residual",
+      "model": "histgb",
+      "folds": 4,
+      "mean_improvement": 0.014019243864182572,
+      "positive_folds": 3,
+      "ci95_low": 0.0005518647476741547,
+      "ci95_high": 0.024931870454404207,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "weekly_projection_residual",
+      "model": "histgb",
+      "folds": 4,
+      "mean_improvement": 0.02373522737601677,
+      "positive_folds": 4,
+      "ci95_low": 0.01776898260963914,
+      "ci95_high": 0.029571313450025553,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "weekly_projection_residual",
+      "model": "ridge_backfield_competitor_count",
+      "folds": 4,
+      "mean_improvement": 0.014349599569566973,
+      "positive_folds": 4,
+      "ci95_low": 0.012076048128560413,
+      "ci95_high": 0.01680986680823137,
+      "robust": true
+    },
+    {
+      "position": "QB",
+      "consumer": "pass_volume",
+      "model": "ridge_component_all_features",
+      "folds": 4,
+      "mean_improvement": 0.028025865420834815,
+      "positive_folds": 4,
+      "ci95_low": 0.020134104225721903,
+      "ci95_high": 0.0347649620395809,
+      "robust": true
+    },
+    {
+      "position": "QB",
+      "consumer": "rush_volume",
+      "model": "ridge_component_all_features",
+      "folds": 4,
+      "mean_improvement": 0.07089090642197975,
+      "positive_folds": 4,
+      "ci95_low": 0.05949612759838703,
+      "ci95_high": 0.08265812942973584,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "carry_volume",
+      "model": "ridge_component_all_features",
+      "folds": 4,
+      "mean_improvement": 0.10900264181236012,
+      "positive_folds": 4,
+      "ci95_low": 0.09637200770855545,
+      "ci95_high": 0.1268982403453208,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "target_volume",
+      "model": "ridge_component_all_features",
+      "folds": 4,
+      "mean_improvement": 0.09504488881539831,
+      "positive_folds": 4,
+      "ci95_low": 0.08776891498059641,
+      "ci95_high": 0.10192647156620445,
+      "robust": true
+    },
+    {
+      "position": "TE",
+      "consumer": "target_volume",
+      "model": "ridge_component_all_features",
+      "folds": 4,
+      "mean_improvement": 0.10591037390757727,
+      "positive_folds": 4,
+      "ci95_low": 0.09492058807281581,
+      "ci95_high": 0.11559031382133782,
+      "robust": true
+    },
+    {
+      "position": "WR",
+      "consumer": "target_volume",
+      "model": "ridge_component_all_features",
+      "folds": 4,
+      "mean_improvement": 0.1102350804020687,
+      "positive_folds": 4,
+      "ci95_low": 0.09851243565777142,
+      "ci95_high": 0.12152211260112333,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "breakout",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.06558328784665916,
+      "positive_folds": 4,
+      "ci95_low": 0.044851966458634894,
+      "ci95_high": 0.0972038624690744,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "ceiling",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.014757886694860379,
+      "positive_folds": 4,
+      "ci95_low": 0.007194097014185059,
+      "ci95_high": 0.02038826063538128,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "floor",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.05049454483920463,
+      "positive_folds": 4,
+      "ci95_low": 0.04500978083798685,
+      "ci95_high": 0.05761905856435736,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "next_3_games",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.040259714981024416,
+      "positive_folds": 4,
+      "ci95_low": 0.02768566007856356,
+      "ci95_high": 0.053556008579548994,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "next_week",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.02584350418929923,
+      "positive_folds": 4,
+      "ci95_low": 0.02123825325302656,
+      "ci95_high": 0.03137244422246599,
+      "robust": true
+    },
+    {
+      "position": "RB",
+      "consumer": "rest_of_season",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.05891106432625105,
+      "positive_folds": 4,
+      "ci95_low": 0.03699919787591987,
+      "ci95_high": 0.0766798199462781,
+      "robust": true
+    },
+    {
+      "position": "WR",
+      "consumer": "breakout",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.07126592255802154,
+      "positive_folds": 4,
+      "ci95_low": 0.04625280093133515,
+      "ci95_high": 0.09754580313404226,
+      "robust": true
+    },
+    {
+      "position": "WR",
+      "consumer": "ceiling",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.016147213436111318,
+      "positive_folds": 4,
+      "ci95_low": 0.007027894068446039,
+      "ci95_high": 0.025077648806931828,
+      "robust": true
+    },
+    {
+      "position": "WR",
+      "consumer": "floor",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.06565503677054693,
+      "positive_folds": 4,
+      "ci95_low": 0.051754011696136436,
+      "ci95_high": 0.07942095052099066,
+      "robust": true
+    },
+    {
+      "position": "WR",
+      "consumer": "next_3_games",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.046301533569815936,
+      "positive_folds": 4,
+      "ci95_low": 0.03729328586404929,
+      "ci95_high": 0.058567205178399175,
+      "robust": true
+    },
+    {
+      "position": "WR",
+      "consumer": "next_week",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.028977788920624893,
+      "positive_folds": 4,
+      "ci95_low": 0.02371677368193001,
+      "ci95_high": 0.0329676656487679,
+      "robust": true
+    },
+    {
+      "position": "WR",
+      "consumer": "rest_of_season",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.05239883884518886,
+      "positive_folds": 4,
+      "ci95_low": 0.0334784691035795,
+      "ci95_high": 0.07227740756942048,
+      "robust": true
+    },
+    {
+      "position": "TE",
+      "consumer": "breakout",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.08156845204128833,
+      "positive_folds": 4,
+      "ci95_low": 0.060453109856452754,
+      "ci95_high": 0.10178071825198348,
+      "robust": true
+    },
+    {
+      "position": "TE",
+      "consumer": "ceiling",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.035446040610623314,
+      "positive_folds": 4,
+      "ci95_low": 0.024989675741137533,
+      "ci95_high": 0.04305635499589672,
+      "robust": true
+    },
+    {
+      "position": "TE",
+      "consumer": "floor",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.041387737256110356,
+      "positive_folds": 4,
+      "ci95_low": 0.03079842497465024,
+      "ci95_high": 0.05402020251947286,
+      "robust": true
+    },
+    {
+      "position": "TE",
+      "consumer": "next_3_games",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.0597572691615622,
+      "positive_folds": 4,
+      "ci95_low": 0.051059665937351645,
+      "ci95_high": 0.0704803572846961,
+      "robust": true
+    },
+    {
+      "position": "TE",
+      "consumer": "next_week",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.033001747806779363,
+      "positive_folds": 4,
+      "ci95_low": 0.02267803104216735,
+      "ci95_high": 0.0412540925152683,
+      "robust": true
+    },
+    {
+      "position": "TE",
+      "consumer": "rest_of_season",
+      "model": "ridge_multivariate_horizon",
+      "folds": 4,
+      "mean_improvement": 0.0729989985390453,
+      "positive_folds": 4,
+      "ci95_low": 0.062078455075391725,
+      "ci95_high": 0.08276250528350065,
+      "robust": true
+    }
+  ],
+  "governance": {
+    "runtime_activation_allowed": true,
+    "controlled_runtime_only": true,
+    "require_profile_fingerprint_match": true,
+    "require_scoring_signature_match": true,
+    "require_current_research_compatible": true,
+    "require_current_profile_match": true,
+    "require_regular_season": true,
+    "require_current_season_completed_features": true,
+    "require_existing_weekly_activation_for_main_projection": true,
+    "minimum_live_feature_coverage": 0.45,
+    "primary_weekly_models": {
+      "QB": "histgb",
+      "RB": "histgb"
+    },
+    "rb_alternate_is_diagnostic_only": true,
+    "wr_te_histgb_enabled": false,
+    "component_consumers_replace_canonical_projection": false,
+    "horizon_consumers_replace_canonical_weekly_projection": false,
+    "next_season_enabled": false,
+    "prior_season_live_fallback": false
+  },
+  "source_contract": {
+    "hardening_oos": {
+      "policy": "canonical M4 OOS rows retained; missing earlier holdouts use current M4 model family with training-only feature availability",
+      "production_artifact_overwritten": false,
+      "available_feature_frame_seasons": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "canonical_oos_rows": 58175,
+      "backfill_oos_rows": 16820,
+      "combined_oos_rows": 74995,
+      "positions": {
+        "QB": {
+          "oos_seasons": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "oos_season_count": 7,
+          "second_stage_residual_test_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "second_stage_residual_fold_count": 4
+        },
+        "RB": {
+          "oos_seasons": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "oos_season_count": 7,
+          "second_stage_residual_test_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "second_stage_residual_fold_count": 4
+        },
+        "WR": {
+          "oos_seasons": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "oos_season_count": 7,
+          "second_stage_residual_test_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "second_stage_residual_fold_count": 4
+        },
+        "TE": {
+          "oos_seasons": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "oos_season_count": 7,
+          "second_stage_residual_test_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "second_stage_residual_fold_count": 4
+        }
+      },
+      "requested_min_second_stage_residual_folds": 4,
+      "canonical_feature_frame_seasons": [
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "extended_core_frame_seasons": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    }
+  }
+}
