@@ -1,0 +1,2051 @@
+{
+  "schema_version": 1,
+  "shadow_build": "V9.5-PRODUCTION-SHADOW-1",
+  "generated_at": "2026-08-30T08:52:08.945323+00:00",
+  "status": "complete_shadow_research_only",
+  "league_id": "1391803939736801280",
+  "league_format": "REDRAFT",
+  "report_season": 2026,
+  "governance": {
+    "auto_activation": false,
+    "runtime_projection_modified": false,
+    "canonical_current_snapshot_modified": false,
+    "dist_modified": false,
+    "shadow_only": true,
+    "promotion_rule": "A shadow consumer may proceed only after this independent consumer revalidation; activation still requires a separate runtime change and post-integration validation.",
+    "rb_stack_rule": "RB HistGB and backfield-competitor Ridge are alternate candidates and are never summed without a new stacked-model OOS validation.",
+    "week1_rule": "No offensive shadow live scoring without current-season completed-game features; prior-season fallback is forbidden."
+  },
+  "evidence_contract": {
+    "research_build": "V9.4-FEATURE-EVIDENCE-HARDENED-1",
+    "generated_at": "2026-08-29T11:28:48.117788+00:00",
+    "hardening_fold_counts": {
+      "QB": 4,
+      "RB": 4,
+      "WR": 4,
+      "TE": 4
+    },
+    "auto_activation": false,
+    "production_gate_unchanged": true
+  },
+  "source_contract": {
+    "hardening_oos": {
+      "policy": "canonical M4 OOS rows retained; missing earlier holdouts use current M4 model family with training-only feature availability",
+      "production_artifact_overwritten": false,
+      "available_feature_frame_seasons": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "canonical_oos_rows": 58175,
+      "backfill_oos_rows": 16820,
+      "combined_oos_rows": 74995,
+      "positions": {
+        "QB": {
+          "oos_seasons": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "oos_season_count": 7,
+          "second_stage_residual_test_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "second_stage_residual_fold_count": 4
+        },
+        "RB": {
+          "oos_seasons": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "oos_season_count": 7,
+          "second_stage_residual_test_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "second_stage_residual_fold_count": 4
+        },
+        "WR": {
+          "oos_seasons": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "oos_season_count": 7,
+          "second_stage_residual_test_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "second_stage_residual_fold_count": 4
+        },
+        "TE": {
+          "oos_seasons": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "oos_season_count": 7,
+          "second_stage_residual_test_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "second_stage_residual_fold_count": 4
+        }
+      },
+      "requested_min_second_stage_residual_folds": 4,
+      "canonical_feature_frame_seasons": [
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "extended_core_frame_seasons": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "current_live_features": {
+      "status": "blocked",
+      "reason": "season_type_preseason",
+      "completed_weeks": []
+    }
+  },
+  "shadow_model_registry": [
+    {
+      "consumer": "weekly_projection_residual",
+      "position": "WR",
+      "model": "histgb",
+      "shadow_eligible": false,
+      "reason": "hardened_evidence_rejected",
+      "stack_policy": "not_applicable"
+    },
+    {
+      "consumer": "weekly_projection_residual",
+      "position": "TE",
+      "model": "histgb",
+      "shadow_eligible": false,
+      "reason": "hardened_evidence_rejected",
+      "stack_policy": "not_applicable"
+    },
+    {
+      "consumer": "weekly_projection_residual",
+      "position": "QB",
+      "model": "histgb",
+      "feature_n": 13,
+      "features": [
+        "qb_pass_attempt_share_prior4",
+        "qb_rush_share_prior4",
+        "inside_5_carry_share_prior4",
+        "snap_share_prior4",
+        "team_pass_attempts_prior4_team",
+        "team_plays_prior4_team",
+        "opportunity_change_score_prior1",
+        "pfr_passing_bad_throw_pct_prior4",
+        "pfr_times_pressured_pct_prior4",
+        "pfr_times_sacked_prior4",
+        "m7_qb_rush_goal_role",
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "final_config": [
+        0.04,
+        7,
+        1.0
+      ],
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.014019243864182572,
+        "positive_folds": 3,
+        "required_positive_folds": 3,
+        "ci95_low": 0.0005518647476741547,
+        "ci95_high": 0.024931870454404207,
+        "robust": true,
+        "sign_flip_p": 0.17647058823529413
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.014019243864182572,
+        "positive_folds": 3,
+        "required_positive_folds": 3,
+        "ci95_low": 0.0005518647476741547,
+        "ci95_high": 0.024931870454404207,
+        "robust": true,
+        "sign_flip_p": 0.17647058823529413,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 633,
+            "baseline_mae": 6.048977180052464,
+            "shadow_mae": 6.079606227520737,
+            "improvement": -0.0050635085166592505,
+            "config": [
+              0.04,
+              7,
+              1.0
+            ]
+          },
+          {
+            "test_season": 2023,
+            "n_test": 663,
+            "baseline_mae": 6.297406457504758,
+            "shadow_mae": 6.1926445878794505,
+            "improvement": 0.01663571667673771,
+            "config": [
+              0.04,
+              7,
+              1.0
+            ]
+          },
+          {
+            "test_season": 2024,
+            "n_test": 664,
+            "baseline_mae": 6.360674836751993,
+            "shadow_mae": 6.26168395134633,
+            "improvement": 0.015562953294467056,
+            "config": [
+              0.04,
+              7,
+              1.0
+            ]
+          },
+          {
+            "test_season": 2025,
+            "n_test": 664,
+            "baseline_mae": 6.850096080686849,
+            "shadow_mae": 6.657917711697087,
+            "improvement": 0.028054842841049924,
+            "config": [
+              0.04,
+              7,
+              1.0
+            ]
+          }
+        ],
+        "final_config": [
+          0.04,
+          7,
+          1.0
+        ],
+        "training_rows": 4414,
+        "training_seasons": [
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ]
+      },
+      "evidence_revalidation_match": true,
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "stack_policy": "standalone_candidate_not_additive"
+    },
+    {
+      "consumer": "weekly_projection_residual",
+      "position": "RB",
+      "model": "histgb",
+      "feature_n": 10,
+      "features": [
+        "offense_snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "opportunity_change_score_prior1",
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count",
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "final_config": [
+        0.04,
+        7,
+        1.0
+      ],
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.02373522737601677,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.01776898260963914,
+        "ci95_high": 0.029571313450025553,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.02373522737601677,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.01776898260963914,
+        "ci95_high": 0.029571313450025553,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1581,
+            "baseline_mae": 4.74224004150131,
+            "shadow_mae": 4.612132756934489,
+            "improvement": 0.027435828517366836,
+            "config": [
+              0.04,
+              7,
+              1.0
+            ]
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1474,
+            "baseline_mae": 4.5088520615863255,
+            "shadow_mae": 4.419505953040026,
+            "improvement": 0.01981571081195902,
+            "config": [
+              0.04,
+              7,
+              1.0
+            ]
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1536,
+            "baseline_mae": 4.501077797968541,
+            "shadow_mae": 4.358081430635149,
+            "improvement": 0.03176936141782076,
+            "config": [
+              0.04,
+              7,
+              1.0
+            ]
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1575,
+            "baseline_mae": 4.431082366209873,
+            "shadow_mae": 4.360834180141667,
+            "improvement": 0.015853504914261678,
+            "config": [
+              0.05,
+              15,
+              3.0
+            ]
+          }
+        ],
+        "final_config": [
+          0.04,
+          7,
+          1.0
+        ],
+        "training_rows": 10604,
+        "training_seasons": [
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ]
+      },
+      "evidence_revalidation_match": true,
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "stack_policy": "standalone_candidate_not_additive"
+    },
+    {
+      "consumer": "weekly_projection_residual",
+      "position": "RB",
+      "model": "ridge_backfield_competitor_count",
+      "feature_n": 1,
+      "features": [
+        "backfield_competitor_count"
+      ],
+      "final_cap": 1.0,
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.014070739998774617,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.011321024266115488,
+        "ci95_high": 0.016836564053881436,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.014349599569566973,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.012076048128560413,
+        "ci95_high": 0.01680986680823137,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1581,
+            "cap": 2.0,
+            "baseline_mae": 4.74224004150131,
+            "shadow_mae": 4.6568675596262095,
+            "improvement": 0.01800256442693121
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1474,
+            "cap": 3.0,
+            "baseline_mae": 4.5088520615863255,
+            "shadow_mae": 4.440478508118133,
+            "improvement": 0.015164292936268328
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1536,
+            "cap": 1.5,
+            "baseline_mae": 4.501077797968541,
+            "shadow_mae": 4.4419923882132695,
+            "improvement": 0.013126947012988303
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1575,
+            "cap": 1.0,
+            "baseline_mae": 4.431082366209873,
+            "shadow_mae": 4.381841314403982,
+            "improvement": 0.011112646467912485
+          }
+        ],
+        "final_cap": 1.0,
+        "training_rows": 10604
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "stack_policy": "alternate_to_rb_histgb_never_summed_without_new_stack_validation"
+    },
+    {
+      "consumer": "pass_volume",
+      "position": "QB",
+      "model": "ridge_component_all_features",
+      "feature_n": 13,
+      "features": [
+        "qb_pass_attempt_share_prior4",
+        "qb_rush_share_prior4",
+        "inside_5_carry_share_prior4",
+        "snap_share_prior4",
+        "team_pass_attempts_prior4_team",
+        "team_plays_prior4_team",
+        "opportunity_change_score_prior1",
+        "pfr_passing_bad_throw_pct_prior4",
+        "pfr_times_pressured_pct_prior4",
+        "pfr_times_sacked_prior4",
+        "m7_qb_rush_goal_role",
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.028025865420834815,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.020134104225721903,
+        "ci95_high": 0.0347649620395809,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.028025865420834815,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.020134104225721903,
+        "ci95_high": 0.0347649620395809,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 550,
+            "baseline_mae": 8.197626667014033,
+            "shadow_mae": 7.892824817725506,
+            "improvement": 0.03718171876684771
+          },
+          {
+            "test_season": 2023,
+            "n_test": 582,
+            "baseline_mae": 8.199601658151522,
+            "shadow_mae": 7.945820756167872,
+            "improvement": 0.03095039400253761
+          },
+          {
+            "test_season": 2024,
+            "n_test": 586,
+            "baseline_mae": 8.364566934392684,
+            "shadow_mae": 8.130692798525384,
+            "improvement": 0.027960100947447362
+          },
+          {
+            "test_season": 2025,
+            "n_test": 583,
+            "baseline_mae": 8.301698148702862,
+            "shadow_mae": 8.164430743914918,
+            "improvement": 0.016534858571001065
+          }
+        ],
+        "training_rows": 3860,
+        "training_seasons": [
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ]
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated"
+    },
+    {
+      "consumer": "rush_volume",
+      "position": "QB",
+      "model": "ridge_component_all_features",
+      "feature_n": 13,
+      "features": [
+        "qb_pass_attempt_share_prior4",
+        "qb_rush_share_prior4",
+        "inside_5_carry_share_prior4",
+        "snap_share_prior4",
+        "team_pass_attempts_prior4_team",
+        "team_plays_prior4_team",
+        "opportunity_change_score_prior1",
+        "pfr_passing_bad_throw_pct_prior4",
+        "pfr_times_pressured_pct_prior4",
+        "pfr_times_sacked_prior4",
+        "m7_qb_rush_goal_role",
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.07089090642197975,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.05949612759838703,
+        "ci95_high": 0.08265812942973584,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.07089090642197975,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.05949612759838703,
+        "ci95_high": 0.08265812942973584,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 550,
+            "baseline_mae": 2.0722104709235616,
+            "shadow_mae": 1.8918918519259085,
+            "improvement": 0.08701752139940065
+          },
+          {
+            "test_season": 2023,
+            "n_test": 582,
+            "baseline_mae": 2.03297486340766,
+            "shadow_mae": 1.8733082112058275,
+            "improvement": 0.0785384291147605
+          },
+          {
+            "test_season": 2024,
+            "n_test": 586,
+            "baseline_mae": 1.9933833799315452,
+            "shadow_mae": 1.8625609169235,
+            "improvement": 0.06562835043429419
+          },
+          {
+            "test_season": 2025,
+            "n_test": 583,
+            "baseline_mae": 1.9050173958851142,
+            "shadow_mae": 1.8034183421623837,
+            "improvement": 0.05333234958493661
+          }
+        ],
+        "training_rows": 3860,
+        "training_seasons": [
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ]
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated"
+    },
+    {
+      "consumer": "carry_volume",
+      "position": "RB",
+      "model": "ridge_component_all_features",
+      "feature_n": 10,
+      "features": [
+        "offense_snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "opportunity_change_score_prior1",
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count",
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.10900264181236012,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.09637200770855545,
+        "ci95_high": 0.1268982403453208,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.10900264181236012,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.09637200770855545,
+        "ci95_high": 0.1268982403453208,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1423,
+            "baseline_mae": 4.0267234956409315,
+            "shadow_mae": 3.616551067346476,
+            "improvement": 0.10186257604687325
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1326,
+            "baseline_mae": 3.966894206853129,
+            "shadow_mae": 3.5951889016921825,
+            "improvement": 0.09370184476278592
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1388,
+            "baseline_mae": 3.991042117927765,
+            "shadow_mae": 3.575875241453155,
+            "improvement": 0.10402467932114269
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1424,
+            "baseline_mae": 3.906654218284885,
+            "shadow_mae": 3.3783276724227203,
+            "improvement": 0.13523760136982707
+          }
+        ],
+        "training_rows": 9531,
+        "training_seasons": [
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ]
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated"
+    },
+    {
+      "consumer": "target_volume",
+      "position": "RB",
+      "model": "ridge_component_all_features",
+      "feature_n": 10,
+      "features": [
+        "offense_snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "opportunity_change_score_prior1",
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count",
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.09504488881539831,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.08776891498059641,
+        "ci95_high": 0.10192647156620445,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.09504488881539831,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.08776891498059641,
+        "ci95_high": 0.10192647156620445,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1423,
+            "baseline_mae": 1.5551497137421735,
+            "shadow_mae": 1.4249948214869843,
+            "improvement": 0.08369283748379187
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1326,
+            "baseline_mae": 1.5299357552878041,
+            "shadow_mae": 1.3882119208470645,
+            "improvement": 0.09263384684677774
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1388,
+            "baseline_mae": 1.4788910480497826,
+            "shadow_mae": 1.3252126087134142,
+            "improvement": 0.10391464573338552
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1424,
+            "baseline_mae": 1.4108949606431915,
+            "shadow_mae": 1.2698216048939965,
+            "improvement": 0.09998856022909261
+          }
+        ],
+        "training_rows": 9531,
+        "training_seasons": [
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ]
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated"
+    },
+    {
+      "consumer": "target_volume",
+      "position": "TE",
+      "model": "ridge_component_all_features",
+      "feature_n": 9,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4",
+        "red_zone_target_share_prior4",
+        "opportunity_change_score_prior1",
+        "pfr_receiving_drop_pct_prior4",
+        "receiving_competition_index_prior4",
+        "receiving_competitor_count",
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.10591037390757727,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.09492058807281581,
+        "ci95_high": 0.11559031382133782,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.10591037390757727,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.09492058807281581,
+        "ci95_high": 0.11559031382133782,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1079,
+            "baseline_mae": 1.7522910558407732,
+            "shadow_mae": 1.5564738488905783,
+            "improvement": 0.11174924753367478
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1065,
+            "baseline_mae": 1.6927508598739913,
+            "shadow_mae": 1.5416943531905303,
+            "improvement": 0.08923729431435984
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1096,
+            "baseline_mae": 1.7980724945901476,
+            "shadow_mae": 1.6139045690657385,
+            "improvement": 0.10242519480082937
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1150,
+            "baseline_mae": 1.717650393114189,
+            "shadow_mae": 1.5129163667635743,
+            "improvement": 0.11919423601645815
+          }
+        ],
+        "training_rows": 7476,
+        "training_seasons": [
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ]
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated"
+    },
+    {
+      "consumer": "target_volume",
+      "position": "WR",
+      "model": "ridge_component_all_features",
+      "feature_n": 9,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4",
+        "red_zone_target_share_prior4",
+        "opportunity_change_score_prior1",
+        "pfr_receiving_drop_pct_prior4",
+        "receiving_competition_index_prior4",
+        "receiving_competitor_count",
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "evidence_gate": {
+        "folds": 4,
+        "mean": 0.1102350804020687,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.09851243565777142,
+        "ci95_high": 0.12152211260112333,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941
+      },
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.1102350804020687,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.09851243565777142,
+        "ci95_high": 0.12152211260112333,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 2148,
+            "baseline_mae": 2.2745087671051305,
+            "shadow_mae": 2.0644320655427957,
+            "improvement": 0.09236135054766523
+          },
+          {
+            "test_season": 2023,
+            "n_test": 2251,
+            "baseline_mae": 2.178511773832694,
+            "shadow_mae": 1.9204950014099111,
+            "improvement": 0.1184371714314168
+          },
+          {
+            "test_season": 2024,
+            "n_test": 2205,
+            "baseline_mae": 2.201368479366254,
+            "shadow_mae": 1.9713155382200949,
+            "improvement": 0.10450451312557554
+          },
+          {
+            "test_season": 2025,
+            "n_test": 2270,
+            "baseline_mae": 2.1444931884546303,
+            "shadow_mae": 1.8773295835687955,
+            "improvement": 0.12458123267733895
+          }
+        ],
+        "training_rows": 15199,
+        "training_seasons": [
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ]
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated"
+    },
+    {
+      "consumer": "breakout",
+      "position": "RB",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 5,
+      "features": [
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count",
+        "carry_share_prior4",
+        "offense_snap_share_prior4",
+        "red_zone_carry_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.06558328784665916,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.044851966458634894,
+        "ci95_high": 0.0972038624690744,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1142,
+            "baseline_loss": 0.14130741265851052,
+            "shadow_loss": 0.12530014938051368,
+            "improvement": 0.11327971390064775
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1063,
+            "baseline_loss": 0.14296968500946874,
+            "shadow_loss": 0.13455074033261386,
+            "improvement": 0.05888622246245637
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1132,
+            "baseline_loss": 0.13120655007180307,
+            "shadow_loss": 0.12483643667824885,
+            "improvement": 0.04855026970885337
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1152,
+            "baseline_loss": 0.14434483586302632,
+            "shadow_loss": 0.13839524920316282,
+            "improvement": 0.041217869862066055
+          }
+        ],
+        "training_rows": 7624
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 2.9000000000000004,
+        "q60": 9.133333333333333,
+        "q75": 12.875
+      }
+    },
+    {
+      "consumer": "ceiling",
+      "position": "RB",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 1,
+      "features": [
+        "offense_snap_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.014757886694860379,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.007194097014185059,
+        "ci95_high": 0.02038826063538128,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1142,
+            "baseline_loss": 0.14489455787100355,
+            "shadow_loss": 0.1417255371325149,
+            "improvement": 0.021871219906754284
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1063,
+            "baseline_loss": 0.14424710360884496,
+            "shadow_loss": 0.14176843493627544,
+            "improvement": 0.017183490070559238
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1132,
+            "baseline_loss": 0.13668196425990264,
+            "shadow_loss": 0.13612604262330508,
+            "improvement": 0.0040672640286356625
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1151,
+            "baseline_loss": 0.13759186639687818,
+            "shadow_loss": 0.13539395054945982,
+            "improvement": 0.015974169876281443
+          }
+        ],
+        "training_rows": 7623
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 1.9,
+        "q60": 8.7,
+        "q75": 13.0
+      }
+    },
+    {
+      "consumer": "floor",
+      "position": "RB",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 4,
+      "features": [
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count",
+        "carry_share_prior4",
+        "offense_snap_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.05049454483920463,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.04500978083798685,
+        "ci95_high": 0.05761905856435736,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1142,
+            "baseline_loss": 0.15912367080242798,
+            "shadow_loss": 0.15212810362172205,
+            "improvement": 0.04396308321338191
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1063,
+            "baseline_loss": 0.14517403397994633,
+            "shadow_loss": 0.13785644914760384,
+            "improvement": 0.05040560375523701
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1132,
+            "baseline_loss": 0.15432571509194137,
+            "shadow_loss": 0.14721658915427963,
+            "improvement": 0.04606572490803883
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1152,
+            "baseline_loss": 0.14938218658773242,
+            "shadow_loss": 0.14020962584433588,
+            "improvement": 0.06140331021335984
+          }
+        ],
+        "training_rows": 7624
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 1.9,
+        "q60": 8.7,
+        "q75": 13.0
+      }
+    },
+    {
+      "consumer": "next_3_games",
+      "position": "RB",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 4,
+      "features": [
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count",
+        "carry_share_prior4",
+        "offense_snap_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.040259714981024416,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.02768566007856356,
+        "ci95_high": 0.053556008579548994,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1142,
+            "baseline_loss": 4.08500813132482,
+            "shadow_loss": 3.8419225776999655,
+            "improvement": 0.05950674902231307
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1063,
+            "baseline_loss": 3.7314733261765443,
+            "shadow_loss": 3.57187781565048,
+            "improvement": 0.04277010622225031
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1132,
+            "baseline_loss": 3.7839125390928996,
+            "shadow_loss": 3.697018781154188,
+            "improvement": 0.022963997460560315
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1152,
+            "baseline_loss": 3.706131747496553,
+            "shadow_loss": 3.573234479202661,
+            "improvement": 0.03585875445028708
+          }
+        ],
+        "training_rows": 7624
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    },
+    {
+      "consumer": "next_week",
+      "position": "RB",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 3,
+      "features": [
+        "backfield_competition_index_prior4",
+        "carry_share_prior4",
+        "offense_snap_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.02584350418929923,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.02123825325302656,
+        "ci95_high": 0.03137244422246599,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1142,
+            "baseline_loss": 5.228011599258149,
+            "shadow_loss": 5.046339520064493,
+            "improvement": 0.03474974677168563
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1063,
+            "baseline_loss": 4.843739896524703,
+            "shadow_loss": 4.7169774050362525,
+            "improvement": 0.02617037541165248
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1132,
+            "baseline_loss": 4.894407418578355,
+            "shadow_loss": 4.790885650205065,
+            "improvement": 0.021151032090287108
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1152,
+            "baseline_loss": 4.91759726957787,
+            "shadow_loss": 4.812734621321081,
+            "improvement": 0.02132396015946846
+          }
+        ],
+        "training_rows": 7624
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    },
+    {
+      "consumer": "rest_of_season",
+      "position": "RB",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 5,
+      "features": [
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count",
+        "carry_share_prior4",
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.05891106432625105,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.03699919787591987,
+        "ci95_high": 0.0766798199462781,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1142,
+            "baseline_loss": 3.604165201882468,
+            "shadow_loss": 3.3248523434072306,
+            "improvement": 0.07749724078389955
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1063,
+            "baseline_loss": 3.4668999159140763,
+            "shadow_loss": 3.204103181719212,
+            "improvement": 0.07580165005299144
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1132,
+            "baseline_loss": 3.3918892944047823,
+            "shadow_loss": 3.3075891902416177,
+            "improvement": 0.02485343619622992
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1152,
+            "baseline_loss": 3.4134348473150045,
+            "shadow_loss": 3.2142032185399207,
+            "improvement": 0.05836690538616801
+          }
+        ],
+        "training_rows": 7624
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    },
+    {
+      "consumer": "breakout",
+      "position": "WR",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.07126592255802154,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.04625280093133515,
+        "ci95_high": 0.09754580313404226,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1720,
+            "baseline_loss": 0.15153952589183534,
+            "shadow_loss": 0.1378266628594492,
+            "improvement": 0.09049033875276868
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1846,
+            "baseline_loss": 0.1445189605187193,
+            "shadow_loss": 0.13842074740468746,
+            "improvement": 0.04219663006254421
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1775,
+            "baseline_loss": 0.16003430890570572,
+            "shadow_loss": 0.14332950405253814,
+            "improvement": 0.10438264749223411
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1826,
+            "baseline_loss": 0.1300520102123246,
+            "shadow_loss": 0.12350344949761695,
+            "improvement": 0.05035339864425305
+          }
+        ],
+        "training_rows": 12212
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 2.6333333333333333,
+        "q60": 8.4,
+        "q75": 11.733333333333334
+      }
+    },
+    {
+      "consumer": "ceiling",
+      "position": "WR",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 1,
+      "features": [
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.016147213436111318,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.007027894068446039,
+        "ci95_high": 0.025077648806931828,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1720,
+            "baseline_loss": 0.15381712558553237,
+            "shadow_loss": 0.15188996008124592,
+            "improvement": 0.012528939784502893
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1846,
+            "baseline_loss": 0.13955374684825053,
+            "shadow_loss": 0.13603638301724064,
+            "improvement": 0.025204366851107513
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1775,
+            "baseline_loss": 0.1529007601467717,
+            "shadow_loss": 0.14908651887818797,
+            "improvement": 0.02494586204098912
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1826,
+            "baseline_loss": 0.12818036456319593,
+            "shadow_loss": 0.12794371974750945,
+            "improvement": 0.001846186165040898
+          }
+        ],
+        "training_rows": 12212
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 1.7000000000000002,
+        "q60": 7.800000000000001,
+        "q75": 12.1
+      }
+    },
+    {
+      "consumer": "floor",
+      "position": "WR",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.06565503677054693,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.051754011696136436,
+        "ci95_high": 0.07942095052099066,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1720,
+            "baseline_loss": 0.16505060897325288,
+            "shadow_loss": 0.15543306713065436,
+            "improvement": 0.05827025966415603
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1846,
+            "baseline_loss": 0.16506636698726748,
+            "shadow_loss": 0.1575257169468974,
+            "improvement": 0.04568253471618317
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1775,
+            "baseline_loss": 0.15333006457738252,
+            "shadow_loss": 0.14155336630188936,
+            "improvement": 0.0768061913229659
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1826,
+            "baseline_loss": 0.17552608155415805,
+            "shadow_loss": 0.16113949354354667,
+            "improvement": 0.0819626797523674
+          }
+        ],
+        "training_rows": 12212
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 1.7000000000000002,
+        "q60": 7.800000000000001,
+        "q75": 12.1
+      }
+    },
+    {
+      "consumer": "next_3_games",
+      "position": "WR",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.046301533569815936,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.03729328586404929,
+        "ci95_high": 0.058567205178399175,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1720,
+            "baseline_loss": 3.835115318666653,
+            "shadow_loss": 3.692023505227882,
+            "improvement": 0.037310954573464956
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1846,
+            "baseline_loss": 3.679997421979883,
+            "shadow_loss": 3.5428188089083377,
+            "improvement": 0.03727682314455041
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1775,
+            "baseline_loss": 3.823890835904586,
+            "shadow_loss": 3.5736819041829615,
+            "improvement": 0.0654330739183967
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1826,
+            "baseline_loss": 3.488952073848092,
+            "shadow_loss": 3.3309145298190153,
+            "improvement": 0.045296564895135207
+          }
+        ],
+        "training_rows": 12212
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    },
+    {
+      "consumer": "next_week",
+      "position": "WR",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.028977788920624893,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.02371677368193001,
+        "ci95_high": 0.0329676656487679,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1720,
+            "baseline_loss": 5.098994539799388,
+            "shadow_loss": 4.994324476784281,
+            "improvement": 0.020527588762474847
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1846,
+            "baseline_loss": 4.863636408789597,
+            "shadow_loss": 4.703388152270162,
+            "improvement": 0.03294823935231537
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1775,
+            "baseline_loss": 4.940296723715467,
+            "shadow_loss": 4.777326862586845,
+            "improvement": 0.032987868997078534
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1826,
+            "baseline_loss": 4.671364655806542,
+            "shadow_loss": 4.535776267446113,
+            "improvement": 0.029025434396754278
+          }
+        ],
+        "training_rows": 12212
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    },
+    {
+      "consumer": "rest_of_season",
+      "position": "WR",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.05239883884518886,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.0334784691035795,
+        "ci95_high": 0.07227740756942048,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 1720,
+            "baseline_loss": 3.333207662020367,
+            "shadow_loss": 3.1028379368255714,
+            "improvement": 0.0691135232346012
+          },
+          {
+            "test_season": 2023,
+            "n_test": 1846,
+            "baseline_loss": 3.2693459910913427,
+            "shadow_loss": 3.1571030550937604,
+            "improvement": 0.03433192335819874
+          },
+          {
+            "test_season": 2024,
+            "n_test": 1775,
+            "baseline_loss": 3.486799122150222,
+            "shadow_loss": 3.2240923230895233,
+            "improvement": 0.07534325605161156
+          },
+          {
+            "test_season": 2025,
+            "n_test": 1826,
+            "baseline_loss": 3.21038710366231,
+            "shadow_loss": 3.1056781867950147,
+            "improvement": 0.032615667047704855
+          }
+        ],
+        "training_rows": 12212
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    },
+    {
+      "consumer": "breakout",
+      "position": "TE",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.08156845204128833,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.060453109856452754,
+        "ci95_high": 0.10178071825198348,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 850,
+            "baseline_loss": 0.16139972882596568,
+            "shadow_loss": 0.152714015871349,
+            "improvement": 0.05381491665318917
+          },
+          {
+            "test_season": 2023,
+            "n_test": 851,
+            "baseline_loss": 0.15878087222452056,
+            "shadow_loss": 0.14812929517018697,
+            "improvement": 0.06708350259766784
+          },
+          {
+            "test_season": 2024,
+            "n_test": 868,
+            "baseline_loss": 0.1782026083935447,
+            "shadow_loss": 0.16093260943902346,
+            "improvement": 0.09691215583321869
+          },
+          {
+            "test_season": 2025,
+            "n_test": 909,
+            "baseline_loss": 0.1634232117126186,
+            "shadow_loss": 0.14603013051566321,
+            "improvement": 0.10642968654624954
+          }
+        ],
+        "training_rows": 5868
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 2.3666666666666667,
+        "q60": 6.433333333333333,
+        "q75": 8.899999999999999
+      }
+    },
+    {
+      "consumer": "ceiling",
+      "position": "TE",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.035446040610623314,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.024989675741137533,
+        "ci95_high": 0.04305635499589672,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 850,
+            "baseline_loss": 0.14709195468831365,
+            "shadow_loss": 0.14410917610608062,
+            "improvement": 0.020278325817027234
+          },
+          {
+            "test_season": 2023,
+            "n_test": 851,
+            "baseline_loss": 0.1535771719573356,
+            "shadow_loss": 0.14789574814845882,
+            "improvement": 0.03699393429679193
+          },
+          {
+            "test_season": 2024,
+            "n_test": 868,
+            "baseline_loss": 0.15917906978874372,
+            "shadow_loss": 0.15299804732455388,
+            "improvement": 0.03883062309883483
+          },
+          {
+            "test_season": 2025,
+            "n_test": 909,
+            "baseline_loss": 0.1538235613027989,
+            "shadow_loss": 0.1469094657941562,
+            "improvement": 0.044948221521359924
+          }
+        ],
+        "training_rows": 5868
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 1.6,
+        "q60": 5.9,
+        "q75": 9.3
+      }
+    },
+    {
+      "consumer": "floor",
+      "position": "TE",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.041387737256110356,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.03079842497465024,
+        "ci95_high": 0.05402020251947286,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 850,
+            "baseline_loss": 0.17766550492442057,
+            "shadow_loss": 0.17155496433113873,
+            "improvement": 0.03439351153664455
+          },
+          {
+            "test_season": 2023,
+            "n_test": 851,
+            "baseline_loss": 0.18041211723747086,
+            "shadow_loss": 0.17550354319966976,
+            "improvement": 0.027207562956207045
+          },
+          {
+            "test_season": 2024,
+            "n_test": 868,
+            "baseline_loss": 0.1833321050802962,
+            "shadow_loss": 0.17553982119321118,
+            "improvement": 0.04250365141267617
+          },
+          {
+            "test_season": 2025,
+            "n_test": 909,
+            "baseline_loss": 0.16236929514143897,
+            "shadow_loss": 0.15260476300326586,
+            "improvement": 0.060137799635499284
+          }
+        ],
+        "training_rows": 5868
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "brier",
+        "q25": 1.6,
+        "q60": 5.9,
+        "q75": 9.3
+      }
+    },
+    {
+      "consumer": "next_3_games",
+      "position": "TE",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.0597572691615622,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.051059665937351645,
+        "ci95_high": 0.0704803572846961,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 850,
+            "baseline_loss": 2.8839382953199086,
+            "shadow_loss": 2.7427623114963247,
+            "improvement": 0.0489524980658172
+          },
+          {
+            "test_season": 2023,
+            "n_test": 851,
+            "baseline_loss": 2.837061765723099,
+            "shadow_loss": 2.674288918128412,
+            "improvement": 0.05737374122808352
+          },
+          {
+            "test_season": 2024,
+            "n_test": 868,
+            "baseline_loss": 3.0716931463277417,
+            "shadow_loss": 2.896828820602919,
+            "improvement": 0.05692766737910513
+          },
+          {
+            "test_season": 2025,
+            "n_test": 909,
+            "baseline_loss": 2.9832285656580675,
+            "shadow_loss": 2.7601004966536995,
+            "improvement": 0.07479415810539759
+          }
+        ],
+        "training_rows": 5868
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    },
+    {
+      "consumer": "next_week",
+      "position": "TE",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 2,
+      "features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.033001747806779363,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.02267803104216735,
+        "ci95_high": 0.0412540925152683,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 850,
+            "baseline_loss": 4.007050486035541,
+            "shadow_loss": 3.9339669028058553,
+            "improvement": 0.01823874779825713
+          },
+          {
+            "test_season": 2023,
+            "n_test": 851,
+            "baseline_loss": 3.8691724942424215,
+            "shadow_loss": 3.7391160644684565,
+            "improvement": 0.03361350003585971
+          },
+          {
+            "test_season": 2024,
+            "n_test": 868,
+            "baseline_loss": 4.056576088626981,
+            "shadow_loss": 3.9116763908120924,
+            "improvement": 0.03571970416655798
+          },
+          {
+            "test_season": 2025,
+            "n_test": 909,
+            "baseline_loss": 3.984939686566214,
+            "shadow_loss": 3.8110430933441446,
+            "improvement": 0.04363845049105734
+          }
+        ],
+        "training_rows": 5868
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    },
+    {
+      "consumer": "rest_of_season",
+      "position": "TE",
+      "model": "ridge_multivariate_horizon",
+      "feature_n": 3,
+      "features": [
+        "offense_snap_share_prior4",
+        "receiving_competition_index_prior4",
+        "target_share_prior4"
+      ],
+      "consumer_revalidation_gate": {
+        "folds": 4,
+        "mean": 0.0729989985390453,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.062078455075391725,
+        "ci95_high": 0.08276250528350065,
+        "robust": true,
+        "sign_flip_p": 0.11764705882352941,
+        "folds_detail": [
+          {
+            "test_season": 2022,
+            "n_test": 850,
+            "baseline_loss": 2.6306369755500687,
+            "shadow_loss": 2.4473629076516654,
+            "improvement": 0.06966908380054246
+          },
+          {
+            "test_season": 2023,
+            "n_test": 851,
+            "baseline_loss": 2.5590937246528895,
+            "shadow_loss": 2.3595512263070244,
+            "improvement": 0.07797389225083215
+          },
+          {
+            "test_season": 2024,
+            "n_test": 868,
+            "baseline_loss": 2.851482972646533,
+            "shadow_loss": 2.689279933598327,
+            "improvement": 0.05688374807220439
+          },
+          {
+            "test_season": 2025,
+            "n_test": 909,
+            "baseline_loss": 2.5867338739058376,
+            "shadow_loss": 2.3620923426113567,
+            "improvement": 0.08684369643147076
+          }
+        ],
+        "training_rows": 5868
+      },
+      "shadow_eligible": true,
+      "reason": "revalidated",
+      "meta": {
+        "metric": "mae"
+      }
+    }
+  ],
+  "current_shadow": {
+    "status": "blocked_no_current_season_completed_features",
+    "reason": "season_type_preseason",
+    "season": 2026,
+    "week": 1,
+    "completed_weeks": [],
+    "weekly_candidates": [],
+    "component_predictions": [],
+    "horizon_predictions": [],
+    "summary": {
+      "weekly_scored": 0,
+      "components_scored": 0,
+      "horizons_scored": 0
+    }
+  },
+  "promotion_gate": {
+    "shadow_eligible_consumers": [
+      "QB:weekly_projection_residual:histgb",
+      "RB:weekly_projection_residual:histgb",
+      "RB:weekly_projection_residual:ridge_backfield_competitor_count",
+      "QB:pass_volume:ridge_component_all_features",
+      "QB:rush_volume:ridge_component_all_features",
+      "RB:carry_volume:ridge_component_all_features",
+      "RB:target_volume:ridge_component_all_features",
+      "TE:target_volume:ridge_component_all_features",
+      "WR:target_volume:ridge_component_all_features",
+      "RB:breakout:ridge_multivariate_horizon",
+      "RB:ceiling:ridge_multivariate_horizon",
+      "RB:floor:ridge_multivariate_horizon",
+      "RB:next_3_games:ridge_multivariate_horizon",
+      "RB:next_week:ridge_multivariate_horizon",
+      "RB:rest_of_season:ridge_multivariate_horizon",
+      "WR:breakout:ridge_multivariate_horizon",
+      "WR:ceiling:ridge_multivariate_horizon",
+      "WR:floor:ridge_multivariate_horizon",
+      "WR:next_3_games:ridge_multivariate_horizon",
+      "WR:next_week:ridge_multivariate_horizon",
+      "WR:rest_of_season:ridge_multivariate_horizon",
+      "TE:breakout:ridge_multivariate_horizon",
+      "TE:ceiling:ridge_multivariate_horizon",
+      "TE:floor:ridge_multivariate_horizon",
+      "TE:next_3_games:ridge_multivariate_horizon",
+      "TE:next_week:ridge_multivariate_horizon",
+      "TE:rest_of_season:ridge_multivariate_horizon"
+    ],
+    "blocked_or_diagnostic_consumers": [
+      "WR:weekly_projection_residual:histgb",
+      "TE:weekly_projection_residual:histgb"
+    ],
+    "runtime_activation_allowed": false
+  }
+}
