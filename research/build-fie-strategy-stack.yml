@@ -73,6 +73,7 @@ jobs:
         run: |
           python -m compileall -q research
           python research/integrity_fie_strategy_stack_test.py
+          python research/integrity_v973_preseason_test.py
           python research/capture_fie_availability.py --fixture --output-root /tmp/fie-availability
           python research/preseason_projection_v2.py --fixture --output /tmp/preseason_v2.json
       - name: Preserve committed league state before broad cache restore
@@ -96,7 +97,7 @@ jobs:
             data/research/leagues/registry.json
             data/research/dst
             data/research/kicker
-          key: fie-strategy-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-${{ hashFiles('research/fie_research.py','research/fie_m2.py','research/fie_m3.py','research/fie_m4.py','research/fie_m5.py','research/fie_m6.py','research/fie_m7.py','research/fie_m8.py','research/fie_m9.py','research/preseason_projection.py','research/preseason_projection_v2.py','research/fie_strategy_stack.py') }}
+          key: fie-strategy-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-${{ hashFiles('research/fie_research.py','research/fie_m2.py','research/fie_m3.py','research/fie_m4.py','research/fie_m5.py','research/fie_m6.py','research/fie_m7.py','research/fie_m8.py','research/fie_m9.py','research/preseason_projection.py','research/preseason_projection_v2.py','research/preseason_projection_v3.py','research/fie_strategy_stack.py') }}
           restore-keys: |
             fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-
       - name: Restore committed state over cache
@@ -129,7 +130,7 @@ jobs:
           if ! python research/capture_fie_availability.py --output-root data/research/availability/sleeper; then
             echo "::warning::Availability capture failed; strategy research continues because this evidence is prospective and non-blocking."
           fi
-      - name: Build V9.7-V10.4 research/action stack
+      - name: Build V9.7.3-V10.4 research/action stack
         env:
           ADPKEY: ${{ inputs.adp_key }}
           CUR: ${{ inputs.current_pick }}
@@ -153,6 +154,9 @@ jobs:
           assert g['canonical_projections_modified'] is False
           assert g['football_model_uses_adp'] is False
           assert g['historical_hindsight_adp_allowed'] is False
+          v=x.get('preseason_v973_meta') or {}
+          assert v.get('production_activation_allowed') is False
+          assert v.get('market_fallback_replacement_validated') is False
           print('PASS strategy governance', x['phases'])
           PY
       - name: Upload research artifact
@@ -172,23 +176,6 @@ jobs:
           git add "$FIE_STRATEGY_OUT" "data/research/market/sleeper/$FIE_SEASON" data/research/availability/sleeper || true
           if git diff --cached --quiet; then echo "No strategy changes to commit"; exit 0; fi
           git commit -m "Build FIE strategy research for league $FIE_LEAGUE_ID"
-
-          # The M7-M9 cache can restore tracked D/ST or kicker files that are not
-          # outputs of this strategy workflow. Never commit those stale cache
-          # side-effects, and do not let them block the rebase/push.
-          echo "Post-commit worktree status:"
-          git status --short
-          if ! git diff --quiet; then
-            echo "::warning::Discarding unstaged tracked cache side-effects before rebase."
-            git diff --name-status
-            git restore --worktree .
-          fi
-          if ! git diff --cached --quiet; then
-            echo "Unexpected staged changes remain after strategy commit." >&2
-            git diff --cached --name-status >&2
-            exit 1
-          fi
-
           git fetch origin main
           git rebase origin/main
           git push origin HEAD:main

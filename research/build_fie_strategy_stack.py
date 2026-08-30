@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Orchestrate the V9.7.2-V10.4.2 FIE strategy research stack for one league."""
+"""Orchestrate the V9.7.3-V10.4.2 FIE strategy research stack for one league."""
 from __future__ import annotations
 import argparse, hashlib, json, math, os
 from pathlib import Path
@@ -11,6 +11,7 @@ from fie_strategy_stack import (
     actionable_findings, injury_redistribution, market_mistake_research, strategy_summary, verified_market_panel,
 )
 from preseason_projection_v2 import validate_component_preseason, build_v972_shadow_season_board
+from preseason_projection_v3 import validate_preseason_head_to_head
 from current_snapshot_storage import load_current_snapshot
 
 
@@ -122,20 +123,31 @@ def main(argv=None):
     identity=pd.read_csv(ident_path,low_memory=False) if ident_path.is_file() else pd.DataFrame()
     adp_key, expected_adp_key=resolve_adp_key(profile,a.adp_key)
 
-    # A: component-first preseason challenger.  Never feeds ADP.
+    # A: component-first preseason challenger. Never feeds ADP.
     scoring=scoring_from_m1(m1)
     pv2=validate_component_preseason(pw,scoring,identity)
     write_strict_json(out/"preseason_v2.json", pv2)
 
-    # A2: validated-candidate 2026 shadow projection.  QB/WR may replace the strategy
-    # input only inside this research output; canonical M9 columns and runtime stay intact.
+    # A3: V9.7.3 head-to-head/calibration gate.  Compare V9.7.2 and M9 football
+    # models on identical chronological player-season holdouts. Historical market
+    # fallback remains explicitly blocked unless immutable verified snapshots exist.
+    v973,v973_predictions,v973_calibration=validate_preseason_head_to_head(
+        pw,scoring,identity,v972_result=pv2
+    )
+    write_strict_json(out/"preseason_v973_validation.json",v973)
+    v973_predictions.to_csv(out/"preseason_v973_predictions.csv",index=False)
+    v973_calibration.to_csv(out/"preseason_v973_calibration.csv",index=False)
+
+    # A2/current shadow: validated-candidate 2026 projection.  QB/WR may replace the
+    # strategy input only inside this research output; V9.7.3 remains evaluation-only
+    # in this release and does not alter the existing V9.7.2 strategy handoff.
     current=load_current_snapshot(current_path) if current_path.is_file() else {}
     shadow_board,shadow_meta=build_v972_shadow_season_board(
         pw,scoring,pv2,board,a.season,identity=identity,current=current
     )
     shadow_board.to_csv(out/"season_projection_v972.csv",index=False)
 
-    # B: market evidence.  Daily trend is prospective; historical curves need a verified index.
+    # B: market evidence. Daily trend is prospective; historical curves need a verified index.
     movement,mmeta=market_movement(a.market_root,a.season,adp_key)
     movement.to_csv(out/"market_movement.csv",index=False)
     vindex=verified_index(a.verified_market_index)
@@ -144,7 +156,7 @@ def main(argv=None):
 
     # C/E: league value and price-aware draft decisions. Current player identity/status
     # is a required relevance boundary so historical/deep catalog rows cannot become
-    # actionable merely because their ADP is even deeper.  The explicit V9.7.2 shadow
+    # actionable merely because their ADP is even deeper. The explicit V9.7.2 shadow
     # column is consumed here; original M9 fields remain side-by-side in the CSV.
     value,vmeta=build_league_value_board(shadow_board,profile,movement,curves,current=current)
     value.to_csv(out/"league_value_board.csv",index=False)
@@ -160,8 +172,18 @@ def main(argv=None):
     mistakes=market_mistake_research(curves,hist_panel)
     write_strict_json(out/"market_mistake_research.json", mistakes)
     summary=strategy_summary(value,mmeta,cmeta,pv2)
+    summary["build"]="V10.4.3-STRATEGY-V973-VALIDATION-1"
     summary["phases"]["A2_v972_shadow_projection"]=shadow_meta.get("status")
+    summary["phases"]["A3_v973_head_to_head_calibration"]=v973.get("status")
     summary["season_projection_v972_meta"]=shadow_meta
+    summary["preseason_v973_meta"]={
+        "build":v973.get("build"),
+        "status":v973.get("status"),
+        "football_model_promotion_review_positions":v973.get("football_model_promotion_review_positions",[]),
+        "expected_season_points_ready_positions":v973.get("expected_season_points_ready_positions",[]),
+        "market_fallback_replacement_validated":v973.get("replacement_claim_vs_market_fallback",False),
+        "production_activation_allowed":v973.get("production_activation_allowed",False),
+    }
     summary["league_value_meta"]=vmeta; summary["market_mistake_status"]=mistakes.get("status")
     latest_market=(market_snapshot_paths:=sorted((Path(a.market_root)/str(a.season)).glob("season_market_*.jsonl.gz")))
     latest_market_path=latest_market[-1] if latest_market else None
@@ -178,6 +200,9 @@ def main(argv=None):
         "milestone9_sha256":sha256_file(root/"milestone9.json"),
         "season_board_sha256":sha256_file(board_path),
         "season_projection_v972_sha256":sha256_file(out/"season_projection_v972.csv"),
+        "preseason_v973_validation_sha256":sha256_file(out/"preseason_v973_validation.json"),
+        "preseason_v973_predictions_sha256":sha256_file(out/"preseason_v973_predictions.csv"),
+        "preseason_v973_calibration_sha256":sha256_file(out/"preseason_v973_calibration.csv"),
         "current_manifest_sha256":sha256_file(current_path),
         "current_snapshot_hydrated":bool(current.get("players")),
         "market_snapshot_count":len(latest_market),
@@ -192,19 +217,28 @@ def main(argv=None):
             "shadow_applied":shadow_meta.get("shadow_applied",0),
             "shadow_applied_by_position":shadow_meta.get("shadow_applied_by_position",{}),
         },
+        "preseason_v973_head_to_head":{
+            "status":v973.get("status"),
+            "football_model_promotion_review_positions":v973.get("football_model_promotion_review_positions",[]),
+            "expected_season_points_ready_positions":v973.get("expected_season_points_ready_positions",[]),
+            "market_fallback_head_to_head":((v973.get("comparison") or {}).get("market_fallback_head_to_head") or {}).get("status"),
+        },
         "market_movement":mmeta.get("status"),
         "historical_adp_curves":cmeta.get("status"),
         "market_mistakes":mistakes.get("status"),
         "injury_opportunity":injury.get("status"),
         "actionable_findings":findings.get("finding_count",0),
     }
-    summary["outputs"]=["preseason_v2.json","season_projection_v972.csv","market_movement.csv","adp_outcome_curves.csv","league_value_board.csv",
+    summary["outputs"]=["preseason_v2.json","preseason_v973_validation.json","preseason_v973_predictions.csv","preseason_v973_calibration.csv",
+                        "season_projection_v972.csv","market_movement.csv","adp_outcome_curves.csv","league_value_board.csv",
                         "draft_actions.csv","injury_opportunity.json","market_mistake_research.json","actionable_findings.json"]
     write_strict_json(out/"strategy_stack.json", summary)
     print(json.dumps(json_safe({"status":summary["status"],"value_labels":summary["value_labels"],
                       "preseason_eligible":pv2.get("production_eligible_positions",[]),
                       "v972_shadow_applied":shadow_meta.get("shadow_applied",0),
                       "v972_by_position":shadow_meta.get("shadow_applied_by_position",{}),
+                      "v973_promotion_review":v973.get("football_model_promotion_review_positions",[]),
+                      "v973_expected_points_ready":v973.get("expected_season_points_ready_positions",[]),
                       "market_curve_status":cmeta.get("status"),"findings":findings.get("finding_count")}),indent=2,allow_nan=False))
 
 if __name__=="__main__": main()
