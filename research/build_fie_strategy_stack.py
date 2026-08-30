@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Orchestrate the V9.7-V10.4 FIE strategy research stack for one league."""
 from __future__ import annotations
-import argparse, hashlib, json, os
+import argparse, hashlib, json, math, os
 from pathlib import Path
+import numpy as np
 import pandas as pd
 
 from fie_strategy_stack import (
@@ -15,6 +16,44 @@ from current_snapshot_storage import load_current_snapshot
 
 def load_json(path):
     p=Path(path); return json.loads(p.read_text()) if p.is_file() else {}
+
+
+def json_safe(value):
+    """Convert pandas/numpy missing values to strict JSON null at artifact boundaries.
+
+    This is serialization-only. It does not impute model inputs, change predictions,
+    alter evidence gates, or reinterpret missing football/market information as zero.
+    """
+    if isinstance(value, dict):
+        return {str(k): json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [json_safe(v) for v in value]
+    if isinstance(value, np.ndarray):
+        return [json_safe(v) for v in value.tolist()]
+    if isinstance(value, np.generic):
+        value = value.item()
+    if value is pd.NA:
+        return None
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    if isinstance(value, Path):
+        return str(value)
+    try:
+        missing = pd.isna(value)
+        if isinstance(missing, (bool, np.bool_)) and bool(missing):
+            return None
+    except Exception:
+        pass
+    return value
+
+
+def write_strict_json(path, obj):
+    Path(path).write_text(
+        json.dumps(json_safe(obj), indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
 
 
 def scoring_from_m1(m1):
@@ -85,7 +124,7 @@ def main(argv=None):
 
     # A: component-first preseason challenger.  Never feeds ADP.
     pv2=validate_component_preseason(pw,scoring_from_m1(m1),identity)
-    (out/"preseason_v2.json").write_text(json.dumps(pv2,indent=2,allow_nan=False)+"\n")
+    write_strict_json(out/"preseason_v2.json", pv2)
 
     # B: market evidence.  Daily trend is prospective; historical curves need a verified index.
     movement,mmeta=market_movement(a.market_root,a.season,adp_key)
@@ -102,13 +141,13 @@ def main(argv=None):
     # F/G/H: current action consumers; blocked cleanly when current/V9.6 data are absent.
     current=load_current_snapshot(current_path) if current_path.is_file() else {}
     injury=injury_redistribution(current) if current else {"status":"current_snapshot_unavailable","rows":[],"production_activation":False}
-    (out/"injury_opportunity.json").write_text(json.dumps(injury,indent=2,allow_nan=False)+"\n")
+    write_strict_json(out/"injury_opportunity.json", injury)
     findings=actionable_findings(value,current)
-    (out/"actionable_findings.json").write_text(json.dumps(findings,indent=2,allow_nan=False)+"\n")
+    write_strict_json(out/"actionable_findings.json", findings)
 
     hist_panel=verified_market_panel(a.market_root,pw,adp_key,vindex)
     mistakes=market_mistake_research(curves,hist_panel)
-    (out/"market_mistake_research.json").write_text(json.dumps(mistakes,indent=2,allow_nan=False)+"\n")
+    write_strict_json(out/"market_mistake_research.json", mistakes)
     summary=strategy_summary(value,mmeta,cmeta,pv2)
     summary["league_value_meta"]=vmeta; summary["market_mistake_status"]=mistakes.get("status")
     latest_market=(market_snapshot_paths:=sorted((Path(a.market_root)/str(a.season)).glob("season_market_*.jsonl.gz")))
@@ -141,9 +180,9 @@ def main(argv=None):
     }
     summary["outputs"]=["preseason_v2.json","market_movement.csv","adp_outcome_curves.csv","league_value_board.csv",
                         "draft_actions.csv","injury_opportunity.json","market_mistake_research.json","actionable_findings.json"]
-    (out/"strategy_stack.json").write_text(json.dumps(summary,indent=2,allow_nan=False)+"\n")
-    print(json.dumps({"status":summary["status"],"value_labels":summary["value_labels"],
+    write_strict_json(out/"strategy_stack.json", summary)
+    print(json.dumps(json_safe({"status":summary["status"],"value_labels":summary["value_labels"],
                       "preseason_eligible":pv2.get("production_eligible_positions",[]),
-                      "market_curve_status":cmeta.get("status"),"findings":findings.get("finding_count")},indent=2))
+                      "market_curve_status":cmeta.get("status"),"findings":findings.get("finding_count")}),indent=2,allow_nan=False))
 
 if __name__=="__main__": main()

@@ -2,10 +2,12 @@
 from __future__ import annotations
 import sys, tempfile, json
 from pathlib import Path
+import numpy as np
 import pandas as pd
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from preseason_projection_v2 import fixture_player_week, validate_component_preseason
 from fie_strategy_stack import build_league_value_board, draft_actions, actionable_findings, injury_redistribution
+from build_fie_strategy_stack import json_safe
 
 scoring={"pass_yd":.04,"pass_td":4,"pass_int":-2,"rush_yd":.1,"rush_td":6,"rec":1,"rec_yd":.1,"rec_td":6}
 pv=validate_component_preseason(fixture_player_week(),scoring,pd.DataFrame())
@@ -41,4 +43,15 @@ current={"players":[
 ]}
 inj=injury_redistribution(current); assert inj["production_activation"] is False; assert inj["rows"]
 f=actionable_findings(v,current); assert f["governance"]["auto_activation"] is False
+# Regression: pandas records may contain NaN/NA identities or optional fields.
+# Artifact-boundary sanitation must preserve strict allow_nan=False JSON.
+bad={"player_id":np.nan,"nested":{"metric":np.float64(np.nan),"missing":pd.NA},"ok":1.25}
+safe=json_safe(bad)
+assert safe["player_id"] is None and safe["nested"]["metric"] is None and safe["nested"]["missing"] is None
+json.dumps(safe,allow_nan=False)
+v_nan=v.copy()
+v_nan.loc[v_nan.index[0],"canonical_player_id"]=np.nan
+v_nan.loc[v_nan.index[0],"full_name"]=np.nan
+f_nan=actionable_findings(v_nan,current)
+json.dumps(json_safe(f_nan),allow_nan=False)
 print("PASS integrity_fie_strategy_stack_test")
