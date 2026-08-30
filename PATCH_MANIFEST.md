@@ -1,16 +1,15 @@
-# Patch Manifest
+# FIE Production Shadow Patch Manifest
 
-## New files
+New files only. No existing production runtime file is replaced.
 
-- `research/fie_feature_evidence_hardening.py`
-- `research/validate_feature_evidence_hardening.py`
-- `research/integrity_feature_evidence_hardening_test.py`
-- `docs/FEATURE_EVIDENCE_HARDENING.md`
-- `FEATURE_EVIDENCE_HARDENING_RELEASE_NOTES.md`
-- `APPLY_FEATURE_EVIDENCE_HARDENING.md`
+- `.github/workflows/build-fie-production-shadow.yml`
+- `research/fie_production_shadow.py`
+- `research/validate_production_shadow.py`
+- `research/integrity_production_shadow_test.py`
+- `docs/PRODUCTION_SHADOW_INTEGRATION.md`
+- `APPLY_PRODUCTION_SHADOW.md`
+- `PRODUCTION_SHADOW_RELEASE_NOTES.md`
 
-## Replace
+The workflow writes generated research outputs only under:
 
-- `.github/workflows/build-fie-feature-evidence.yml`
-
-No M1–M9 production module is replaced by this patch.
+`data/research/leagues/<league_id>/performance/<report_season>/shadow/`
