@@ -1,28 +1,33 @@
-# Patch Manifest
+# FIE V9.7.3 Patch Manifest
 
-Build: `V10.4-STRATEGY-STACK-SHADOW-2`
-
-This is an additive research/action patch. It does not replace canonical M1-M9, V9.6, current snapshot, app, dist, scoring, identity, league-profile, or release files.
+Build: `V10.4.3-STRATEGY-V973-VALIDATION-1`
 
 ## New files
 
-- research/preseason_projection_v2.py
-- research/fie_strategy_stack.py
-- research/build_fie_strategy_stack.py
-- research/validate_fie_strategy_stack.py
-- research/integrity_fie_strategy_stack_test.py
-- research/capture_fie_availability.py
-- research/verified_market_index.example.json
-- .github/workflows/build-fie-strategy-stack.yml
-- .github/workflows/capture-fie-season-market.yml
-- .github/workflows/capture-fie-availability.yml
-- docs/STRATEGY_STACK_V97_V104.md
-- APPLY_STRATEGY_STACK.md
+- `research/preseason_projection_v3.py`
+- `research/integrity_v973_preseason_test.py`
+- `docs/V973_PRESEASON_HEAD_TO_HEAD.md`
+- `APPLY_V973.md`
 
-## Preflight additions in shadow-2
+## Replaced files
 
-- committed-state protection around broad cache restoration
-- profile-derived `AUTO` ADP market selection
-- split current-snapshot hydration
-- provenance hashes and phase-readiness metadata
-- immutable daily prospective availability/injury archive
+- `research/build_fie_strategy_stack.py`
+- `research/validate_fie_strategy_stack.py`
+- `.github/workflows/build-fie-strategy-stack.yml`
+- `research/build-fie-strategy-stack.yml`
+
+## New research outputs
+
+- `preseason_v973_validation.json`
+- `preseason_v973_predictions.csv`
+- `preseason_v973_calibration.csv`
+
+## Governance
+
+- research-only
+- no automatic activation
+- no runtime modification
+- no canonical M9 modification
+- no ADP/market input into football models
+- no historical market-fallback replacement claim without verified immutable market snapshots
+- existing V9.7.2 shadow remains the league-value input until a later explicit promotion step
