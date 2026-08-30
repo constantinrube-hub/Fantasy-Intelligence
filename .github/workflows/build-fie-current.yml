@@ -66,6 +66,7 @@ jobs:
           python research/integrity_custom_league_rules_test.py
           python research/integrity_decision_validation_test.py
           python research/integrity_current_features_test.py
+          python research/integrity_v96_runtime_test.py
 
           node research/integrity_runtime_foundation_test.js
           python research/integrity_v93_decision_ux_test.py
@@ -96,31 +97,16 @@ jobs:
           python - <<'PY' > /tmp/fie_leagues.txt
           import json, os, re
 
-          supplied = str(
-              os.environ.get("INPUT_LEAGUE_ID") or ""
-          ).strip()
+          supplied = str(os.environ.get("INPUT_LEAGUE_ID") or "").strip()
 
           if supplied:
-              if not re.fullmatch(
-                  r"[0-9]{6,32}", supplied
-              ):
+              if not re.fullmatch(r"[0-9]{6,32}", supplied):
                   raise SystemExit("Invalid League ID")
               print(supplied)
           else:
-              reg = json.load(
-                  open(
-                      "data/research/leagues/registry.json"
-                  )
-              )
-              for lid, row in sorted(
-                  (reg.get("leagues") or {}).items()
-              ):
-                  if (
-                      row.get("enabled", True)
-                      and row.get(
-                          "current_refresh", True
-                      )
-                  ):
+              reg = json.load(open("data/research/leagues/registry.json"))
+              for lid, row in sorted((reg.get("leagues") or {}).items()):
+                  if row.get("enabled", True) and row.get("current_refresh", True):
                       print(lid)
           PY
 
@@ -177,6 +163,12 @@ jobs:
             echo "$LID" >> /tmp/fie_built_current_ids.txt
           done < /tmp/fie_leagues.txt
 
+      - name: Apply V9.6 controlled runtime where approved
+        run: |
+          python research/fie_runtime_v96.py apply-portfolio \
+            --built-ids /tmp/fie_built_current_ids.txt \
+            --leagues-root data/research/leagues
+
       - name: Deduplicate current snapshot storage
         run: python research/deduplicate_current_snapshots.py
 
@@ -191,22 +183,10 @@ jobs:
           import json
           from pathlib import Path
 
-          reg = json.load(
-              open(
-                  "data/research/leagues/registry.json"
-              )
-          )
+          reg = json.load(open("data/research/leagues/registry.json"))
 
-          for lid in sorted(
-              (reg.get("leagues") or {})
-          ):
-              if (
-                  Path(
-                      "data/research/leagues"
-                  )
-                  / lid
-                  / "current/milestone5_current.json"
-              ).exists():
+          for lid in sorted((reg.get("leagues") or {})):
+              if (Path("data/research/leagues") / lid / "current/milestone5_current.json").exists():
                   print(lid)
           PY
 
