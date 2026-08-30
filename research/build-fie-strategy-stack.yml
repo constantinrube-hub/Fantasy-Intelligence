@@ -176,6 +176,24 @@ jobs:
           git add "$FIE_STRATEGY_OUT" "data/research/market/sleeper/$FIE_SEASON" data/research/availability/sleeper || true
           if git diff --cached --quiet; then echo "No strategy changes to commit"; exit 0; fi
           git commit -m "Build FIE strategy research for league $FIE_LEAGUE_ID"
+
+          # Broad M7-M9 cache restore can leave unrelated tracked D/ST/kicker
+          # files modified in the worktree. The intended strategy/market/
+          # availability outputs are already committed above, so discard only
+          # remaining unstaged tracked cache side-effects before rebasing.
+          echo "Post-commit worktree status:"
+          git status --short
+          if ! git diff --quiet; then
+            echo "::warning::Discarding unstaged tracked cache side-effects before rebase."
+            git diff --name-status
+            git restore --worktree .
+          fi
+          if ! git diff --cached --quiet; then
+            echo "Unexpected staged changes remain after strategy commit." >&2
+            git diff --cached --name-status >&2
+            exit 1
+          fi
+
           git fetch origin main
           git rebase origin/main
           git push origin HEAD:main
