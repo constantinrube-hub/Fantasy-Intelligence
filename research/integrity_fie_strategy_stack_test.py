@@ -22,6 +22,17 @@ profile={"league":{"total_rosters":1,"roster_positions":["QB","RB","WR","TE","FL
 v,meta=build_league_value_board(board,profile)
 assert meta["football_projection_uses_adp"] is False
 assert set(["fie_vorp","replacement_points","rank_edge"]).issubset(v.columns)
+# Regression: season_board CSV commonly infers Sleeper IDs as int64 while
+# immutable market JSON preserves them as strings.  Both identity paths must join.
+board_ids=board.copy(); board_ids["sleeper_id"]=[1001,1002,1003,1004,1005]
+board_ids["canonical_player_id"]=[2001,2002,2003,2004,2005]
+movement=pd.DataFrame([{
+    "sleeper_id":"1001","canonical_player_id":"2001",
+    "adp_change_from_open":3.0,"adp_change_7d":2.0,"adp_change_21d":1.0,
+    "market_snapshot_count":4,"latest_market_as_of":"2026-08-30"
+}])
+v_ids,_=build_league_value_board(board_ids,profile,movement=movement)
+assert float(v_ids.loc[v_ids.full_name.eq("A"),"adp_change_from_open"].iloc[0]) == 3.0
 da=draft_actions(v,1,6); assert da.availability_probability.isna().all(); assert (da.availability_probability_status=="blocked_no_empirical_pick_distribution").all()
 current={"players":[
  {"canonical_player_id":"x","full_name":"X","team":"T","position_model":"RB","injury_status":"OUT","carry_share_prior4":.6},

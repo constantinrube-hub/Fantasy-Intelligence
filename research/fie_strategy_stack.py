@@ -56,6 +56,29 @@ def normalize_pos(v: Any) -> str:
     return {"DEF":"DST","D/ST":"DST"}.get(x, x)
 
 
+def normalize_player_id(v: Any) -> str:
+    """Normalize CSV/JSON player identifiers to a stable string join key.
+
+    Pandas may infer Sleeper numeric IDs from CSV as int64 while immutable JSON
+    market snapshots preserve them as strings.  Canonical IDs can also arrive as
+    numeric-looking values.  Missing values stay empty and spreadsheet-style
+    ``12345.0`` values are normalized back to ``12345``.
+    """
+    if v is None:
+        return ""
+    try:
+        if pd.isna(v):
+            return ""
+    except Exception:
+        pass
+    s = str(v).strip()
+    if not s or s.lower() in {"nan", "none", "<na>"}:
+        return ""
+    if re.fullmatch(r"\d+\.0", s):
+        s = s[:-2]
+    return s
+
+
 def load_market_rows(path: str | Path) -> List[dict]:
     p = Path(path); rows = []
     if not p.is_file(): return rows
@@ -235,17 +258,27 @@ def build_league_value_board(board: pd.DataFrame, profile: dict, movement: Optio
         metrics=["adp_change_from_open","adp_change_7d","adp_change_21d","market_snapshot_count","latest_market_as_of"]
         # Prefer canonical identity.  Scheduled market capture may not have a derived
         # identity table, so fall back to Sleeper ID without collapsing all null IDs.
-        if "canonical_player_id" in d and movement.canonical_player_id.notna().any():
-            mc=movement[movement.canonical_player_id.notna()][["canonical_player_id"]+metrics].drop_duplicates("canonical_player_id")
-            d=d.merge(mc,on="canonical_player_id",how="left")
+        if "canonical_player_id" in d and "canonical_player_id" in movement:
+            d["_canonical_join_key"] = d["canonical_player_id"].map(normalize_player_id)
+            mc=movement[["canonical_player_id"]+metrics].copy()
+            mc["_canonical_join_key"] = mc["canonical_player_id"].map(normalize_player_id)
+            mc=mc[mc._canonical_join_key.ne("")].drop_duplicates("_canonical_join_key").drop(columns=["canonical_player_id"])
+            if not mc.empty:
+                d=d.merge(mc,on="_canonical_join_key",how="left")
+            else:
+                for c in metrics: d[c]=np.nan
         else:
             for c in metrics: d[c]=np.nan
         if "sleeper_id" in d and "sleeper_id" in movement:
-            ms=movement[movement.sleeper_id.notna()][["sleeper_id"]+metrics].drop_duplicates("sleeper_id")
-            tmp=d[["sleeper_id"]].merge(ms,on="sleeper_id",how="left",suffixes=("","_sid"))
+            d["_sleeper_join_key"] = d["sleeper_id"].map(normalize_player_id)
+            ms=movement[["sleeper_id"]+metrics].copy()
+            ms["_sleeper_join_key"] = ms["sleeper_id"].map(normalize_player_id)
+            ms=ms[ms._sleeper_join_key.ne("")].drop_duplicates("_sleeper_join_key").drop(columns=["sleeper_id"])
+            tmp=d[["_sleeper_join_key"]].merge(ms,on="_sleeper_join_key",how="left",suffixes=("","_sid"))
             for c in metrics:
                 if c not in d: d[c]=np.nan
                 d[c]=d[c].where(pd.to_numeric(d[c],errors="coerce").notna() if c!="latest_market_as_of" else d[c].notna(), tmp[c])
+        d=d.drop(columns=[c for c in ["_canonical_join_key","_sleeper_join_key"] if c in d.columns])
     else:
         for c in ["adp_change_from_open","adp_change_7d","adp_change_21d","market_snapshot_count","latest_market_as_of"]: d[c]=np.nan
     market_expect=[]
