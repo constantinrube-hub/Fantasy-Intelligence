@@ -1,0 +1,259 @@
+name: Build FIE Production Shadow
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id:
+        description: "Sleeper League ID"
+        required: true
+        type: string
+      league_format:
+        description: "League format used if M1-M8 checkpoint must be rebuilt"
+        required: true
+        default: "REDRAFT"
+        type: choice
+        options: [REDRAFT, DYNASTY, CHOPPED, REDRAFT_BESTBALL, DYNASTY_BESTBALL, AUTO]
+      report_season:
+        description: "Shadow output folder season"
+        required: true
+        default: "2026"
+        type: string
+      start_season:
+        description: "Earliest research history"
+        required: true
+        default: "2016"
+        type: string
+      end_season:
+        description: "Latest completed season"
+        required: true
+        default: "2025"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-production-shadow-${{ inputs.league_id }}
+  cancel-in-progress: false
+
+jobs:
+  production-shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Validate inputs
+        shell: bash
+        env:
+          LEAGUE_ID: ${{ inputs.league_id }}
+          REPORT_SEASON: ${{ inputs.report_season }}
+          START_SEASON: ${{ inputs.start_season }}
+          END_SEASON: ${{ inputs.end_season }}
+        run: |
+          [[ "$LEAGUE_ID" =~ ^[0-9]{6,32}$ ]] || { echo "Invalid league id" >&2; exit 2; }
+          [[ "$REPORT_SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid report season" >&2; exit 2; }
+          [[ "$START_SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid start season" >&2; exit 2; }
+          [[ "$END_SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid end season" >&2; exit 2; }
+          [ "$START_SEASON" -le "$END_SEASON" ] || { echo "start season after end season" >&2; exit 2; }
+
+          echo "FIE_LEAGUE_ROOT=data/research/leagues/$LEAGUE_ID" >> "$GITHUB_ENV"
+          echo "FIE_DERIVED=.cache/fie-research/leagues/$LEAGUE_ID/derived" >> "$GITHUB_ENV"
+          echo "FIE_CACHE=.cache/fie-research/leagues/$LEAGUE_ID" >> "$GITHUB_ENV"
+          echo "FIE_EVIDENCE_OUT=data/research/leagues/$LEAGUE_ID/performance/$REPORT_SEASON/evidence" >> "$GITHUB_ENV"
+          echo "FIE_SHADOW_OUT=data/research/leagues/$LEAGUE_ID/performance/$REPORT_SEASON/shadow" >> "$GITHUB_ENV"
+          echo "FIE_EXTENDED_ROOT=.cache/fie-research/leagues/$LEAGUE_ID/feature-evidence/extended-core" >> "$GITHUB_ENV"
+          echo "FIE_EXTENDED_DERIVED=.cache/fie-research/leagues/$LEAGUE_ID/feature-evidence/extended-core/derived" >> "$GITHUB_ENV"
+          echo "FIE_EXTENDED_M1=.cache/fie-research/leagues/$LEAGUE_ID/feature-evidence/extended-core/milestone1_extended.json" >> "$GITHUB_ENV"
+          echo "FIE_CURRENT_SNAPSHOT=data/research/leagues/$LEAGUE_ID/current/milestone5_current.json" >> "$GITHUB_ENV"
+          echo "FIE_CURRENT_CACHE=.cache/fie-current/leagues/$LEAGUE_ID" >> "$GITHUB_ENV"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Verify shadow code and governance
+        run: |
+          python -m compileall -q research
+          python research/integrity_production_shadow_test.py
+
+      - name: Require hardened evidence bundle
+        shell: bash
+        run: |
+          test -s "$FIE_EVIDENCE_OUT/feature_evidence.json" || {
+            echo "Missing hardened feature evidence. Run Build FIE Feature Evidence Research first." >&2
+            exit 2
+          }
+          python research/validate_feature_evidence_bundle.py "$FIE_EVIDENCE_OUT/feature_evidence.json"
+          python research/validate_feature_evidence_hardening.py "$FIE_EVIDENCE_OUT/feature_evidence.json"
+
+      - name: Preserve committed evidence and current manifest
+        shell: bash
+        run: |
+          rm -rf /tmp/fie-shadow-preserve
+          mkdir -p /tmp/fie-shadow-preserve
+          cp -a "$FIE_EVIDENCE_OUT" /tmp/fie-shadow-preserve/evidence
+          cp "$FIE_CURRENT_SNAPSHOT" /tmp/fie-shadow-preserve/milestone5_current.json
+
+      - name: Restore M1-M8 research checkpoint
+        id: restore-m8
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+            data/research/leagues/registry.json
+            data/research/dst
+            data/research/kicker
+          key: >-
+            fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-false-${{ hashFiles('research/build_league_research.py', 'research/league_profile.py', 'research/fie_research.py', 'research/fie_m2.py', 'research/fie_m3.py', 'research/fie_m4.py', 'research/fie_m5.py', 'research/fie_m6.py', 'research/fie_dst.py', 'research/fie_kicker.py', 'research/fie_governance.py', 'research/stamp_league_artifacts.py', 'research/fie_m7.py', 'research/fie_m8.py', 'research/performance_source_contract.py', 'research/statistical_guardrails.py', 'config/league-portfolio.json') }}
+          restore-keys: |
+            fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-
+
+      - name: Rebuild through M8 when checkpoint is unavailable
+        if: steps.restore-m8.outputs.cache-hit != 'true'
+        shell: bash
+        env:
+          LEAGUE_ID: ${{ inputs.league_id }}
+          LEAGUE_FORMAT: ${{ inputs.league_format }}
+          REPORT_SEASON: ${{ inputs.report_season }}
+        run: |
+          python research/build_performance_research.py \
+            --league-id "$LEAGUE_ID" \
+            --format "$LEAGUE_FORMAT" \
+            --season "$REPORT_SEASON" \
+            --rebuild-base \
+            --stop-after-m8
+
+      - name: Save rebuilt M1-M8 research checkpoint
+        if: steps.restore-m8.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+            data/research/leagues/registry.json
+            data/research/dst
+            data/research/kicker
+          key: ${{ steps.restore-m8.outputs.cache-primary-key }}
+
+      - name: Restore hardened OOS cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/fie-research/leagues/${{ inputs.league_id }}/feature-evidence
+          key: >-
+            fie-feature-evidence-hardening-oos-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ hashFiles('research/fie_research.py', 'research/fie_m2.py', 'research/fie_m3.py', 'research/fie_m4.py', 'research/fie_feature_evidence.py', 'research/fie_feature_evidence_hardening.py', 'config/league-portfolio.json') }}
+
+      - name: Restore preserved committed inputs
+        shell: bash
+        run: |
+          rm -rf "$FIE_EVIDENCE_OUT"
+          mkdir -p "$(dirname "$FIE_EVIDENCE_OUT")" "$(dirname "$FIE_CURRENT_SNAPSHOT")"
+          cp -a /tmp/fie-shadow-preserve/evidence "$FIE_EVIDENCE_OUT"
+          cp /tmp/fie-shadow-preserve/milestone5_current.json "$FIE_CURRENT_SNAPSHOT"
+
+      - name: Re-validate hardened evidence after checkpoint restore
+        shell: bash
+        run: |
+          test -s "$FIE_EVIDENCE_OUT/feature_evidence.json" || {
+            echo "Hardened feature evidence disappeared after checkpoint restore." >&2
+            exit 2
+          }
+          python research/validate_feature_evidence_bundle.py "$FIE_EVIDENCE_OUT/feature_evidence.json"
+          python research/validate_feature_evidence_hardening.py "$FIE_EVIDENCE_OUT/feature_evidence.json"
+
+      - name: Build evidence-only extended core history if needed
+        shell: bash
+        env:
+          START_SEASON: ${{ inputs.start_season }}
+          END_SEASON: ${{ inputs.end_season }}
+        run: |
+          if [ ! -s "$FIE_EXTENDED_DERIVED/player_week.csv.gz" ] || [ ! -s "$FIE_EXTENDED_M1" ]; then
+            mkdir -p "$FIE_EXTENDED_ROOT" "$FIE_EXTENDED_DERIVED"
+            python research/fie_research.py \
+              --seasons "$START_SEASON-$END_SEASON" \
+              --extended-seasons "$START_SEASON-$END_SEASON" \
+              --output "$FIE_EXTENDED_M1" \
+              --derived-dir "$FIE_EXTENDED_DERIVED" \
+              --cache-dir "$FIE_EXTENDED_ROOT/raw" \
+              --scoring-json "$FIE_CACHE/scoring_settings_from_profile.json" \
+              --skip-pbp-opportunity
+          else
+            echo "Extended evidence core cache already present."
+          fi
+
+      - name: Build production shadow
+        shell: bash
+        env:
+          LEAGUE_ID: ${{ inputs.league_id }}
+          REPORT_SEASON: ${{ inputs.report_season }}
+          START_SEASON: ${{ inputs.start_season }}
+          END_SEASON: ${{ inputs.end_season }}
+        run: |
+          test -s "$FIE_CURRENT_SNAPSHOT" || {
+            echo "Missing current snapshot $FIE_CURRENT_SNAPSHOT. Run Refresh FIE Current Season at least once." >&2
+            exit 2
+          }
+          python research/fie_production_shadow.py \
+            --league-id "$LEAGUE_ID" \
+            --report-season "$REPORT_SEASON" \
+            --league-root "$FIE_LEAGUE_ROOT" \
+            --derived-dir "$FIE_DERIVED" \
+            --cache-dir "$FIE_CACHE" \
+            --extended-derived-dir "$FIE_EXTENDED_DERIVED" \
+            --extended-m1-bundle "$FIE_EXTENDED_M1" \
+            --current-cache "$FIE_CURRENT_CACHE" \
+            --current-snapshot "$FIE_CURRENT_SNAPSHOT" \
+            --evidence-bundle "$FIE_EVIDENCE_OUT/feature_evidence.json" \
+            --seasons "$START_SEASON-$END_SEASON" \
+            --output-dir "$FIE_SHADOW_OUT"
+          python research/validate_production_shadow.py "$FIE_SHADOW_OUT/production_shadow.json"
+
+      - name: Summarize production shadow
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ['FIE_SHADOW_OUT'])/'production_shadow.json'
+          b=json.loads(p.read_text())
+          print('Shadow eligible consumers:')
+          for x in b['promotion_gate']['shadow_eligible_consumers']:
+              print(' ', x)
+          print('Current shadow status:', b['current_shadow']['status'])
+          print('Current summary:', b['current_shadow']['summary'])
+          print('Runtime activation allowed:', b['promotion_gate']['runtime_activation_allowed'])
+          PY
+
+      - name: Upload production-shadow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-production-shadow-${{ inputs.league_id }}-${{ inputs.report_season }}
+          if-no-files-found: error
+          path: ${{ env.FIE_SHADOW_OUT }}/**
+
+      - name: Commit production-shadow research
+        shell: bash
+        run: |
+          git config user.name "FIE Research Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add "$FIE_SHADOW_OUT"
+          if git diff --cached --quiet; then
+            echo "No production-shadow changes to commit."
+            exit 0
+          fi
+          git commit -m "Build FIE production shadow for league ${{ inputs.league_id }}"
+
+          # Rebuild/cache steps can dirty tracked research inputs. The shadow output
+          # is already committed, so discard only uncommitted tracked mutations.
+          git restore --worktree .
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
