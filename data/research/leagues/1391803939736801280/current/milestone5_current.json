@@ -2,12 +2,12 @@
   "schema_version": 3,
   "m5_build": "V8.7-M5",
   "producer_build": "V8.8-M6",
-  "generated_at": "2026-08-29T04:11:59.416528+00:00",
+  "generated_at": "2026-08-30T09:36:21.672939+00:00",
   "status": "complete",
   "season": 2026,
   "week": 1,
-  "season_type": "preseason",
-  "sleeper_state_week": 3,
+  "season_type": "regular",
+  "sleeper_state_week": 1,
   "analysis_week_policy": "explicit --week when supplied; otherwise preseason maps to upcoming regular Week 1",
   "league_id": "1391803939736801280",
   "league_format": "REDRAFT",
@@ -186,10 +186,10 @@
     "identity": {
       "rows": 25066,
       "gsis": 25066,
-      "pfr": 22590,
+      "pfr": 22592,
       "pff": 11780,
       "otc": 9951,
-      "espn": 16771,
+      "espn": 16775,
       "sleeper": 6115,
       "tfg_join_key": 25066,
       "name_fallback": 0,
@@ -251,23 +251,23 @@
     "week": 1,
     "pregame_eligible": false,
     "capture_policy_version": 2,
-    "season_type": "preseason",
+    "season_type": "regular",
     "capture_window_hours": 18.0,
     "first_kickoff_utc": "2026-09-09T20:20:00+00:00",
-    "hours_before_kickoff": null,
-    "reason": "season_type_preseason"
+    "hours_before_kickoff": 250.727251,
+    "reason": "before_capture_window"
   },
   "kickoff": {
     "first_kickoff_utc": "2026-09-09T20:20:00+00:00",
     "capture_pregame_eligible": false,
     "capture_policy": {
       "capture_policy_version": 2,
-      "season_type": "preseason",
+      "season_type": "regular",
       "capture_window_hours": 18.0,
       "first_kickoff_utc": "2026-09-09T20:20:00+00:00",
-      "hours_before_kickoff": null,
+      "hours_before_kickoff": 250.727251,
       "pregame_eligible": false,
-      "reason": "season_type_preseason"
+      "reason": "before_capture_window"
     }
   },
   "guardrails": [
@@ -282,10 +282,34 @@
     "Immutable Sleeper benchmarks are written only in regular season and within 18 hours before first kickoff.",
     "Sleeper preseason week numbers never masquerade as regular-season weekly decision weeks."
   ],
+  "v96_runtime": {
+    "runtime_build": "V9.6-CONTROLLED-RUNTIME-1",
+    "status": "blocked_current weekly nflverse stats not yet available",
+    "source_runtime_generated_at": "2026-08-30T09:28:50.579145+00:00",
+    "completed_weeks": [],
+    "weekly_main_projection_positions": [
+      "QB",
+      "RB"
+    ],
+    "weekly_main_projection_model": "HistGB residual",
+    "wr_te_histgb_enabled": false,
+    "rb_competitor_model_role": "diagnostic_alternate_only",
+    "component_outputs_replace_canonical": false,
+    "horizon_outputs_replace_canonical": false,
+    "next_season_enabled": false,
+    "prior_season_live_fallback": false,
+    "summary": {
+      "weekly_main_projections_modified": 0,
+      "component_outputs_attached": 0,
+      "horizon_outputs_attached": 0,
+      "players_with_v96_output": 0
+    },
+    "players": {}
+  },
   "storage": {
     "format": "fie-current-split-v1",
-    "player_base": "data/research/shared/current/player_base.bf1fe896b96d6509.json",
-    "scoring_overlay": "data/research/shared/current/scoring/2cc8ac7dccb0df61.0a6ddba7622b4232.json",
+    "player_base": "data/research/shared/current/player_base.49ebbc243a37bf86.json",
+    "scoring_overlay": "data/research/shared/current/scoring/2cc8ac7dccb0df61.7c1d0a8a2d376cd8.json",
     "player_count": 9418,
     "excluded_player_ids": []
   }
