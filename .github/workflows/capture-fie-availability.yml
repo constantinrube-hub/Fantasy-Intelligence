@@ -1,0 +1,42 @@
+name: Capture Daily FIE Availability Evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Prospective evidence cannot be reconstructed cleanly after the fact.
+    - cron: "29 8 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-availability-daily
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify capture contract
+        run: |
+          python research/capture_fie_availability.py --fixture --output-root /tmp/fie-availability
+      - name: Capture immutable availability evidence
+        run: |
+          python research/capture_fie_availability.py --output-root data/research/availability/sleeper
+      - name: Commit first-write evidence
+        run: |
+          git config user.name "FIE Availability Evidence Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/availability/sleeper || true
+          if git diff --cached --quiet; then echo "Today's immutable availability snapshot already exists"; exit 0; fi
+          git commit -m "Capture FIE daily availability evidence"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
