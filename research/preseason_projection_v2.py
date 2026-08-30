@@ -32,6 +32,7 @@ from fie_research import BONUS_RULES, score_rows, scoring_audit
 from statistical_guardrails import promotion_gate
 
 BUILD = "V9.7.1-PRESEASON-COMPONENTS-FUMBLE-REPLAY-1"
+SHADOW_BUILD = "V9.7.2-VALIDATED-COMPONENT-SHADOW-1"
 POSITIONS = ("QB", "RB", "WR", "TE")
 
 RAW_TARGETS: Dict[str, Dict[str, Sequence[str]]] = {
@@ -525,6 +526,244 @@ def validate_component_preseason(player_week: pd.DataFrame, scoring: dict, ident
     output["production_activation_allowed"] = False  # separate runtime integration required even after validation
     return output
 
+
+
+def _norm_id(value) -> str:
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except Exception:
+        pass
+    s = str(value).strip()
+    if not s or s.lower() in {"nan", "none", "<na>"}:
+        return ""
+    if s.endswith(".0") and s[:-2].isdigit():
+        s = s[:-2]
+    return s
+
+
+def _predict_serialized(spec: dict, values: dict) -> float:
+    """Evaluate a serialized V9.7 Ridge target model without refitting it."""
+    fs = list(spec.get("features") or [])
+    med = list(spec.get("imputer_medians") or [])
+    mu = list(spec.get("scaler_mean") or [])
+    sd = list(spec.get("scaler_scale") or [])
+    co = list(spec.get("coefficients") or [])
+    if not (len(fs) == len(med) == len(mu) == len(sd) == len(co)):
+        raise ValueError("invalid serialized V9.7 target model")
+    y = float(spec.get("intercept") or 0.0)
+    for i, f in enumerate(fs):
+        raw = values.get(f)
+        try:
+            x = float(raw) if raw is not None and math.isfinite(float(raw)) else float(med[i])
+        except Exception:
+            x = float(med[i])
+        scale = float(sd[i]) if float(sd[i]) else 1.0
+        y += ((x - float(mu[i])) / scale) * float(co[i])
+    return max(float(spec.get("prediction_floor") or 0.0), float(y))
+
+
+def _m9_strategy_projection(board: pd.DataFrame) -> pd.Series:
+    """Reproduce the pre-V9.7.2 strategy consumer precedence for rollback."""
+    prod = pd.to_numeric(board.get("fie_production_mean"), errors="coerce") if "fie_production_mean" in board else pd.Series(np.nan, index=board.index)
+    diag = pd.to_numeric(board.get("fie_diagnostic_mean"), errors="coerce") if "fie_diagnostic_mean" in board else pd.Series(np.nan, index=board.index)
+    base = pd.to_numeric(board.get("fie_season_mean"), errors="coerce") if "fie_season_mean" in board else pd.Series(np.nan, index=board.index)
+    return prod.where(prod.notna(), diag.where(diag.notna(), base))
+
+
+def _games_assumption(row: dict) -> float:
+    """Reuse M9's season-length assumption rather than inventing a new one."""
+    try:
+        mean = float(row.get("fie_season_mean"))
+        ppg = float(row.get("fie_ppg"))
+        ratio = mean / ppg if ppg > 0 else float("nan")
+        if math.isfinite(ratio) and 1.0 <= ratio <= 18.5:
+            return float(ratio)
+    except Exception:
+        pass
+    return 17.0
+
+
+def _current_maps(current: Optional[dict]) -> Tuple[dict, dict]:
+    by_cid, by_sid = {}, {}
+    for row in (current or {}).get("players") or []:
+        cid = _norm_id(row.get("canonical_player_id")); sid = _norm_id(row.get("sleeper_id"))
+        if cid: by_cid[cid] = row
+        if sid: by_sid[sid] = row
+    return by_cid, by_sid
+
+
+def build_v972_shadow_season_board(
+    player_week: pd.DataFrame, scoring: dict, preseason_result: dict, board: pd.DataFrame,
+    season: int, identity: Optional[pd.DataFrame] = None, current: Optional[dict] = None,
+) -> Tuple[pd.DataFrame, dict]:
+    """Overlay validated V9.7.1 QB/WR models on the existing M9 board, research-only.
+
+    The function never consumes ADP.  It applies only position models that already
+    cleared the V9.7.1 four-fold + positive-CI + exact-scoring gate.  The live player
+    must also have a prior-season profile, at least three prior-season games, a current
+    catalog identity, and the same team as the prior-season profile.  Team transfers,
+    rookies, unmatched identities and non-validated positions fall back to the exact
+    M9 strategy projection that was used before this overlay.
+    """
+    d = board.copy()
+    if d.empty:
+        return d, {"build": SHADOW_BUILD, "status": "blocked_empty_m9_board", "production_activation": False}
+    if "position_model" not in d.columns:
+        raise RuntimeError("M9 season board missing position_model")
+
+    d["m9_strategy_projection"] = _m9_strategy_projection(d)
+    d["m9_fie_season_mean"] = pd.to_numeric(d.get("fie_season_mean"), errors="coerce") if "fie_season_mean" in d else np.nan
+    d["m9_fie_diagnostic_mean"] = pd.to_numeric(d.get("fie_diagnostic_mean"), errors="coerce") if "fie_diagnostic_mean" in d else np.nan
+    d["m9_fie_production_mean"] = pd.to_numeric(d.get("fie_production_mean"), errors="coerce") if "fie_production_mean" in d else np.nan
+    d["m9_projection_source"] = d.get("projection_source", pd.Series(None, index=d.index))
+
+    profiles = build_season_profiles(player_week, identity)
+    latest = profiles[pd.to_numeric(profiles.get("season"), errors="coerce").eq(int(season) - 1)].copy() if not profiles.empty else pd.DataFrame()
+    by_cid, by_sid = {}, {}
+    if not latest.empty:
+        for r in latest.to_dict("records"):
+            cid = _norm_id(r.get("canonical_player_id")); sid = _norm_id(r.get("sleeper_id"))
+            if cid: by_cid[cid] = r
+            if sid: by_sid[sid] = r
+    current_cid, current_sid = _current_maps(current)
+    current_available = bool(current_cid or current_sid)
+
+    model_specs = preseason_result.get("model_specs") or {}
+    per_position = preseason_result.get("per_position") or {}
+    eligible_positions = {
+        str(pos) for pos, pack in model_specs.items()
+        if str((per_position.get(pos) or {}).get("status")) == "validated_candidate"
+        and bool((per_position.get(pos) or {}).get("exact_scoring_replay"))
+    }
+
+    result_rows = []
+    reason_counts = {}
+    applied_by_position = {}
+    for rec in d.to_dict("records"):
+        pos = str(rec.get("position_model") or "").upper()
+        cid = _norm_id(rec.get("canonical_player_id")); sid = _norm_id(rec.get("sleeper_id"))
+        base = rec.get("m9_strategy_projection")
+        try:
+            base = float(base) if base is not None and math.isfinite(float(base)) else None
+        except Exception:
+            base = None
+        reason = "position_not_validated"
+        profile = None; join_method = "unmatched"; current_row = None
+        component_ppg = None; component_mean = None; raw_stats = {}; exact = False
+        games = _games_assumption(rec)
+
+        if pos in eligible_positions:
+            current_row = current_cid.get(cid) if cid else None
+            if current_row is None and sid:
+                current_row = current_sid.get(sid)
+            if not current_available:
+                reason = "current_catalog_unavailable"
+            elif current_row is None:
+                reason = "current_player_unmatched"
+            else:
+                profile = by_cid.get(cid) if cid else None
+                if profile is not None:
+                    join_method = "canonical_id"
+                elif sid:
+                    profile = by_sid.get(sid)
+                    if profile is not None: join_method = "sleeper_id"
+                if profile is None:
+                    reason = "prior_season_profile_unavailable"
+                else:
+                    try: prev_games = float(profile.get("prev_games") or 0)
+                    except Exception: prev_games = 0.0
+                    current_team = str((current_row or {}).get("team") or rec.get("team") or "").strip().upper()
+                    profile_team = str(profile.get("team") or "").strip().upper()
+                    if prev_games < 3:
+                        reason = "prior_season_games_below_gate"
+                    elif not current_team:
+                        reason = "current_team_unavailable"
+                    elif profile_team and current_team != profile_team:
+                        reason = "team_change_guardrail"
+                    else:
+                        pack = model_specs.get(pos) or {}
+                        try:
+                            for spec in pack.get("targets") or []:
+                                target = str(spec.get("target") or "")
+                                if target:
+                                    raw_stats[target] = _predict_serialized(spec, profile)
+                            audit = _position_scoring_audit(list(raw_stats), pos, scoring)
+                            exact = bool(audit.get("exact_replay_eligible"))
+                            if not raw_stats or not exact:
+                                reason = "live_shadow_scoring_not_exact"
+                            else:
+                                component_ppg = float(_score({k: np.asarray([v], dtype=float) for k, v in raw_stats.items()}, pos, scoring, 1)[0])
+                                component_mean = component_ppg * games
+                                if not math.isfinite(component_mean):
+                                    component_ppg = component_mean = None
+                                    reason = "nonfinite_shadow_prediction"
+                                else:
+                                    reason = "validated_component_shadow"
+                        except Exception:
+                            component_ppg = component_mean = None
+                            raw_stats = {}
+                            reason = "serialized_model_evaluation_failed"
+
+        applied = reason == "validated_component_shadow" and component_mean is not None
+        strategy = component_mean if applied else base
+        delta = (component_mean - base) if applied and base is not None else None
+        source = "V972_VALIDATED_COMPONENT_SHADOW" if applied else "M9_FALLBACK"
+        reason_counts[reason] = reason_counts.get(reason, 0) + 1
+        if applied: applied_by_position[pos] = applied_by_position.get(pos, 0) + 1
+        gate_meta = per_position.get(pos) or {}
+        rec.update({
+            "v972_component_ppg": component_ppg,
+            "v972_component_mean": component_mean,
+            "v972_validation_mean_improvement": gate_meta.get("mean_incremental_mae_improvement"),
+            "v972_validation_ci95_low": gate_meta.get("bootstrap_ci95_low"),
+            "v972_validation_ci95_high": gate_meta.get("bootstrap_ci95_high"),
+            "v972_validation_positive_folds": gate_meta.get("positive_folds"),
+            "v972_validation_folds": gate_meta.get("folds"),
+            "v972_games_assumption": games,
+            "v972_profile_season": int(season) - 1 if profile is not None else None,
+            "v972_profile_team": (profile or {}).get("team"),
+            "v972_profile_join_method": join_method,
+            "v972_exact_scoring_replay": bool(exact) if pos in eligible_positions else False,
+            "v972_shadow_applied": bool(applied),
+            "v972_shadow_status": reason,
+            "v972_raw_projected_stats_per_game": json.dumps(raw_stats, separators=(",", ":")) if raw_stats else "{}",
+            "strategy_projection": strategy,
+            "strategy_projection_source": source,
+            "projection_delta_vs_m9": delta,
+        })
+        result_rows.append(rec)
+
+    out = pd.DataFrame(result_rows)
+    applied = out[out.get("v972_shadow_applied", False).astype(bool)].copy() if not out.empty else pd.DataFrame()
+    delta = pd.to_numeric(applied.get("projection_delta_vs_m9"), errors="coerce").dropna() if not applied.empty else pd.Series(dtype=float)
+    meta = {
+        "build": SHADOW_BUILD,
+        "status": "complete_research_only",
+        "target_season": int(season),
+        "profile_season": int(season) - 1,
+        "validated_positions": sorted(eligible_positions),
+        "rows": int(len(out)),
+        "shadow_applied": int(len(applied)),
+        "shadow_applied_by_position": {str(k): int(v) for k, v in sorted(applied_by_position.items())},
+        "fallback_reasons": {str(k): int(v) for k, v in sorted(reason_counts.items()) if k != "validated_component_shadow"},
+        "mean_projection_delta_vs_m9": float(delta.mean()) if len(delta) else None,
+        "median_abs_projection_delta_vs_m9": float(delta.abs().median()) if len(delta) else None,
+        "current_catalog_available": current_available,
+        "market_inputs_used": False,
+        "adp_inputs_used": False,
+        "canonical_m9_columns_modified": False,
+        "production_activation": False,
+        "runtime_projection_modified": False,
+        "head_to_head_improvement_vs_m9_validated": False,
+        "replacement_claim_vs_m9": "not_made_shadow_challenger_only",
+        "validation_baseline": "prior_season_component_persistence",
+        "team_change_policy": "fallback_to_m9_until_transfer_opportunity_model_is_validated",
+        "rookie_policy": "fallback_to_m9_without_prior_season_profile",
+    }
+    return out, meta
 
 def fixture_player_week() -> pd.DataFrame:
     rng = np.random.default_rng(97); rows = []

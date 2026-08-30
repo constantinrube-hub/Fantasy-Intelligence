@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from preseason_projection_v2 import fixture_player_week, validate_component_preseason, build_season_profiles
+from preseason_projection_v2 import fixture_player_week, validate_component_preseason, build_season_profiles, build_v972_shadow_season_board
 from fie_strategy_stack import build_league_value_board, draft_actions, actionable_findings, injury_redistribution
 from build_fie_strategy_stack import json_safe
 
@@ -31,6 +31,43 @@ assert pv["production_activation_allowed"] is False
 for pos in ["QB","RB","WR","TE"]:
     audit=pv["per_position"].get(pos,{})
     assert not any(x.get("key") in {"fum","fum_lost"} for x in audit.get("scoring_unsupported",[])), (pos,audit)
+
+
+# V9.7.2 shadow handoff regression: a validated serialized QB component model may
+# replace only the research strategy projection, never the canonical M9 columns.
+def _const_spec(target,value):
+    return {"target":target,"algorithm":"median_impute+standardize+ridge",
+            "features":["prev_fantasy_ppg"],"imputer_medians":[10.0],
+            "scaler_mean":[10.0],"scaler_scale":[1.0],"coefficients":[0.0],
+            "intercept":float(value),"prediction_floor":0.0,"n_train":100}
+shadow_specs=[
+    _const_spec("passing_yards",250),_const_spec("passing_tds",1.8),_const_spec("interceptions",0.7),
+    _const_spec("rushing_yards",25),_const_spec("rushing_tds",0.25),_const_spec("fumbles_lost",0.2),
+]
+shadow_pv={"per_position":{"QB":{"status":"validated_candidate","exact_scoring_replay":True}},
+           "model_specs":{"QB":{"targets":shadow_specs}}}
+shadow_board=pd.DataFrame([{
+    "canonical_player_id":"QB000","sleeper_id":"9000","full_name":"Fixture Quarterback",
+    "position_model":"QB","team":"T00","fie_season_mean":300.0,"fie_ppg":300/17,
+    "fie_diagnostic_mean":300.0,"fie_production_mean":np.nan,"projection_source":"MARKET_FALLBACK",
+    "market_adp":100.0,"confidence":80,
+}])
+shadow_current={"players":[{"canonical_player_id":"QB000","sleeper_id":"9000","full_name":"Fixture Quarterback",
+                           "team":"T00","position_model":"QB","active":True}]}
+shadow_out,shadow_meta=build_v972_shadow_season_board(fx,scoring,shadow_pv,shadow_board,2026,current=shadow_current)
+assert shadow_meta["production_activation"] is False and shadow_meta["market_inputs_used"] is False
+assert shadow_meta["shadow_applied"] == 1
+assert bool(shadow_out.loc[0,"v972_shadow_applied"])
+assert shadow_out.loc[0,"strategy_projection_source"] == "V972_VALIDATED_COMPONENT_SHADOW"
+assert float(shadow_out.loc[0,"fie_season_mean"]) == 300.0
+assert float(shadow_out.loc[0,"strategy_projection"]) != 300.0
+# Team transfers stay on M9 until a portable/new-team opportunity model is validated.
+changed_current={"players":[{"canonical_player_id":"QB000","sleeper_id":"9000","full_name":"Fixture Quarterback",
+                            "team":"ZZZ","position_model":"QB","active":True}]}
+changed,changed_meta=build_v972_shadow_season_board(fx,scoring,shadow_pv,shadow_board,2026,current=changed_current)
+assert changed_meta["shadow_applied"] == 0
+assert changed.loc[0,"v972_shadow_status"] == "team_change_guardrail"
+assert float(changed.loc[0,"strategy_projection"]) == 300.0
 
 board=pd.DataFrame([
  {"canonical_player_id":"a","sleeper_id":1001,"full_name":"A One","position_model":"RB","fie_season_mean":250,"fie_diagnostic_mean":250,"market_adp":60,"market_position_rank":30,"confidence":80},
@@ -80,4 +117,4 @@ inj=injury_redistribution(inj_current); assert inj["production_activation"] is F
 bad={"player_id":np.nan,"nested":{"metric":np.float64(np.nan),"missing":pd.NA},"ok":1.25}
 safe=json_safe(bad); assert safe["player_id"] is None and safe["nested"]["metric"] is None and safe["nested"]["missing"] is None
 json.dumps(safe,allow_nan=False)
-print("PASS integrity_fie_strategy_stack_test V9.7.1/V10.4.1")
+print("PASS integrity_fie_strategy_stack_test V9.7.2/V10.4.2")

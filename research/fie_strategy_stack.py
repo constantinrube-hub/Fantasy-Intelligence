@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-BUILD = "V10.4.1-STRATEGY-RELEVANCE-HARDENED-1"
+BUILD = "V10.4.2-STRATEGY-V972-SHADOW-1"
 OFFENSE = ("QB", "RB", "WR", "TE")
 
 
@@ -199,10 +199,15 @@ def league_structure(profile: dict) -> dict:
 
 
 def _projection_col(board: pd.DataFrame) -> pd.Series:
+    # V9.7.2 is a research-only overlay.  When the orchestrator supplies an explicit
+    # ``strategy_projection`` column, league value consumes it.  Canonical M9 columns
+    # remain untouched and remain the fallback/rollback source for every row.
+    shadow=pd.to_numeric(board.get("strategy_projection"),errors="coerce") if "strategy_projection" in board else pd.Series(np.nan,index=board.index)
     prod=pd.to_numeric(board.get("fie_production_mean"),errors="coerce") if "fie_production_mean" in board else pd.Series(np.nan,index=board.index)
     diag=pd.to_numeric(board.get("fie_diagnostic_mean"),errors="coerce") if "fie_diagnostic_mean" in board else pd.Series(np.nan,index=board.index)
     base=pd.to_numeric(board.get("fie_season_mean"),errors="coerce") if "fie_season_mean" in board else pd.Series(np.nan,index=board.index)
-    return prod.where(prod.notna(),diag.where(diag.notna(),base))
+    legacy=prod.where(prod.notna(),diag.where(diag.notna(),base))
+    return shadow.where(shadow.notna(),legacy)
 
 
 def replacement_levels(board: pd.DataFrame, profile: dict) -> Tuple[Dict[str,float],dict]:
@@ -485,13 +490,22 @@ def actionable_findings(value_board: pd.DataFrame, current: Optional[dict]=None)
             continue
         if not is_value and not bool(r.get("within_draft_horizon")):
             continue
+        projection_source=r.get("strategy_projection_source") or r.get("projection_source")
+        reason_codes=["RELEVANT_UNIVERSE_RANK_EDGE","LEAGUE_SPECIFIC_VORP","CURRENT_PLAYER_MATCH"]
+        reason_codes.append("V972_VALIDATED_COMPONENT_SHADOW" if projection_source=="V972_VALIDATED_COMPONENT_SHADOW" else "M9_FALLBACK_PROJECTION")
         findings.append({"surface":"DRAFT","player_id":pid,"sleeper_id":sid or None,"player":name,
                          "team":r.get("current_team"),"action":"TARGET" if is_value else "FADE",
                          "priority":"HIGH" if "STRONG" in label else "MEDIUM",
-                         "reason_codes":["RELEVANT_UNIVERSE_RANK_EDGE","LEAGUE_SPECIFIC_VORP","CURRENT_PLAYER_MATCH"],
+                         "reason_codes":reason_codes,
                          "evidence":{"market_adp":finite(r.get("market_adp")),"rank_edge":finite(r.get("rank_edge")),
                                      "fie_vorp":finite(r.get("fie_vorp")),"adp_change_7d":finite(r.get("adp_change_7d")),
-                                     "draft_horizon":finite(r.get("draft_horizon")),"watchlist_horizon":finite(r.get("watchlist_horizon"))},
+                                     "draft_horizon":finite(r.get("draft_horizon")),"watchlist_horizon":finite(r.get("watchlist_horizon")),
+                                     "strategy_projection":finite(r.get("fie_value_projection")),
+                                     "projection_source":projection_source,
+                                     "projection_delta_vs_m9":finite(r.get("projection_delta_vs_m9")),
+                                     "v972_validation_mean_improvement":finite(r.get("v972_validation_mean_improvement")),
+                                     "v972_validation_ci95_low":finite(r.get("v972_validation_ci95_low")),
+                                     "v972_validation_positive_folds":finite(r.get("v972_validation_positive_folds"))},
                          "confidence":finite(r.get("confidence") or r.get("diagnostic_confidence")),"status":"research_only"})
     if current:
         overlay=(current.get("v96_runtime") or {}).get("players") or {}
