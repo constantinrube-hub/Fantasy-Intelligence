@@ -1,0 +1,225 @@
+name: Build FIE V9.7.5 QB Ensemble Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id:
+        description: "Sleeper League ID"
+        required: true
+        type: string
+      league_format:
+        description: "League format (only used if V9.7.4/history must be rebuilt)"
+        required: true
+        default: "REDRAFT"
+        type: choice
+        options: [REDRAFT, DYNASTY, CHOPPED, REDRAFT_BESTBALL, DYNASTY_BESTBALL, AUTO]
+      season:
+        description: "Output season folder"
+        required: true
+        default: "2026"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-v975-qb-ensemble-${{ inputs.league_id }}
+  cancel-in-progress: false
+
+jobs:
+  qb-ensemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Validate inputs
+        env:
+          LID: ${{ inputs.league_id }}
+          SEASON: ${{ inputs.season }}
+        shell: bash
+        run: |
+          [[ "$LID" =~ ^[0-9]{6,32}$ ]] || { echo "Invalid league id" >&2; exit 2; }
+          [[ "$SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid season" >&2; exit 2; }
+          echo "FIE_LEAGUE_ID=$LID" >> "$GITHUB_ENV"
+          echo "FIE_SEASON=$SEASON" >> "$GITHUB_ENV"
+          echo "FIE_LEAGUE_ROOT=data/research/leagues/$LID" >> "$GITHUB_ENV"
+          echo "FIE_DERIVED=.cache/fie-research/leagues/$LID/derived" >> "$GITHUB_ENV"
+          echo "FIE_STRATEGY_OUT=data/research/leagues/$LID/performance/$SEASON/strategy" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: V9.7.5 deterministic integrity
+        run: |
+          python -m py_compile research/preseason_projection_v5.py research/integrity_v975_preseason_test.py research/validate_v975_preseason.py
+          python research/integrity_v975_preseason_test.py
+
+      - name: Preserve committed league state before cache restore
+        shell: bash
+        run: |
+          rm -rf /tmp/fie-v975-committed-league /tmp/fie-v975-registry.json
+          if [ -d "$FIE_LEAGUE_ROOT" ]; then
+            mkdir -p /tmp/fie-v975-committed-league
+            cp -a "$FIE_LEAGUE_ROOT"/. /tmp/fie-v975-committed-league/
+          fi
+          if [ -f data/research/leagues/registry.json ]; then
+            cp data/research/leagues/registry.json /tmp/fie-v975-registry.json
+          fi
+
+      - name: Restore existing research cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+            data/research/leagues/registry.json
+            data/research/dst
+            data/research/kicker
+          key: fie-v975-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-${{ hashFiles('research/preseason_projection.py','research/preseason_projection_v2.py','research/preseason_projection_v3.py','research/preseason_projection_v4.py','research/preseason_projection_v5.py') }}
+          restore-keys: |
+            fie-v974-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-
+            fie-strategy-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-
+            fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ inputs.league_format }}-
+
+      - name: Restore committed state over cache
+        shell: bash
+        run: |
+          if [ -d /tmp/fie-v975-committed-league ]; then
+            mkdir -p "$FIE_LEAGUE_ROOT"
+            rsync -a /tmp/fie-v975-committed-league/ "$FIE_LEAGUE_ROOT"/
+          fi
+          if [ -f /tmp/fie-v975-registry.json ]; then
+            cp /tmp/fie-v975-registry.json data/research/leagues/registry.json
+          fi
+
+      - name: Ensure V9.7.4 exact comparator artifacts
+        env:
+          FORMAT: ${{ inputs.league_format }}
+        shell: bash
+        run: |
+          V974_JSON="$FIE_STRATEGY_OUT/preseason_v974_validation.json"
+          V974_PRED="$FIE_STRATEGY_OUT/preseason_v974_predictions.csv"
+          if [ ! -f "$V974_JSON" ] || [ ! -f "$V974_PRED" ]; then
+            echo "V9.7.4 artifacts absent; rebuilding prerequisite exactly."
+            if [ ! -f "$FIE_LEAGUE_ROOT/milestone1.json" ] || [ ! -f "$FIE_DERIVED/player_week.csv.gz" ]; then
+              python research/build_performance_research.py \
+                --league-id "$FIE_LEAGUE_ID" \
+                --format "$FORMAT" \
+                --season "$FIE_SEASON" \
+                --rebuild-base \
+                --stop-after-m8
+            fi
+            mkdir -p "$FIE_STRATEGY_OUT"
+            IDENTITY_ARGS=()
+            if [ -f "$FIE_DERIVED/player_identity.csv.gz" ]; then
+              IDENTITY_ARGS=(--identity "$FIE_DERIVED/player_identity.csv.gz")
+            fi
+            python research/preseason_projection_v4.py \
+              --player-week "$FIE_DERIVED/player_week.csv.gz" \
+              "${IDENTITY_ARGS[@]}" \
+              --scoring-json "$FIE_LEAGUE_ROOT/milestone1.json" \
+              --output-json "$V974_JSON" \
+              --predictions-csv "$V974_PRED" \
+              --calibration-csv "$FIE_STRATEGY_OUT/preseason_v974_calibration.csv"
+            python research/validate_v974_preseason.py "$FIE_STRATEGY_OUT"
+          fi
+          test -f "$V974_JSON"
+          test -f "$V974_PRED"
+
+      - name: Run V9.7.5 chronological QB ensemble
+        shell: bash
+        run: |
+          python research/preseason_projection_v5.py \
+            --v974-json "$FIE_STRATEGY_OUT/preseason_v974_validation.json" \
+            --v974-predictions "$FIE_STRATEGY_OUT/preseason_v974_predictions.csv" \
+            --output-json "$FIE_STRATEGY_OUT/preseason_v975_validation.json" \
+            --predictions-csv "$FIE_STRATEGY_OUT/preseason_v975_predictions.csv" \
+            --params-csv "$FIE_STRATEGY_OUT/preseason_v975_params.csv" \
+            --calibration-csv "$FIE_STRATEGY_OUT/preseason_v975_calibration.csv"
+          python research/validate_v975_preseason.py "$FIE_STRATEGY_OUT"
+
+      - name: Governance guard
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ["FIE_STRATEGY_OUT"])/"preseason_v975_validation.json"
+          x=json.loads(p.read_text())
+          g=x["governance"]
+          assert g["production_activation"] is False
+          assert g["production_activation_allowed"] is False
+          assert g["canonical_m9_modified"] is False
+          assert g["canonical_m1_modified"] is False
+          assert g["runtime_projection_modified"] is False
+          assert g["market_inputs_used"] is False
+          assert g["adp_inputs_used"] is False
+          assert g["test_season_leakage_allowed"] is False
+          assert g["statistical_gates_lowered"] is False
+          print(
+              "PASS V9.7.5 governance",
+              "review=",x.get("football_model_promotion_review_positions",[]),
+              "expected=",x.get("expected_season_points_ready_positions",[]),
+          )
+          PY
+
+      - name: Upload V9.7.5 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-v975-qb-ensemble-${{ inputs.league_id }}-${{ inputs.season }}
+          if-no-files-found: error
+          path: |
+            data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/strategy/preseason_v975_validation.json
+            data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/strategy/preseason_v975_predictions.csv
+            data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/strategy/preseason_v975_params.csv
+            data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/strategy/preseason_v975_calibration.csv
+
+      - name: Commit V9.7.5 audit outputs
+        shell: bash
+        run: |
+          git config user.name "FIE Strategy Research Bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          git add \
+            "$FIE_STRATEGY_OUT/preseason_v975_validation.json" \
+            "$FIE_STRATEGY_OUT/preseason_v975_predictions.csv" \
+            "$FIE_STRATEGY_OUT/preseason_v975_params.csv" \
+            "$FIE_STRATEGY_OUT/preseason_v975_calibration.csv"
+
+          # Include V9.7.4 only if this run had to generate the missing prerequisite.
+          for f in preseason_v974_validation.json preseason_v974_predictions.csv preseason_v974_calibration.csv; do
+            if [ -f "$FIE_STRATEGY_OUT/$f" ]; then git add "$FIE_STRATEGY_OUT/$f"; fi
+          done
+
+          if git diff --cached --quiet; then
+            echo "No V9.7.5 audit changes to commit"
+            exit 0
+          fi
+
+          git commit -m "Build V9.7.5 QB ensemble audit for league $FIE_LEAGUE_ID"
+
+          echo "Post-commit worktree status:"
+          git status --short
+          if ! git diff --quiet; then
+            echo "::warning::Discarding unstaged tracked cache side-effects before rebase."
+            git diff --name-status
+            git restore --worktree .
+          fi
+          if ! git diff --cached --quiet; then
+            echo "Unexpected staged changes remain after V9.7.5 commit." >&2
+            git diff --cached --name-status >&2
+            exit 1
+          fi
+
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
