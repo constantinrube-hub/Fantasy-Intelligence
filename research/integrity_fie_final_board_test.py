@@ -40,4 +40,34 @@ except AssertionError:
 else:
     raise AssertionError('validator allowed missing projection on non-UNAVAILABLE row')
 
-print('PASS final board delegation/governance + unavailable-row projection contract')
+# Projection point estimate and uncertainty interval must come from the same M9
+# view.  Diagnostic market-anchored rows use diagnostic quantiles; validated
+# production rows use the base/production quantiles.
+try:
+    from build_fie_final_league_board import _projection_view
+except ImportError:
+    from research.build_fie_final_league_board import _projection_view
+
+diag=_projection_view({
+    'fie_value_projection':200.0,'fie_production_mean':None,'fie_diagnostic_mean':200.0,
+    'fie_season_mean':170.0,'fie_ppg':10.0,
+    'p10':130.0,'p25':145.0,'p50':165.0,'p75':185.0,'p90':205.0,
+    'diagnostic_p10':160.0,'diagnostic_p25':175.0,'diagnostic_p50':195.0,
+    'diagnostic_p75':215.0,'diagnostic_p90':235.0,
+})
+assert diag['projection_basis']=='DIAGNOSTIC_MARKET_ANCHORED'
+assert diag['projection_points']==200.0
+assert diag['p10']==160.0 and diag['p90']==235.0
+assert abs(diag['projection_ppg']-(200.0/17.0))<1e-9
+
+prod=_projection_view({
+    'fie_value_projection':220.0,'fie_production_mean':220.0,'fie_diagnostic_mean':210.0,
+    'fie_season_mean':220.0,'fie_ppg':220.0/17.0,
+    'p10':180.0,'p25':195.0,'p50':215.0,'p75':235.0,'p90':250.0,
+    'diagnostic_p10':170.0,'diagnostic_p90':240.0,
+    'projection_source':'FIE_M9_VALIDATED_PRESEASON',
+})
+assert prod['projection_basis']=='PRODUCTION'
+assert prod['p10']==180.0 and prod['p90']==250.0
+
+print('PASS final board delegation/governance + unavailable-row + projection-distribution contracts')

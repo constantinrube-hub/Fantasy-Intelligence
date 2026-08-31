@@ -43,7 +43,8 @@ def truth(v: Any) -> bool:
 def _row(row: dict) -> dict:
     keys = (
         "player_id", "sleeper_id", "name", "team", "position", "projection_scope",
-        "model_selected", "model_status", "projection_points", "projection_ppg",
+        "model_selected", "model_status", "projection_source", "projection_basis", "interval_source",
+        "projection_points", "projection_ppg",
         "p10", "p25", "p50", "p75", "p90", "position_rank", "overall_rank",
         "replacement_points", "vorp", "adp", "adp_key", "market_position_rank",
         "market_overall_rank", "rank_edge_position", "rank_edge_overall",
@@ -136,11 +137,37 @@ def _sleepers(rows: list[dict], profile: dict) -> dict:
                 continue
             x = dict(r)
             x["sleeper_strength"] = "STRONG" if edge >= 18 else "VALUE"
-            x["why"] = _sleeper_reasons(r, profile)
+            x["why_codes"] = _sleeper_reasons(r, profile)
+            x["why"] = _human_reasons(x["why_codes"])
             q.append(x)
         q.sort(key=lambda r: (-r["rank_edge_position"], -(r.get("vorp") or -1e9), r.get("adp") or 1e9, str(r.get("name") or "")))
         out[pos] = q[: SLEEPER_N[pos]]
     return out
+
+
+def _replacement_from_board(rows: list[dict], pos: str) -> float | None:
+    values = [r.get("replacement_points") for r in rows if r.get("position") == pos and r.get("replacement_points") is not None]
+    if not values:
+        return None
+    base = float(values[0])
+    if any(abs(float(x) - base) > 1e-8 for x in values[1:]):
+        raise RuntimeError(f"conflicting canonical replacement points for {pos}")
+    return base
+
+
+HUMAN_REASON = {
+    "LEAGUE_SPECIFIC_VORP": "Positive value over this league's replacement level",
+    "RELEVANT_UNIVERSE_RANK_EDGE": "FIE positional rank is materially ahead of market",
+    "M9_PRODUCTION_MODEL": "M9 remains the selected governed model",
+    "CURRENT_PLAYER_MATCH": "Matched to the current Sleeper player/team",
+    "FLEX_SCARCITY": "League FLEX demand is included in replacement value",
+    "SUPERFLEX_SCARCITY": "League Superflex/QB scarcity is included",
+    "POSITIVE_MARKET_MOVEMENT": "ADP has improved over the last 7 days",
+}
+
+
+def _human_reasons(codes: list[str]) -> list[str]:
+    return [HUMAN_REASON.get(c, str(c).replace("_", " ").title()) for c in codes]
 
 
 def _score_overview(profile: dict) -> dict:
@@ -188,7 +215,10 @@ def build_report(league_id: str, season: int, readiness: dict, board: pd.DataFra
             "exact_scoring": meta.get("exact_scoring"),
             "reason": meta.get("reason"),
             "evidence": meta.get("evidence"),
-            "replacement_points": ((readiness.get("league_value") or {}).get("replacement") or {}).get(pos),
+            # The final board is canonical for the human report.  Strategy/shadow
+            # readiness replacement may differ because it can contain challenger
+            # projections; never display that value beside canonical M9 VORP.
+            "replacement_points": _replacement_from_board(rows, pos),
         }
     report = {
         "schema": REPORT_SCHEMA,
@@ -227,7 +257,12 @@ def build_report(league_id: str, season: int, readiness: dict, board: pd.DataFra
 
 def _fmt(v: Any, digits: int = 1) -> str:
     x = finite(v)
-    return "—" if x is None else f"{x:.{digits}f}".rstrip("0").rstrip(".")
+    if x is None:
+        return "—"
+    # Do not strip significant integer zeroes: 10/20/30 must never render as 1/2/3.
+    if digits == 0:
+        return f"{x:.0f}"
+    return f"{x:.{digits}f}".rstrip("0").rstrip(".")
 
 
 def _md_table(headers: list[str], rows: list[list[Any]]) -> list[str]:
@@ -237,6 +272,16 @@ def _md_table(headers: list[str], rows: list[list[Any]]) -> list[str]:
     return out
 
 
+def _basis_label(row: dict) -> str:
+    basis = str(row.get("projection_basis") or "")
+    return {
+        "PRODUCTION": "M9 production",
+        "DIAGNOSTIC_MARKET_ANCHORED": "M9 diagnostic",
+        "MARKET_BASE": "Market fallback",
+        "DEDICATED_WEEKLY_CURRENT": "Weekly specialist",
+    }.get(basis, row.get("projection_source") or "—")
+
+
 def _player_table(rows: list[dict]) -> list[str]:
     body=[]
     for i,r in enumerate(rows,1):
@@ -244,9 +289,10 @@ def _player_table(rows: list[dict]) -> list[str]:
             int(r.get("position_rank") or i), r.get("name") or "—", r.get("team") or "—",
             _fmt(r.get("projection_points")), _fmt(r.get("p10")), _fmt(r.get("p90")),
             _fmt(r.get("vorp")), _fmt(r.get("adp")), _fmt(r.get("market_position_rank"),0),
-            _fmt(r.get("rank_edge_position"),0), r.get("value_label") or "—", r.get("model_selected") or "—",
+            _fmt(r.get("rank_edge_position"),0), r.get("value_label") or "—",
+            _basis_label(r),
         ])
-    return _md_table(["Rank","Player","Team","Projection","P10","P90","VORP","ADP","Market Pos Rank","Rank Edge","Value","Model"], body)
+    return _md_table(["Rank","Player","Team","Projection","P10","P90","VORP","ADP","Market Pos Rank","Rank Edge","Value","Projection Basis"], body)
 
 
 def _markdown(report: dict) -> str:
@@ -269,7 +315,14 @@ def _markdown(report: dict) -> str:
               f"Superflex/2QB: **{'Yes' if o['superflex'] else 'No'}** · D/ST: **{'Yes' if o['dst_enabled'] else 'No'}** · K: **{'Yes' if o['k_enabled'] else 'No'}**", ""]
     if o["scoring"]["bonuses"]:
         lines += ["Bonuses: `" + json.dumps(o["scoring"]["bonuses"], sort_keys=True) + "`", ""]
-    lines += ["## Position-by-position evaluation", ""]
+    lines += [
+        "### How to read Projection Basis", "",
+        "- **M9 production**: the displayed point estimate and P10-P90 come from the validated M9 production view.",
+        "- **M9 diagnostic**: production is unavailable for that player, so the canonical league-value layer uses M9's governed market-anchored diagnostic view; its matching diagnostic P10-P90 is shown.",
+        "- **Weekly specialist**: D/ST or kicker projection from the dedicated current-week engine.",
+        "- Research challengers remain shadow-only and do not replace these displayed canonical values.", "",
+        "## Position-by-position evaluation", ""
+    ]
     for pos in TOP_N:
         meta=report["position_evaluation"].get(pos)
         if not meta or meta.get("validation_status")=="NOT_APPLICABLE": continue

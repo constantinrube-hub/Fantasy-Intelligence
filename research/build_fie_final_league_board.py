@@ -103,6 +103,54 @@ def _canonical_offense_value_board(league_id: str, season: int, profile: dict, c
     return canonical, meta
 
 
+def _projection_view(src: dict) -> dict:
+    """Return one internally consistent M9 projection/distribution view.
+
+    The canonical value board may select the validated production mean, the
+    market-anchored M9 diagnostic mean, or the base market fallback.  Quantiles
+    and PPG must come from the same view as the selected point projection.
+    """
+    production = finite(src.get("fie_production_mean"))
+    diagnostic = finite(src.get("fie_diagnostic_mean"))
+    base = finite(src.get("fie_season_mean"))
+    selected = finite(src.get("fie_value_projection"))
+
+    base_ppg = finite(src.get("fie_ppg"))
+    inferred_games = None
+    if base is not None and base_ppg is not None and base_ppg > 0:
+        g = base / base_ppg
+        if math.isfinite(g) and g > 0:
+            inferred_games = g
+
+    if production is not None:
+        basis = "PRODUCTION"
+        source = src.get("m9_projection_source") or src.get("projection_source") or "FIE_M9_PRODUCTION"
+        prefix = ""
+        projection = production if selected is None else selected
+        ppg = base_ppg
+    elif diagnostic is not None:
+        basis = "DIAGNOSTIC_MARKET_ANCHORED"
+        source = "FIE_M9_DIAGNOSTIC_MARKET_ANCHORED"
+        prefix = "diagnostic_"
+        projection = diagnostic if selected is None else selected
+        ppg = (projection / inferred_games) if projection is not None and inferred_games else base_ppg
+    else:
+        basis = "MARKET_BASE"
+        source = src.get("m9_projection_source") or src.get("projection_source") or "MARKET_FALLBACK"
+        prefix = ""
+        projection = base if selected is None else selected
+        ppg = base_ppg
+
+    return {
+        "projection_points": projection,
+        "projection_ppg": ppg,
+        "projection_source": source,
+        "projection_basis": basis,
+        "interval_source": basis,
+        **{q: finite(src.get(prefix + q)) for q in ("p10", "p25", "p50", "p75", "p90")},
+    }
+
+
 def _challenger_map(strategy_value: pd.DataFrame) -> dict[str, dict]:
     out: dict[str, dict] = {}
     if strategy_value.empty:
@@ -138,8 +186,8 @@ def _offense_rows(league_id: str, season: int, canonical: pd.DataFrame, readines
         pmeta = (readiness.get("positions") or {}).get(pos) or {}
         key = _join_key(src)
         ch = challenger.get(key, {})
-        projection = finite(src.get("fie_value_projection"))
-        ppg = finite(src.get("fie_ppg"))
+        view = _projection_view(src)
+        projection = view["projection_points"]
         row = {
             "schema": FINAL_BOARD_SCHEMA,
             "league_id": str(league_id),
@@ -153,14 +201,16 @@ def _offense_rows(league_id: str, season: int, canonical: pd.DataFrame, readines
             "projection_scope": "SEASON",
             "model_selected": pmeta.get("selected_production_model") or "M9",
             "model_status": pmeta.get("decision"),
-            "projection_source": src.get("m9_projection_source") or src.get("projection_source") or "FIE_M9",
+            "projection_source": view["projection_source"],
+            "projection_basis": view["projection_basis"],
+            "interval_source": view["interval_source"],
             "projection_points": projection,
-            "projection_ppg": ppg,
-            "p10": finite(src.get("p10")),
-            "p25": finite(src.get("p25")),
-            "p50": finite(src.get("p50")),
-            "p75": finite(src.get("p75")),
-            "p90": finite(src.get("p90")),
+            "projection_ppg": view["projection_ppg"],
+            "p10": view["p10"],
+            "p25": view["p25"],
+            "p50": view["p50"],
+            "p75": view["p75"],
+            "p90": view["p90"],
             "position_rank": finite(src.get("fie_value_position_rank")),
             "overall_rank": None,
             "replacement_points": finite(src.get("replacement_points")),
@@ -245,6 +295,8 @@ def _special_rows(league_id: str, season: int, current: dict, readiness: dict) -
             "model_selected": pmeta.get("selected_production_model"),
             "model_status": pmeta.get("decision"),
             "projection_source": "CURRENT_DEDICATED_SPECIALIST_ENGINE",
+            "projection_basis": "DEDICATED_WEEKLY_CURRENT",
+            "interval_source": "DEDICATED_WEEKLY_CURRENT",
             "projection_points": projection,
             "projection_ppg": projection,
             "p10": _first_value(src, ("decision_weekly_p10", "weekly_p10", "p10")),
@@ -302,8 +354,8 @@ def build_board(league_id: str, season: int, readiness: dict) -> tuple[pd.DataFr
 def compact_rankings(df: pd.DataFrame, meta: dict) -> dict:
     cols = [
         "player_id", "sleeper_id", "name", "team", "position", "projection_scope",
-        "model_selected", "model_status", "projection_points", "projection_ppg",
-        "p10", "p50", "p90", "position_rank", "overall_rank", "replacement_points",
+        "model_selected", "model_status", "projection_source", "projection_basis", "interval_source",
+        "projection_points", "projection_ppg", "p10", "p50", "p90", "position_rank", "overall_rank", "replacement_points",
         "vorp", "adp", "market_position_rank", "market_overall_rank",
         "rank_edge_position", "rank_edge_overall", "value_label", "confidence",
         "draft_relevant", "within_watchlist_horizon", "reason_codes",
