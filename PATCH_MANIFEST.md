@@ -1,35 +1,68 @@
-# FIE Chopped + Best Ball Support — 2026-08-31
+# FIE M9.1 Distribution-Anchored + Transition-Aware Challenger
 
-## Purpose
+## Revision
 
-One-time fail-closed migration that:
+This supersedes the earlier `FIE-M9.1-Transition-Aware-Challenger-2026-08-31.zip`.
 
-- adds `CHOPPED_BESTBALL` as a sixth canonical format;
-- resolves Sleeper `settings.type == 3` + `best_ball` to the hybrid;
-- composes existing Chopped downside and Best Ball spike evidence by intersection;
-- upgrades newly built M5 bundles to contract revision 5 while preserving revision 1-4 validation;
-- adds three new managed leagues:
-  - `1399128582088835072` → `REDRAFT`
-  - `1399318410818519040` → `CHOPPED_BESTBALL`
-  - `1396507356048658438` → `CHOPPED`
-- adds hybrid browser draft utility using VOR + lower-tail surplus + spike surplus;
-- updates workflow choices and deterministic integrity tests.
+### Calibration correction
 
-## Installation
+M9.1 does **not** use an uncalibrated raw FIE season total as the final challenger.
+That would be unsafe if FIE has a systematic position-level point bias.
 
-Upload these two files at their exact repository paths:
+It also does **not** retain M9's single position-wide mean offset.
 
-- `tools/apply_chopped_bestball_support.py`
-- `.github/workflows/apply-fie-chopped-bestball-support.yml`
+Instead current-year M9.1 uses a **position empirical quantile anchor**:
 
-Commit them to `main`, then run:
+1. Sleeper is the fixed current-year baseline distribution.
+2. Raw FIE exact-replay projections supply the football ordering signal.
+3. Stable-team exact-replay players are preferred to estimate each position's mapping.
+4. The raw FIE empirical percentile is mapped to the corresponding Sleeper empirical percentile.
+5. This calibrates level, dispersion and shape, while preserving the FIE ranking signal.
+6. If the reference sample is insufficient, M9.1 remains at Sleeper.
+7. Once 4+ completed point-in-time Sleeper preseason seasons exist, the intended
+   `Actual - Sleeper preseason projection` residual model can be trained chronologically
+   and may replace this market-neutral research anchor.
 
-**Actions → Apply FIE Chopped + Best Ball Support → Run workflow**
+This avoids both failure modes:
+- one blunt mean shift;
+- trusting an uncalibrated raw FIE level.
 
-The workflow runs integrity tests, commits the actual migration atomically, and removes the two one-time helper files from the repository.
+## Team transitions
 
-## After migration succeeds
+`TEAM_CHANGE` is no longer a blocking reason for **QB, RB, WR or TE**.
 
-Use the existing onboarding/research flow for the three new leagues. `AUTO` is preferred. The hybrid league must resolve to `CHOPPED_BESTBALL`.
+For all four positions:
+- portable player history is retained;
+- current new-team Sleeper role/team context is preferred;
+- prior-season new-team environmental context can replace old-team environment;
+- old-team role/context that cannot be defensibly replaced is cleared;
+- uncertainty can widen using empirical historical team-change volatility.
 
-Do not introduce an independent hybrid projection model. The hybrid is deliberately a fail-closed policy composition of the existing evidence streams.
+A row can still fail closed for a genuine data/scoring reason (missing identity,
+missing model/profile, unsupported active scoring component), but never merely because
+the player changed NFL teams.
+
+The integrity test now has explicit synthetic transition cases for QB, RB, WR and TE.
+
+## Files
+
+- `research/build_m91_season_challenger.py`
+- `research/validate_m91_season_challenger.py`
+- `research/integrity_m91_transition_test.py`
+- `.github/workflows/build-fie-m91-challenger.yml`
+
+## Pilot
+
+Run:
+**Actions -> Build FIE M9.1 Research Challenger**
+
+- league_id: `1391803939736801280`
+- season: `2026`
+- adp_key: `adp_ppr`
+
+Inspect artifact:
+- `m91_season_board.csv`
+- `m91_meta.json`
+- `m91_focus_summary.json`
+
+No production promotion occurs.
