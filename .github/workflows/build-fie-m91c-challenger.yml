@@ -1,0 +1,103 @@
+name: Build FIE M9.1c Research Challenger
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id:
+        description: "Sleeper League ID"
+        required: true
+        default: "1391803939736801280"
+        type: string
+      season:
+        description: "Season"
+        required: true
+        default: "2026"
+        type: string
+      adp_key:
+        description: "Sleeper ADP key"
+        required: true
+        default: "adp_ppr"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-m91c-${{ inputs.league_id }}
+  cancel-in-progress: false
+
+jobs:
+  challenger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - run: pip install -r research/requirements.txt
+
+      - name: M9.1c integrity
+        run: |
+          python -m py_compile \
+            research/build_m91c_season_challenger.py \
+            research/validate_m91c_season_challenger.py
+          python research/integrity_m91_transition_test.py
+          python research/integrity_m91b_test.py
+          python research/integrity_m91c_test.py
+
+      - name: Rehydrate canonical player-week cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          LID="${{ inputs.league_id }}"
+          SEASON="${{ inputs.season }}"
+          LEAGUE="data/research/leagues/${LID}"
+          CACHE=".cache/fie-research/leagues/${LID}"
+          DERIVED="${CACHE}/derived"
+          test -f "${LEAGUE}/milestone1.json"
+          test -f "${LEAGUE}/milestone9.json"
+          mkdir -p "${DERIVED}"
+          python - "${LEAGUE}/milestone1.json" "${CACHE}/scoring_settings_rehydrate.json" <<'PY'
+          import json,sys
+          from pathlib import Path
+          m1=json.loads(Path(sys.argv[1]).read_text())
+          scoring=((m1.get("scoring") or {}).get("settings") or m1.get("scoring_settings") or {})
+          if not scoring: raise SystemExit("canonical M1 has no scoring settings")
+          p=Path(sys.argv[2]);p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(scoring,indent=2)+"\n")
+          PY
+          HIST_END="$((SEASON-1))"
+          python research/fie_research.py \
+            --seasons "2019-${HIST_END}" \
+            --extended-seasons "2016-${HIST_END}" \
+            --output "${CACHE}/milestone1_rehydrated.json" \
+            --cache-dir "${CACHE}" \
+            --derived-dir "${DERIVED}" \
+            --league-id "${LID}" \
+            --scoring-json "${CACHE}/scoring_settings_rehydrate.json"
+          test -f "${DERIVED}/player_week.csv.gz"
+
+      - name: Build M9.1c
+        run: |
+          python research/build_m91c_season_challenger.py \
+            --league-id "${{ inputs.league_id }}" \
+            --season "${{ inputs.season }}" \
+            --adp-key "${{ inputs.adp_key }}" \
+            --player-week ".cache/fie-research/leagues/${{ inputs.league_id }}/derived/player_week.csv.gz"
+
+      - name: Validate M9.1c
+        run: |
+          python research/validate_m91c_season_challenger.py \
+            --league-id "${{ inputs.league_id }}" \
+            --season "${{ inputs.season }}"
+
+      - name: Show focus comparison
+        run: cat "data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/m91c_challenger/m91c_focus_summary.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fie-m91c-challenger-${{ inputs.league_id }}-${{ inputs.season }}
+          path: data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/m91c_challenger
+          retention-days: 14
