@@ -24,11 +24,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 0}
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: research/requirements.txt
+
       - name: Validate inputs
         env:
           LID: ${{ inputs.league_id }}
@@ -41,8 +43,10 @@ jobs:
           echo "FIE_SEASON=$SEASON" >> "$GITHUB_ENV"
           echo "FIE_LEAGUE_ROOT=data/research/leagues/$LID" >> "$GITHUB_ENV"
           echo "FIE_PIPELINE_OUT=data/research/leagues/$LID/performance/$SEASON/research_pipeline" >> "$GITHUB_ENV"
+
       - run: pip install -r research/requirements.txt
-      - name: Unified pipeline deterministic integrity
+
+      - name: Unified + M9.1c deterministic integrity
         run: |
           python -m compileall -q research
           python research/integrity_fie_research_pipeline_test.py
@@ -53,12 +57,22 @@ jobs:
           python research/integrity_fie_portfolio_report_test.py
           node research/integrity_fie_app_research_contract_test.js
           python research/integrity_fie_strategy_stack_test.py
+          python research/integrity_m91_transition_test.py
+          python research/integrity_m91b_test.py
+          python research/integrity_m91c_test.py
+          python research/integrity_m91c_pipeline_integration_test.py
+          python research/integrity_m91c_portfolio_rollout_test.py
+
       - name: Preserve committed league state before broad cache restore
         shell: bash
         run: |
           rm -rf /tmp/fie-committed-league /tmp/fie-committed-registry.json
-          if [ -d "$FIE_LEAGUE_ROOT" ]; then mkdir -p /tmp/fie-committed-league; cp -a "$FIE_LEAGUE_ROOT"/. /tmp/fie-committed-league/; fi
+          if [ -d "$FIE_LEAGUE_ROOT" ]; then
+            mkdir -p /tmp/fie-committed-league
+            cp -a "$FIE_LEAGUE_ROOT"/. /tmp/fie-committed-league/
+          fi
           cp data/research/leagues/registry.json /tmp/fie-committed-registry.json
+
       - name: Restore research cache
         id: restore
         uses: actions/cache/restore@v4
@@ -66,19 +80,31 @@ jobs:
           path: |
             .cache/fie-research/leagues/${{ inputs.league_id }}
             data/research/leagues/${{ inputs.league_id }}
-          key: fie-unified-research-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ hashFiles('research/fie_research.py','research/fie_m2.py','research/fie_m3.py','research/fie_m4.py','research/fie_m5.py','research/fie_m6.py','research/fie_m7.py','research/fie_m8.py','research/fie_m9.py','research/preseason_projection.py','research/preseason_projection_v2.py','research/preseason_projection_v3.py','research/preseason_projection_v4.py','research/preseason_projection_v5.py','research/fie_strategy_stack.py','research/run_fie_league_research_pipeline.py') }}
+          key: fie-unified-research-m91c-v2-${{ runner.os }}-${{ inputs.league_id }}-${{ hashFiles('research/fie_research.py','research/fie_m2.py','research/fie_m3.py','research/fie_m4.py','research/fie_m5.py','research/fie_m6.py','research/fie_m7.py','research/fie_m8.py','research/fie_m9.py','research/preseason_projection.py','research/preseason_projection_v2.py','research/preseason_projection_v3.py','research/preseason_projection_v4.py','research/preseason_projection_v5.py','research/fie_strategy_stack.py','research/run_fie_league_research_pipeline.py','research/build_m91_season_challenger.py','research/build_m91b_season_challenger.py','research/build_m91c_season_challenger.py','research/validate_m91c_season_challenger.py','research/integrate_m91c_research_challenger.py','research/run_fie_league_research_pipeline_m91c.py') }}
           restore-keys: |
+            fie-unified-research-m91c-v2-${{ runner.os }}-${{ inputs.league_id }}-
+            fie-unified-research-v1-${{ runner.os }}-${{ inputs.league_id }}-
             fie-strategy-v4-${{ runner.os }}-${{ inputs.league_id }}-
             fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-
+
       - name: Restore committed state over cache
         shell: bash
         run: |
-          if [ -d /tmp/fie-committed-league ]; then mkdir -p "$FIE_LEAGUE_ROOT"; rsync -a /tmp/fie-committed-league/ "$FIE_LEAGUE_ROOT"/; fi
+          if [ -d /tmp/fie-committed-league ]; then
+            mkdir -p "$FIE_LEAGUE_ROOT"
+            rsync -a /tmp/fie-committed-league/ "$FIE_LEAGUE_ROOT"/
+          fi
           cp /tmp/fie-committed-registry.json data/research/leagues/registry.json
-      - name: Capture pilot equivalence baseline
+
+      - name: Capture pilot production equivalence baseline
         if: ${{ inputs.league_id == env.FIE_PILOT_LEAGUE_ID && !inputs.force_rebuild }}
-        run: python research/fie_pilot_equivalence.py capture --league-id "$FIE_LEAGUE_ID" --season "$FIE_SEASON" --file /tmp/fie-pilot-baseline.json
-      - name: Run unified one-league pipeline
+        run: |
+          python research/fie_pilot_equivalence.py capture \
+            --league-id "$FIE_LEAGUE_ID" \
+            --season "$FIE_SEASON" \
+            --file /tmp/fie-pilot-baseline.json
+
+      - name: Run unified one-league pipeline with official M9.1c challenger
         id: pipeline
         env:
           INPUT_FORMAT: ${{ inputs.league_format }}
@@ -91,13 +117,40 @@ jobs:
           MODE=$(echo "$INPUT_MODE" | tr '[:upper:]' '[:lower:]')
           ARGS=(--league-id "$FIE_LEAGUE_ID" --season "$FIE_SEASON" --format "$INPUT_FORMAT" --adp-key "$INPUT_ADP" --mode "$MODE")
           if [ "$FORCE_REBUILD" = "true" ]; then ARGS+=(--force-rebuild); fi
-          python research/run_fie_league_research_pipeline.py "${ARGS[@]}"
+
+          python research/run_fie_league_research_pipeline_m91c.py "${ARGS[@]}"
           RC=$?
-          if [ "$RC" -eq 0 ] && [ "$FIE_LEAGUE_ID" = "$FIE_PILOT_LEAGUE_ID" ] && [ -f /tmp/fie-pilot-baseline.json ] && [ "$FORCE_REBUILD" != "true" ]; then
-            python research/fie_pilot_equivalence.py validate --league-id "$FIE_LEAGUE_ID" --season "$FIE_SEASON" --file /tmp/fie-pilot-baseline.json || RC=$?
+
+          if [ "$RC" -eq 0 ] \
+             && [ "$FIE_LEAGUE_ID" = "$FIE_PILOT_LEAGUE_ID" ] \
+             && [ -f /tmp/fie-pilot-baseline.json ] \
+             && [ "$FORCE_REBUILD" != "true" ]; then
+            # Equivalence intentionally compares M1-M9/V9.7/ADP/replacement only.
+            # Additive M9.1c research fields are outside the production-equivalence hash.
+            python research/fie_pilot_equivalence.py validate \
+              --league-id "$FIE_LEAGUE_ID" \
+              --season "$FIE_SEASON" \
+              --file /tmp/fie-pilot-baseline.json || RC=$?
           fi
+
+          if [ "$RC" -eq 0 ]; then
+            python - <<'PY' || RC=$?
+          import json, os
+          from pathlib import Path
+          out=Path(os.environ["FIE_PIPELINE_OUT"])
+          audit=json.loads((out/"m91c-integration.json").read_text())
+          assert audit["status"]=="complete_research_only"
+          assert audit["official_preseason_projection_challenger"]=="M9.1c"
+          assert audit["production_model_unchanged"]=="M9"
+          assert audit["production_activation"] is False
+          assert audit["canonical_production_columns_unchanged"] is True
+          print("PASS M9.1c league integration audit")
+          PY
+          fi
+
           echo "rc=$RC" >> "$GITHUB_OUTPUT"
           exit 0
+
       - name: Write matrix/job status
         if: always()
         env:
@@ -107,13 +160,43 @@ jobs:
           python - <<'PY'
           import json,os
           from pathlib import Path
-          out=Path(os.environ['FIE_PIPELINE_OUT']); rc=int(os.environ.get('RC') or 99)
+          out=Path(os.environ['FIE_PIPELINE_OUT'])
+          rc=int(os.environ.get('RC') or 99)
           manifest={}
           p=out/'stage-manifest.json'
-          if p.is_file(): manifest=json.loads(p.read_text())
-          status={'league_id':os.environ['FIE_LEAGUE_ID'],'season':int(os.environ['FIE_SEASON']),'outcome':'success' if rc==0 else 'failed','exit_code':rc,'reason':'' if rc==0 else 'unified_pipeline_or_pilot_equivalence_failed','pipeline_fingerprint':manifest.get('pipeline_fingerprint'),'stages':{x.get('name'):x.get('status') for x in manifest.get('stages',[])},'app_publish_complete':False}
+          if p.is_file():
+              manifest=json.loads(p.read_text())
+          ext=((manifest.get('extensions') or {}).get('m91c_preseason_projection_challenger') or {})
+          audit={}
+          ap=out/'m91c-integration.json'
+          if ap.is_file():
+              audit=json.loads(ap.read_text())
+          m91c_ok=(
+              audit.get('status')=='complete_research_only'
+              and audit.get('official_preseason_projection_challenger')=='M9.1c'
+              and audit.get('production_model_unchanged')=='M9'
+              and audit.get('canonical_production_columns_unchanged') is True
+          )
+          if rc==0 and not m91c_ok:
+              rc=2
+          status={
+              'league_id':os.environ['FIE_LEAGUE_ID'],
+              'season':int(os.environ['FIE_SEASON']),
+              'outcome':'success' if rc==0 else 'failed',
+              'exit_code':rc,
+              'reason':'' if rc==0 else 'unified_pipeline_m91c_or_pilot_equivalence_failed',
+              'pipeline_fingerprint':manifest.get('pipeline_fingerprint'),
+              'stages':{x.get('name'):x.get('status') for x in manifest.get('stages',[])},
+              'extensions':{
+                  'm91c_preseason_projection_challenger':ext,
+              },
+              'm91c_integration_status':audit.get('status'),
+              'm91c_historical_residual_gate_status':audit.get('historical_residual_gate_status'),
+              'app_publish_complete':False,
+          }
           (out/'matrix-job-status.json').write_text(json.dumps(status,indent=2,sort_keys=True)+'\n')
           PY
+
       - name: Upload league-scoped research artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -122,6 +205,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           path: data/research/leagues/${{ inputs.league_id }}/**
+
       - name: Upload shared market/availability evidence for single-league publisher
         if: ${{ always() && inputs.publish_shared_evidence }}
         uses: actions/upload-artifact@v4
@@ -132,6 +216,7 @@ jobs:
           path: |
             data/research/market/sleeper/${{ inputs.season }}/**
             data/research/availability/sleeper/**
+
       - name: Check whether expensive research backbone is cacheable
         id: cacheable
         if: always()
@@ -144,6 +229,7 @@ jobs:
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Save unified research cache
         if: ${{ always() && steps.restore.outputs.cache-hit != 'true' && (steps.pipeline.outputs.rc == '0' || steps.cacheable.outputs.ready == 'true') }}
         uses: actions/cache/save@v4
@@ -152,6 +238,7 @@ jobs:
             .cache/fie-research/leagues/${{ inputs.league_id }}
             data/research/leagues/${{ inputs.league_id }}
           key: ${{ steps.restore.outputs.cache-primary-key }}
+
       - name: Fail closed after artifact upload
         if: ${{ steps.pipeline.outputs.rc != '0' }}
         run: exit 2
