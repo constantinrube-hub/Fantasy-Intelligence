@@ -236,6 +236,26 @@ def patch_decision_model() -> None:
     write(path, s)
 
 
+
+def patch_portfolio_rules() -> None:
+    path = "research/portfolio_rules.py"
+    s = read(path)
+
+    old_formats = 'FORMATS = {"REDRAFT", "DYNASTY", "CHOPPED", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL"}'
+    new_formats = 'FORMATS = {"REDRAFT", "DYNASTY", "CHOPPED", "CHOPPED_BESTBALL", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL"}'
+    if '"CHOPPED_BESTBALL"' not in s.split('PRIORITIES', 1)[0]:
+        s = replace_once(s, old_formats, new_formats, "portfolio_rules canonical format set")
+
+    old_alias = '        "BESTBALL_DYNASTY": "DYNASTY_BESTBALL",\n'
+    alias_add = (
+        '        "CHOPPED_BEST_BALL": "CHOPPED_BESTBALL",\n'
+        '        "BESTBALL_CHOPPED": "CHOPPED_BESTBALL",\n'
+    )
+    if '"CHOPPED_BEST_BALL": "CHOPPED_BESTBALL"' not in s:
+        s = insert_after_once(s, old_alias, ''.join(alias_add), "portfolio_rules hybrid aliases")
+
+    write(path, s)
+
 def patch_portfolio_config_json() -> None:
     path = ROOT / "config" / "league-portfolio.json"
     if not path.exists():
@@ -393,6 +413,10 @@ def verify_postconditions() -> None:
     if '"contract_revision": 5' not in m5:
         die("M5 contract revision was not upgraded")
 
+    portfolio_rules = read("research/portfolio_rules.py")
+    if '"CHOPPED_BESTBALL"' not in portfolio_rules:
+        die("portfolio_rules hybrid format postcondition failed")
+
     cfg = json.loads((ROOT / "config" / "league-portfolio.json").read_text())
     by = {str(x["league_id"]): x for x in cfg["leagues"]}
     for x in NEW_LEAGUES:
@@ -409,6 +433,7 @@ def main() -> None:
     patch_m5()
     patch_m5_validator()
     patch_decision_model()
+    patch_portfolio_rules()
     patch_portfolio_config_json()
     patch_app_portfolio_config()
     patch_complete_workflow()
