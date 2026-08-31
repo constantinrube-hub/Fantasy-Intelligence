@@ -1,0 +1,79 @@
+name: Apply FIE Chopped + Best Ball Support
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-chopped-bestball-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Apply fail-closed hybrid migration
+        run: python tools/apply_chopped_bestball_support.py
+
+      - name: Syntax checks
+        run: |
+          python -m py_compile \
+            research/league_profile.py \
+            research/fie_m5.py \
+            research/validate_m5_bundle.py \
+            research/integrity_chopped_bestball_test.py \
+            tools/apply_chopped_bestball_support.py
+          node --check app/decision-model-v9.js
+          node --check app/portfolio-config.js
+
+      - name: Hybrid + regression integrity suite
+        run: |
+          python research/integrity_chopped_bestball_test.py
+          python research/integrity_m5_test.py
+          python research/integrity_multileague_test.py
+          python research/integrity_custom_league_rules_test.py
+          python research/integrity_bulk_onboarding_test.py --config-only
+
+      - name: Review changed files
+        shell: bash
+        run: |
+          git status --short
+          git diff --check
+          git diff --stat
+
+      - name: Remove one-time migration helpers
+        shell: bash
+        run: |
+          rm -f tools/apply_chopped_bestball_support.py
+          rm -f .github/workflows/apply-fie-chopped-bestball-support.yml
+
+      - name: Commit atomically
+        shell: bash
+        run: |
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "FIE Migration Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Add Chopped + Best Ball league format support"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
