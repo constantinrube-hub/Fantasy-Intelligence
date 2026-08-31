@@ -57,12 +57,6 @@ jobs:
           git diff --check
           git diff --stat
 
-      - name: Remove one-time migration helpers
-        shell: bash
-        run: |
-          rm -f tools/apply_chopped_bestball_support.py
-          rm -f .github/workflows/apply-fie-chopped-bestball-support.yml
-
       - name: Commit atomically
         shell: bash
         run: |
