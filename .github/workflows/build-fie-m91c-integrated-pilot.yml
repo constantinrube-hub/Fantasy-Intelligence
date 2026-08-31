@@ -1,0 +1,96 @@
+name: Build FIE M9.1c Integrated Research Pilot
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id:
+        description: "Sleeper League ID"
+        required: true
+        default: "1391803939736801280"
+        type: string
+      season:
+        description: "Season"
+        required: true
+        default: "2026"
+        type: string
+      league_format:
+        description: "Canonical format or AUTO"
+        required: true
+        default: "AUTO"
+        type: string
+      adp_key:
+        description: "ADP key or AUTO"
+        required: true
+        default: "AUTO"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-m91c-integrated-${{ inputs.league_id }}
+  cancel-in-progress: false
+
+jobs:
+  integrated-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - run: pip install -r research/requirements.txt
+
+      - name: Integrated challenger integrity
+        run: |
+          python -m py_compile \
+            research/run_fie_league_research_pipeline_m91c.py \
+            research/integrate_m91c_research_challenger.py
+          python research/integrity_m91_transition_test.py
+          python research/integrity_m91b_test.py
+          python research/integrity_m91c_test.py
+          python research/integrity_m91c_pipeline_integration_test.py
+
+      - name: Run unified pipeline with official M9.1c challenger
+        shell: bash
+        run: |
+          python research/run_fie_league_research_pipeline_m91c.py \
+            --league-id "${{ inputs.league_id }}" \
+            --season "${{ inputs.season }}" \
+            --format "${{ inputs.league_format }}" \
+            --adp-key "${{ inputs.adp_key }}" \
+            --mode full
+
+      - name: Verify integration audit
+        shell: bash
+        run: |
+          OUT="data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/research_pipeline"
+          python - "$OUT/m91c-integration.json" <<'PY'
+          import json,sys
+          from pathlib import Path
+          x=json.loads(Path(sys.argv[1]).read_text())
+          assert x["status"]=="complete_research_only"
+          assert x["official_preseason_projection_challenger"]=="M9.1c"
+          assert x["production_model_unchanged"]=="M9"
+          assert x["production_activation"] is False
+          assert x["canonical_production_columns_unchanged"] is True
+          print(json.dumps(x,indent=2))
+          PY
+
+      - name: Upload integrated research artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-m91c-integrated-${{ inputs.league_id }}-${{ inputs.season }}
+          path: |
+            data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/research_pipeline
+            data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/m91c_challenger
+          if-no-files-found: error
+          retention-days: 14
