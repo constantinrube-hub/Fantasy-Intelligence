@@ -23,12 +23,36 @@ FORBIDDEN = (
     'V5 · Dynasty + Waivers + Start/Sit',
 )
 
-# sync_league_app_snapshots.py performs this single approved deploy-only
-# transformation after build_dist.py has copied root index.html into dist/.
-# Keeping the exact tag here makes the release gate fail closed if that
-# transformation ever changes unexpectedly.
+# sync_league_app_snapshots.py is allowed to perform only these exact
+# deploy-only script injections after build_dist.py has copied root index.html
+# into dist/.  The release gate reconstructs the expected dist shell from the
+# source shell and these exact tags, so any additional mutation still fails
+# byte-for-byte parity.
 CALIBRATION_TAG = (
     '<script src="app/core/value-calibration-guard.js?v=933-calibration"></script>'
+)
+RESEARCH_SERVICE_TAG = (
+    '<script src="app/core/research-report-service.js?v=unified-research-v1"></script>'
+)
+RESEARCH_UI_TAG = (
+    '<script src="app/research-report-ui.js?v=unified-research-v1"></script>'
+)
+RESEARCH_VALUE_FINDER_TAG = (
+    '<script src="app/core/research-value-finder-bridge.js?v=unified-research-v1"></script>'
+)
+
+APPROVED_DEPLOY_TAGS = (
+    CALIBRATION_TAG,
+    RESEARCH_SERVICE_TAG,
+    RESEARCH_UI_TAG,
+    RESEARCH_VALUE_FINDER_TAG,
+)
+
+APPROVED_DEPLOY_FILES = (
+    'app/core/value-calibration-guard.js',
+    'app/core/research-report-service.js',
+    'app/research-report-ui.js',
+    'app/core/research-value-finder-bridge.js',
 )
 
 
@@ -67,23 +91,26 @@ def validate_source() -> None:
         + ', '.join(p.name for p in bad)
     )
 
-    guard = ROOT / 'app/core/value-calibration-guard.js'
-    assert guard.exists(), f'calibration guard missing: {guard}'
+    for rel in APPROVED_DEPLOY_FILES:
+        p = ROOT / rel
+        assert p.exists(), f'approved deploy script missing: {p}'
 
 
 def expected_dist_index() -> bytes:
-    """Return the exact deploy shell expected after approved dist injection."""
+    """Return exact deploy shell after only approved script injections."""
     text = (ROOT / 'index.html').read_text(encoding='utf-8')
+    marker = '</body>'
+    assert marker in text, (
+        'source index.html missing </body> required for approved deploy injection'
+    )
 
-    # Future-proofing: if the tag is eventually committed directly into the
-    # source shell, sync_league_app_snapshots.py becomes a no-op and strict
-    # parity naturally returns to byte-for-byte source == dist.
-    if CALIBRATION_TAG not in text:
-        marker = '</body>'
-        assert marker in text, (
-            'source index.html missing </body> required for calibration injection'
-        )
-        text = text.replace(marker, CALIBRATION_TAG + '\n' + marker, 1)
+    # Match sync_league_app_snapshots.py exactly: each missing tag is appended
+    # immediately before </body>, in the fixed order above.  If a tag is ever
+    # committed directly into source index.html, that individual injection
+    # naturally becomes a no-op.
+    for tag in APPROVED_DEPLOY_TAGS:
+        if tag not in text:
+            text = text.replace(marker, tag + '\n' + marker, 1)
 
     return text.encode('utf-8')
 
@@ -92,20 +119,22 @@ def validate_dist() -> None:
     dist_index = ROOT / 'dist/index.html'
     validate_shell(dist_index, 'dist index')
 
-    dist_guard = ROOT / 'dist/app/core/value-calibration-guard.js'
-    assert dist_guard.exists(), f'dist calibration guard missing: {dist_guard}'
+    for rel in APPROVED_DEPLOY_FILES:
+        p = ROOT / 'dist' / rel
+        assert p.exists(), f'dist approved deploy script missing: {p}'
 
     dist_bytes = dist_index.read_bytes()
     expected = expected_dist_index()
 
     assert dist_bytes == expected, (
         'dist/index.html differs from the approved deploy shell transformation '
-        '(root index.html + exact calibration guard injection only)'
+        '(root index.html + exact calibration/research script injections only)'
     )
 
-    assert CALIBRATION_TAG.encode('utf-8') in dist_bytes, (
-        'dist/index.html missing approved calibration guard script tag'
-    )
+    for tag in APPROVED_DEPLOY_TAGS:
+        assert tag.encode('utf-8') in dist_bytes, (
+            f'dist/index.html missing approved deploy script tag: {tag}'
+        )
 
 
 def main():
@@ -123,7 +152,7 @@ def main():
         + (
             ' validated'
             if ns.source_only
-            else ' + approved calibration-injected dist validated'
+            else ' + exact approved calibration/research-injected dist validated'
         )
     )
 
