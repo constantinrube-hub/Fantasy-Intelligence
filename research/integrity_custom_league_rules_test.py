@@ -9,10 +9,10 @@ ROOT=Path(__file__).resolve().parents[1]
 CFG=ROOT/'config'/'league-portfolio.json'
 cfg=load_portfolio_config(CFG)
 assert cfg['sleeper_username']=='C0nstant1n'
-assert len(cfg['leagues'])==19
+assert len(cfg['leagues'])==22
 formats={}
 for e in cfg['leagues']: formats[e['format']]=formats.get(e['format'],0)+1
-assert formats=={'CHOPPED':4,'REDRAFT':3,'REDRAFT_BESTBALL':2,'DYNASTY':7,'DYNASTY_BESTBALL':3},formats
+assert formats=={'CHOPPED':5,'REDRAFT':4,'REDRAFT_BESTBALL':2,'DYNASTY':7,'DYNASTY_BESTBALL':3,'CHOPPED_BESTBALL':1},formats
 
 legacy=entry_for(cfg,'1316165875291668480')
 assert legacy and legacy['priority']=='VERY_HIGH'
@@ -51,4 +51,4 @@ for token in [
 ]:
     assert token in js,token
 
-print('PASS: 19-league portfolio + fixed-cohort custom rules are valid, research-fingerprinted and exposed through modular browser rules')
+print('PASS: 22-league portfolio + hybrid format + fixed-cohort custom rules are valid, research-fingerprinted and exposed through modular browser rules')

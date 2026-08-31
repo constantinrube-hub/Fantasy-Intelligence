@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 LEAGUE_ID_RE = re.compile(r"^[0-9]{6,32}$")
-FORMATS = {"REDRAFT", "DYNASTY", "CHOPPED", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL"}
+FORMATS = {"REDRAFT", "DYNASTY", "CHOPPED", "CHOPPED_BESTBALL", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL"}
 PRIORITIES = {"LOW": 1, "MEDIUM": 2, "HIGH": 3, "VERY_HIGH": 4}
 
 
@@ -39,6 +39,8 @@ def canonical_format(value: str | None) -> str:
         "DYNASTY_BEST_BALL": "DYNASTY_BESTBALL",
         "BESTBALL_REDRAFT": "REDRAFT_BESTBALL",
         "BESTBALL_DYNASTY": "DYNASTY_BESTBALL",
+        "CHOPPED_BEST_BALL": "CHOPPED_BESTBALL",
+        "BESTBALL_CHOPPED": "CHOPPED_BESTBALL",
     }
     s = aliases.get(s, s)
     if s not in FORMATS:

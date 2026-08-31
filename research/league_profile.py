@@ -30,7 +30,7 @@ SCHEMA_VERSION = 2
 LEAGUE_ID_RE = re.compile(r"^[0-9]{6,32}$")
 FORMATS = {
     "AUTO", "REDRAFT", "DYNASTY", "CHOPPED",
-    "REDRAFT_BESTBALL", "DYNASTY_BESTBALL",
+    "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED_BESTBALL",
 }
 
 # Sleeper settings include operational/progress fields (for example leg,
@@ -127,6 +127,8 @@ def infer_format(league: Dict[str, Any], requested: str) -> str:
     )
     is_dynasty = bool(type_code == 2 or "dynasty" in league_type or "dynasty" in name)
     is_best_ball = bool(settings.get("best_ball") in (1, 2, "1", "2") or "best ball" in name or "bestball" in name)
+    if is_chopped and is_best_ball:
+        return "CHOPPED_BESTBALL"
     if is_chopped:
         return "CHOPPED"
     if is_dynasty and is_best_ball:

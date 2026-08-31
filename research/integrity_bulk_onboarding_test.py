@@ -11,7 +11,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def config_only():
     cfg=load_portfolio_config(ROOT/'config'/'league-portfolio.json')
-    assert len(cfg['leagues'])==19
+    assert len(cfg['leagues'])==22
     ids=[x['league_id'] for x in cfg['leagues']]
     assert len(ids)==len(set(ids))
     wf=(ROOT/'.github'/'workflows'/'bulk-onboard-fie-portfolio.yml').read_text(encoding='utf-8')

@@ -13,7 +13,8 @@ import json
 import sys
 from pathlib import Path
 
-EXPECTED_FORMATS = {"REDRAFT", "DYNASTY", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED"}
+LEGACY_FORMATS = {"REDRAFT", "DYNASTY", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED"}
+CURRENT_FORMATS = LEGACY_FORMATS | {"CHOPPED_BESTBALL"}
 
 
 def validate_bundle(b: dict) -> None:
@@ -23,6 +24,9 @@ def validate_bundle(b: dict) -> None:
     assert b.get("control_build") == "V8.2.2"
     assert b.get("steps_completed") == [24, 25, 26, 27]
     assert b.get("integration_mode") == "fail_closed_conditional"
+
+    revision = int(b.get("contract_revision") or 1)
+    expected_formats = CURRENT_FORMATS if revision >= 5 else LEGACY_FORMATS
 
     activation = b.get("activation", {})
     assert activation.get("policy") == "fail_closed"
@@ -64,7 +68,7 @@ def validate_bundle(b: dict) -> None:
     assert waiver == waiver_validated, (sorted(waiver), sorted(waiver_validated))
 
     format_gates = gates.get("format_position_gates", {})
-    assert set(format_gates) == EXPECTED_FORMATS
+    assert set(format_gates) == expected_formats
     for key, vals in format_gates.items():
         assert isinstance(vals, list), key
 
@@ -72,7 +76,7 @@ def validate_bundle(b: dict) -> None:
         assert section in b, section
 
     profiles = b["format_strategy"].get("profiles", {})
-    assert set(profiles) == EXPECTED_FORMATS
+    assert set(profiles) == expected_formats
     for key, value in profiles.items():
         for weight_key in ["draft_weights", "waiver_weights"]:
             weights = value.get(weight_key, {})
@@ -91,7 +95,6 @@ def validate_bundle(b: dict) -> None:
     # decision-specific format gates.  Revision 1 remains valid for already
     # migrated historical Redraft bundles, so deployment does not require a
     # destructive rebuild merely to satisfy the newer validator.
-    revision = int(b.get("contract_revision") or 1)
     if revision >= 2:
         specific_fields = set(runtime.get("decision_specific_player_fields", []) or [])
         assert {"weekly_activation_eligible", "waiver_activation_eligible", "waiver_feature_coverage"}.issubset(specific_fields)
@@ -100,7 +103,7 @@ def validate_bundle(b: dict) -> None:
         assert set(decision_format) == {"weekly", "draft", "waiver"}
         base = {"weekly": weekly, "draft": draft, "waiver": waiver}
         for decision, by_format in decision_format.items():
-            assert set(by_format) == EXPECTED_FORMATS, decision
+            assert set(by_format) == expected_formats, decision
             for fmt, vals in by_format.items():
                 assert isinstance(vals, list), (decision, fmt)
                 assert set(vals).issubset(base[decision]), (decision, fmt, vals, sorted(base[decision]))
@@ -129,6 +132,23 @@ def validate_bundle(b: dict) -> None:
                 assert row.get("decision_ranking_status") == "validated_candidate", row.get("position")
 
     text = json.dumps(b)
+    if revision >= 5:
+        fmt = gates.get("format_position_gates", {})
+        decision_fmt = gates.get("decision_format_position_gates", {})
+        assert "CHOPPED_BESTBALL" in fmt
+        for decision in ("weekly", "draft", "waiver"):
+            assert "CHOPPED_BESTBALL" in decision_fmt.get(decision, {}), decision
+        # The hybrid can never activate a position absent from either constituent
+        # format. This is the fail-closed composition rule.
+        hybrid = set(fmt["CHOPPED_BESTBALL"])
+        assert hybrid.issubset(set(fmt.get("CHOPPED", [])))
+        assert hybrid.issubset(set(fmt.get("REDRAFT_BESTBALL", [])))
+        for decision in ("weekly", "draft", "waiver"):
+            by = decision_fmt[decision]
+            h = set(by["CHOPPED_BESTBALL"])
+            assert h.issubset(set(by.get("CHOPPED", []))), decision
+            assert h.issubset(set(by.get("REDRAFT_BESTBALL", []))), decision
+
     assert "unconditional_activation" not in text
 
 

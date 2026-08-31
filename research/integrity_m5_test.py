@@ -14,7 +14,7 @@ obj = format_strategy(
     pd.DataFrame(columns=["season", "week", "position_model", "fantasy_points", "fie_projection", "baseline_projection"]),
 )
 profiles = obj["profiles"]
-assert set(profiles) == {"REDRAFT", "DYNASTY", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED"}
+assert set(profiles) == {"REDRAFT", "DYNASTY", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED", "CHOPPED_BESTBALL"}
 for key, value in profiles.items():
     assert abs(sum(value["draft_weights"].values()) - 1) < 1e-9
     assert abs(sum(value["waiver_weights"].values()) - 1) < 1e-9

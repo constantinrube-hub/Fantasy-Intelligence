@@ -631,6 +631,14 @@ def format_strategy(draft_agg: List[dict], weekly_agg: List[dict], m3: dict, oos
             "waiver_weights": {"next3": .18, "future_role": .25, "spike": .25, "role_change": .12, "market": .20},
             "limitation": "combined dynasty/best-ball utility is a transparent policy transform, not a directly optimized historical league simulation",
         },
+        "CHOPPED_BESTBALL": {
+            "label": "Chopped + Best Ball",
+            "evidence_status": "validated_player_level_proxy" if bb_ok >= 4 and ch_ok >= 4 and weekly_ok >= 4 and redraft_ok >= 4 else "diagnostic_only",
+            "production_core": "weekly downside/survival + spike-week probability + depth contribution",
+            "draft_weights": {"season_projection": .25, "vor": .10, "floor": .20, "early_week": .15, "spike": .20, "depth_fit": .10},
+            "waiver_weights": {"next3": .20, "floor": .20, "spike": .20, "role_change": .15, "weekly": .15, "market": .10},
+            "limitation": "hybrid utility intersects player-level Chopped bust-risk and Best Ball spike evidence; it is not a historical roster-level guillotine optimal-lineup simulation",
+        },
         "CHOPPED": {
             "label": "Chopped", "evidence_status": "validated_player_level_proxy" if ch_ok >= 4 and weekly_ok >= 4 else "diagnostic_only",
             "production_core": "weekly median + calibrated downside + short-horizon role security",
@@ -679,6 +687,7 @@ def run(args) -> dict:
         "REDRAFT_BESTBALL": sorted(set(runtime_positions) & set(bb_positions)),
         "DYNASTY_BESTBALL": [],
         "CHOPPED": sorted(set(runtime_positions) & set(risk_positions) & set(chopped_positions)),
+        "CHOPPED_BESTBALL": sorted(set(runtime_positions) & set(risk_positions) & set(chopped_positions) & set(bb_positions)),
     }
     decision_format_position_gates = {
         "weekly": {
@@ -687,6 +696,7 @@ def run(args) -> dict:
             "REDRAFT_BESTBALL": sorted(set(weekly_positions) & set(bb_positions)),
             "DYNASTY_BESTBALL": [],
             "CHOPPED": sorted(set(weekly_positions) & set(risk_positions) & set(chopped_positions)),
+            "CHOPPED_BESTBALL": sorted(set(weekly_positions) & set(risk_positions) & set(chopped_positions) & set(bb_positions)),
         },
         "draft": {
             "REDRAFT": sorted(set(draft_positions)),
@@ -694,6 +704,7 @@ def run(args) -> dict:
             "REDRAFT_BESTBALL": sorted(set(draft_positions) & set(bb_positions)),
             "DYNASTY_BESTBALL": [],
             "CHOPPED": sorted(set(draft_positions) & set(risk_positions) & set(chopped_positions)),
+            "CHOPPED_BESTBALL": sorted(set(draft_positions) & set(risk_positions) & set(chopped_positions) & set(bb_positions)),
         },
         "waiver": {
             "REDRAFT": sorted(set(waiver_positions)),
@@ -704,10 +715,11 @@ def run(args) -> dict:
             # player-level chopped downside evidence are available.  Weekly M4
             # validation is no longer an unnecessary prerequisite here.
             "CHOPPED": sorted(set(waiver_positions) & set(chopped_positions)),
+            "CHOPPED_BESTBALL": sorted(set(waiver_positions) & set(chopped_positions) & set(bb_positions)),
         },
     }
     bundle = {
-        "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD, "contract_revision": 4,
+        "schema_version": 5, "milestone": MILESTONE, "control_build": CONTROL_BUILD, "research_build": RESEARCH_BUILD, "contract_revision": 5,
         "generated_at": utc_now(), "status": "complete", "steps_completed": [24, 25, 26, 27],
         "integration_mode": "fail_closed_conditional",
         "scoring_signature": m4.get("scoring_signature") or m1.get("scoring", {}).get("signature"),
@@ -716,7 +728,7 @@ def run(args) -> dict:
             "step24": "Draft uses league-scored season projection/VOR as the anchor; M5 validates availability-conditioned season aggregation and does not pretend this is a preseason injury forecast.",
             "step25": "Waiver policy predicts mean fantasy points over the next three games from projection, opportunity, regression and role-change evidence using expanding windows; live promotion additionally requires out-of-sample ranking, top-quartile and top-pick decision quality.",
             "step26": "Weekly decisions use M4 mean projection plus residual-quantile risk bands learned only from prior holdout seasons for calibration tests.",
-            "step27": "One football projection core feeds separate transparent Redraft, Dynasty, Best Ball and Chopped utility transforms; format-specific evidence limits are surfaced.",
+            "step27": "One football projection core feeds separate transparent Redraft, Dynasty, Best Ball, Chopped and Chopped + Best Ball utility transforms; the hybrid requires the intersection of Chopped downside and Best Ball spike evidence.",
         },
         "activation": {
             "policy": "fail_closed", "upstream_validated_positions": runtime_positions,
@@ -763,6 +775,7 @@ def run(args) -> dict:
             "Direct Sleeper blend activation remains blocked by M4 unless immutable pregame Sleeper history validates the position-specific blend.",
             "Best Ball validation is player-level spike-week evidence, not a complete historical optimal-lineup roster simulation.",
             "Chopped validation is player-level downside evidence, not a historical guillotine elimination simulation.",
+            "Chopped + Best Ball validation requires both Chopped downside and Best Ball spike evidence; no separate unvalidated hybrid football model is introduced.",
             "Dynasty policy uses validated young-role evidence plus transparent age/future-role transforms; a full multi-year asset-market model remains future work.",
         ],
     }
