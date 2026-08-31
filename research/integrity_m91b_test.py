@@ -11,6 +11,11 @@ assert canonical_team("LA")=="LAR"
 assert canonical_team("LAR")=="LAR"
 assert canonical_team("JAC")=="JAX"
 assert canonical_team("WSH")=="WAS"
+assert canonical_team(None)==""
+assert canonical_team(np.nan)==""
+assert canonical_team(pd.NA)==""
+assert canonical_team("nan")==""
+assert canonical_team("N/A")==""
 
 # Receptions/receiving yards must create explicitly auditable current-team proxies
 # when projected targets/air yards are absent.

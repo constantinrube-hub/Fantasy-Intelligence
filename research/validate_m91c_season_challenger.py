@@ -67,6 +67,18 @@ def main():
     rel=pd.to_numeric(df.m91c_total_reliability,errors="coerce")
     assert ((rel.dropna()>=0)&(rel.dropna()<=1)).all()
 
+    # Missing/unassigned current team is not a team transition.
+    team_missing=df["team"].isna() | df["team"].astype(str).str.strip().str.upper().isin(
+        {"", "NAN", "NONE", "NULL", "NA", "N/A", "<NA>"}
+    )
+    assert not (bs(df.m91c_team_changed) & team_missing).any(), (
+        "players without a current team must not be classified as transitions",
+        df.loc[
+            bs(df.m91c_team_changed) & team_missing,
+            ["full_name","position_model","team","profile_team"]
+        ].to_dict("records"),
+    )
+
     # Team transition may never itself block QB/RB/WR/TE.
     tc=df[
         bs(df.m91c_team_changed)

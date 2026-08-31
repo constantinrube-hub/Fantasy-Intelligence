@@ -102,7 +102,22 @@ def num(x: Any) -> Optional[float]:
 
 
 def canonical_team(x: Any) -> str:
-    t=str(x or "").strip().upper()
+    """Normalize NFL team aliases while preserving missing-team semantics.
+
+    pandas/NumPy missing values must remain "unknown", not become the literal
+    string "NAN". An unassigned/free-agent player is not a team transition until
+    a real current team is present.
+    """
+    if x is None:
+        return ""
+    try:
+        if pd.isna(x):
+            return ""
+    except Exception:
+        pass
+    t=str(x).strip().upper()
+    if t in {"", "NAN", "NONE", "NULL", "NA", "N/A", "<NA>"}:
+        return ""
     return TEAM_ALIASES.get(t,t)
 
 
