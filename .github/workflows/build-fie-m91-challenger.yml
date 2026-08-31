@@ -29,7 +29,7 @@ concurrency:
 jobs:
   challenger:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -48,7 +48,7 @@ jobs:
             research/validate_m91_season_challenger.py
           python research/integrity_m91_transition_test.py
 
-      - name: Rehydrate canonical derived cache
+      - name: Rehydrate canonical player-week cache
         shell: bash
         run: |
           set -euo pipefail
@@ -59,9 +59,7 @@ jobs:
           DERIVED="${CACHE}/derived"
 
           test -f "${LEAGUE}/milestone1.json"
-          test -f "${LEAGUE}/milestone8.json"
           test -f "${LEAGUE}/milestone9.json"
-
           mkdir -p "${DERIVED}"
 
           python - "${LEAGUE}/milestone1.json" "${CACHE}/scoring_settings_rehydrate.json" <<'PY'
@@ -91,46 +89,13 @@ jobs:
           test -f "${DERIVED}/player_week.csv.gz"
           test -f "${DERIVED}/player_identity.csv.gz"
 
-      - name: Rebuild M9 derived preseason profiles only
-        shell: bash
-        run: |
-          set -euo pipefail
-          LID="${{ inputs.league_id }}"
-          SEASON="${{ inputs.season }}"
-          LEAGUE="data/research/leagues/${LID}"
-          CACHE=".cache/fie-research/leagues/${LID}"
-          DERIVED="${CACHE}/derived"
-
-          # M1-M8 are already canonical/committed. This resume path validates M7/M8
-          # and regenerates M9 plus its derived latest-profile table from the
-          # rehydrated player-week cache. It does not rebuild M1-M8.
-          python research/build_performance_research.py \
-            --league-id "${LID}" \
-            --format AUTO \
-            --season "${SEASON}" \
-            --league-root "${LEAGUE}" \
-            --derived-dir "${DERIVED}" \
-            --cache-dir "${CACHE}" \
-            --resume-from-m9
-
-          PROFILE_PATH="$(python - "${LEAGUE}/milestone9.json" <<'PY'
-          import json,sys
-          from pathlib import Path
-          m9=json.loads(Path(sys.argv[1]).read_text())
-          print((m9.get("preseason_season_projection") or {}).get("latest_profiles_derived_table") or "")
-          PY
-          )"
-
-          test -n "${PROFILE_PATH}"
-          test -f "${PROFILE_PATH}"
-          echo "Rehydrated M9 profile table: ${PROFILE_PATH}"
-
       - name: Build M9.1 challenger
         run: |
           python research/build_m91_season_challenger.py \
             --league-id "${{ inputs.league_id }}" \
             --season "${{ inputs.season }}" \
-            --adp-key "${{ inputs.adp_key }}"
+            --adp-key "${{ inputs.adp_key }}" \
+            --player-week ".cache/fie-research/leagues/${{ inputs.league_id }}/derived/player_week.csv.gz"
 
       - name: Validate M9.1 challenger
         run: |
