@@ -1,57 +1,35 @@
-# Patch Manifest — FIE Unified Per-League Research Pipeline
+# FIE Chopped + Best Ball Support — 2026-08-31
 
-Base audited: `constantinrube-hub/Fantasy-Intelligence@36f687712b3c2aebc07b1f7bfef456a087cfdfe3`
+## Purpose
 
-## Add
+One-time fail-closed migration that:
 
-### Research pipeline
+- adds `CHOPPED_BESTBALL` as a sixth canonical format;
+- resolves Sleeper `settings.type == 3` + `best_ball` to the hybrid;
+- composes existing Chopped downside and Best Ball spike evidence by intersection;
+- upgrades newly built M5 bundles to contract revision 5 while preserving revision 1-4 validation;
+- adds three new managed leagues:
+  - `1399128582088835072` → `REDRAFT`
+  - `1399318410818519040` → `CHOPPED_BESTBALL`
+  - `1396507356048658438` → `CHOPPED`
+- adds hybrid browser draft utility using VOR + lower-tail surplus + spike surplus;
+- updates workflow choices and deterministic integrity tests.
 
-- `research/fie_research_pipeline_contract.py`
-- `research/run_fie_league_research_pipeline.py`
-- `research/resolve_fie_position_models.py`
-- `research/build_fie_final_league_board.py`
-- `research/build_fie_league_research_report.py`
-- `research/build_fie_portfolio_research_report.py`
-- `research/fie_pilot_equivalence.py`
-- `research/publish_fie_research_app_contract.py`
+## Installation
 
-### Validators / integrity
+Upload these two files at their exact repository paths:
 
-- `research/validate_fie_research_pipeline.py`
-- `research/validate_fie_league_report.py`
-- `research/validate_fie_portfolio_report.py`
-- `research/integrity_fie_research_pipeline_test.py`
-- `research/integrity_fie_research_pipeline_league_isolation_test.py`
-- `research/integrity_fie_position_model_gate_test.py`
-- `research/integrity_fie_final_board_test.py`
-- `research/integrity_fie_league_report_test.py`
-- `research/integrity_fie_portfolio_report_test.py`
-- `research/integrity_fie_app_research_contract_test.js`
+- `tools/apply_chopped_bestball_support.py`
+- `.github/workflows/apply-fie-chopped-bestball-support.yml`
 
-### App
+Commit them to `main`, then run:
 
-- `app/core/research-report-service.js`
-- `app/core/research-value-finder-bridge.js`
-- `app/research-report-ui.js`
+**Actions → Apply FIE Chopped + Best Ball Support → Run workflow**
 
-### Workflows
+The workflow runs integrity tests, commits the actual migration atomically, and removes the two one-time helper files from the repository.
 
-- `.github/workflows/_fie-league-research-reusable.yml`
-- `.github/workflows/build-fie-complete-league-research.yml`
-- `.github/workflows/build-fie-all-league-research.yml`
+## After migration succeeds
 
-### Documentation
+Use the existing onboarding/research flow for the three new leagues. `AUTO` is preferred. The hybrid league must resolve to `CHOPPED_BESTBALL`.
 
-- `docs/FIE_UNIFIED_RESEARCH_AUDIT_2026-08-31.md`
-- `docs/FIE_UNIFIED_RESEARCH_PIPELINE.md`
-
-## Replace existing
-
-- `research/build_app_manifest.py`
-- `tools/sync_league_app_snapshots.py`
-
-These replacements are based on the audited live versions and add only unified research components/dist syncing while retaining existing responsibilities.
-
-## Do not delete yet
-
-Do not delete/deprecate the existing specialized V9.7 workflows until two successful portfolio runs establish equivalence.
+Do not introduce an independent hybrid projection model. The hybrid is deliberately a fail-closed policy composition of the existing evidence streams.
