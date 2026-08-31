@@ -78,15 +78,50 @@ def validate_profile(league_id: str, row: dict, profile: dict) -> None:
 
 def ensure_m1_m9(league_id: str, season: int, fmt: str, *, force: bool = False) -> tuple[str, list[Path]]:
     root = league_root(league_id); dd = derived_dir(league_id)
-    m9 = root / "milestone9.json"; board = root / "performance" / str(season) / "season_board.csv"; pw = dd / "player_week.csv.gz"
-    existing = m9.is_file() and board.is_file() and pw.is_file()
-    if existing and not force:
-        return "reused_valid", [root / f"milestone{i}.json" for i in range(1, 10)] + [board, pw]
+    m1 = root / "milestone1.json"; m9 = root / "milestone9.json"
+    board = root / "performance" / str(season) / "season_board.csv"
+    pw = dd / "player_week.csv.gz"; ident = dd / "player_identity.csv.gz"
+    canonical_ready = all((root / f"milestone{i}.json").is_file() for i in range(1, 10)) and board.is_file()
+
+    if canonical_ready and not force:
+        if pw.is_file():
+            return "reused_valid", [root / f"milestone{i}.json" for i in range(1, 10)] + [board, pw, ident]
+
+        # Git does not retain the large M1 derived cache. Rehydrate only the M1
+        # derived player/identity tables needed by the strategy/V9.7 validators,
+        # while leaving the canonical committed M1-M9 bundles and season board
+        # untouched. This avoids rebuilding M2-M9 merely because a runner starts
+        # with an empty cache and preserves pilot hash-equivalence semantics.
+        m1_payload = load_json(m1, {})
+        scoring = ((m1_payload.get("scoring") or {}).get("settings")
+                   or m1_payload.get("scoring_settings") or {})
+        if not scoring:
+            raise StageFailure("canonical M1 exists but scoring settings are unavailable for derived-cache rehydration")
+        dd.mkdir(parents=True, exist_ok=True)
+        cache_root = dd.parent
+        scoring_path = cache_root / "scoring_settings_rehydrate.json"
+        write_json(scoring_path, scoring)
+        rehydrated_m1 = cache_root / "milestone1_rehydrated.json"
+        hist_end = int(season) - 1
+        run([
+            sys.executable, "research/fie_research.py",
+            "--seasons", f"2019-{hist_end}",
+            "--extended-seasons", f"2016-{hist_end}",
+            "--output", str(rehydrated_m1),
+            "--cache-dir", str(cache_root),
+            "--derived-dir", str(dd),
+            "--league-id", league_id,
+            "--scoring-json", str(scoring_path),
+        ])
+        if not pw.is_file():
+            raise StageFailure("M1 derived-cache rehydration completed without player_week.csv.gz")
+        return "reused_valid", [root / f"milestone{i}.json" for i in range(1, 10)] + [board, pw, ident]
+
     run([sys.executable, "research/build_performance_research.py", "--league-id", league_id, "--format", fmt, "--season", str(season), "--rebuild-base", "--stop-after-m8"])
     run([sys.executable, "research/build_performance_research.py", "--league-id", league_id, "--format", fmt, "--season", str(season), "--resume-from-m9", "--capture-market", "--build-report"])
     if not (m9.is_file() and board.is_file() and pw.is_file()):
         raise StageFailure("M1-M9 builder completed without required M9/season/player_week artifacts")
-    return "complete", [root / f"milestone{i}.json" for i in range(1, 10)] + [board, pw]
+    return "complete", [root / f"milestone{i}.json" for i in range(1, 10)] + [board, pw, ident]
 
 
 def ensure_current(league_id: str, season: int, *, no_refresh: bool) -> tuple[str, str]:

@@ -78,7 +78,16 @@ def _join_key(row: dict) -> str:
 
 
 def _read_csv(path: Path) -> pd.DataFrame:
-    return pd.read_csv(path, low_memory=False) if path.is_file() else pd.DataFrame()
+    if not path.is_file():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(path, low_memory=False)
+    except pd.errors.EmptyDataError:
+        # Several governed research stages intentionally emit a zero-byte/empty
+        # CSV when the corresponding evidence layer is blocked (for example,
+        # ADP outcome curves without sufficient verified historical market).
+        # An empty optional evidence file means "no evidence", not corruption.
+        return pd.DataFrame()
 
 
 def _canonical_offense_value_board(league_id: str, season: int, profile: dict, current: dict) -> tuple[pd.DataFrame, dict]:
