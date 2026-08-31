@@ -132,8 +132,20 @@ jobs:
           path: |
             data/research/market/sleeper/${{ inputs.season }}/**
             data/research/availability/sleeper/**
+      - name: Check whether expensive research backbone is cacheable
+        id: cacheable
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "data/research/leagues/${{ inputs.league_id }}/milestone9.json" ] \
+             && [ -f "data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/season_board.csv" ] \
+             && [ -f ".cache/fie-research/leagues/${{ inputs.league_id }}/derived/player_week.csv.gz" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Save unified research cache
-        if: ${{ steps.pipeline.outputs.rc == '0' && steps.restore.outputs.cache-hit != 'true' }}
+        if: ${{ always() && steps.restore.outputs.cache-hit != 'true' && (steps.pipeline.outputs.rc == '0' || steps.cacheable.outputs.ready == 'true') }}
         uses: actions/cache/save@v4
         with:
           path: |
