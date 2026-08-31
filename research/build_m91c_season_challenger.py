@@ -40,6 +40,7 @@ import build_m91b_season_challenger as m91b
 from build_m9_season_board import evaluate_position_spec
 from fie_m7 import add_derived_driver_features
 from fie_m8 import build_team_context
+from fie_m3 import add_public_enrichment, add_lagged_advanced, ensure_core_priors
 
 RESEARCH_BUILD="M9.1c-ROLE-COHORT-DENSITY-RELIABILITY"
 SCHEMA_VERSION=1
@@ -101,35 +102,55 @@ def json_safe(value:Any)->Any:
 
 
 def latest_team_environment(
-    player_week:pd.DataFrame, profiles:Optional[pd.DataFrame]=None
+    player_week:pd.DataFrame, *,
+    identity:Optional[pd.DataFrame]=None,
+    cache_dir:Optional[Path]=None,
+    seasons:Optional[list[int]]=None,
+    profiles:Optional[pd.DataFrame]=None,
 )->dict:
-    """Canonical prior-season NEW-team QB pressure/sack environment.
+    """Build the prior-season NEW-team QB environment through the canonical M3→M8 path.
 
-    Real rehydrated player_week is intentionally upstream of M7's derived-driver
-    layer. M8's build_team_context expects those lagged driver columns, so derive
-    them first. Then use M8's canonical team aggregation.
+    The real M1 rehydrated table does not contain PFR/NGS advanced columns.
+    M4's authoritative feature_frame first:
+      1. merges public enrichment (PFR/NGS/participation),
+      2. creates time-safe lagged advanced features,
+      3. then later layers consume those features.
 
-    A second direct aggregation over the same derived QB fields is retained as a
-    fail-closed recovery path when M8 cannot emit a team row for a late-season
-    depth/participation edge case. This is not a new metric: it uses the exact
-    M7 pressure/sack fields M8 consumes.
-
-    The rehydrated M9 latest-profile table is a final provenance-preserving fallback
-    for a team whose historical player-week rows still lack the relevant PFR fields.
+    M9.1c must therefore do the same before asking M8 to aggregate
+    `pfr_times_pressured_pct_prior4` / `pfr_times_sacked_prior4`.
     """
     if player_week.empty:
         return {}
 
-    # Critical real-run fix: rehydrated M1 player-week does not yet contain all of
-    # the M7 lagged driver columns consumed by M8.
-    enriched=add_derived_driver_features(player_week.copy())
-    season=pd.to_numeric(enriched.get("season"),errors="coerce")
-    if season.notna().sum()==0:
+    raw_season=pd.to_numeric(player_week.get("season"),errors="coerce")
+    valid_seasons=sorted({int(x) for x in raw_season.dropna().tolist()})
+    use_seasons=seasons or valid_seasons
+    if not use_seasons:
         return {}
-    latest=int(season.max())
-    z=enriched[season.eq(latest)].copy()
+    latest=max(use_seasons)
 
+    enriched=player_week.copy()
+    enrichment_meta={"feature_columns":[]}
+    if identity is not None and not identity.empty and cache_dir is not None:
+        # This is the same public-enrichment + lagging sequence used by
+        # `fie_m4.feature_frame()`. SourceManager reuses the already-rehydrated
+        # league cache and only fetches an optional source if genuinely absent.
+        enriched,enrichment_meta=add_public_enrichment(
+            enriched, identity, str(cache_dir), use_seasons
+        )
+        enriched=ensure_core_priors(enriched)
+        enriched=add_lagged_advanced(
+            enriched, enrichment_meta.get("feature_columns",[])
+        )
+
+    # M7 adds interactions only after the underlying advanced lagged inputs exist.
+    enriched=add_derived_driver_features(enriched)
+
+    season=pd.to_numeric(enriched.get("season"),errors="coerce")
+    z=enriched[season.eq(latest)].copy()
     rows={}
+
+    # Primary path: canonical M8 team aggregation.
     team=build_team_context(z)
     if not team.empty:
         team["team_canonical"]=team["team"].map(m91b.canonical_team)
@@ -137,7 +158,7 @@ def latest_team_environment(
             r=g.iloc[-1]
             vals={
                 "profile_season":latest,
-                "source":"M8_NEW_TEAM_OFFENSIVE_ENVIRONMENT",
+                "source":"M3_PUBLIC_ENRICHMENT_TO_M8_TEAM_ENVIRONMENT",
                 "pfr_times_pressured_pct_prior4":num(r.get("off_pressure_environment")),
                 "pfr_times_sacked_prior4":num(r.get("off_sack_environment")),
                 "ngs_avg_time_to_throw_prior4":num(r.get("off_time_to_throw")),
@@ -147,15 +168,15 @@ def latest_team_environment(
             )):
                 rows[str(tm)]=vals
 
-    # Direct fallback over the same M7-derived QB fields. Prefer last-four-week
-    # observations so the scale stays aligned with the *_prior4 feature contract.
+    # Provenance-preserving direct fallback over the exact same M3-lagged fields.
     qb=z[z.position_model.astype(str).str.upper().eq("QB")].copy()
     if not qb.empty and "team" in qb.columns:
         qb["team_canonical"]=qb["team"].map(m91b.canonical_team)
         for tm,g in qb.sort_values("week").groupby("team_canonical"):
-            if str(tm) in rows and any(
-                rows[str(tm)].get(k) is not None
-                for k in ("pfr_times_pressured_pct_prior4","pfr_times_sacked_prior4")
+            existing=rows.get(str(tm),{})
+            if (
+                existing.get("pfr_times_pressured_pct_prior4") is not None
+                and existing.get("pfr_times_sacked_prior4") is not None
             ):
                 continue
             tail=g.tail(4)
@@ -166,7 +187,7 @@ def latest_team_environment(
                 return float(x.mean()) if len(x) else None
             vals={
                 "profile_season":latest,
-                "source":"M7_DERIVED_QB_NEW_TEAM_ENVIRONMENT",
+                "source":"M3_LAGGED_QB_NEW_TEAM_ENVIRONMENT",
                 "pfr_times_pressured_pct_prior4":_mean("pfr_times_pressured_pct_prior4"),
                 "pfr_times_sacked_prior4":_mean("pfr_times_sacked_prior4"),
                 "ngs_avg_time_to_throw_prior4":_mean("ngs_avg_time_to_throw_prior4"),
@@ -176,16 +197,17 @@ def latest_team_environment(
             )):
                 rows[str(tm)]=vals
 
-    # Final fallback: the deterministic latest-profile table is produced from the
-    # same enriched completed-season history and committed M9 feature contract.
+    # Final fallback to the deterministic latest profile generated from the same
+    # committed M9 feature contract. This is only used if an optional public source
+    # genuinely lacks a team's coverage.
     if profiles is not None and not profiles.empty:
         q=profiles[profiles.position_model.astype(str).str.upper().eq("QB")].copy()
         if not q.empty and "profile_team" in q.columns:
             q["team_canonical"]=q["profile_team"].map(m91b.canonical_team)
             for tm,g in q.groupby("team_canonical"):
-                current=rows.get(str(tm),{})
-                pressure=current.get("pfr_times_pressured_pct_prior4")
-                sacks=current.get("pfr_times_sacked_prior4")
+                existing=rows.get(str(tm),{})
+                pressure=existing.get("pfr_times_pressured_pct_prior4")
+                sacks=existing.get("pfr_times_sacked_prior4")
                 if pressure is not None and sacks is not None:
                     continue
                 def _median(col):
@@ -196,11 +218,19 @@ def latest_team_environment(
                 vals={
                     "profile_season":latest,
                     "source":"M9_LATEST_PROFILE_NEW_TEAM_ENVIRONMENT",
-                    "pfr_times_pressured_pct_prior4":pressure if pressure is not None else _median("pfr_times_pressured_pct_prior4"),
-                    "pfr_times_sacked_prior4":sacks if sacks is not None else _median("pfr_times_sacked_prior4"),
-                    "ngs_avg_time_to_throw_prior4":current.get("ngs_avg_time_to_throw_prior4")
-                        if current.get("ngs_avg_time_to_throw_prior4") is not None
-                        else _median("ngs_avg_time_to_throw_prior4"),
+                    "pfr_times_pressured_pct_prior4":(
+                        pressure if pressure is not None
+                        else _median("pfr_times_pressured_pct_prior4")
+                    ),
+                    "pfr_times_sacked_prior4":(
+                        sacks if sacks is not None
+                        else _median("pfr_times_sacked_prior4")
+                    ),
+                    "ngs_avg_time_to_throw_prior4":(
+                        existing.get("ngs_avg_time_to_throw_prior4")
+                        if existing.get("ngs_avg_time_to_throw_prior4") is not None
+                        else _median("ngs_avg_time_to_throw_prior4")
+                    ),
                 }
                 if any(vals[k] is not None for k in (
                     "pfr_times_pressured_pct_prior4","pfr_times_sacked_prior4"
@@ -575,7 +605,18 @@ def build(args)->tuple[pd.DataFrame,dict]:
     availability=m91b.availability_index(avail_rows)
     change_scales=m91b.historical_change_scales(pw)
     role_models,role_model_audit=fit_role_estimators(pw)
-    new_team_env=latest_team_environment(pw,profiles=profiles)
+    identity_path=player_week_path.parent/"player_identity.csv.gz"
+    identity=pd.read_csv(identity_path,low_memory=False) if identity_path.is_file() else pd.DataFrame()
+    history_seasons=sorted({
+        int(x) for x in pd.to_numeric(pw.get("season"),errors="coerce").dropna().tolist()
+    })
+    new_team_env=latest_team_environment(
+        pw,
+        identity=identity,
+        cache_dir=player_week_path.parent.parent,
+        seasons=history_seasons,
+        profiles=profiles,
+    )
     volatility=m91.transition_volatility(player_week_path)
     residual_gate=m91.market_history_status(market_root,args.season)
 
