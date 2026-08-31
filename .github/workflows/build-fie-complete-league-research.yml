@@ -1,0 +1,98 @@
+name: Build Complete FIE League Research
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id: {description: "Sleeper League ID", required: true, type: string}
+      season: {description: "Season", required: true, default: "2026", type: string}
+      league_format:
+        description: "Canonical profile format; AUTO recommended"
+        required: true
+        default: AUTO
+        type: choice
+        options: [AUTO, REDRAFT, DYNASTY, CHOPPED, REDRAFT_BESTBALL, DYNASTY_BESTBALL]
+      adp_key:
+        description: "Sleeper ADP market; AUTO recommended"
+        required: true
+        default: AUTO
+        type: choice
+        options: [AUTO, adp_ppr, adp_half_ppr, adp_std, adp_2qb, adp_dynasty_ppr, adp_dynasty_half_ppr, adp_dynasty_std, adp_dynasty_2qb]
+      mode:
+        required: true
+        default: FULL
+        type: choice
+        options: [FULL, RESEARCH_ONLY, REPORT_ONLY]
+      force_rebuild: {required: true, default: false, type: boolean}
+      publish_app: {required: true, default: true, type: boolean}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-complete-league-research-${{ inputs.league_id }}
+  cancel-in-progress: false
+
+jobs:
+  research:
+    uses: ./.github/workflows/_fie-league-research-reusable.yml
+    with:
+      league_id: ${{ inputs.league_id }}
+      season: ${{ inputs.season }}
+      league_format: ${{ inputs.league_format }}
+      adp_key: ${{ inputs.adp_key }}
+      mode: ${{ inputs.mode }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+      publish_shared_evidence: true
+
+  publish:
+    needs: research
+    if: ${{ inputs.publish_app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - run: pip install -r research/requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: fie-league-research-${{ inputs.league_id }}-${{ inputs.season }}
+          path: .
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: fie-shared-research-evidence-${{ inputs.league_id }}-${{ inputs.season }}
+          path: .
+      - name: Build existing fast-switch shell and attach compact research endpoints
+        run: |
+          python research/build_league_app_snapshots.py --league-id "${{ inputs.league_id }}" --strict
+          python research/publish_fie_research_app_contract.py --league-id "${{ inputs.league_id }}" --season "${{ inputs.season }}" --strict
+          node research/integrity_fie_app_research_contract_test.js
+          python research/integrity_fast_switch_artifacts_test.py
+      - name: Mark app publication in current run status
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/research_pipeline/matrix-job-status.json');x=json.loads(p.read_text());x['app_publish_complete']=True;p.write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+          PY
+      - name: Validate report and deploy tree
+        run: |
+          python research/validate_fie_research_pipeline.py --league-id "${{ inputs.league_id }}" --season "${{ inputs.season }}"
+          python research/validate_fie_league_report.py --league-id "${{ inputs.league_id }}" --season "${{ inputs.season }}"
+          python research/build_app_manifest.py
+          python tools/release_build.py --mode personal
+          python research/integrity_fast_switch_artifacts_test.py --require-dist
+      - name: Single atomic publication
+        shell: bash
+        run: |
+          TRACKED=(data/research/leagues/${{ inputs.league_id }} data/research/app data/research/market/sleeper data/research/availability app/generated/model-config.js app/generated/release.js app/generated/runtime-contracts.js functions/release.js config/build-manifest.json config/model-config.json config/release.json config/release-gate.json dist)
+          if git diff --quiet -- "${TRACKED[@]}" && [ -z "$(git status --porcelain -- "${TRACKED[@]}")" ]; then echo "No unified research/deploy changes"; exit 0; fi
+          git config user.name "FIE Unified Research Bot"; git config user.email "actions@users.noreply.github.com"
+          git add -A -- "${TRACKED[@]}"; git commit -m "Build complete FIE research for league ${{ inputs.league_id }}"
+          if ! git diff --quiet; then git restore --worktree .; fi
+          git fetch origin main; git rebase origin/main; git push origin HEAD:main

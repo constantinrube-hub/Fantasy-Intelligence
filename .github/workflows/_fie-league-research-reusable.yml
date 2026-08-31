@@ -1,0 +1,145 @@
+name: FIE League Research Reusable
+
+on:
+  workflow_call:
+    inputs:
+      league_id: {required: true, type: string}
+      season: {required: true, type: string}
+      league_format: {required: false, type: string, default: AUTO}
+      adp_key: {required: false, type: string, default: AUTO}
+      mode: {required: false, type: string, default: FULL}
+      force_rebuild: {required: false, type: boolean, default: false}
+      publish_shared_evidence: {required: false, type: boolean, default: false}
+
+permissions:
+  contents: read
+
+env:
+  FIE_PILOT_LEAGUE_ID: "1391803939736801280"
+
+jobs:
+  league-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - name: Validate inputs
+        env:
+          LID: ${{ inputs.league_id }}
+          SEASON: ${{ inputs.season }}
+        shell: bash
+        run: |
+          [[ "$LID" =~ ^[0-9]{6,32}$ ]] || { echo "Invalid league id" >&2; exit 2; }
+          [[ "$SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid season" >&2; exit 2; }
+          echo "FIE_LEAGUE_ID=$LID" >> "$GITHUB_ENV"
+          echo "FIE_SEASON=$SEASON" >> "$GITHUB_ENV"
+          echo "FIE_LEAGUE_ROOT=data/research/leagues/$LID" >> "$GITHUB_ENV"
+          echo "FIE_PIPELINE_OUT=data/research/leagues/$LID/performance/$SEASON/research_pipeline" >> "$GITHUB_ENV"
+      - run: pip install -r research/requirements.txt
+      - name: Unified pipeline deterministic integrity
+        run: |
+          python -m compileall -q research
+          python research/integrity_fie_research_pipeline_test.py
+          python research/integrity_fie_final_board_test.py
+          python research/integrity_fie_position_model_gate_test.py
+          python research/integrity_fie_research_pipeline_league_isolation_test.py
+          python research/integrity_fie_league_report_test.py
+          python research/integrity_fie_portfolio_report_test.py
+          node research/integrity_fie_app_research_contract_test.js
+          python research/integrity_fie_strategy_stack_test.py
+      - name: Preserve committed league state before broad cache restore
+        shell: bash
+        run: |
+          rm -rf /tmp/fie-committed-league /tmp/fie-committed-registry.json
+          if [ -d "$FIE_LEAGUE_ROOT" ]; then mkdir -p /tmp/fie-committed-league; cp -a "$FIE_LEAGUE_ROOT"/. /tmp/fie-committed-league/; fi
+          cp data/research/leagues/registry.json /tmp/fie-committed-registry.json
+      - name: Restore research cache
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+          key: fie-unified-research-v1-${{ runner.os }}-${{ inputs.league_id }}-${{ hashFiles('research/fie_research.py','research/fie_m2.py','research/fie_m3.py','research/fie_m4.py','research/fie_m5.py','research/fie_m6.py','research/fie_m7.py','research/fie_m8.py','research/fie_m9.py','research/preseason_projection.py','research/preseason_projection_v2.py','research/preseason_projection_v3.py','research/preseason_projection_v4.py','research/preseason_projection_v5.py','research/fie_strategy_stack.py','research/run_fie_league_research_pipeline.py') }}
+          restore-keys: |
+            fie-strategy-v4-${{ runner.os }}-${{ inputs.league_id }}-
+            fie-m789-m8-v1-${{ runner.os }}-${{ inputs.league_id }}-
+      - name: Restore committed state over cache
+        shell: bash
+        run: |
+          if [ -d /tmp/fie-committed-league ]; then mkdir -p "$FIE_LEAGUE_ROOT"; rsync -a /tmp/fie-committed-league/ "$FIE_LEAGUE_ROOT"/; fi
+          cp /tmp/fie-committed-registry.json data/research/leagues/registry.json
+      - name: Capture pilot equivalence baseline
+        if: ${{ inputs.league_id == env.FIE_PILOT_LEAGUE_ID && !inputs.force_rebuild }}
+        run: python research/fie_pilot_equivalence.py capture --league-id "$FIE_LEAGUE_ID" --season "$FIE_SEASON" --file /tmp/fie-pilot-baseline.json
+      - name: Run unified one-league pipeline
+        id: pipeline
+        env:
+          INPUT_FORMAT: ${{ inputs.league_format }}
+          INPUT_ADP: ${{ inputs.adp_key }}
+          INPUT_MODE: ${{ inputs.mode }}
+          FORCE_REBUILD: ${{ inputs.force_rebuild }}
+        shell: bash
+        run: |
+          set +e
+          MODE=$(echo "$INPUT_MODE" | tr '[:upper:]' '[:lower:]')
+          ARGS=(--league-id "$FIE_LEAGUE_ID" --season "$FIE_SEASON" --format "$INPUT_FORMAT" --adp-key "$INPUT_ADP" --mode "$MODE")
+          if [ "$FORCE_REBUILD" = "true" ]; then ARGS+=(--force-rebuild); fi
+          python research/run_fie_league_research_pipeline.py "${ARGS[@]}"
+          RC=$?
+          if [ "$RC" -eq 0 ] && [ "$FIE_LEAGUE_ID" = "$FIE_PILOT_LEAGUE_ID" ] && [ -f /tmp/fie-pilot-baseline.json ] && [ "$FORCE_REBUILD" != "true" ]; then
+            python research/fie_pilot_equivalence.py validate --league-id "$FIE_LEAGUE_ID" --season "$FIE_SEASON" --file /tmp/fie-pilot-baseline.json || RC=$?
+          fi
+          echo "rc=$RC" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Write matrix/job status
+        if: always()
+        env:
+          RC: ${{ steps.pipeline.outputs.rc }}
+        run: |
+          mkdir -p "$FIE_PIPELINE_OUT"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          out=Path(os.environ['FIE_PIPELINE_OUT']); rc=int(os.environ.get('RC') or 99)
+          manifest={}
+          p=out/'stage-manifest.json'
+          if p.is_file(): manifest=json.loads(p.read_text())
+          status={'league_id':os.environ['FIE_LEAGUE_ID'],'season':int(os.environ['FIE_SEASON']),'outcome':'success' if rc==0 else 'failed','exit_code':rc,'reason':'' if rc==0 else 'unified_pipeline_or_pilot_equivalence_failed','pipeline_fingerprint':manifest.get('pipeline_fingerprint'),'stages':{x.get('name'):x.get('status') for x in manifest.get('stages',[])},'app_publish_complete':False}
+          (out/'matrix-job-status.json').write_text(json.dumps(status,indent=2,sort_keys=True)+'\n')
+          PY
+      - name: Upload league-scoped research artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-league-research-${{ inputs.league_id }}-${{ inputs.season }}
+          if-no-files-found: error
+          retention-days: 14
+          path: data/research/leagues/${{ inputs.league_id }}/**
+      - name: Upload shared market/availability evidence for single-league publisher
+        if: ${{ always() && inputs.publish_shared_evidence }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-shared-research-evidence-${{ inputs.league_id }}-${{ inputs.season }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            data/research/market/sleeper/${{ inputs.season }}/**
+            data/research/availability/sleeper/**
+      - name: Save unified research cache
+        if: ${{ steps.pipeline.outputs.rc == '0' && steps.restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .cache/fie-research/leagues/${{ inputs.league_id }}
+            data/research/leagues/${{ inputs.league_id }}
+          key: ${{ steps.restore.outputs.cache-primary-key }}
+      - name: Fail closed after artifact upload
+        if: ${{ steps.pipeline.outputs.rc != '0' }}
+        run: exit 2

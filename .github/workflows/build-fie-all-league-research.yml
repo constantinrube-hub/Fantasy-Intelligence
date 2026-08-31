@@ -1,0 +1,135 @@
+name: Build Complete FIE Research — All Leagues
+
+on:
+  workflow_dispatch:
+    inputs:
+      season: {description: "Season", required: true, default: "2026", type: string}
+      force_rebuild: {required: true, default: false, type: boolean}
+      publish_app: {required: true, default: true, type: boolean}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-complete-all-league-research-${{ inputs.season }}
+  cancel-in-progress: false
+
+jobs:
+  registry:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      enabled_count: ${{ steps.matrix.outputs.enabled_count }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: matrix
+        name: Build registry-driven enabled-league matrix
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          reg=json.load(open('data/research/leagues/registry.json')); rows=reg.get('leagues') or {}
+          matrix=[]
+          for lid,row in sorted(rows.items()):
+              if not row.get('enabled',True): continue
+              matrix.append({'league_id':str(lid),'format':str(row.get('research_format') or row.get('format') or 'AUTO'),'priority':str(row.get('priority') or '')})
+          if not matrix: raise SystemExit('registry has no enabled leagues')
+          print('matrix='+json.dumps({'include':matrix},separators=(',',':')))
+          print('enabled_count='+str(len(matrix)))
+          PY
+
+  league-research:
+    needs: registry
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix: ${{ fromJSON(needs.registry.outputs.matrix) }}
+    uses: ./.github/workflows/_fie-league-research-reusable.yml
+    with:
+      league_id: ${{ matrix.league_id }}
+      season: ${{ inputs.season }}
+      league_format: AUTO
+      adp_key: AUTO
+      mode: FULL
+      force_rebuild: ${{ inputs.force_rebuild }}
+      publish_shared_evidence: false
+
+  aggregate-and-publish:
+    needs: [registry, league-research]
+    if: ${{ always() && needs.registry.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - run: pip install -r research/requirements.txt
+      - name: Download every league artifact into league namespaces
+        uses: actions/download-artifact@v4
+        with:
+          pattern: fie-league-research-*-${{ inputs.season }}
+          path: .
+          merge-multiple: true
+      - name: Reconcile artifact count to registry before publication
+        env:
+          EXPECTED: ${{ needs.registry.outputs.enabled_count }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          reg=json.load(open('data/research/leagues/registry.json')); ids=[str(k) for k,v in (reg.get('leagues') or {}).items() if v.get('enabled',True)]
+          present=[lid for lid in ids if (Path('data/research/leagues')/lid/'performance'/'${{ inputs.season }}'/'research_pipeline'/'matrix-job-status.json').is_file()]
+          if len(present)!=int(os.environ['EXPECTED']): raise SystemExit(f'matrix artifacts incomplete: expected {os.environ["EXPECTED"]}, got {len(present)}; missing={sorted(set(ids)-set(present))}')
+          print('PASS matrix artifact coverage',len(present))
+          PY
+      - name: Build app shells once and attach only successful current-run research
+        if: ${{ inputs.publish_app }}
+        run: |
+          python research/build_league_app_snapshots.py --strict
+          python research/publish_fie_research_app_contract.py --season "${{ inputs.season }}"
+          node research/integrity_fie_app_research_contract_test.js
+          python research/integrity_fast_switch_artifacts_test.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          reg=json.load(open('data/research/leagues/registry.json'))
+          for lid,row in (reg.get('leagues') or {}).items():
+              if not row.get('enabled',True): continue
+              p=Path('data/research/leagues')/str(lid)/'performance'/'${{ inputs.season }}'/'research_pipeline'/'matrix-job-status.json'
+              c=Path('data/research/leagues')/str(lid)/'app/core.json'
+              if not p.is_file(): continue
+              x=json.loads(p.read_text()); core=json.loads(c.read_text()) if c.is_file() else {}; research=core.get('research') or {}
+              x['app_publish_complete']=all(k in research for k in ('readiness','rankings','report_summary')) and x.get('outcome')=='success'
+              p.write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+          PY
+      - name: Build exact-registry portfolio aggregation
+        run: |
+          python research/build_fie_portfolio_research_report.py --season "${{ inputs.season }}"
+          python research/validate_fie_portfolio_report.py --season "${{ inputs.season }}"
+      - name: Build validated deploy tree once
+        if: ${{ inputs.publish_app }}
+        run: |
+          python research/build_app_manifest.py
+          python tools/release_build.py --mode personal
+          python research/integrity_fast_switch_artifacts_test.py --require-dist
+      - name: One atomic Git publication for the entire portfolio
+        shell: bash
+        run: |
+          TRACKED=(data/research/leagues data/research/portfolio data/research/app app/generated/model-config.js app/generated/release.js app/generated/runtime-contracts.js functions/release.js config/build-manifest.json config/model-config.json config/release.json config/release-gate.json dist)
+          if git diff --quiet -- "${TRACKED[@]}" && [ -z "$(git status --porcelain -- "${TRACKED[@]}")" ]; then echo "No portfolio changes to publish"; else
+            git config user.name "FIE Portfolio Research Bot"; git config user.email "actions@users.noreply.github.com"
+            git add -A -- "${TRACKED[@]}"; git commit -m "Build complete FIE research portfolio for ${{ inputs.season }}"
+            if ! git diff --quiet; then git restore --worktree .; fi
+            git fetch origin main; git rebase origin/main; git push origin HEAD:main
+          fi
+      - name: Surface incomplete leagues after portfolio report is published
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('data/research/portfolio/${{ inputs.season }}/research-overview.json')); c=p['coverage'];print('Portfolio coverage',c)
+          if c['blocked'] or c['failed']: raise SystemExit('Portfolio published with explicit blocked/failed leagues; inspect research-overview.md')
+          PY
