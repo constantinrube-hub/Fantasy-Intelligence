@@ -28,6 +28,9 @@ COMPONENTS={
  'draft_value_service':'app/core/draft-value-service.js',
  'data_client':'app/core/data-client.js',
  'cross_position_calibration':'app/core/value-calibration-guard.js',
+ 'research_report_service':'app/core/research-report-service.js',
+ 'research_report_ui':'app/research-report-ui.js',
+ 'research_value_finder_bridge':'app/core/research-value-finder-bridge.js',
  'current_snapshot_store':'app/current-snapshot-store.js',
  'decision_service':'app/core/decision-service.js',
  'runtime':'app/runtime-foundation.js',
@@ -61,6 +64,15 @@ COMPONENTS={
  'completion_15point_integrity':'research/integrity_15point_completion_test.py',
  'cross_position_calibration_integrity':'research/integrity_cross_position_calibration_test.js',
  'league_app_dist_sync':'tools/sync_league_app_snapshots.py',
+ 'research_pipeline_contract':'research/fie_research_pipeline_contract.py',
+ 'research_pipeline_runner':'research/run_fie_league_research_pipeline.py',
+ 'research_position_resolver':'research/resolve_fie_position_models.py',
+ 'research_final_board':'research/build_fie_final_league_board.py',
+ 'research_league_report':'research/build_fie_league_research_report.py',
+ 'research_portfolio_report':'research/build_fie_portfolio_research_report.py',
+ 'research_app_contract_publisher':'research/publish_fie_research_app_contract.py',
+ 'research_pipeline_integrity':'research/integrity_fie_research_pipeline_test.py',
+ 'research_app_contract_integrity':'research/integrity_fie_app_research_contract_test.js',
  'decision_validation':'research/decision_validation.py',
  'decision_validation_contract':'research/decision_validation_contract.json',
  'dist_builder':'tools/build_dist.py',
@@ -76,12 +88,10 @@ def sha(path):
  return h.hexdigest()
 def release_timestamp(release):
  ts=str(release.get('built_at') or '').strip()
- if not ts:
-  raise ValueError('config/release.json built_at is required for deterministic build manifests')
+ if not ts:raise ValueError('config/release.json built_at is required for deterministic build manifests')
  return ts
 def build():
- release=json.loads((ROOT/'config/release.json').read_text())
- files={}
+ release=json.loads((ROOT/'config/release.json').read_text());files={}
  for name,rel in COMPONENTS.items():
   p=ROOT/rel
   if not p.exists():raise FileNotFoundError(rel)

@@ -1,33 +1,57 @@
-# FIE V9.7.3 Patch Manifest
+# Patch Manifest — FIE Unified Per-League Research Pipeline
 
-Build: `V10.4.3-STRATEGY-V973-VALIDATION-1`
+Base audited: `constantinrube-hub/Fantasy-Intelligence@36f687712b3c2aebc07b1f7bfef456a087cfdfe3`
 
-## New files
+## Add
 
-- `research/preseason_projection_v3.py`
-- `research/integrity_v973_preseason_test.py`
-- `docs/V973_PRESEASON_HEAD_TO_HEAD.md`
-- `APPLY_V973.md`
+### Research pipeline
 
-## Replaced files
+- `research/fie_research_pipeline_contract.py`
+- `research/run_fie_league_research_pipeline.py`
+- `research/resolve_fie_position_models.py`
+- `research/build_fie_final_league_board.py`
+- `research/build_fie_league_research_report.py`
+- `research/build_fie_portfolio_research_report.py`
+- `research/fie_pilot_equivalence.py`
+- `research/publish_fie_research_app_contract.py`
 
-- `research/build_fie_strategy_stack.py`
-- `research/validate_fie_strategy_stack.py`
-- `.github/workflows/build-fie-strategy-stack.yml`
-- `research/build-fie-strategy-stack.yml`
+### Validators / integrity
 
-## New research outputs
+- `research/validate_fie_research_pipeline.py`
+- `research/validate_fie_league_report.py`
+- `research/validate_fie_portfolio_report.py`
+- `research/integrity_fie_research_pipeline_test.py`
+- `research/integrity_fie_research_pipeline_league_isolation_test.py`
+- `research/integrity_fie_position_model_gate_test.py`
+- `research/integrity_fie_final_board_test.py`
+- `research/integrity_fie_league_report_test.py`
+- `research/integrity_fie_portfolio_report_test.py`
+- `research/integrity_fie_app_research_contract_test.js`
 
-- `preseason_v973_validation.json`
-- `preseason_v973_predictions.csv`
-- `preseason_v973_calibration.csv`
+### App
 
-## Governance
+- `app/core/research-report-service.js`
+- `app/core/research-value-finder-bridge.js`
+- `app/research-report-ui.js`
 
-- research-only
-- no automatic activation
-- no runtime modification
-- no canonical M9 modification
-- no ADP/market input into football models
-- no historical market-fallback replacement claim without verified immutable market snapshots
-- existing V9.7.2 shadow remains the league-value input until a later explicit promotion step
+### Workflows
+
+- `.github/workflows/_fie-league-research-reusable.yml`
+- `.github/workflows/build-fie-complete-league-research.yml`
+- `.github/workflows/build-fie-all-league-research.yml`
+
+### Documentation
+
+- `docs/FIE_UNIFIED_RESEARCH_AUDIT_2026-08-31.md`
+- `docs/FIE_UNIFIED_RESEARCH_PIPELINE.md`
+
+## Replace existing
+
+- `research/build_app_manifest.py`
+- `tools/sync_league_app_snapshots.py`
+
+These replacements are based on the audited live versions and add only unified research components/dist syncing while retaining existing responsibilities.
+
+## Do not delete yet
+
+Do not delete/deprecate the existing specialized V9.7 workflows until two successful portfolio runs establish equivalence.
