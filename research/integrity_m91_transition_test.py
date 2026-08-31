@@ -7,6 +7,7 @@ import numpy as np
 from build_m91_season_challenger import (
     adapt_profile_for_new_team, build_current_team_context,
     market_history_status, is_context_feature, empirical_position_anchor,
+    rehydrate_latest_profiles,
 )
 
 # Synthetic new-team market: enough structure to rebuild QB/RB/WR/TE roles.
@@ -74,6 +75,31 @@ anchored,audit=empirical_position_anchor(toy,min_reference=12)
 assert anchored.notna().all()
 assert abs(float(anchored.median())-float(toy.sleeper_market_projection.median())) < 15
 assert audit.iloc[0]["status"]=="POSITION_EMPIRICAL_QUANTILE_ANCHOR"
+
+# Self-rehydration must reconstruct a profile from player-week + committed spec
+# without fitting or needing M4 OOS artifacts.
+with tempfile.TemporaryDirectory() as td:
+    td=Path(td)
+    pw=td/"player_week.csv.gz"
+    rows=[]
+    for week in range(1,5):
+        rows.append({
+            "canonical_player_id":"qbprof","season":2025,"week":week,
+            "position_model":"QB","fantasy_points":20+week,"full_name":"QB Profile",
+            "team":"OLD","passing_yards":250+week,"rushing_yards":30+week,
+            "prev_fantasy_ppg":np.nan,
+        })
+    pd.DataFrame(rows).to_csv(pw,index=False,compression="gzip")
+    fake_m9={"preseason_season_projection":{"diagnostic_model_specs":{"QB":{
+        "targets":[{"target":"passing_yards","features":["prev_fantasy_ppg"]}]
+    }}}}
+    outp=td/"profiles.csv.gz"
+    prof=rehydrate_latest_profiles(player_week_path=pw,m9=fake_m9,output_path=outp)
+    assert outp.is_file()
+    assert len(prof)==1
+    assert prof.iloc[0]["canonical_player_id"]=="qbprof"
+    assert prof.iloc[0]["profile_team"]=="OLD"
+    assert int(prof.iloc[0]["prev_games"])==4
 
 with tempfile.TemporaryDirectory() as td:
     r=Path(td); (r/"2026").mkdir()

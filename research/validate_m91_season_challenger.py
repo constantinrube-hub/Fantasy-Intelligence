@@ -27,6 +27,11 @@ def main():
     assert x["sleeper_is_fixed_baseline"] is True
     assert x["single_mean_centering_applied"] is False
     assert x["distribution_anchor"]["method"]=="POSITION_EMPIRICAL_QUANTILE_ANCHOR"
+    assert x["profile_source"] in {
+        "EXISTING_M9_DERIVED_PROFILE",
+        "REHYDRATED_FROM_CANONICAL_PLAYER_WEEK_AND_COMMITTED_M9_SPEC",
+    }
+    assert x["profile_rehydration_refit"] is False
     policy=x["team_transition_policy"]
     assert set(policy["applies_to_positions"])==OFFENSE
     assert policy["team_change_is_never_a_block_reason"] is True

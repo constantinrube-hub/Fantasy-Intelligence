@@ -43,6 +43,8 @@ from build_m9_season_board import (
     norm_sleeper_id,
 )
 from fie_m9 import simulate_player_season
+from fie_m7 import add_derived_driver_features
+from preseason_projection import add_scoring_completion_columns, _season_target_catalog
 
 OFFENSE = {"QB", "RB", "WR", "TE"}
 RESEARCH_BUILD = "M9.1-TRANSITION-AWARE-CHALLENGER"
@@ -487,12 +489,129 @@ def market_history_status(market_root: Path, current_season: int) -> dict:
     }
 
 
-def _profiles(m9: dict, override: str = "") -> tuple[pd.DataFrame, Path]:
+def _first_numeric(df: pd.DataFrame, names: Iterable[str]) -> Optional[str]:
+    for name in names:
+        if name in df.columns and pd.to_numeric(df[name], errors="coerce").notna().any():
+            return str(name)
+    return None
+
+
+def rehydrate_latest_profiles(
+    *,
+    player_week_path: Path,
+    m9: dict,
+    output_path: Path,
+) -> pd.DataFrame:
+    """Reconstruct M9's latest preseason profile table from canonical player-week.
+
+    The committed M9 bundle contains the trained target specifications and therefore
+    defines the required profile features. The missing `.cache` artifact is only a
+    deterministic feature table derived from completed-season player-week history.
+
+    This function does NOT refit M9, alter coefficients, rerun M4/M7/M8, or require
+    OOS cache artifacts. It recreates the exact type of latest player profile that
+    the committed M9 specs consume.
+    """
+    if not player_week_path.is_file():
+        raise SystemExit(f"M9.1 cannot rehydrate profiles; missing {player_week_path}")
+
+    df = pd.read_csv(player_week_path, low_memory=False)
+    required = {"canonical_player_id", "season", "week", "position_model", "fantasy_points"}
+    if not required.issubset(df.columns):
+        raise SystemExit(f"M9.1 player-week cache missing required columns: {sorted(required-set(df.columns))}")
+
+    df = add_scoring_completion_columns(df)
+    df = add_derived_driver_features(df)
+
+    preseason = m9.get("preseason_season_projection", {}) or {}
+    specs = preseason.get("diagnostic_model_specs", {}) or preseason.get("model_specs", {}) or {}
+    rows = []
+
+    for pos in sorted(OFFENSE):
+        pspec = specs.get(pos) or {}
+        if not pspec:
+            continue
+        dpos = df[df.position_model.astype(str).str.upper().eq(pos)].copy()
+        if dpos.empty:
+            continue
+        seasons = pd.to_numeric(dpos["season"], errors="coerce").dropna()
+        if seasons.empty:
+            continue
+        max_season = int(seasons.max())
+        latest = dpos[pd.to_numeric(dpos["season"], errors="coerce").eq(max_season)].copy()
+        if latest.empty:
+            continue
+
+        # Use the committed spec as the authoritative feature contract.
+        features = sorted({
+            str(f)
+            for target in (pspec.get("targets") or [])
+            for f in (target.get("features") or [])
+            if str(f) not in {"prev_fantasy_ppg"}
+        })
+
+        target_sources = {}
+        catalog = _season_target_catalog(pos)
+        target_names = {
+            str(t.get("target"))
+            for t in (pspec.get("targets") or [])
+            if t.get("target")
+        }
+        for target in target_names:
+            aliases = catalog.get(target) or [target]
+            source = _first_numeric(latest, aliases)
+            if source:
+                target_sources[target] = source
+
+        for pid, g in latest.sort_values("week").groupby("canonical_player_id", sort=False):
+            g = g.sort_values("week")
+            last = g.iloc[-1]
+            fp = pd.to_numeric(g["fantasy_points"], errors="coerce")
+            row = {
+                "canonical_player_id": str(pid),
+                "profile_season": max_season,
+                "full_name": last.get("full_name"),
+                "profile_team": last.get("team"),
+                "position_model": pos,
+                "prev_fantasy_ppg": float(fp.mean()) if fp.notna().any() else np.nan,
+                "prev_games": int(fp.notna().sum()),
+            }
+            for f in features:
+                x = _num(last.get(f))
+                row[f] = float(x) if x is not None else np.nan
+            for target, source in target_sources.items():
+                vals = pd.to_numeric(g[source], errors="coerce")
+                row[f"prev__{target}"] = float(vals.mean()) if vals.notna().any() else np.nan
+            rows.append(row)
+
+    out = pd.DataFrame(rows)
+    if out.empty:
+        raise SystemExit("M9.1 latest-profile rehydration produced no offensive player profiles")
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    out.to_csv(output_path, index=False, compression="gzip" if output_path.suffix == ".gz" else None)
+    return out
+
+
+def _profiles(
+    m9: dict,
+    *,
+    override: str = "",
+    player_week_path: Optional[Path] = None,
+    rehydrated_output: Optional[Path] = None,
+) -> tuple[pd.DataFrame, Path, str]:
     preseason = m9.get("preseason_season_projection", {}) or {}
     p = Path(override or preseason.get("latest_profiles_derived_table") or "")
-    if not p.is_absolute():
+    if p and not p.is_absolute():
         p = Path.cwd() / p
-    return (pd.read_csv(p, low_memory=False) if p.is_file() else pd.DataFrame()), p
+    if p and p.is_file():
+        return pd.read_csv(p, low_memory=False), p, "EXISTING_M9_DERIVED_PROFILE"
+
+    if player_week_path is None:
+        raise SystemExit(f"M9.1 requires a preseason profile table or player-week cache; missing configured path {p}")
+    out = rehydrated_output or (player_week_path.parent / "m9_preseason_latest_profiles_rehydrated.csv.gz")
+    df = rehydrate_latest_profiles(player_week_path=player_week_path, m9=m9, output_path=out)
+    return df, out, "REHYDRATED_FROM_CANONICAL_PLAYER_WEEK_AND_COMMITTED_M9_SPEC"
 
 
 def build(args) -> tuple[pd.DataFrame, dict]:
@@ -505,9 +624,15 @@ def build(args) -> tuple[pd.DataFrame, dict]:
     market_root = Path(args.market_root)
     market_path = Path(args.market_snapshot) if args.market_snapshot else latest_market_snapshot(market_root, args.season)
     m9 = load_json(str(m9_path))
-    profiles, profile_path = _profiles(m9, args.profile_table)
+    player_week_path = Path(args.player_week) if args.player_week else Path(".cache/fie-research/leagues") / str(args.league_id) / "derived" / "player_week.csv.gz"
+    profiles, profile_path, profile_source = _profiles(
+        m9,
+        override=args.profile_table,
+        player_week_path=player_week_path,
+        rehydrated_output=player_week_path.parent / "m9_preseason_latest_profiles_rehydrated.csv.gz",
+    )
     if profiles.empty:
-        raise SystemExit(f"M9.1 requires latest preseason profile table; not found at {profile_path}")
+        raise SystemExit(f"M9.1 requires latest preseason profiles; rehydration failed at {profile_path}")
 
     market = load_market(str(market_path))
     market_ctx, _ = build_current_team_context(market, args.games)
@@ -531,7 +656,7 @@ def build(args) -> tuple[pd.DataFrame, dict]:
     preseason = m9.get("preseason_season_projection", {}) or {}
     specs = preseason.get("diagnostic_model_specs", {}) or preseason.get("model_specs", {}) or {}
     weekly_cal = m9.get("projection_distribution", {}).get("position_calibration", {}) or {}
-    volatility = transition_volatility(Path(args.player_week) if args.player_week else league_root / "derived" / "player_week.csv.gz")
+    volatility = transition_volatility(player_week_path)
     hist = market_history_status(market_root, args.season)
 
     rows = []
@@ -673,6 +798,8 @@ def build(args) -> tuple[pd.DataFrame, dict]:
         "transition_volatility": volatility,
         "market_snapshot": str(market_path),
         "profile_table": str(profile_path),
+        "profile_source": profile_source,
+        "profile_rehydration_refit": False,
         "rows": int(len(out)),
         "exact_replay_rows": int(out.m91_exact_scoring_replay.fillna(False).sum()) if not out.empty else 0,
         "transition_rows": int(out.team_changed.fillna(False).sum()) if not out.empty else 0,
