@@ -58,15 +58,24 @@ jobs:
           cache: pip
           cache-dependency-path: research/requirements.txt
       - run: pip install -r research/requirements.txt
-      - uses: actions/download-artifact@v4
+      - name: Download league research artifact into canonical league namespace
+        uses: actions/download-artifact@v4
         with:
           name: fie-league-research-${{ inputs.league_id }}-${{ inputs.season }}
-          path: .
-      - uses: actions/download-artifact@v4
+          path: data/research/leagues/${{ inputs.league_id }}
+      - name: Download shared research evidence into canonical research namespace
+        uses: actions/download-artifact@v4
         continue-on-error: true
         with:
           name: fie-shared-research-evidence-${{ inputs.league_id }}-${{ inputs.season }}
-          path: .
+          path: data/research
+      - name: Verify downloaded research artifact placement
+        shell: bash
+        run: |
+          test -f "data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/research_pipeline/readiness.json"
+          test -f "data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/research_pipeline/rankings.json"
+          test -f "data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/research_pipeline/report-summary.json"
+          test -f "data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/research_pipeline/matrix-job-status.json"
       - name: Build existing fast-switch shell and attach compact research endpoints
         run: |
           python research/build_league_app_snapshots.py --league-id "${{ inputs.league_id }}" --strict

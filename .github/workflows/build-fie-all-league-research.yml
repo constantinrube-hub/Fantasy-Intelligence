@@ -68,12 +68,37 @@ jobs:
           cache: pip
           cache-dependency-path: research/requirements.txt
       - run: pip install -r research/requirements.txt
-      - name: Download every league artifact into league namespaces
+      - name: Download every league artifact without flattening namespaces
         uses: actions/download-artifact@v4
         with:
           pattern: fie-league-research-*-${{ inputs.season }}
-          path: .
-          merge-multiple: true
+          path: .fie-league-artifacts
+          merge-multiple: false
+      - name: Restore league artifacts into canonical namespaces
+        run: |
+          python - <<'PY'
+          import json, shutil
+          from pathlib import Path
+          season='${{ inputs.season }}'
+          reg=json.load(open('data/research/leagues/registry.json'))
+          enabled={str(k) for k,v in (reg.get('leagues') or {}).items() if v.get('enabled',True)}
+          root=Path('.fie-league-artifacts')
+          prefix='fie-league-research-'; suffix='-'+season
+          restored=set()
+          for src in sorted(root.iterdir() if root.is_dir() else []):
+              if not src.is_dir() or not src.name.startswith(prefix) or not src.name.endswith(suffix):
+                  continue
+              lid=src.name[len(prefix):-len(suffix)]
+              if lid not in enabled:
+                  raise SystemExit(f'unexpected league artifact namespace: {src.name}')
+              dest=Path('data/research/leagues')/lid
+              shutil.copytree(src,dest,dirs_exist_ok=True)
+              restored.add(lid)
+          missing=sorted(enabled-restored)
+          if missing:
+              raise SystemExit(f'missing downloaded league artifacts: {missing}')
+          print('PASS restored league artifacts',len(restored))
+          PY
       - name: Reconcile artifact count to registry before publication
         env:
           EXPECTED: ${{ needs.registry.outputs.enabled_count }}
