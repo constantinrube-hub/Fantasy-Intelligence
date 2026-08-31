@@ -94,10 +94,17 @@ jobs:
             --season "${{ inputs.season }}"
 
       - name: Show focus comparison
-        run: cat "data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/m91c_challenger/m91c_focus_summary.json"
+        if: always()
+        shell: bash
+        run: |
+          F="data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/m91c_challenger/m91c_focus_summary.json"
+          if [ -f "$F" ]; then cat "$F"; else echo "focus summary not produced"; fi
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload M9.1c artifact
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: fie-m91c-challenger-${{ inputs.league_id }}-${{ inputs.season }}
           path: data/research/leagues/${{ inputs.league_id }}/performance/${{ inputs.season }}/m91c_challenger
+          if-no-files-found: warn
           retention-days: 14
