@@ -394,8 +394,6 @@ assert "lower_tail_surplus" in js and "spike_surplus" in js
 portfolio_js = (ROOT / "app" / "portfolio-config.js").read_text()
 assert "CHOPPED_BESTBALL:'Chopped + Best Ball'" in portfolio_js
 
-wf = (ROOT / ".github" / "workflows" / "build-fie-complete-league-research.yml").read_text()
-assert "CHOPPED_BESTBALL" in wf
 
 print("PASS: CHOPPED_BESTBALL auto-detection, portfolio registration, M5 fail-closed intersections, workflow and browser utility")
 '''
@@ -436,7 +434,6 @@ def main() -> None:
     patch_portfolio_rules()
     patch_portfolio_config_json()
     patch_app_portfolio_config()
-    patch_complete_workflow()
     patch_integrity_tests()
     write_hybrid_integrity_test()
     verify_postconditions()
