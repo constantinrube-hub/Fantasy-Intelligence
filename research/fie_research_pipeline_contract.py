@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import subprocess
 from datetime import datetime, timezone
@@ -97,18 +98,46 @@ def load_json(path: str | Path, default: Any = None) -> Any:
     return json.loads(p.read_text(encoding="utf-8"))
 
 
+def json_safe(obj: Any) -> Any:
+    """Normalize serialization-only missing/non-finite scalars to JSON null.
+
+    This is an artifact-boundary conversion only. It does not impute model inputs,
+    change rankings/projections, weaken statistical gates, or reinterpret missing
+    evidence as zero.
+    """
+    if isinstance(obj, dict):
+        return {str(k): json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple, set)):
+        return [json_safe(v) for v in obj]
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+
+    # numpy/pandas scalar types expose item(); keep this module dependency-free.
+    item = getattr(obj, "item", None)
+    if callable(item):
+        try:
+            scalar = item()
+        except Exception:
+            scalar = obj
+        if scalar is not obj:
+            return json_safe(scalar)
+    return obj
+
+
 def canonical_bytes(obj: Any) -> bytes:
-    return (json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n").encode("utf-8")
+    safe = json_safe(obj)
+    return (json.dumps(safe, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n").encode("utf-8")
 
 
 def write_json(path: str | Path, obj: Any, *, pretty: bool = True) -> None:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
+    safe = json_safe(obj)
     if pretty:
-        text = json.dumps(obj, indent=2, ensure_ascii=False, sort_keys=True, allow_nan=False) + "\n"
+        text = json.dumps(safe, indent=2, ensure_ascii=False, sort_keys=True, allow_nan=False) + "\n"
         p.write_text(text, encoding="utf-8")
     else:
-        p.write_bytes(canonical_bytes(obj))
+        p.write_bytes(canonical_bytes(safe))
 
 
 def sha256_bytes(data: bytes) -> str:
