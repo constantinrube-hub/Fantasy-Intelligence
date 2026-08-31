@@ -78,6 +78,28 @@ def num(x:Any)->Optional[float]:
         return None
 
 
+def json_safe(value:Any)->Any:
+    """Convert numpy/pandas and non-finite audit values to strict JSON values."""
+    if value is None:
+        return None
+    if isinstance(value, dict):
+        return {str(k): json_safe(v) for k,v in value.items()}
+    if isinstance(value, (list,tuple,set)):
+        return [json_safe(v) for v in value]
+    if isinstance(value, np.generic):
+        value=value.item()
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    try:
+        if pd.isna(value):
+            return None
+    except Exception:
+        pass
+    return value
+
+
 def latest_team_environment(player_week:pd.DataFrame)->dict:
     """Canonical M8 prior-season new-team offensive pressure environment."""
     if player_week.empty:
@@ -627,7 +649,7 @@ def write_summary(df:pd.DataFrame,meta:dict,path:Path):
     players=[]
     for r in q[[c for c in cols if c in q.columns]].to_dict("records"):
         players.append({k:(None if pd.isna(v) else v) for k,v in r.items()})
-    path.write_text(json.dumps({**meta,"focus_players":players},indent=2,allow_nan=False,default=str)+"\n")
+    path.write_text(json.dumps(json_safe({**meta,"focus_players":players}),indent=2,allow_nan=False,default=str)+"\n")
 
 
 def write_evaluation(df:pd.DataFrame,meta:dict,path:Path):
@@ -682,7 +704,7 @@ def write_evaluation(df:pd.DataFrame,meta:dict,path:Path):
             for r in top[[c for c in top_cols if c in top]].to_dict("records")
         ],
     }
-    path.write_text(json.dumps(payload,indent=2,allow_nan=False,default=str)+"\n")
+    path.write_text(json.dumps(json_safe(payload),indent=2,allow_nan=False,default=str)+"\n")
 
 
 def parse_args(argv=None):
@@ -703,7 +725,7 @@ def main(argv=None):
     d.mkdir(parents=True,exist_ok=True)
     df,meta=build(a)
     df.to_csv(d/"m91c_season_board.csv",index=False)
-    (d/"m91c_meta.json").write_text(json.dumps(meta,indent=2,allow_nan=False,default=str)+"\n")
+    (d/"m91c_meta.json").write_text(json.dumps(json_safe(meta),indent=2,allow_nan=False,default=str)+"\n")
     write_summary(df,meta,d/"m91c_focus_summary.json")
     write_evaluation(df,meta,d/"m91c_evaluation.json")
     print(f"Wrote M9.1c rows={len(df)} exact={meta['exact_replay_rows']} transitions={meta['true_team_changes']} adjusted={meta['adjusted_rows']} gate={meta['residual_model_gate']['status']}")
