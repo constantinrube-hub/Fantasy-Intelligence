@@ -1,0 +1,95 @@
+name: FIE Controlled Implementation — Tranche 1 Characterization
+
+on:
+  push:
+    branches:
+      - audit-implementation-2026-09
+    paths:
+      - "config/tranche1-characterization.json"
+      - "research/tranche1_characterization.py"
+      - "research/integrity_tranche1_*.py"
+      - "research/integrity_tranche1_*.js"
+      - "docs/audits/TRANCHE1_CHARACTERIZATION.md"
+      - ".github/workflows/validate-fie-tranche1-characterization.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  characterize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout implementation branch with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Run Tranche 1 characterization suite
+        run: |
+          python research/tranche1_characterization.py \
+            --mode baseline \
+            --output-dir artifacts/tranche1
+
+      - name: Re-run canonical deterministic release build
+        run: python tools/release_build.py --mode personal
+
+      - name: Require deployable baseline and synchronized dist
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("config/release-gate.json")
+          if not p.exists():
+              raise SystemExit("release-gate.json missing")
+          d=json.loads(p.read_text())
+          print("STATUS:",d.get("status"))
+          if d.get("status")!="DEPLOYABLE_SOURCE":
+              raise SystemExit(1)
+          PY
+          if [ -n "$(git status --porcelain -- dist)" ]; then
+            echo "::error::Tranche 1 changed deterministic dist output."
+            git status --short -- dist
+            exit 1
+          fi
+          echo "PASS Tranche 1 did not alter deployable runtime/dist"
+
+      - name: Show characterization summary
+        if: always()
+        run: |
+          if [ -f artifacts/tranche1/tranche1-characterization.md ]; then
+            cat artifacts/tranche1/tranche1-characterization.md
+          fi
+
+      - name: Upload Tranche 1 characterization artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche1-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            artifacts/tranche1/tranche1-characterization.json
+            artifacts/tranche1/tranche1-characterization.md
+            config/release-gate.json
+            config/build-manifest.json
