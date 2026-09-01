@@ -6,6 +6,7 @@ from build_m91c_season_challenger import (
     latest_team_environment,fit_role_estimators,apply_role_estimator,
     assign_role_cohorts,role_cohort_residual_anchor,
 )
+from validate_m91c_season_challenger import canonicalize_optional_schema
 
 # Canonical M8 team environment: new-team QB pressure/sack fields are recoverable.
 rows=[]
@@ -58,4 +59,38 @@ assert proj.loc[low] < 30,proj.loc[low]
 assert d.loc[low,"m91c_reference_role_cohort"]=="DEPTH"
 assert abs(d.loc[low,"m91c_applied_adjustment"])<=d.loc[low,"m91c_correction_cap"]+1e-9
 
-print("PASS M9.1c: M8 new-team environment, current-workload role estimation, role cohorts, density reliability, same-cohort calibration and correction cap")
+# Regression: a zero-exact league is a legitimate BASELINE_ONLY board.  Optional
+# calibration fields must still have a stable schema without manufacturing signal.
+zero=pd.DataFrame({
+    "sleeper_market_projection":[100.0,80.0],
+    "m91c_projection":[100.0,80.0],
+    "m91c_exact_scoring_replay":[False,False],
+    "m91c_production_eligible":[False,False],
+    "m91c_calibration_method":["BASELINE_ONLY","BASELINE_ONLY"],
+})
+zero,added=canonicalize_optional_schema(zero)
+for c in (
+    "m91c_signal_z","m91c_total_reliability","m91c_correction_cap",
+    "m91c_applied_adjustment","m91c_reference_role_cohort",
+):
+    assert c in zero.columns,c
+assert pd.to_numeric(zero.m91c_signal_z,errors="coerce").isna().all()
+assert pd.to_numeric(zero.m91c_total_reliability,errors="coerce").isna().all()
+assert pd.to_numeric(zero.m91c_correction_cap,errors="coerce").isna().all()
+assert pd.to_numeric(zero.m91c_applied_adjustment,errors="coerce").eq(0.0).all()
+assert zero.m91c_reference_role_cohort.isna().all()
+assert "m91c_signal_z" in added
+
+# Existing calibrated values must never be overwritten by schema canonicalization.
+existing=pd.DataFrame({
+    "m91c_signal_z":[2.5],
+    "m91c_total_reliability":[.6],
+    "m91c_correction_cap":[10.0],
+    "m91c_applied_adjustment":[4.0],
+    "m91c_reference_role_cohort":["CLEAR_STARTER"],
+})
+existing,_=canonicalize_optional_schema(existing)
+assert existing.loc[0,"m91c_signal_z"]==2.5
+assert existing.loc[0,"m91c_applied_adjustment"]==4.0
+
+print("PASS M9.1c: M8 new-team environment, current-workload role estimation, role cohorts, density reliability, same-cohort calibration, correction cap and zero-exact baseline schema")
