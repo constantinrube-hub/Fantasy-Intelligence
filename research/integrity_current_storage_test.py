@@ -60,7 +60,22 @@ assert stored_bytes<hydrated_bytes*.35,(
     f'shared current storage insufficiently deduplicated: stored={stored_bytes} hydrated={hydrated_bytes} '
     f'ratio={stored_bytes/hydrated_bytes:.3f}'
 )
-assert shared_bytes<40_000_000,f'shared current store runaway size: {shared_bytes}'
+
+# Capacity guard must scale with the managed portfolio.  The historical 19-league
+# ceiling was 40 MB.  Preserve exactly that budget at 19 leagues while allowing
+# 2 MB for each additional current league:
+#
+#   19 leagues -> 40 MB
+#   22 leagues -> 46 MB
+#
+# This is only a secondary runaway-size guard.  The stronger efficiency invariant
+# above still requires total stored current data to remain below 35% of the fully
+# hydrated payload, so adding leagues cannot silently permit poor deduplication.
+shared_budget_bytes=2_000_000 + 2_000_000*len(paths)
+assert shared_bytes<shared_budget_bytes,(
+    f'shared current store runaway size: shared={shared_bytes} '
+    f'budget={shared_budget_bytes} leagues={len(paths)}'
+)
 
 # Browser hydration is modular now. Validate the hydrator and every current
 # specialist consumer directly instead of requiring a literal source-shell tag.
@@ -75,4 +90,9 @@ for src in ['app/kicker-intelligence.js','app/dst-intelligence.js']:
     txt=(ROOT/src).read_text(encoding='utf-8')
     assert 'FIECurrentSnapshotStore' in txt,f'{src} bypasses shared current hydrator'
 
-print(f'PASS integrity_current_storage_test leagues={len(paths)} shared_files={len(shared)} manifest_bytes={manifest_bytes} shared_bytes={shared_bytes} hydrated_bytes={hydrated_bytes} storage_ratio={stored_bytes/hydrated_bytes:.3f}')
+print(
+    f'PASS integrity_current_storage_test leagues={len(paths)} '
+    f'shared_files={len(shared)} manifest_bytes={manifest_bytes} '
+    f'shared_bytes={shared_bytes} shared_budget={shared_budget_bytes} '
+    f'hydrated_bytes={hydrated_bytes} storage_ratio={stored_bytes/hydrated_bytes:.3f}'
+)
