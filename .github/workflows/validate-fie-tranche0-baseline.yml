@@ -1,0 +1,70 @@
+name: FIE Controlled Implementation — Tranche 0 Baseline
+
+on:
+  push:
+    branches:
+      - audit-implementation-2026-09
+    paths:
+      - "config/tranche0-baseline.json"
+      - "research/tranche0_baseline.py"
+      - "docs/audits/TRANCHE0_IMPLEMENTATION_BASELINE.md"
+      - ".github/workflows/validate-fie-tranche0-baseline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche0-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout implementation branch with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Run Tranche 0 reproducibility baseline
+        run: |
+          python research/tranche0_baseline.py \
+            --output-dir artifacts/tranche0
+
+      - name: Show baseline summary
+        if: always()
+        run: |
+          if [ -f artifacts/tranche0/tranche0-baseline.md ]; then
+            cat artifacts/tranche0/tranche0-baseline.md
+          fi
+
+      - name: Upload Tranche 0 baseline artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche0-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            artifacts/tranche0/tranche0-baseline.json
+            artifacts/tranche0/tranche0-baseline.md
+            config/release-gate.json
+            config/build-manifest.json
