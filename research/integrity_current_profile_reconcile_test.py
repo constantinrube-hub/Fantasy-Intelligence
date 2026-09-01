@@ -37,7 +37,9 @@ current={
     "scoring_settings":profile["scoring_settings"],
     "scoring_provenance":{"profile_fields":pf},
 }
-assert captured_structural_fingerprint(profile,current)==profile["profile_fingerprint"]
+assert captured_structural_fingerprint(
+    profile,current
+)==profile["profile_fingerprint"]
 
 # Operational progress drift is intentionally ignored.
 operational={

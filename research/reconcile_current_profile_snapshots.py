@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Reconcile stale current snapshots with freshly rebuilt league profiles.
 
-Used by the all-league research publisher after restoring league artifacts.
+Used by portfolio publishers after restoring per-league research artifacts.
 
 Important boundaries:
 - It never changes a research profile or its fingerprint.
 - It rebuilds only an EXISTING current snapshot whose captured Sleeper structural
   contract no longer matches the current profile.
 - It never weakens structural fingerprint validation.
-- After any rebuilds it deduplicates current storage, rebuilds governance for the
-  changed leagues, then runs the same storage/profile integrity gates used by the
-  production current workflow.
+- It normalizes every existing current snapshot to shared split storage.
+- Because normalization can change current-manifest and shared-artifact hashes,
+  governance is rebuilt for EVERY existing current snapshot after deduplication.
+- It then runs the same storage/profile integrity gates used by the production
+  Current Season workflow.
 """
 from __future__ import annotations
 
@@ -53,7 +55,9 @@ def captured_structural_fingerprint(profile:dict,current:dict)->Optional[str]:
     return sha256_json(contract)
 
 
-def existing_current_needs_rebuild(profile_path:Path,current_path:Path)->tuple[bool,str]:
+def existing_current_needs_rebuild(
+    profile_path:Path,current_path:Path
+)->tuple[bool,str]:
     if not profile_path.is_file() or not current_path.is_file():
         return False,"missing_profile_or_current"
     profile=load_json(profile_path)
@@ -104,13 +108,13 @@ def rebuild_current(lid:str,season:Optional[int])->None:
         cmd += ["--season",str(season)]
     run(cmd)
 
-    # If Sleeper changed structurally again between the research profile capture
-    # and this current rebuild, remain fail-closed and require another research run.
+    # If Sleeper changed structurally again between research-profile capture
+    # and current refresh, remain fail-closed and require another research run.
     needs,reason=existing_current_needs_rebuild(profile,current)
     if needs:
         raise SystemExit(
-            f"{lid}: current snapshot still does not match rebuilt research profile "
-            f"after refresh ({reason})"
+            f"{lid}: current snapshot still does not match rebuilt research "
+            f"profile after refresh ({reason})"
         )
 
 
@@ -125,9 +129,24 @@ def rebuild_governance(lid:str)->None:
         "--m6-bundle",str(lr/"milestone6.json"),
         "--current-snapshot",str(lr/"current"/"milestone5_current.json"),
         "--operator-override",str(lr/"governance"/"operator_override.json"),
-        "--global-operator-override",str(ROOT/"data"/"research"/"governance"/"operator_override.json"),
+        "--global-operator-override",
+        str(ROOT/"data"/"research"/"governance"/"operator_override.json"),
         "--output",str(lr/"governance"/"active_release.json"),
     ])
+
+
+def current_governance_targets(enabled:list[str])->list[str]:
+    """Every existing current manifest needs lineage after normalization.
+
+    deduplicate_current_snapshots.py is content-addressed and may rewrite not only
+    the one refreshed league but other league manifests/shared references as well.
+    Governance hashes therefore have to be regenerated after deduplication for
+    every current snapshot that will be published.
+    """
+    return [
+        lid for lid in enabled
+        if (LEAGUES/lid/"current"/"milestone5_current.json").is_file()
+    ]
 
 
 def main()->None:
@@ -161,22 +180,27 @@ def main()->None:
         rebuild_current(lid,args.season)
         rebuilt.append(lid)
 
-    # All-league artifacts may contain legacy full current snapshots. Normalize
-    # every existing current snapshot to the canonical shared-base/overlay format
-    # before release_build.py executes its fail-closed storage gate.
+    # Per-league artifacts can contain legacy full snapshots. Normalize all current
+    # data before governance hashes are generated.
     run([sys.executable,str(ROOT/"research"/"deduplicate_current_snapshots.py")])
 
-    # A refreshed current snapshot changes the governance input. Rebuild only the
-    # affected leagues and preserve their existing operator mode/override behavior.
-    for lid in rebuilt:
+    # CRITICAL ORDERING CONTRACT:
+    # deduplication can change league-manifest hashes and shared base/overlay paths
+    # for ANY league. Governance must therefore be rebuilt after deduplication for
+    # every existing current snapshot, exactly as build-fie-current.yml does.
+    governed=current_governance_targets(enabled)
+    for lid in governed:
         rebuild_governance(lid)
 
     run([sys.executable,str(ROOT/"research"/"integrity_current_storage_test.py")])
-    run([sys.executable,str(ROOT/"research"/"integrity_v932_structural_profile_test.py")])
+    run([
+        sys.executable,
+        str(ROOT/"research"/"integrity_v932_structural_profile_test.py")
+    ])
 
     print(
         f"PASS current/profile reconciliation enabled={len(enabled)} "
-        f"rebuilt={len(rebuilt)}"
+        f"stale_current_rebuilt={len(rebuilt)} governance_rebuilt={len(governed)}"
     )
 
 
