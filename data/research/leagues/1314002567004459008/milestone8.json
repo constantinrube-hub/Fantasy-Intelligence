@@ -1,0 +1,675 @@
+{
+  "schema_version": 8,
+  "milestone": "M8",
+  "control_build": "V8.2.2",
+  "research_build": "V9.4-M8",
+  "generated_at": "2026-08-31T21:04:22.834606+00:00",
+  "status": "complete",
+  "steps_completed": [
+    34,
+    35,
+    36,
+    37
+  ],
+  "scoring_signature": "5d9ec28719f1d6c2",
+  "methodology": {
+    "step34": "Build pregame team pressure, pass-rush, coverage-scheme/disruption and run-front context from lagged public player signals. Public pressure environment is not an OL grade.",
+    "step35": "Optionally join versioned point-in-time true OL/DL team metrics and player-week OL/DL performance. Player grades are snap-weighted into explicit unit aggregates with separate weakest-link challengers; missing optional data stays blocked.",
+    "step36": "Create player-specific opponent interactions for QB pressure/coverage, RB run fronts, and WR/TE pressure+coverage. Scheme and efficiency are separate components.",
+    "step37": "Validate every matchup family as an incremental residual correction after M4 FIE. No generic strength-of-schedule multiplier is activated from descriptive history."
+  },
+  "team_matchup_context": {
+    "summary": {
+      "rows": 3742,
+      "teams": 32,
+      "seasons": [
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "public_pass_rush_coverage": 0.8800106894708712,
+      "public_coverage_coverage": 0.880277926242651,
+      "public_run_front_coverage": 0.0,
+      "public_pressure_coverage_synergy_coverage": 0.8800106894708712
+    },
+    "derived_table": ".cache/fie-research/leagues/1314002567004459008/derived/m8_team_matchup_context.csv.gz",
+    "public_component_semantics": {
+      "public_protection_environment_index": "observed prior QB pressure/sack environment; OL+QB+past-opponent mixture, not OL talent",
+      "public_pass_rush_index": "lagged DL/EDGE hurry-hit-sack and pressure-context composite",
+      "public_coverage_disruption_index": "lagged pass-defense/interception disruption composite; man/zone rates are exported separately as scheme",
+      "public_run_front_index": "lagged run-front disruption proxy; does not claim player-level run-block attribution",
+      "public_pressure_coverage_synergy_index": "team-level interaction between lagged pass-rush and coverage disruption; captures DL/DB ecosystem synergy without individual assignment claims"
+    }
+  },
+  "matchup_validation": {
+    "folds": [
+      {
+        "position": "QB",
+        "family": "public_pass_rush_matchup",
+        "test_season": 2023,
+        "n_train": 560,
+        "n_test": 590,
+        "features": [
+          "opp_public_pass_rush_index",
+          "m8_qb_pressure_collision"
+        ],
+        "base_fie_mae": 6.301823818870842,
+        "adjusted_mae": 6.219442806128113,
+        "incremental_mae_improvement": 0.013072566785513585,
+        "base_spearman": 0.4746805228274246,
+        "adjusted_spearman": 0.4742586364698342
+      },
+      {
+        "position": "QB",
+        "family": "public_coverage_matchup",
+        "test_season": 2023,
+        "n_train": 560,
+        "n_test": 590,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 6.301823818870842,
+        "adjusted_mae": 6.270460001034203,
+        "incremental_mae_improvement": 0.004976942983191629,
+        "base_spearman": 0.4746805228274246,
+        "adjusted_spearman": 0.470585236517126
+      },
+      {
+        "position": "QB",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2023,
+        "n_train": 560,
+        "n_test": 590,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index",
+          "m8_qb_pressure_coverage_synergy"
+        ],
+        "base_fie_mae": 6.301823818870842,
+        "adjusted_mae": 6.24152266675365,
+        "incremental_mae_improvement": 0.009568841314893568,
+        "base_spearman": 0.4746805228274246,
+        "adjusted_spearman": 0.47249519181109373
+      },
+      {
+        "position": "WR",
+        "family": "public_pressure_receiving_matchup",
+        "test_season": 2023,
+        "n_train": 2099,
+        "n_test": 2186,
+        "features": [
+          "opp_public_pass_rush_index"
+        ],
+        "base_fie_mae": 4.399454677802988,
+        "adjusted_mae": 4.362318358967513,
+        "incremental_mae_improvement": 0.008441118628370749,
+        "base_spearman": 0.6427572006643706,
+        "adjusted_spearman": 0.6428047701841288
+      },
+      {
+        "position": "WR",
+        "family": "public_coverage_receiving_matchup",
+        "test_season": 2023,
+        "n_train": 2099,
+        "n_test": 2186,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 4.399454677802988,
+        "adjusted_mae": 4.362405593107511,
+        "incremental_mae_improvement": 0.008421290229992467,
+        "base_spearman": 0.6427572006643706,
+        "adjusted_spearman": 0.6426182307560174
+      },
+      {
+        "position": "WR",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2023,
+        "n_train": 2099,
+        "n_test": 2186,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index"
+        ],
+        "base_fie_mae": 4.399454677802988,
+        "adjusted_mae": 4.361607195552221,
+        "incremental_mae_improvement": 0.00860276671145704,
+        "base_spearman": 0.6427572006643706,
+        "adjusted_spearman": 0.6425915190111294
+      },
+      {
+        "position": "TE",
+        "family": "public_pressure_receiving_matchup",
+        "test_season": 2023,
+        "n_train": 1075,
+        "n_test": 1054,
+        "features": [
+          "opp_public_pass_rush_index"
+        ],
+        "base_fie_mae": 4.086645843174553,
+        "adjusted_mae": 4.091630794364253,
+        "incremental_mae_improvement": -0.001219814826387648,
+        "base_spearman": 0.5582616772397115,
+        "adjusted_spearman": 0.5552639618043428
+      },
+      {
+        "position": "TE",
+        "family": "public_coverage_receiving_matchup",
+        "test_season": 2023,
+        "n_train": 1075,
+        "n_test": 1054,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 4.086645843174553,
+        "adjusted_mae": 4.085334876366807,
+        "incremental_mae_improvement": 0.00032079285997722564,
+        "base_spearman": 0.5582616772397115,
+        "adjusted_spearman": 0.5574484946207178
+      },
+      {
+        "position": "TE",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2023,
+        "n_train": 1075,
+        "n_test": 1054,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index"
+        ],
+        "base_fie_mae": 4.086645843174553,
+        "adjusted_mae": 4.082179404732153,
+        "incremental_mae_improvement": 0.00109293504105824,
+        "base_spearman": 0.5582616772397115,
+        "adjusted_spearman": 0.5582128863854627
+      },
+      {
+        "position": "QB",
+        "family": "public_pass_rush_matchup",
+        "test_season": 2024,
+        "n_train": 1150,
+        "n_test": 587,
+        "features": [
+          "opp_public_pass_rush_index",
+          "m8_qb_pressure_collision"
+        ],
+        "base_fie_mae": 6.533235627154886,
+        "adjusted_mae": 6.556971751893208,
+        "incremental_mae_improvement": -0.0036331346507180854,
+        "base_spearman": 0.478642980945764,
+        "adjusted_spearman": 0.4743195616025862
+      },
+      {
+        "position": "QB",
+        "family": "public_coverage_matchup",
+        "test_season": 2024,
+        "n_train": 1150,
+        "n_test": 587,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 6.533235627154886,
+        "adjusted_mae": 6.55120648628823,
+        "incremental_mae_improvement": -0.002750682840620287,
+        "base_spearman": 0.478642980945764,
+        "adjusted_spearman": 0.4778520019391119
+      },
+      {
+        "position": "QB",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2024,
+        "n_train": 1150,
+        "n_test": 587,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index",
+          "m8_qb_pressure_coverage_synergy"
+        ],
+        "base_fie_mae": 6.533235627154886,
+        "adjusted_mae": 6.541557602879993,
+        "incremental_mae_improvement": -0.001273790844236163,
+        "base_spearman": 0.478642980945764,
+        "adjusted_spearman": 0.47574625468486664
+      },
+      {
+        "position": "WR",
+        "family": "public_pressure_receiving_matchup",
+        "test_season": 2024,
+        "n_train": 4285,
+        "n_test": 2157,
+        "features": [
+          "opp_public_pass_rush_index"
+        ],
+        "base_fie_mae": 4.512339500487038,
+        "adjusted_mae": 4.506696587902697,
+        "incremental_mae_improvement": 0.00125055142321013,
+        "base_spearman": 0.6498802165981955,
+        "adjusted_spearman": 0.6496447231405021
+      },
+      {
+        "position": "WR",
+        "family": "public_coverage_receiving_matchup",
+        "test_season": 2024,
+        "n_train": 4285,
+        "n_test": 2157,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 4.512339500487038,
+        "adjusted_mae": 4.505548436384582,
+        "incremental_mae_improvement": 0.0015049984828764444,
+        "base_spearman": 0.6498802165981955,
+        "adjusted_spearman": 0.6498135122467423
+      },
+      {
+        "position": "WR",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2024,
+        "n_train": 4285,
+        "n_test": 2157,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index"
+        ],
+        "base_fie_mae": 4.512339500487038,
+        "adjusted_mae": 4.50613834829984,
+        "incremental_mae_improvement": 0.0013742654307215634,
+        "base_spearman": 0.6498802165981955,
+        "adjusted_spearman": 0.649848018469853
+      },
+      {
+        "position": "TE",
+        "family": "public_pressure_receiving_matchup",
+        "test_season": 2024,
+        "n_train": 2129,
+        "n_test": 1084,
+        "features": [
+          "opp_public_pass_rush_index"
+        ],
+        "base_fie_mae": 4.169957625231974,
+        "adjusted_mae": 4.190935503377501,
+        "incremental_mae_improvement": -0.005030717343167297,
+        "base_spearman": 0.6061318204097396,
+        "adjusted_spearman": 0.6059836365757509
+      },
+      {
+        "position": "TE",
+        "family": "public_coverage_receiving_matchup",
+        "test_season": 2024,
+        "n_train": 2129,
+        "n_test": 1084,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 4.169957625231974,
+        "adjusted_mae": 4.192034670253026,
+        "incremental_mae_improvement": -0.005294309200521907,
+        "base_spearman": 0.6061318204097396,
+        "adjusted_spearman": 0.6062175153450662
+      },
+      {
+        "position": "TE",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2024,
+        "n_train": 2129,
+        "n_test": 1084,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index"
+        ],
+        "base_fie_mae": 4.169957625231974,
+        "adjusted_mae": 4.1905987775503055,
+        "incremental_mae_improvement": -0.0049499669237486246,
+        "base_spearman": 0.6061318204097396,
+        "adjusted_spearman": 0.6061839356663136
+      },
+      {
+        "position": "QB",
+        "family": "public_pass_rush_matchup",
+        "test_season": 2025,
+        "n_train": 1737,
+        "n_test": 589,
+        "features": [
+          "opp_public_pass_rush_index",
+          "m8_qb_pressure_collision"
+        ],
+        "base_fie_mae": 6.899310481111775,
+        "adjusted_mae": 6.844795085343563,
+        "incremental_mae_improvement": 0.007901571601605544,
+        "base_spearman": 0.4235257116192046,
+        "adjusted_spearman": 0.4250974700159627
+      },
+      {
+        "position": "QB",
+        "family": "public_coverage_matchup",
+        "test_season": 2025,
+        "n_train": 1737,
+        "n_test": 589,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 6.899310481111775,
+        "adjusted_mae": 6.855573234735181,
+        "incremental_mae_improvement": 0.00633936485339126,
+        "base_spearman": 0.4235257116192046,
+        "adjusted_spearman": 0.42199940845061507
+      },
+      {
+        "position": "QB",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2025,
+        "n_train": 1737,
+        "n_test": 589,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index",
+          "m8_qb_pressure_coverage_synergy"
+        ],
+        "base_fie_mae": 6.899310481111775,
+        "adjusted_mae": 6.84170766758291,
+        "incremental_mae_improvement": 0.008349068169429966,
+        "base_spearman": 0.4235257116192046,
+        "adjusted_spearman": 0.4267311861203667
+      },
+      {
+        "position": "WR",
+        "family": "public_pressure_receiving_matchup",
+        "test_season": 2025,
+        "n_train": 6442,
+        "n_test": 2214,
+        "features": [
+          "opp_public_pass_rush_index"
+        ],
+        "base_fie_mae": 4.193166139837508,
+        "adjusted_mae": 4.21089275585271,
+        "incremental_mae_improvement": -0.004227501468827595,
+        "base_spearman": 0.6403597673368787,
+        "adjusted_spearman": 0.6403272936451937
+      },
+      {
+        "position": "WR",
+        "family": "public_coverage_receiving_matchup",
+        "test_season": 2025,
+        "n_train": 6442,
+        "n_test": 2214,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 4.193166139837508,
+        "adjusted_mae": 4.210752469120381,
+        "incremental_mae_improvement": -0.0041940454292503,
+        "base_spearman": 0.6403597673368787,
+        "adjusted_spearman": 0.6404486514880496
+      },
+      {
+        "position": "WR",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2025,
+        "n_train": 6442,
+        "n_test": 2214,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index"
+        ],
+        "base_fie_mae": 4.193166139837508,
+        "adjusted_mae": 4.21085517399419,
+        "incremental_mae_improvement": -0.00421853882407036,
+        "base_spearman": 0.6403597673368787,
+        "adjusted_spearman": 0.6402573448524649
+      },
+      {
+        "position": "TE",
+        "family": "public_pressure_receiving_matchup",
+        "test_season": 2025,
+        "n_train": 3213,
+        "n_test": 1141,
+        "features": [
+          "opp_public_pass_rush_index"
+        ],
+        "base_fie_mae": 4.103684676217405,
+        "adjusted_mae": 4.1356902797034785,
+        "incremental_mae_improvement": -0.00779923556786891,
+        "base_spearman": 0.60995730203516,
+        "adjusted_spearman": 0.609974982899984
+      },
+      {
+        "position": "TE",
+        "family": "public_coverage_receiving_matchup",
+        "test_season": 2025,
+        "n_train": 3213,
+        "n_test": 1141,
+        "features": [
+          "opp_public_coverage_disruption_index"
+        ],
+        "base_fie_mae": 4.103684676217405,
+        "adjusted_mae": 4.134178222806452,
+        "incremental_mae_improvement": -0.007430772341201029,
+        "base_spearman": 0.60995730203516,
+        "adjusted_spearman": 0.6103205695477899
+      },
+      {
+        "position": "TE",
+        "family": "public_defensive_synergy_matchup",
+        "test_season": 2025,
+        "n_train": 3213,
+        "n_test": 1141,
+        "features": [
+          "opp_public_pressure_coverage_synergy_index"
+        ],
+        "base_fie_mae": 4.103684676217405,
+        "adjusted_mae": 4.139225178869214,
+        "incremental_mae_improvement": -0.008660631957855216,
+        "base_spearman": 0.60995730203516,
+        "adjusted_spearman": 0.6097710502721465
+      }
+    ],
+    "aggregate": [
+      {
+        "position": "QB",
+        "family": "public_coverage_matchup",
+        "folds": 3,
+        "n_test": 1766,
+        "mean_incremental_mae_improvement": 0.002855208331987534,
+        "positive_folds": 2,
+        "bootstrap_ci95_low": -0.002750682840620287,
+        "bootstrap_ci95_high": 0.00633936485339126,
+        "status": "diagnostic_only"
+      },
+      {
+        "position": "QB",
+        "family": "public_defensive_synergy_matchup",
+        "folds": 3,
+        "n_test": 1766,
+        "mean_incremental_mae_improvement": 0.0055480395466957905,
+        "positive_folds": 2,
+        "bootstrap_ci95_low": -0.0012737908442361629,
+        "bootstrap_ci95_high": 0.009568841314893568,
+        "status": "diagnostic_only"
+      },
+      {
+        "position": "QB",
+        "family": "public_pass_rush_matchup",
+        "folds": 3,
+        "n_test": 1766,
+        "mean_incremental_mae_improvement": 0.005780334578800349,
+        "positive_folds": 2,
+        "bootstrap_ci95_low": -0.003633134650718086,
+        "bootstrap_ci95_high": 0.013072566785513585,
+        "status": "diagnostic_only"
+      },
+      {
+        "position": "TE",
+        "family": "public_coverage_receiving_matchup",
+        "folds": 3,
+        "n_test": 3279,
+        "mean_incremental_mae_improvement": -0.004134762893915236,
+        "positive_folds": 1,
+        "bootstrap_ci95_low": -0.007430772341201029,
+        "bootstrap_ci95_high": 0.00032079285997722564,
+        "status": "diagnostic_only"
+      },
+      {
+        "position": "TE",
+        "family": "public_defensive_synergy_matchup",
+        "folds": 3,
+        "n_test": 3279,
+        "mean_incremental_mae_improvement": -0.0041725546135152,
+        "positive_folds": 1,
+        "bootstrap_ci95_low": -0.008660631957855216,
+        "bootstrap_ci95_high": 0.00109293504105824,
+        "status": "diagnostic_only"
+      },
+      {
+        "position": "TE",
+        "family": "public_pressure_receiving_matchup",
+        "folds": 3,
+        "n_test": 3279,
+        "mean_incremental_mae_improvement": -0.004683255912474618,
+        "positive_folds": 0,
+        "bootstrap_ci95_low": -0.00779923556786891,
+        "bootstrap_ci95_high": -0.0012198148263876483,
+        "status": "diagnostic_only"
+      },
+      {
+        "position": "WR",
+        "family": "public_coverage_receiving_matchup",
+        "folds": 3,
+        "n_test": 6557,
+        "mean_incremental_mae_improvement": 0.001910747761206204,
+        "positive_folds": 2,
+        "bootstrap_ci95_low": -0.004194045429250301,
+        "bootstrap_ci95_high": 0.008421290229992467,
+        "status": "diagnostic_only"
+      },
+      {
+        "position": "WR",
+        "family": "public_defensive_synergy_matchup",
+        "folds": 3,
+        "n_test": 6557,
+        "mean_incremental_mae_improvement": 0.0019194977727027482,
+        "positive_folds": 2,
+        "bootstrap_ci95_low": -0.00421853882407036,
+        "bootstrap_ci95_high": 0.00860276671145704,
+        "status": "diagnostic_only"
+      },
+      {
+        "position": "WR",
+        "family": "public_pressure_receiving_matchup",
+        "folds": 3,
+        "n_test": 6557,
+        "mean_incremental_mae_improvement": 0.0018213895275844278,
+        "positive_folds": 2,
+        "bootstrap_ci95_low": -0.004227501468827595,
+        "bootstrap_ci95_high": 0.008441118628370749,
+        "status": "diagnostic_only"
+      }
+    ],
+    "validated_candidate_families": [],
+    "sequential_activation": {
+      "status": "diagnostic_only",
+      "rule": "M8 may influence live projections only through this sequential combined spec. If M7 is active, the combined M7+M8 correction replaces, rather than stacks on top of, the M7-only correction.",
+      "folds": [],
+      "aggregate": [],
+      "model_specs": {}
+    },
+    "activation_status": "DIAGNOSTIC_ONLY_UNTIL_CONSUMER_GATE"
+  },
+  "optional_trench_source": {
+    "path": "",
+    "rows": 0,
+    "usable_rows": 0,
+    "columns": [],
+    "duplicate_keys": 0,
+    "future_key_rows": 0,
+    "status": "not_supplied",
+    "reason": "optional source not supplied"
+  },
+  "optional_player_trench_source": {
+    "path": "",
+    "rows": 0,
+    "usable_rows": 0,
+    "columns": [],
+    "duplicate_keys": 0,
+    "future_key_rows": 0,
+    "status": "not_supplied",
+    "reason": "optional player trench source not supplied"
+  },
+  "optional_coverage_source": {
+    "path": "",
+    "rows": 0,
+    "usable_rows": 0,
+    "columns": [],
+    "duplicate_keys": 0,
+    "future_key_rows": 0,
+    "status": "not_supplied",
+    "reason": "optional source not supplied"
+  },
+  "optional_source_timing": "All realised team/player weekly charting is shifted before rolling into the prediction week; same-game leakage is prohibited.",
+  "player_trench_aggregation": {
+    "rows": 0,
+    "rule": "snap-weighted where charted workload is supplied; weak-link metrics exported separately"
+  },
+  "source_ledger": [
+    {
+      "analysis": "true_offensive_line_unit_quality",
+      "source": "",
+      "status": "blocked_optional_source_not_available",
+      "reason": "optional source not supplied"
+    },
+    {
+      "analysis": "true_defensive_line_unit_quality",
+      "source": "",
+      "status": "blocked_optional_source_not_available",
+      "reason": "optional source not supplied"
+    },
+    {
+      "analysis": "player_level_ol_dl_performance",
+      "source": "",
+      "status": "blocked_optional_source_not_available",
+      "reason": "optional player trench source not supplied"
+    },
+    {
+      "analysis": "charted_team_coverage_quality_and_scheme",
+      "source": "",
+      "status": "blocked_optional_source_not_available",
+      "reason": "optional source not supplied"
+    },
+    {
+      "analysis": "individual_wr_db_responsibility",
+      "source": "none",
+      "status": "blocked_missing_coverage_responsibility_history",
+      "reason": "Team coverage/scheme context is available publicly; individual WR-CB responsibility cannot be inferred from nearest defender or a nominal CB1 label."
+    },
+    {
+      "analysis": "individual_blocker_rusher_assignment",
+      "source": "none",
+      "status": "blocked_missing_assignment_history",
+      "reason": "Team-level OL/DL challengers are supported; player-vs-player blocker/rusher effects require audited assignment-level history."
+    }
+  ],
+  "dst_bridge": {
+    "status": "challenger_contract_ready",
+    "features": [
+      "public_pass_rush_index",
+      "public_coverage_disruption_index",
+      "public_pressure_coverage_synergy_index",
+      "public_run_front_index",
+      "def_man_rate",
+      "def_zone_rate"
+    ],
+    "rule": "D/ST may consume only validated M8 component families; raw defense outcomes continue to be projected once and league scoring is applied afterwards."
+  },
+  "offense_feedback_bridge": {
+    "status": "challenger_contract_ready",
+    "rule": "Opponent efficiency effects and opportunity/game-script effects are separate. A difficult defense is never encoded as an automatic volume reduction."
+  },
+  "upstream": {
+    "m1_status": "complete",
+    "m7_status": "complete"
+  },
+  "limitations": [
+    "Individual WR-DB and blocker-rusher assignments remain blocked without responsibility/assignment history.",
+    "Public pressure environment contains QB behavior and prior opponent effects and therefore cannot be presented as pure OL quality.",
+    "Coverage scheme rates describe how a defense plays, not whether it plays well; disruption is modelled separately."
+  ],
+  "league_id": "1314002567004459008",
+  "league_format": "DYNASTY",
+  "profile_fingerprint": "fad091cabda82b412056dad1c9da86697508a9ecf41c0c0b59cf2e464741fe0d",
+  "profile_scoring_signature": "5d9ec28719f1d6c2"
+}

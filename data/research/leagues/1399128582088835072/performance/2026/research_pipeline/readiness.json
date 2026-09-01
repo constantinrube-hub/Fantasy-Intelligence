@@ -1,0 +1,661 @@
+{
+  "governance": {
+    "adp_in_football_model": false,
+    "automatic_promotion": false,
+    "canonical_model_modified": false,
+    "m91c_historical_residual_gate_required": true,
+    "m91c_production_activation": false,
+    "production_activation_from_research_pipeline": false,
+    "promotion_override_present": false
+  },
+  "league": {
+    "format": "REDRAFT",
+    "id": "1399128582088835072",
+    "name": "AEF - FFLeague",
+    "profile_fingerprint": "3e90a3b4edb8566b207764b86d87b2efee3a610620be8c91a46de89fb3eabed9",
+    "roster_positions": [
+      "QB",
+      "RB",
+      "RB",
+      "WR",
+      "WR",
+      "TE",
+      "TE",
+      "FLEX",
+      "FLEX",
+      "SUPER_FLEX",
+      "K",
+      "DEF",
+      "BN",
+      "BN",
+      "BN",
+      "BN",
+      "BN",
+      "BN",
+      "BN"
+    ],
+    "roster_signature": "25364b1cb470b206",
+    "scoring_signature": "8d4099d6084dc2d0",
+    "teams": 8
+  },
+  "league_value": {
+    "draft_horizon": 152,
+    "replacement": {
+      "QB": 257.13551697834254,
+      "RB": 180.5551382805056,
+      "TE": 164.20802670420497,
+      "WR": 180.5086048464339
+    },
+    "source": "existing_fie_strategy_stack",
+    "watchlist_horizon": 228
+  },
+  "market": {
+    "adp_key": "adp_2qb",
+    "expected_adp_key": "adp_2qb",
+    "latest_snapshot": "data/research/market/sleeper/2026/season_market_2026-09-01.jsonl.gz",
+    "snapshot_count": 4
+  },
+  "pipeline": {
+    "generated_at": "2026-09-01T08:27:06.768315+00:00",
+    "pipeline_fingerprint": "bfe3e05240285585ae48eaf08e3db73eed7f88b82f52f8fb34e38fadb8f212bc",
+    "status": "complete_research_only"
+  },
+  "positions": {
+    "DST": {
+      "best_research_challenger": null,
+      "decision": "PRODUCTION_EXISTING",
+      "evidence": {
+        "current_summary": {
+          "enabled": true,
+          "entities": 32,
+          "scoring_signature": "2ef1ecf44d875b52",
+          "starter_slots": 1,
+          "waiver_active": 31,
+          "weekly_active": 31
+        },
+        "milestone5": {}
+      },
+      "exact_scoring": true,
+      "reason": "existing_dedicated_specialist_engine",
+      "research_final_model": "FIE_DST_DEDICATED",
+      "selected_production_model": "FIE_DST_DEDICATED",
+      "selected_production_status": "PRODUCTION_EXISTING"
+    },
+    "K": {
+      "best_research_challenger": null,
+      "decision": "PRODUCTION_EXISTING",
+      "evidence": {
+        "current_summary": {
+          "enabled": true,
+          "entities": 154,
+          "scoring_signature": "77c509d6e4188b26",
+          "starter_slots": 1,
+          "waiver_active": 37,
+          "weekly_active": 37
+        },
+        "milestone5": {}
+      },
+      "exact_scoring": true,
+      "reason": "existing_dedicated_specialist_engine",
+      "research_final_model": "FIE_KICKER_DEDICATED",
+      "selected_production_model": "FIE_KICKER_DEDICATED",
+      "selected_production_status": "PRODUCTION_EXISTING"
+    },
+    "QB": {
+      "best_research_challenger": "V9.7.5",
+      "current_challenger_projection_activated": false,
+      "decision": "BLOCKED_STATISTICS",
+      "evidence": {
+        "v974": {
+          "all_m9_folds_exact_scoring_replay": true,
+          "all_v972_folds_exact_scoring_replay": true,
+          "availability_vs_full_schedule_gate": {
+            "ci95_high": 0.5351264410585195,
+            "ci95_low": 0.4652054066817815,
+            "folds": 4,
+            "mean": 0.49779090514897795,
+            "positive_folds": 4,
+            "required_positive_folds": 3,
+            "robust": true
+          },
+          "exact_m9_comparator_gate": true,
+          "expected_season_points_ready": false,
+          "folds": 4,
+          "football_model_promotion_review_ready": false,
+          "n_test": 215,
+          "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared",
+          "status": "diagnostic_only",
+          "v972_prior_gate_status": "validated_candidate",
+          "weighted_metrics": {
+            "m9_expected_season_mae": 71.77091997571209,
+            "m9_full_schedule_mae": 70.92912473727189,
+            "m9_ppg_bias": 0.3247285772071064,
+            "m9_ppg_mae": 4.172301455133642,
+            "m9_ppg_rmse": 5.343106706196319,
+            "m9_rank_mae": 10.204651162790698,
+            "m9_spearman": 0.6013731391987224,
+            "m9_top12_overlap": 0.5209302325581395,
+            "v972_expected_season_mae": 70.17749953643997,
+            "v972_full_schedule_mae": 69.06514189835993,
+            "v972_ppg_bias": 0.4490637121387136,
+            "v972_ppg_mae": 4.062655405785878,
+            "v972_ppg_rmse": 5.271079365584257,
+            "v972_rank_mae": 9.87906976744186,
+            "v972_spearman": 0.6352860089281664,
+            "v972_top12_overlap": 0.5631782945736434
+          }
+        },
+        "v975": {
+          "expected_season_mae_head_to_head_gate_vs_exact_m9": {
+            "ci95_high": 0.022160893107664437,
+            "ci95_low": 0.010865380891762564,
+            "folds": 4,
+            "mean": 0.017373218696453297,
+            "positive_folds": 4,
+            "required_positive_folds": 3,
+            "robust": true
+          },
+          "expected_season_points_ready": false,
+          "folds": 4,
+          "football_model_promotion_review_ready": false,
+          "full_schedule_mae_head_to_head_gate_vs_exact_m9": {
+            "ci95_high": 0.05107703336901115,
+            "ci95_low": -0.001089310110231489,
+            "folds": 4,
+            "mean": 0.023350043119597378,
+            "positive_folds": 3,
+            "required_positive_folds": 3,
+            "robust": false
+          },
+          "n_test": 215,
+          "ppg_mae_head_to_head_gate_vs_exact_m9": {
+            "ci95_high": 0.05107703336901133,
+            "ci95_low": -0.0010893101102314288,
+            "folds": 4,
+            "mean": 0.023350043119597517,
+            "positive_folds": 3,
+            "required_positive_folds": 3,
+            "robust": false
+          },
+          "reason": "one_or_more_unchanged_head_to_head_or_standalone_safety_gates_not_cleared",
+          "standalone_noninferiority": {
+            "absolute_calibration_bias": true,
+            "expected_season_mae_better_or_equal_best_standalone": false,
+            "full_schedule_mae_better_or_equal_best_standalone": false,
+            "ppg_mae_better_or_equal_best_standalone": false,
+            "rank_mae": false,
+            "spearman": true,
+            "top12_overlap": false
+          },
+          "status": "diagnostic_only",
+          "weighted_metrics": {
+            "ensemble_expected_season_mae": 70.49720729039161,
+            "ensemble_full_schedule_mae": 69.20340106500814,
+            "ensemble_ppg_bias": 0.39866190788554406,
+            "ensemble_ppg_mae": 4.070788297941655,
+            "ensemble_rank_mae": 10.027906976744186,
+            "ensemble_spearman": 0.6275358762144312,
+            "ensemble_top12_overlap": 0.541860465116279,
+            "m9_expected_season_mae": 71.77091997571209,
+            "m9_full_schedule_mae": 70.92912473727189,
+            "m9_ppg_bias": 0.3247285772071065,
+            "m9_ppg_mae": 4.172301455133641,
+            "m9_rank_mae": 10.204651162790698,
+            "m9_spearman": 0.6013731391987224,
+            "m9_top12_overlap": 0.5209302325581395,
+            "v972_expected_season_mae": 70.17749953643997,
+            "v972_full_schedule_mae": 69.06514189835994,
+            "v972_ppg_bias": 0.4490637121387136,
+            "v972_ppg_mae": 4.062655405785879,
+            "v972_rank_mae": 9.87906976744186,
+            "v972_spearman": 0.6352860089281664,
+            "v972_top12_overlap": 0.5631782945736434
+          }
+        }
+      },
+      "exact_scoring": false,
+      "model_validation_challenger": "V9.7.5",
+      "official_preseason_projection_challenger": "M9.1c",
+      "preseason_projection_challenger": {
+        "adjusted_rows": 0,
+        "automatic_promotion": false,
+        "exact_rows": 0,
+        "historical_residual_gate_semantics": "Future residual target is actual league-scored season points minus point-in-time Sleeper preseason projection.",
+        "historical_residual_gate_status": "BLOCKED_MISSING_HISTORICAL_SLEEPER_BASELINE",
+        "max_abs_adjustment": null,
+        "median_abs_adjustment": null,
+        "median_total_reliability": null,
+        "model": "M9.1c",
+        "p90_abs_adjustment": null,
+        "production_eligible": false,
+        "role": "OFFICIAL_PRESEASON_PROJECTION_CHALLENGER",
+        "spearman_vs_sleeper": null,
+        "status": "RESEARCH_ONLY_BLOCKED_PROMOTION"
+      },
+      "reason": "one_or_more_unchanged_head_to_head_or_standalone_safety_gates_not_cleared",
+      "research_final_model": "M9",
+      "selected_production_model": "M9",
+      "selected_production_status": "PRODUCTION_EXISTING"
+    },
+    "RB": {
+      "best_research_challenger": "V9.7.2",
+      "current_challenger_projection_activated": false,
+      "decision": "BLOCKED_STATISTICS",
+      "evidence": {
+        "v974": {
+          "all_m9_folds_exact_scoring_replay": true,
+          "all_v972_folds_exact_scoring_replay": true,
+          "availability_vs_full_schedule_gate": {
+            "ci95_high": 0.33960363734063553,
+            "ci95_low": 0.20670799053848996,
+            "folds": 4,
+            "mean": 0.27951820139752814,
+            "positive_folds": 4,
+            "required_positive_folds": 3,
+            "robust": true
+          },
+          "exact_m9_comparator_gate": true,
+          "expected_season_points_ready": false,
+          "folds": 4,
+          "football_model_promotion_review_ready": false,
+          "n_test": 420,
+          "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared",
+          "status": "diagnostic_only",
+          "v972_prior_gate_status": "diagnostic_only",
+          "weighted_metrics": {
+            "m9_expected_season_mae": 50.796894615088114,
+            "m9_full_schedule_mae": 48.929524748527065,
+            "m9_ppg_bias": 0.25183442198368133,
+            "m9_ppg_mae": 2.8782073381486515,
+            "m9_ppg_rmse": 3.740880545270747,
+            "m9_rank_mae": 15.521428571428572,
+            "m9_spearman": 0.7623267406093069,
+            "m9_top12_overlap": 0.5607142857142857,
+            "v972_expected_season_mae": 51.07372460348987,
+            "v972_full_schedule_mae": 49.03343254400972,
+            "v972_ppg_bias": 0.28746599201519385,
+            "v972_ppg_mae": 2.884319561412336,
+            "v972_ppg_rmse": 3.7548201492081645,
+            "v972_rank_mae": 15.557142857142857,
+            "v972_spearman": 0.7644500228809412,
+            "v972_top12_overlap": 0.5607142857142857
+          }
+        },
+        "v975": null
+      },
+      "exact_scoring": true,
+      "model_validation_challenger": "V9.7.2",
+      "official_preseason_projection_challenger": "M9.1c",
+      "preseason_projection_challenger": {
+        "adjusted_rows": 0,
+        "automatic_promotion": false,
+        "exact_rows": 0,
+        "historical_residual_gate_semantics": "Future residual target is actual league-scored season points minus point-in-time Sleeper preseason projection.",
+        "historical_residual_gate_status": "BLOCKED_MISSING_HISTORICAL_SLEEPER_BASELINE",
+        "max_abs_adjustment": null,
+        "median_abs_adjustment": null,
+        "median_total_reliability": null,
+        "model": "M9.1c",
+        "p90_abs_adjustment": null,
+        "production_eligible": false,
+        "role": "OFFICIAL_PRESEASON_PROJECTION_CHALLENGER",
+        "spearman_vs_sleeper": null,
+        "status": "RESEARCH_ONLY_BLOCKED_PROMOTION"
+      },
+      "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared",
+      "research_final_model": "M9",
+      "selected_production_model": "M9",
+      "selected_production_status": "PRODUCTION_EXISTING"
+    },
+    "TE": {
+      "best_research_challenger": "V9.7.2",
+      "current_challenger_projection_activated": false,
+      "decision": "BLOCKED_STATISTICS",
+      "evidence": {
+        "v974": {
+          "all_m9_folds_exact_scoring_replay": true,
+          "all_v972_folds_exact_scoring_replay": true,
+          "availability_vs_full_schedule_gate": {
+            "ci95_high": 0.49388560676631205,
+            "ci95_low": 0.41830072833126863,
+            "folds": 4,
+            "mean": 0.4599702863289044,
+            "positive_folds": 4,
+            "required_positive_folds": 3,
+            "robust": true
+          },
+          "exact_m9_comparator_gate": true,
+          "expected_season_points_ready": false,
+          "folds": 4,
+          "football_model_promotion_review_ready": false,
+          "n_test": 367,
+          "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared",
+          "status": "diagnostic_only",
+          "v972_prior_gate_status": "diagnostic_only",
+          "weighted_metrics": {
+            "m9_expected_season_mae": 34.98169875737986,
+            "m9_full_schedule_mae": 35.776713518480165,
+            "m9_ppg_bias": 0.22718162947791268,
+            "m9_ppg_mae": 2.104512559910598,
+            "m9_ppg_rmse": 2.728188555913334,
+            "m9_rank_mae": 13.528610354223433,
+            "m9_spearman": 0.7680547768145358,
+            "m9_top12_overlap": 0.6448683015440508,
+            "v972_expected_season_mae": 35.83284465004253,
+            "v972_full_schedule_mae": 37.00809809136006,
+            "v972_ppg_bias": 0.21602845545818994,
+            "v972_ppg_mae": 2.1769469465505917,
+            "v972_ppg_rmse": 2.787311246447769,
+            "v972_rank_mae": 14.029972752043596,
+            "v972_spearman": 0.7582032355410715,
+            "v972_top12_overlap": 0.644187102633969
+          }
+        },
+        "v975": null
+      },
+      "exact_scoring": true,
+      "model_validation_challenger": "V9.7.2",
+      "official_preseason_projection_challenger": "M9.1c",
+      "preseason_projection_challenger": {
+        "adjusted_rows": 0,
+        "automatic_promotion": false,
+        "exact_rows": 0,
+        "historical_residual_gate_semantics": "Future residual target is actual league-scored season points minus point-in-time Sleeper preseason projection.",
+        "historical_residual_gate_status": "BLOCKED_MISSING_HISTORICAL_SLEEPER_BASELINE",
+        "max_abs_adjustment": null,
+        "median_abs_adjustment": null,
+        "median_total_reliability": null,
+        "model": "M9.1c",
+        "p90_abs_adjustment": null,
+        "production_eligible": false,
+        "role": "OFFICIAL_PRESEASON_PROJECTION_CHALLENGER",
+        "spearman_vs_sleeper": null,
+        "status": "RESEARCH_ONLY_BLOCKED_PROMOTION"
+      },
+      "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared",
+      "research_final_model": "M9",
+      "selected_production_model": "M9",
+      "selected_production_status": "PRODUCTION_EXISTING"
+    },
+    "WR": {
+      "best_research_challenger": "V9.7.2",
+      "current_challenger_projection_activated": false,
+      "decision": "BLOCKED_STATISTICS",
+      "evidence": {
+        "v974": {
+          "all_m9_folds_exact_scoring_replay": true,
+          "all_v972_folds_exact_scoring_replay": true,
+          "availability_vs_full_schedule_gate": {
+            "ci95_high": 0.34483247451480636,
+            "ci95_low": 0.2919008422707461,
+            "folds": 4,
+            "mean": 0.31908195072039863,
+            "positive_folds": 4,
+            "required_positive_folds": 3,
+            "robust": true
+          },
+          "exact_m9_comparator_gate": true,
+          "expected_season_points_ready": false,
+          "folds": 4,
+          "football_model_promotion_review_ready": false,
+          "n_test": 666,
+          "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared",
+          "status": "diagnostic_only",
+          "v972_prior_gate_status": "validated_candidate",
+          "weighted_metrics": {
+            "m9_expected_season_mae": 41.98826357088686,
+            "m9_full_schedule_mae": 44.16110852428002,
+            "m9_ppg_bias": 0.2754355390181542,
+            "m9_ppg_mae": 2.5977122661341188,
+            "m9_ppg_rmse": 3.235161031178722,
+            "m9_rank_mae": 24.915915915915917,
+            "m9_spearman": 0.774341717207932,
+            "m9_top12_overlap": 0.58495995995996,
+            "v972_expected_season_mae": 42.258572780843075,
+            "v972_full_schedule_mae": 44.29073929131354,
+            "v972_ppg_bias": 0.3035796014080824,
+            "v972_ppg_mae": 2.605337605371385,
+            "v972_ppg_rmse": 3.2392426939421437,
+            "v972_rank_mae": 25.1006006006006,
+            "v972_spearman": 0.7716839504947386,
+            "v972_top12_overlap": 0.5848348348348348
+          }
+        },
+        "v975": null
+      },
+      "exact_scoring": true,
+      "model_validation_challenger": "V9.7.2",
+      "official_preseason_projection_challenger": "M9.1c",
+      "preseason_projection_challenger": {
+        "adjusted_rows": 0,
+        "automatic_promotion": false,
+        "exact_rows": 0,
+        "historical_residual_gate_semantics": "Future residual target is actual league-scored season points minus point-in-time Sleeper preseason projection.",
+        "historical_residual_gate_status": "BLOCKED_MISSING_HISTORICAL_SLEEPER_BASELINE",
+        "max_abs_adjustment": null,
+        "median_abs_adjustment": null,
+        "median_total_reliability": null,
+        "model": "M9.1c",
+        "p90_abs_adjustment": null,
+        "production_eligible": false,
+        "role": "OFFICIAL_PRESEASON_PROJECTION_CHALLENGER",
+        "spearman_vs_sleeper": null,
+        "status": "RESEARCH_ONLY_BLOCKED_PROMOTION"
+      },
+      "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared",
+      "research_final_model": "M9",
+      "selected_production_model": "M9",
+      "selected_production_status": "PRODUCTION_EXISTING"
+    }
+  },
+  "preseason_projection_challenger": {
+    "automatic_promotion": false,
+    "model": "M9.1c",
+    "production_eligible": false,
+    "residual_model_gate": {
+      "available_seasons": [
+        2026
+      ],
+      "completed_seasons_with_immutable_preseason_market": [],
+      "required_completed_seasons": 4,
+      "semantics": "Future residual target is actual league-scored season points minus point-in-time Sleeper preseason projection.",
+      "status": "BLOCKED_MISSING_HISTORICAL_SLEEPER_BASELINE"
+    },
+    "status": "RESEARCH_ONLY_BLOCKED_PROMOTION",
+    "team_transition_policy": {
+      "applies_to_positions": [
+        "QB",
+        "RB",
+        "TE",
+        "WR"
+      ],
+      "current_workload_role_estimators": {
+        "QB": {
+          "inside_5_carry_share_prior4": [
+            "qb_rush_share_prior4"
+          ],
+          "snap_share_prior4": [
+            "qb_pass_attempt_share_prior4",
+            "qb_rush_share_prior4"
+          ]
+        },
+        "RB": {
+          "inside_5_carry_share_prior4": [
+            "carry_share_prior4"
+          ],
+          "offense_snap_share_prior4": [
+            "carry_share_prior4",
+            "target_share_prior4"
+          ],
+          "red_zone_carry_share_prior4": [
+            "carry_share_prior4"
+          ],
+          "red_zone_target_share_prior4": [
+            "target_share_prior4"
+          ]
+        },
+        "TE": {
+          "offense_snap_share_prior4": [
+            "target_share_prior4"
+          ],
+          "red_zone_target_share_prior4": [
+            "target_share_prior4"
+          ]
+        },
+        "WR": {
+          "offense_snap_share_prior4": [
+            "target_share_prior4"
+          ],
+          "red_zone_target_share_prior4": [
+            "target_share_prior4"
+          ]
+        }
+      },
+      "depth_template_is_fallback": true,
+      "derived_interactions_recomputed": true,
+      "m8_new_team_environment": [
+        "pfr_times_pressured_pct_prior4",
+        "pfr_times_sacked_prior4"
+      ],
+      "old_team_context_carried": false,
+      "role_estimator_audit": [
+        {
+          "features": [
+            "qb_rush_share_prior4"
+          ],
+          "in_sample_role_mae": 0.14533612844360777,
+          "n": 4180,
+          "position": "QB",
+          "status": "FIT",
+          "target": "snap_share_prior4"
+        },
+        {
+          "features": [
+            "qb_rush_share_prior4"
+          ],
+          "in_sample_role_mae": 0.17951708974954633,
+          "n": 1572,
+          "position": "QB",
+          "status": "FIT",
+          "target": "inside_5_carry_share_prior4"
+        },
+        {
+          "features": [
+            "carry_share_prior4",
+            "target_share_prior4"
+          ],
+          "position": "RB",
+          "status": "UNAVAILABLE_COLUMNS",
+          "target": "offense_snap_share_prior4"
+        },
+        {
+          "features": [
+            "carry_share_prior4"
+          ],
+          "in_sample_role_mae": 0.11254798667529352,
+          "n": 6796,
+          "position": "RB",
+          "status": "FIT",
+          "target": "red_zone_carry_share_prior4"
+        },
+        {
+          "features": [
+            "carry_share_prior4"
+          ],
+          "in_sample_role_mae": 0.19769310747053884,
+          "n": 5286,
+          "position": "RB",
+          "status": "FIT",
+          "target": "inside_5_carry_share_prior4"
+        },
+        {
+          "features": [
+            "target_share_prior4"
+          ],
+          "in_sample_role_mae": 0.06266146960363586,
+          "n": 6773,
+          "position": "RB",
+          "status": "FIT",
+          "target": "red_zone_target_share_prior4"
+        },
+        {
+          "features": [
+            "target_share_prior4"
+          ],
+          "position": "WR",
+          "status": "UNAVAILABLE_COLUMNS",
+          "target": "offense_snap_share_prior4"
+        },
+        {
+          "features": [
+            "target_share_prior4"
+          ],
+          "in_sample_role_mae": 0.0844309979085841,
+          "n": 7569,
+          "position": "WR",
+          "status": "FIT",
+          "target": "red_zone_target_share_prior4"
+        },
+        {
+          "features": [
+            "target_share_prior4"
+          ],
+          "position": "TE",
+          "status": "UNAVAILABLE_COLUMNS",
+          "target": "offense_snap_share_prior4"
+        },
+        {
+          "features": [
+            "target_share_prior4"
+          ],
+          "in_sample_role_mae": 0.08468910469092815,
+          "n": 3636,
+          "position": "TE",
+          "status": "FIT",
+          "target": "red_zone_target_share_prior4"
+        }
+      ],
+      "team_change_is_never_a_block_reason": true
+    },
+    "transition_volatility": {
+      "QB": {
+        "changed_median_abs_ppg_delta": 4.129666666666667,
+        "changed_n": 68,
+        "raw_ratio": 1.515681222833129,
+        "spread_multiplier": 1.515681222833129,
+        "stable_median_abs_ppg_delta": 2.724627450980389,
+        "stable_n": 175,
+        "status": "EMPIRICAL_TRANSITION_VOLATILITY"
+      },
+      "RB": {
+        "changed_median_abs_ppg_delta": 2.537433155080214,
+        "changed_n": 147,
+        "raw_ratio": 1.1096935313119252,
+        "spread_multiplier": 1.1096935313119252,
+        "stable_median_abs_ppg_delta": 2.286607142857142,
+        "stable_n": 396,
+        "status": "EMPIRICAL_TRANSITION_VOLATILITY"
+      },
+      "TE": {
+        "changed_median_abs_ppg_delta": 1.7799999999999976,
+        "changed_n": 109,
+        "raw_ratio": 0.8914858096828033,
+        "spread_multiplier": 1.0,
+        "stable_median_abs_ppg_delta": 1.996666666666667,
+        "stable_n": 359,
+        "status": "EMPIRICAL_TRANSITION_VOLATILITY"
+      },
+      "WR": {
+        "changed_median_abs_ppg_delta": 2.3400000000000007,
+        "changed_n": 238,
+        "raw_ratio": 1.056339148992609,
+        "spread_multiplier": 1.056339148992609,
+        "stable_median_abs_ppg_delta": 2.2151976495726498,
+        "stable_n": 628,
+        "status": "EMPIRICAL_TRANSITION_VOLATILITY"
+      }
+    }
+  },
+  "schema": "fie-research-readiness-v1",
+  "schema_version": 1
+}

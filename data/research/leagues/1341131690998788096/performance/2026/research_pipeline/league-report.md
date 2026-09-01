@@ -1,0 +1,280 @@
+# FIE League Research Report — Stoned Lack Bestball 2
+
+Season: **2026**  
+League ID: `1341131690998788096`  
+Format: **DYNASTY_BESTBALL**  
+Teams: **12**  
+Roster: `QB, RB, RB, WR, WR, WR, TE, FLEX, FLEX, BN, BN, BN, BN, BN, BN, BN, BN, BN, BN, BN, BN, BN, BN, BN, BN`  
+ADP market: `adp_dynasty_ppr`  
+Pipeline: **complete_research_only**
+
+## Model overview
+
+| Position | Selected Model | Research Challenger | Validation Status | Exact Scoring | Key Reason |
+|---|---|---|---|---|---|
+| DST | — | — | NOT_APPLICABLE | None | position_not_rosterable |
+| K | — | — | NOT_APPLICABLE | None | position_not_rosterable |
+| QB | M9 | V9.7.5 | BLOCKED_STATISTICS | False | one_or_more_unchanged_head_to_head_or_standalone_safety_gates_not_cleared |
+| RB | M9 | V9.7.2 | BLOCKED_STATISTICS | True | one_or_more_head_to_head_or_noninferiority_gates_not_cleared |
+| TE | M9 | V9.7.2 | BLOCKED_STATISTICS | True | one_or_more_head_to_head_or_noninferiority_gates_not_cleared |
+| WR | M9 | V9.7.2 | BLOCKED_STATISTICS | True | one_or_more_head_to_head_or_noninferiority_gates_not_cleared |
+
+## League/scoring overview
+
+PPR: **PPR** (1 per reception)  
+Pass TD: **4** · Pass INT: **-2**  
+Fumble: **-1** · Fumble lost: **-2**  
+Superflex/2QB: **No** · D/ST: **No** · K: **No**
+
+### How to read Projection Basis
+
+- **M9 production**: the displayed point estimate and P10-P90 come from the validated M9 production view.
+- **M9 diagnostic**: production is unavailable for that player, so the canonical league-value layer uses M9's governed market-anchored diagnostic view; its matching diagnostic P10-P90 is shown.
+- **Weekly specialist**: D/ST or kicker projection from the dedicated current-week engine.
+- Research challengers remain shadow-only and do not replace these displayed canonical values.
+
+## Position-by-position evaluation
+
+### QB
+
+Selected model: **M9**  
+Research challenger: **V9.7.5**  
+Status: **BLOCKED_STATISTICS**  
+Exact scoring: **False**  
+Reason: one_or_more_unchanged_head_to_head_or_standalone_safety_gates_not_cleared  
+League replacement: **215.5**
+
+| Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Josh Allen | BUF | 295.4 | 254.2 | 336.3 | 79.9 | 8.1 | 1 | 0 | FAIR | M9 diagnostic |
+| 2 | Matthew Stafford | LAR | 280.2 | 240.4 | 320.4 | 64.8 | 132.9 | 17 | 15 | VALUE | M9 diagnostic |
+| 3 | Kyler Murray | MIN | 273.1 | 234.1 | 313.1 | 57.6 | 196.4 | 23 | 20 | STRONG_VALUE | M9 diagnostic |
+| 4 | Drake Maye | NE | 264.5 | 224.7 | 305.6 | 49 | 23.4 | 2 | -2 | FAIR | M9 diagnostic |
+| 5 | Malik Willis | MIA | 261.1 | 221.9 | 301.9 | 45.7 | 230.6 | 26 | 21 | STRONG_VALUE | M9 diagnostic |
+| 6 | Brock Purdy | SF | 257.2 | 216.8 | 297.6 | 41.7 | 110.4 | 14 | 8 | VALUE | M9 diagnostic |
+| 7 | Patrick Mahomes | KC | 253.1 | 213.5 | 293.3 | 37.6 | 86.1 | 11 | 4 | FAIR | M9 diagnostic |
+| 8 | Dak Prescott | DAL | 235.7 | 195.5 | 276.4 | 20.2 | 104 | 13 | 5 | FAIR | M9 diagnostic |
+| 9 | Jalen Hurts | PHI | 234.2 | 194.2 | 274.3 | 18.8 | 61.2 | 7 | -2 | FAIR | M9 diagnostic |
+| 10 | Trevor Lawrence | JAX | 229.8 | 189 | 271 | 14.3 | 94.4 | 12 | 2 | FAIR | M9 diagnostic |
+
+### RB
+
+Selected model: **M9**  
+Research challenger: **V9.7.2**  
+Status: **BLOCKED_STATISTICS**  
+Exact scoring: **True**  
+Reason: one_or_more_head_to_head_or_noninferiority_gates_not_cleared  
+League replacement: **152.3**
+
+| Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Christian McCaffrey | SF | 308.3 | 276.5 | 340.2 | 156 | 20.1 | 9 | 8 | VALUE | M9 diagnostic |
+| 2 | Bijan Robinson | ATL | 286.5 | 254.2 | 319.2 | 134.2 | 2.4 | 2 | 0 | FAIR | M9 diagnostic |
+| 3 | Jahmyr Gibbs | DET | 268.2 | 236.1 | 300.8 | 115.9 | 1.3 | 1 | -2 | FAIR | M9 diagnostic |
+| 4 | Jonathan Taylor | IND | 264.9 | 233.3 | 295.9 | 112.6 | 12.7 | 4 | 0 | FAIR | M9 diagnostic |
+| 5 | De'Von Achane | MIA | 264.6 | 232.5 | 296.3 | 112.3 | 14.4 | 5 | 0 | FAIR | M9 diagnostic |
+| 6 | Kenneth Walker | KC | 244 | 212.3 | 275.9 | 91.7 | 26.1 | 11 | 5 | FAIR | M9 diagnostic |
+| 7 | James Cook | BUF | 237.3 | 205.7 | 269.3 | 85 | 17.4 | 8 | 1 | FAIR | M9 diagnostic |
+| 8 | Chase Brown | CIN | 228.5 | 197 | 259.8 | 76.2 | 22.5 | 10 | 2 | FAIR | M9 diagnostic |
+| 9 | Jeremiyah Love | ARI | 211.8 | 181.2 | 242.8 | 59.5 | 15.4 | 6 | -3 | FAIR | M9 diagnostic |
+| 10 | Kyren Williams | LAR | 208 | 177.5 | 238.9 | 55.7 | 42 | 16 | 6 | FAIR | M9 diagnostic |
+| 11 | Travis Etienne | NO | 207.7 | 176.9 | 238.6 | 55.4 | 59.4 | 23 | 12 | VALUE | M9 diagnostic |
+| 12 | Ashton Jeanty | LV | 206.2 | 174.7 | 237.3 | 53.9 | 7.8 | 3 | -9 | OVERPRICED | M9 diagnostic |
+| 13 | David Montgomery | HOU | 206.1 | 175.5 | 237.5 | 53.8 | 70.7 | 26 | 13 | VALUE | M9 diagnostic |
+| 14 | Derrick Henry | BAL | 202 | 170.6 | 233.7 | 49.7 | 46.5 | 19 | 5 | FAIR | M9 diagnostic |
+| 15 | Saquon Barkley | PHI | 199.7 | 168 | 231.1 | 47.4 | 28.8 | 12 | -3 | FAIR | M9 diagnostic |
+| 16 | Cam Skattebo | NYG | 199.7 | 168.9 | 231.1 | 47.4 | 44.1 | 18 | 2 | FAIR | M9 diagnostic |
+| 17 | Omarion Hampton | LAC | 196.9 | 165.9 | 228.1 | 44.6 | 16.8 | 7 | -10 | OVERPRICED | M9 diagnostic |
+| 18 | Josh Jacobs | GB | 191.5 | 165.9 | 218.6 | 39.2 | 57.4 | 22 | 4 | FAIR | M9 diagnostic |
+| 19 | Javonte Williams | DAL | 183.3 | 152.8 | 214.8 | 31 | 51.1 | 20 | 1 | FAIR | M9 diagnostic |
+| 20 | D'Andre Swift | CHI | 180.6 | 150.1 | 212 | 28.3 | 69.4 | 25 | 5 | FAIR | M9 diagnostic |
+
+### WR
+
+Selected model: **M9**  
+Research challenger: **V9.7.2**  
+Status: **BLOCKED_STATISTICS**  
+Exact scoring: **True**  
+Reason: one_or_more_head_to_head_or_noninferiority_gates_not_cleared  
+League replacement: **152.7**
+
+| Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Puka Nacua | LAR | 312.5 | 280.3 | 344.9 | 159.8 | 4.8 | 2 | 1 | FAIR | M9 diagnostic |
+| 2 | Jaxon Smith-Njigba | SEA | 309.5 | 277.5 | 342 | 156.7 | 5.4 | 3 | 1 | FAIR | M9 production |
+| 3 | Ja'Marr Chase | CIN | 285.8 | 253.8 | 317.8 | 133.1 | 3.1 | 1 | -2 | FAIR | M9 production |
+| 4 | Amon-Ra St. Brown | DET | 278.1 | 246.1 | 309.8 | 125.3 | 6.5 | 4 | 0 | FAIR | M9 production |
+| 5 | Rashee Rice | KC | 264.7 | 232.5 | 296.3 | 112 | 38.5 | 17 | 12 | VALUE | M9 production |
+| 6 | A.J. Brown | NE | 247.2 | 216 | 278.6 | 94.5 | 34.1 | 15 | 9 | VALUE | M9 diagnostic |
+| 7 | Drake London | ATL | 242.1 | 210.6 | 274 | 89.3 | 19.5 | 8 | 1 | FAIR | M9 production |
+| 8 | Chris Olave | NO | 239.6 | 208.6 | 271.2 | 86.9 | 30.7 | 13 | 5 | FAIR | M9 production |
+| 9 | George Pickens | DAL | 238.6 | 207.3 | 270.5 | 85.8 | 21.4 | 9 | 0 | FAIR | M9 production |
+| 10 | CeeDee Lamb | DAL | 232.8 | 201.4 | 263.9 | 80 | 10.8 | 6 | -4 | FAIR | M9 production |
+| 11 | Zay Flowers | BAL | 226.7 | 194.9 | 258.4 | 74 | 47.9 | 19 | 8 | VALUE | M9 production |
+| 12 | Mike Evans | SF | 222.2 | 191.2 | 254 | 69.5 | 89.8 | 40 | 28 | STRONG_VALUE | M9 diagnostic |
+| 13 | Jaylen Waddle | DEN | 221 | 190.4 | 251.8 | 68.3 | 58.6 | 24 | 11 | VALUE | M9 diagnostic |
+| 14 | Nico Collins | HOU | 220 | 188.5 | 251.7 | 67.3 | 26.8 | 12 | -2 | FAIR | M9 production |
+| 15 | Garrett Wilson | NYJ | 215.6 | 184.5 | 246.7 | 62.8 | 35.4 | 16 | 1 | FAIR | M9 production |
+| 16 | Malik Nabers | NYG | 215.4 | 184.6 | 246.5 | 62.6 | 11.9 | 7 | -9 | OVERPRICED | M9 production |
+| 17 | Courtland Sutton | DEN | 201.9 | 170.9 | 233 | 49.1 | 109.9 | 47 | 30 | STRONG_VALUE | M9 production |
+| 18 | Justin Jefferson | MIN | 196.6 | 166 | 227.9 | 43.8 | 8.4 | 5 | -13 | OVERPRICED | M9 production |
+| 19 | Michael Wilson | ARI | 193.8 | 162.8 | 224.7 | 41 | 79.6 | 35 | 16 | VALUE | M9 production |
+| 20 | Davante Adams | LAR | 192.5 | 162.3 | 223.5 | 39.8 | 78.9 | 34 | 14 | VALUE | M9 diagnostic |
+
+### TE
+
+Selected model: **M9**  
+Research challenger: **V9.7.2**  
+Status: **BLOCKED_STATISTICS**  
+Exact scoring: **True**  
+Reason: one_or_more_head_to_head_or_noninferiority_gates_not_cleared  
+League replacement: **153.2**
+
+| Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Trey McBride | ARI | 253.4 | 227.8 | 279.6 | 100.2 | 17.3 | 2 | 1 | FAIR | M9 production |
+| 2 | George Kittle | SF | 212.5 | 187.1 | 237.6 | 59.3 | 103.9 | 14 | 12 | VALUE | M9 production |
+| 3 | Kyle Pitts | ATL | 205.7 | 180.4 | 231.1 | 52.5 | 66.1 | 8 | 5 | FAIR | M9 production |
+| 4 | Brock Bowers | LV | 202 | 175.9 | 228.2 | 48.8 | 13 | 1 | -3 | FAIR | M9 production |
+| 5 | Harold Fannin | CLE | 191.3 | 166 | 216.8 | 38.1 | 55.6 | 6 | 1 | FAIR | M9 production |
+| 6 | Tucker Kraft | GB | 190 | 164.8 | 215.3 | 36.8 | 60.2 | 7 | 1 | FAIR | M9 production |
+| 7 | Tyler Warren | IND | 183.5 | 158.7 | 208.5 | 30.3 | 35.8 | 4 | -3 | FAIR | M9 production |
+| 8 | Sam LaPorta | DET | 176.7 | 151.9 | 201.7 | 23.5 | 53.9 | 5 | -3 | FAIR | M9 production |
+| 9 | Dalton Schultz | HOU | 172.7 | 147.9 | 197.6 | 19.5 | 218.8 | 28 | 19 | STRONG_VALUE | M9 production |
+| 10 | Travis Kelce | KC | 171 | 146.2 | 195.8 | 17.8 | 129.3 | 17 | 7 | FAIR | M9 production |
+
+## Top-100 ADP positive outliers
+
+| Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 12 | Mike Evans | SF | 222.2 | 191.2 | 254 | 69.5 | 89.8 | 40 | 28 | STRONG_VALUE | M9 diagnostic |
+| 19 | Michael Wilson | ARI | 193.8 | 162.8 | 224.7 | 41 | 79.6 | 35 | 16 | VALUE | M9 production |
+| 25 | DK Metcalf | PIT | 183.5 | 153.3 | 214.8 | 30.7 | 93.1 | 41 | 16 | VALUE | M9 production |
+| 20 | Davante Adams | LAR | 192.5 | 162.3 | 223.5 | 39.8 | 78.9 | 34 | 14 | VALUE | M9 diagnostic |
+| 13 | David Montgomery | HOU | 206.1 | 175.5 | 237.5 | 53.8 | 70.7 | 26 | 13 | VALUE | M9 diagnostic |
+| 5 | Rashee Rice | KC | 264.7 | 232.5 | 296.3 | 112 | 38.5 | 17 | 12 | VALUE | M9 production |
+| 11 | Travis Etienne | NO | 207.7 | 176.9 | 238.6 | 55.4 | 59.4 | 23 | 12 | VALUE | M9 diagnostic |
+| 13 | Jaylen Waddle | DEN | 221 | 190.4 | 251.8 | 68.3 | 58.6 | 24 | 11 | VALUE | M9 diagnostic |
+| 6 | A.J. Brown | NE | 247.2 | 216 | 278.6 | 94.5 | 34.1 | 15 | 9 | VALUE | M9 diagnostic |
+| 23 | Christian Watson | GB | 188.7 | 158.1 | 219.9 | 35.9 | 76.9 | 32 | 9 | VALUE | M9 production |
+| 1 | Christian McCaffrey | SF | 308.3 | 276.5 | 340.2 | 156 | 20.1 | 9 | 8 | VALUE | M9 diagnostic |
+| 11 | Zay Flowers | BAL | 226.7 | 194.9 | 258.4 | 74 | 47.9 | 19 | 8 | VALUE | M9 production |
+
+## Top-100 ADP negative outliers / fades
+
+| Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 71 | Jordyn Tyson | NO | 111 | 83.2 | 139.3 | -41.7 | 65.1 | 28 | -43 | STRONG_FADE | M9 diagnostic |
+| 60 | Bhayshul Tuten | JAX | 63.9 | 34 | 93.9 | -88.4 | 68.8 | 24 | -36 | STRONG_FADE | M9 diagnostic |
+| 53 | Luther Burden | CHI | 139.8 | 110.7 | 169.7 | -12.9 | 49.2 | 21 | -32 | STRONG_FADE | M9 production |
+| 34 | Kenyon Sadiq | NYJ | 100.2 | 77.5 | 123.9 | -53 | 91.7 | 10 | -24 | STRONG_FADE | M9 diagnostic |
+| 38 | Ladd McConkey | LAC | 167.4 | 137.3 | 197.3 | 14.6 | 31.1 | 14 | -24 | STRONG_FADE | M9 production |
+| 25 | Joe Burrow | CIN | 181.4 | 141.4 | 222.6 | -34 | 41.1 | 4 | -21 | STRONG_FADE | M9 diagnostic |
+| 46 | Brian Thomas | JAX | 153.7 | 124.5 | 184 | 0.9 | 62.6 | 26 | -20 | STRONG_FADE | M9 production |
+| 30 | Emeka Egbuka | TB | 178.4 | 148.4 | 209 | 25.6 | 25.6 | 11 | -19 | STRONG_FADE | M9 production |
+| 48 | Chuba Hubbard | CAR | 99.9 | 71.4 | 129.4 | -52.4 | 89.8 | 30 | -18 | STRONG_FADE | M9 diagnostic |
+| 46 | Kyle Monangai | CHI | 103.2 | 74.5 | 132.3 | -49.1 | 82.2 | 28 | -18 | STRONG_FADE | M9 diagnostic |
+| 59 | Omar Cooper | NYJ | 127.1 | 98.5 | 156.1 | -25.6 | 98.1 | 42 | -17 | OVERPRICED | M9 diagnostic |
+| 21 | Caleb Williams | CHI | 184.5 | 144.4 | 224.1 | -31 | 52 | 6 | -15 | OVERPRICED | M9 diagnostic |
+| 18 | Colston Loveland | CHI | 145.8 | 121.4 | 170.5 | -7.5 | 29.9 | 3 | -15 | OVERPRICED | M9 production |
+| 28 | TreVeyon Henderson | NE | 156.7 | 126.7 | 187.9 | 4.4 | 33.8 | 13 | -15 | OVERPRICED | M9 diagnostic |
+| 40 | Marvin Harrison | ARI | 165.6 | 136.4 | 196 | 12.9 | 62.4 | 25 | -15 | OVERPRICED | M9 production |
+| 24 | Tetairoa McMillan | CAR | 185.9 | 155.8 | 216.4 | 33.1 | 24.6 | 10 | -14 | OVERPRICED | M9 production |
+| 22 | Dalton Kincaid | BUF | 129.5 | 105.8 | 153.5 | -23.7 | 85.6 | 9 | -13 | OVERPRICED | M9 production |
+| 50 | Jordan Addison | MIN | 145.4 | 116 | 174.8 | -7.3 | 83.2 | 37 | -13 | OVERPRICED | M9 production |
+| 44 | KC Concepcion | CLE | 156.4 | 126.8 | 186.6 | 3.7 | 75.7 | 31 | -13 | OVERPRICED | M9 diagnostic |
+| 31 | Carnell Tate | TEN | 177.3 | 147.7 | 208.2 | 24.6 | 39.3 | 18 | -13 | OVERPRICED | M9 diagnostic |
+| 18 | Justin Jefferson | MIN | 196.6 | 166 | 227.9 | 43.8 | 8.4 | 5 | -13 | OVERPRICED | M9 production |
+| 20 | Jaxson Dart | NYG | 186.8 | 146.7 | 227.3 | -28.6 | 74.5 | 9 | -11 | OVERPRICED | M9 diagnostic |
+| 13 | Lamar Jackson | BAL | 212.5 | 172 | 252.7 | -3 | 32.9 | 3 | -10 | OVERPRICED | M9 diagnostic |
+| 25 | Quinshon Judkins | CLE | 167.8 | 137.5 | 198.9 | 15.5 | 40.7 | 15 | -10 | OVERPRICED | M9 diagnostic |
+| 24 | Breece Hall | NYJ | 169.4 | 138 | 200.8 | 17.1 | 37.7 | 14 | -10 | OVERPRICED | M9 diagnostic |
+| 17 | Omarion Hampton | LAC | 196.9 | 165.9 | 228.1 | 44.6 | 16.8 | 7 | -10 | OVERPRICED | M9 diagnostic |
+| 12 | Ashton Jeanty | LV | 206.2 | 174.7 | 237.3 | 53.9 | 7.8 | 3 | -9 | OVERPRICED | M9 diagnostic |
+| 16 | Malik Nabers | NYG | 215.4 | 184.6 | 246.5 | 62.6 | 11.9 | 7 | -9 | OVERPRICED | M9 production |
+| 18 | Bo Nix | DEN | 200.4 | 160.5 | 241.1 | -15.1 | 80.2 | 10 | -8 | OVERPRICED | M9 diagnostic |
+| 37 | Makai Lemon | PHI | 168.5 | 139 | 198.7 | 15.8 | 67.7 | 29 | -8 | OVERPRICED | M9 diagnostic |
+
+## Positive sleepers with ADP >100
+
+### QB
+
+| ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
+|---|---|---|---|---|---|---|---|---|---|
+| 230.6 | Malik Willis | MIA | 5 | 26 | 21 | 261.1 | 45.7 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 196.4 | Kyler Murray | MIN | 3 | 23 | 20 | 273.1 | 57.6 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 132.9 | Matthew Stafford | LAR | 2 | 17 | 15 | 280.2 | 64.8 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 159.9 | Tyler Shough | NO | 12 | 22 | 10 | 215.5 | 0 | 64 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 110.4 | Brock Purdy | SF | 6 | 14 | 8 | 257.2 | 41.7 | 64 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+
+### RB
+
+| ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
+|---|---|---|---|---|---|---|---|---|---|
+| 119.4 | Tony Pollard | TEN | 26 | 38 | 12 | 166.8 | 14.5 | 66 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 122.5 | Kenny Gainwell | TB | 32 | 41 | 9 | 152.3 | 0 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+
+### WR
+
+| ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
+|---|---|---|---|---|---|---|---|---|---|
+| 109.9 | Courtland Sutton | DEN | 17 | 47 | 30 | 201.9 | 49.1 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 199.3 | Ricky Pearsall | SF | 47 | 75 | 28 | 152.7 | 0 | 92 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 134.5 | Jakobi Meyers | JAX | 32 | 56 | 24 | 176 | 23.3 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 154.2 | Deebo Samuel | SF | 45 | 64 | 19 | 155.7 | 3 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 107.9 | Quentin Johnston | LAC | 28 | 46 | 18 | 179.5 | 26.7 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 143.7 | Stefon Diggs | WAS | 43 | 60 | 17 | 157.3 | 4.6 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 137.2 | Khalil Shakir | BUF | 41 | 57 | 16 | 162.6 | 9.8 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 106.8 | Michael Pittman | PIT | 35 | 45 | 10 | 170.9 | 18.2 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 125.9 | Romeo Doubs | NE | 42 | 51 | 9 | 161.2 | 8.5 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+
+### TE
+
+| ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
+|---|---|---|---|---|---|---|---|---|---|
+| 218.8 | Dalton Schultz | HOU | 9 | 28 | 19 | 172.7 | 19.5 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 103.9 | George Kittle | SF | 2 | 14 | 12 | 212.5 | 59.3 | 92 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 165.3 | Juwan Johnson | NO | 11 | 22 | 11 | 165.1 | 11.9 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 173.3 | Hunter Henry | NE | 14 | 24 | 10 | 157.5 | 4.3 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+| 147.2 | Dallas Goedert | PHI | 12 | 20 | 8 | 164.9 | 11.7 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
+
+## Governance
+
+- ADP remains outside the football model.
+- This report does not calculate or activate a parallel ranking model.
+- Promotion-review-ready research remains non-production until a separate governance decision.
+- D/ST and K tables use the existing dedicated current specialist engines and are explicitly weekly/current in scope.
+
+## M9.1c Preseason Projection Challenger
+
+M9 remains the governed production preseason model. M9.1c is research-only and changes no canonical VORP, replacement, ranking, or actionability field. Its current promotion gate remains the historical Actual-minus-Sleeper preseason residual test.
+
+### Largest positive M9.1c adjustments
+
+| Player | Pos | Team | M9.1c Δ vs Sleeper | Signal z | Reliability | Cohort |
+|---|---|---|---:|---:|---:|---|
+| Christian McCaffrey | RB | SF | 29.6 | 1.69 | 0.41 | CLEAR_STARTER |
+| Jaxon Smith-Njigba | WR | SEA | 24.3 | 0.87 | 0.44 | CLEAR_STARTER |
+| Keenan Allen | WR | IND | 20.4 | 1.67 | 0.55 | COMMITTEE_FRINGE |
+| Jakobi Meyers | WR | JAX | 19.9 | 1.83 | 0.35 | COMMITTEE_FRINGE |
+| Jauan Jennings | WR | MIN | 19.3 | 1.61 | 0.56 | COMMITTEE_FRINGE |
+| Mack Hollins | WR | NE | 17.6 | 1.71 | 0.62 | DEPTH |
+| Deebo Samuel | WR | SF | 16.4 | 1.51 | 0.51 | STARTER |
+| Trey McBride | TE | ARI | 16.3 | 2.37 | 0.25 | CLEAR_STARTER |
+| Marquise Brown | WR | PHI | 16.3 | 1.44 | 0.54 | DEPTH |
+| Quentin Johnston | WR | LAC | 16 | 1.75 | 0.5 | STARTER |
+
+### Largest negative M9.1c adjustments
+
+| Player | Pos | Team | M9.1c Δ vs Sleeper | Signal z | Reliability | Cohort |
+|---|---|---|---:|---:|---:|---|
+| Nick Westbrook-Ikhine | WR | IND | -16.7 | -2.64 | 0.47 | COMMITTEE_FRINGE |
+| Jack Bech | WR | LV | -16.1 | -1.22 | 0.57 | DEPTH |
+| Blake Corum | RB | LAR | -14 | -0.7 | 0.57 | STARTER |
+| Kenneth Walker | RB | KC | -12.3 | -3.69 | 0.54 | CLEAR_STARTER |
+| Jahan Dotson | WR | ATL | -12.3 | -4.86 | 0.51 | STARTER |
+| Malik Willis | QB | MIA | -12 | -2.48 | 0.53 | CLEAR_STARTER |
+| Derrick Henry | RB | BAL | -11.8 | -0.89 | 0.6 | CLEAR_STARTER |
+| Saquon Barkley | RB | PHI | -11.8 | -1 | 0.6 | CLEAR_STARTER |
+| Marquez Valdes-Scantling | WR | DAL | -11.6 | -0.59 | 0.48 | COMMITTEE_FRINGE |
+| Gunnar Helm | TE | TEN | -11 | -1.58 | 0.54 | CLEAR_STARTER |

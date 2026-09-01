@@ -1,0 +1,726 @@
+{
+  "schema_version": 1,
+  "research_build": "M9.1c-ROLE-COHORT-DENSITY-RELIABILITY",
+  "league_id": "1314008320385748992",
+  "season": 2026,
+  "status": "RESEARCH_ONLY_BLOCKED_PROMOTION",
+  "production_eligible": false,
+  "automatic_promotion": false,
+  "sleeper_is_fixed_baseline": true,
+  "adp_in_football_model": false,
+  "calibration": {
+    "method": "ROLE_COHORT_LOCAL_RESIDUAL",
+    "role_inputs": [
+      "Sleeper projection percentile",
+      "current projected opportunity share",
+      "Sleeper depth_chart_order"
+    ],
+    "cohorts": [
+      "CLEAR_STARTER",
+      "STARTER",
+      "COMMITTEE_FRINGE",
+      "DEPTH"
+    ],
+    "same_cohort_only": true,
+    "min_reference": 6,
+    "max_reference": 12,
+    "density_reliability": "1/(1 + local_market_span / position_market_IQR)",
+    "proximity_reliability": "1/(1 + 2*median_neighbor_distance / position_market_IQR)",
+    "transition_reliability": "1 / empirical team-change volatility multiplier",
+    "correction_cap": "min(median local baseline distance, smaller M9 one-sided P10/P90 spread)",
+    "signal_output": "raw FIE residual z-score + percentile/extremity are retained separately from applied correction",
+    "audit": [
+      {
+        "position_model": "QB",
+        "role_cohort": "CLEAR_STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "QB",
+        "role_cohort": "COMMITTEE_FRINGE",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "QB",
+        "role_cohort": "DEPTH",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "QB",
+        "role_cohort": "STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "RB",
+        "role_cohort": "CLEAR_STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "RB",
+        "role_cohort": "COMMITTEE_FRINGE",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "RB",
+        "role_cohort": "DEPTH",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "RB",
+        "role_cohort": "STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "TE",
+        "role_cohort": "CLEAR_STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "TE",
+        "role_cohort": "COMMITTEE_FRINGE",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "TE",
+        "role_cohort": "DEPTH",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "TE",
+        "role_cohort": "STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "WR",
+        "role_cohort": "CLEAR_STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "WR",
+        "role_cohort": "COMMITTEE_FRINGE",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "WR",
+        "role_cohort": "DEPTH",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "WR",
+        "role_cohort": "STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      }
+    ]
+  },
+  "team_transition_policy": {
+    "applies_to_positions": [
+      "QB",
+      "RB",
+      "TE",
+      "WR"
+    ],
+    "team_change_is_never_a_block_reason": true,
+    "old_team_context_carried": false,
+    "m8_new_team_environment": [
+      "pfr_times_pressured_pct_prior4",
+      "pfr_times_sacked_prior4"
+    ],
+    "current_workload_role_estimators": {
+      "QB": {
+        "snap_share_prior4": [
+          "qb_pass_attempt_share_prior4",
+          "qb_rush_share_prior4"
+        ],
+        "inside_5_carry_share_prior4": [
+          "qb_rush_share_prior4"
+        ]
+      },
+      "RB": {
+        "offense_snap_share_prior4": [
+          "carry_share_prior4",
+          "target_share_prior4"
+        ],
+        "red_zone_carry_share_prior4": [
+          "carry_share_prior4"
+        ],
+        "inside_5_carry_share_prior4": [
+          "carry_share_prior4"
+        ],
+        "red_zone_target_share_prior4": [
+          "target_share_prior4"
+        ]
+      },
+      "WR": {
+        "offense_snap_share_prior4": [
+          "target_share_prior4"
+        ],
+        "red_zone_target_share_prior4": [
+          "target_share_prior4"
+        ]
+      },
+      "TE": {
+        "offense_snap_share_prior4": [
+          "target_share_prior4"
+        ],
+        "red_zone_target_share_prior4": [
+          "target_share_prior4"
+        ]
+      }
+    },
+    "role_estimator_audit": [
+      {
+        "position": "QB",
+        "target": "snap_share_prior4",
+        "status": "FIT",
+        "n": 4180,
+        "features": [
+          "qb_rush_share_prior4"
+        ],
+        "in_sample_role_mae": 0.14533612844360771
+      },
+      {
+        "position": "QB",
+        "target": "inside_5_carry_share_prior4",
+        "status": "FIT",
+        "n": 1572,
+        "features": [
+          "qb_rush_share_prior4"
+        ],
+        "in_sample_role_mae": 0.17951708974954633
+      },
+      {
+        "position": "RB",
+        "target": "offense_snap_share_prior4",
+        "status": "UNAVAILABLE_COLUMNS",
+        "features": [
+          "carry_share_prior4",
+          "target_share_prior4"
+        ]
+      },
+      {
+        "position": "RB",
+        "target": "red_zone_carry_share_prior4",
+        "status": "FIT",
+        "n": 6796,
+        "features": [
+          "carry_share_prior4"
+        ],
+        "in_sample_role_mae": 0.11254798667529352
+      },
+      {
+        "position": "RB",
+        "target": "inside_5_carry_share_prior4",
+        "status": "FIT",
+        "n": 5286,
+        "features": [
+          "carry_share_prior4"
+        ],
+        "in_sample_role_mae": 0.19769310747053884
+      },
+      {
+        "position": "RB",
+        "target": "red_zone_target_share_prior4",
+        "status": "FIT",
+        "n": 6773,
+        "features": [
+          "target_share_prior4"
+        ],
+        "in_sample_role_mae": 0.06266146960363586
+      },
+      {
+        "position": "WR",
+        "target": "offense_snap_share_prior4",
+        "status": "UNAVAILABLE_COLUMNS",
+        "features": [
+          "target_share_prior4"
+        ]
+      },
+      {
+        "position": "WR",
+        "target": "red_zone_target_share_prior4",
+        "status": "FIT",
+        "n": 7569,
+        "features": [
+          "target_share_prior4"
+        ],
+        "in_sample_role_mae": 0.0844309979085841
+      },
+      {
+        "position": "TE",
+        "target": "offense_snap_share_prior4",
+        "status": "UNAVAILABLE_COLUMNS",
+        "features": [
+          "target_share_prior4"
+        ]
+      },
+      {
+        "position": "TE",
+        "target": "red_zone_target_share_prior4",
+        "status": "FIT",
+        "n": 3636,
+        "features": [
+          "target_share_prior4"
+        ],
+        "in_sample_role_mae": 0.08468910469092815
+      }
+    ],
+    "depth_template_is_fallback": true,
+    "derived_interactions_recomputed": true
+  },
+  "market_snapshot": "data/research/market/sleeper/2026/season_market_2026-09-01.jsonl.gz",
+  "availability_snapshot": "data/research/availability/sleeper/2026/availability_2026-09-01.jsonl.gz",
+  "profile_table": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/.cache/fie-research/leagues/1314008320385748992/derived/m9_preseason_latest_profiles.csv.gz",
+  "profile_source": "EXISTING_M9_DERIVED_PROFILE",
+  "residual_model_gate": {
+    "available_seasons": [
+      2026
+    ],
+    "completed_seasons_with_immutable_preseason_market": [],
+    "required_completed_seasons": 4,
+    "status": "BLOCKED_MISSING_HISTORICAL_SLEEPER_BASELINE",
+    "semantics": "Future residual target is actual league-scored season points minus point-in-time Sleeper preseason projection."
+  },
+  "transition_volatility": {
+    "QB": {
+      "changed_n": 68,
+      "stable_n": 175,
+      "changed_median_abs_ppg_delta": 4.111722689075628,
+      "stable_median_abs_ppg_delta": 2.7716862745098023,
+      "status": "EMPIRICAL_TRANSITION_VOLATILITY",
+      "spread_multiplier": 1.4834733378339593,
+      "raw_ratio": 1.4834733378339593
+    },
+    "RB": {
+      "changed_n": 147,
+      "stable_n": 396,
+      "changed_median_abs_ppg_delta": 2.537433155080214,
+      "stable_median_abs_ppg_delta": 2.286607142857142,
+      "status": "EMPIRICAL_TRANSITION_VOLATILITY",
+      "spread_multiplier": 1.1096935313119252,
+      "raw_ratio": 1.1096935313119252
+    },
+    "TE": {
+      "changed_n": 109,
+      "stable_n": 359,
+      "changed_median_abs_ppg_delta": 1.7799999999999976,
+      "stable_median_abs_ppg_delta": 1.996666666666667,
+      "status": "EMPIRICAL_TRANSITION_VOLATILITY",
+      "spread_multiplier": 1.0,
+      "raw_ratio": 0.8914858096828033
+    },
+    "WR": {
+      "changed_n": 238,
+      "stable_n": 628,
+      "changed_median_abs_ppg_delta": 2.3400000000000007,
+      "stable_median_abs_ppg_delta": 2.2151976495726498,
+      "status": "EMPIRICAL_TRANSITION_VOLATILITY",
+      "spread_multiplier": 1.056339148992609,
+      "raw_ratio": 1.056339148992609
+    }
+  },
+  "rows": 3048,
+  "exact_replay_rows": 0,
+  "true_team_changes": 89,
+  "adjusted_rows": 0,
+  "notes": [
+    "No production integration or activation path.",
+    "Historical Actual-minus-Sleeper preseason validation remains required before promotion.",
+    "M9.1c separates signal magnitude from applied correction reliability."
+  ],
+  "focus_players": [
+    {
+      "full_name": "Cam Ward",
+      "position_model": "QB",
+      "team": "TEN",
+      "profile_team": "TEN",
+      "m91c_team_changed": false,
+      "sleeper_market_projection": 227.84,
+      "m91_projection": 227.84,
+      "m91b_projection": 227.84,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "STARTER",
+      "m91c_role_score": 0.7012987012987013,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.8986710963455149,
+      "m91c_projection": 227.84,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 25.0,
+      "m91c_position_rank": 25.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "",
+      "m91c_context_role_estimator_fields": "",
+      "m91c_context_role_template_fields": "",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.0
+    },
+    {
+      "full_name": "Shedeur Sanders",
+      "position_model": "QB",
+      "team": "CLE",
+      "profile_team": "CLE",
+      "m91c_team_changed": false,
+      "sleeper_market_projection": 97.11999999999999,
+      "m91_projection": 97.11999999999999,
+      "m91b_projection": 97.11999999999999,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "DEPTH",
+      "m91c_role_score": 0.24,
+      "m91c_depth_chart_order": 2.0,
+      "m91c_current_workload_share": 0.4312977099236641,
+      "m91c_projection": 97.11999999999999,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 33.0,
+      "m91c_position_rank": 33.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "",
+      "m91c_context_role_estimator_fields": "",
+      "m91c_context_role_template_fields": "",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.0
+    },
+    {
+      "full_name": "Geno Smith",
+      "position_model": "QB",
+      "team": "NYJ",
+      "profile_team": "LV",
+      "m91c_team_changed": true,
+      "sleeper_market_projection": 222.48,
+      "m91_projection": 222.48,
+      "m91b_projection": 222.48,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "STARTER",
+      "m91c_role_score": 0.674025974025974,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.889090909090909,
+      "m91c_projection": 222.48,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 27.0,
+      "m91c_position_rank": 27.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "opportunity_change_score_prior1|qb_pass_attempt_share_prior4|qb_rush_share_prior4|team_pass_attempts_prior4_team|team_plays_prior4_team",
+      "m91c_context_role_estimator_fields": "inside_5_carry_share_prior4|snap_share_prior4",
+      "m91c_context_role_template_fields": "snap_share_prior4",
+      "m91c_context_m8_environment_fields": "pfr_times_pressured_pct_prior4|pfr_times_sacked_prior4",
+      "m91c_context_other_team_environment_fields": "pfr_times_pressured_pct_prior4|pfr_times_sacked_prior4",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.4834733378339593
+    },
+    {
+      "full_name": "Carson Wentz",
+      "position_model": "QB",
+      "team": "MIN",
+      "profile_team": "MIN",
+      "m91c_team_changed": false,
+      "sleeper_market_projection": 12.44,
+      "m91_projection": 12.44,
+      "m91b_projection": 12.44,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "DEPTH",
+      "m91c_role_score": 0.2237012987012987,
+      "m91c_depth_chart_order": 3.0,
+      "m91c_current_workload_share": 0.05693950177935943,
+      "m91c_projection": 12.44,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 59.0,
+      "m91c_position_rank": 59.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "",
+      "m91c_context_role_estimator_fields": "",
+      "m91c_context_role_template_fields": "",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.0
+    },
+    {
+      "full_name": "Christian McCaffrey",
+      "position_model": "RB",
+      "team": "SF",
+      "profile_team": "SF",
+      "m91c_team_changed": false,
+      "sleeper_market_projection": 291.0,
+      "m91_projection": 291.0,
+      "m91b_projection": 291.0,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "CLEAR_STARTER",
+      "m91c_role_score": 0.947877145438121,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.5274725274725275,
+      "m91c_projection": 291.0,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 3.0,
+      "m91c_position_rank": 3.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "",
+      "m91c_context_role_estimator_fields": "",
+      "m91c_context_role_template_fields": "",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.0
+    },
+    {
+      "full_name": "Lamar Jackson",
+      "position_model": "QB",
+      "team": "BAL",
+      "profile_team": "BAL",
+      "m91c_team_changed": false,
+      "sleeper_market_projection": 326.0,
+      "m91_projection": 326.0,
+      "m91b_projection": 326.0,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "CLEAR_STARTER",
+      "m91c_role_score": 0.8649350649350649,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.9367945823927766,
+      "m91c_projection": 326.0,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 2.0,
+      "m91c_position_rank": 2.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "",
+      "m91c_context_role_estimator_fields": "",
+      "m91c_context_role_template_fields": "",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.0
+    },
+    {
+      "full_name": "Kyler Murray",
+      "position_model": "QB",
+      "team": "MIN",
+      "profile_team": "ARI",
+      "m91c_team_changed": true,
+      "sleeper_market_projection": 283.06,
+      "m91_projection": 283.06,
+      "m91b_projection": 283.06,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "STARTER",
+      "m91c_role_score": 0.724025974025974,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.8861209964412812,
+      "m91c_projection": 283.06,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 16.0,
+      "m91c_position_rank": 16.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "opportunity_change_score_prior1|qb_pass_attempt_share_prior4|qb_rush_share_prior4|team_pass_attempts_prior4_team|team_plays_prior4_team",
+      "m91c_context_role_estimator_fields": "inside_5_carry_share_prior4|snap_share_prior4",
+      "m91c_context_role_template_fields": "inside_5_carry_share_prior4|snap_share_prior4",
+      "m91c_context_m8_environment_fields": "pfr_times_pressured_pct_prior4|pfr_times_sacked_prior4",
+      "m91c_context_other_team_environment_fields": "pfr_times_pressured_pct_prior4|pfr_times_sacked_prior4",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.4834733378339593
+    },
+    {
+      "full_name": "David Montgomery",
+      "position_model": "RB",
+      "team": "HOU",
+      "profile_team": "DET",
+      "m91c_team_changed": true,
+      "sleeper_market_projection": 206.10000000000002,
+      "m91_projection": 206.10000000000002,
+      "m91b_projection": 206.10000000000002,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "CLEAR_STARTER",
+      "m91c_role_score": 0.9089430894308943,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.5566037735849056,
+      "m91c_projection": 206.10000000000002,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 19.0,
+      "m91c_position_rank": 19.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "backfield_competition_index_prior4|backfield_competitor_count|carry_share_prior4|opportunity_change_score_prior1|target_share_prior4",
+      "m91c_context_role_estimator_fields": "inside_5_carry_share_prior4|red_zone_carry_share_prior4",
+      "m91c_context_role_template_fields": "inside_5_carry_share_prior4|offense_snap_share_prior4|red_zone_carry_share_prior4",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.1096935313119252
+    },
+    {
+      "full_name": "Jaylen Waddle",
+      "position_model": "WR",
+      "team": "DEN",
+      "profile_team": "MIA",
+      "m91c_team_changed": true,
+      "sleeper_market_projection": 221.0,
+      "m91_projection": 221.0,
+      "m91b_projection": 221.0,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "CLEAR_STARTER",
+      "m91c_role_score": 0.8972802087515054,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.20052083333333334,
+      "m91c_projection": 221.0,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 22.0,
+      "m91c_position_rank": 22.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "opportunity_change_score_prior1|receiving_competition_index_prior4|receiving_competitor_count|target_share_prior4",
+      "m91c_context_role_estimator_fields": "red_zone_target_share_prior4",
+      "m91c_context_role_template_fields": "offense_snap_share_prior4|red_zone_target_share_prior4",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.056339148992609
+    },
+    {
+      "full_name": "Justin Fields",
+      "position_model": "QB",
+      "team": "KC",
+      "profile_team": "NYJ",
+      "m91c_team_changed": true,
+      "sleeper_market_projection": 34.72,
+      "m91_projection": 34.72,
+      "m91b_projection": 34.72,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "DEPTH",
+      "m91c_role_score": 0.24,
+      "m91c_depth_chart_order": 2.0,
+      "m91c_current_workload_share": 0.09016393442622951,
+      "m91c_projection": 34.72,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 37.0,
+      "m91c_position_rank": 37.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "opportunity_change_score_prior1|qb_pass_attempt_share_prior4|qb_rush_share_prior4|team_pass_attempts_prior4_team|team_plays_prior4_team",
+      "m91c_context_role_estimator_fields": "inside_5_carry_share_prior4|snap_share_prior4",
+      "m91c_context_role_template_fields": "snap_share_prior4",
+      "m91c_context_m8_environment_fields": "pfr_times_pressured_pct_prior4|pfr_times_sacked_prior4",
+      "m91c_context_other_team_environment_fields": "pfr_times_pressured_pct_prior4|pfr_times_sacked_prior4",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.4834733378339593
+    },
+    {
+      "full_name": "Trey McBride",
+      "position_model": "TE",
+      "team": "ARI",
+      "profile_team": "ARI",
+      "m91c_team_changed": false,
+      "sleeper_market_projection": 282.9,
+      "m91_projection": 282.9,
+      "m91b_projection": 282.9,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "CLEAR_STARTER",
+      "m91c_role_score": 0.991430454845089,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.2696629213483146,
+      "m91c_projection": 282.9,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 2.0,
+      "m91c_position_rank": 2.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "",
+      "m91c_context_role_estimator_fields": "",
+      "m91c_context_role_template_fields": "",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.0
+    },
+    {
+      "full_name": "Malik Willis",
+      "position_model": "QB",
+      "team": "MIA",
+      "profile_team": "GB",
+      "m91c_team_changed": true,
+      "sleeper_market_projection": 270.12,
+      "m91_projection": 270.12,
+      "m91b_projection": 270.12,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "CLEAR_STARTER",
+      "m91c_role_score": 0.862987012987013,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 1.0,
+      "m91c_projection": 270.12,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 21.0,
+      "m91c_position_rank": 21.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "opportunity_change_score_prior1|qb_pass_attempt_share_prior4|qb_rush_share_prior4|team_pass_attempts_prior4_team|team_plays_prior4_team",
+      "m91c_context_role_estimator_fields": "inside_5_carry_share_prior4|snap_share_prior4",
+      "m91c_context_role_template_fields": "snap_share_prior4",
+      "m91c_context_m8_environment_fields": "pfr_times_pressured_pct_prior4|pfr_times_sacked_prior4",
+      "m91c_context_other_team_environment_fields": "pfr_times_pressured_pct_prior4|pfr_times_sacked_prior4",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.4834733378339593
+    },
+    {
+      "full_name": "Jaxon Smith-Njigba",
+      "position_model": "WR",
+      "team": "SEA",
+      "profile_team": "SEA",
+      "m91c_team_changed": false,
+      "sleeper_market_projection": 284.6,
+      "m91_projection": 284.6,
+      "m91b_projection": 284.6,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "CLEAR_STARTER",
+      "m91c_role_score": 0.9926234443998394,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.28448275862068967,
+      "m91c_projection": 284.6,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 3.0,
+      "m91c_position_rank": 3.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "",
+      "m91c_context_role_estimator_fields": "",
+      "m91c_context_role_template_fields": "",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.0
+    },
+    {
+      "full_name": "Aaron Rodgers",
+      "position_model": "QB",
+      "team": "PIT",
+      "profile_team": "PIT",
+      "m91c_team_changed": false,
+      "sleeper_market_projection": 177.0,
+      "m91_projection": 177.0,
+      "m91b_projection": 177.0,
+      "m91c_raw_fie_projection": null,
+      "m91c_role_cohort": "STARTER",
+      "m91c_role_score": 0.6181818181818182,
+      "m91c_depth_chart_order": 1.0,
+      "m91c_current_workload_share": 0.7183600713012478,
+      "m91c_projection": 177.0,
+      "m91c_delta_vs_sleeper": 0.0,
+      "m91c_market_position_rank": 29.0,
+      "m91c_position_rank": 29.0,
+      "m91c_rank_delta_vs_market": 0.0,
+      "m91c_context_current_fields": "",
+      "m91c_context_role_estimator_fields": "",
+      "m91c_context_role_template_fields": "",
+      "m91c_context_m8_environment_fields": "",
+      "m91c_context_other_team_environment_fields": "",
+      "m91c_context_cleared_fields": "",
+      "m91c_uncertainty_spread_multiplier": 1.0
+    }
+  ]
+}

@@ -6,7 +6,7 @@
 const CONFIG_URL='config/league-portfolio.json';
 const STATUS_URL='data/research/leagues/portfolio-status.json';
 const SAVED_KEY='fieSavedLeaguesV71';
-const FORMAT_LABELS={REDRAFT:'Redraft',DYNASTY:'Dynasty',CHOPPED:'Chopped',REDRAFT_BESTBALL:'Redraft + Best Ball',DYNASTY_BESTBALL:'Dynasty + Best Ball'};
+const FORMAT_LABELS={REDRAFT:'Redraft',DYNASTY:'Dynasty',CHOPPED:'Chopped',CHOPPED_BESTBALL:'Chopped + Best Ball',REDRAFT_BESTBALL:'Redraft + Best Ball',DYNASTY_BESTBALL:'Dynasty + Best Ball'};
 const API={version:'1.0.0',config:null,status:null,loaded:false,error:null};
 function readJSON(key,fallback){try{const x=JSON.parse(localStorage.getItem(key)||'null');return x&&typeof x==='object'?x:fallback;}catch{return fallback;}}
 function writeJSON(key,x){try{localStorage.setItem(key,JSON.stringify(x));}catch{}}

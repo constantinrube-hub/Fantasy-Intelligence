@@ -1,0 +1,211 @@
+{
+  "build": "V10.4.3-STRATEGY-V973-VALIDATION-1",
+  "generated_at": "2026-09-01T07:58:42.528106+00:00",
+  "status": "complete_research_only",
+  "phases": {
+    "A_preseason_v2": "complete_research_only",
+    "B_market_movement": "ok",
+    "B_adp_outcomes": "blocked_insufficient_verified_historical_market",
+    "C_league_value": "complete",
+    "D_market_mistakes": "prospective_until_verified_history",
+    "E_draft_actions": "research_only",
+    "F_inseason_actions": "consumes_v96_when_available",
+    "G_injury": "diagnostic_current_only",
+    "G_matchup": "reuse_M8_component_research_contract",
+    "H_actionable_findings": "research_only",
+    "A2_v972_shadow_projection": "complete_research_only",
+    "A3_v973_head_to_head_calibration": "complete_research_only"
+  },
+  "value_labels": {
+    "UNAVAILABLE": 2470,
+    "IRRELEVANT": 266,
+    "FAIR": 146,
+    "OVERPRICED": 55,
+    "MARKET_UNDERRATED": 53,
+    "STRONG_FADE": 27,
+    "VALUE": 21,
+    "STRONG_VALUE": 10
+  },
+  "governance": {
+    "auto_activation": false,
+    "canonical_projections_modified": false,
+    "football_model_uses_adp": false,
+    "next_season_runtime_enabled": false,
+    "historical_hindsight_adp_allowed": false
+  },
+  "season_projection_v972_meta": {
+    "build": "V9.7.2-VALIDATED-COMPONENT-SHADOW-1",
+    "status": "complete_research_only",
+    "target_season": 2026,
+    "profile_season": 2025,
+    "validated_positions": [
+      "QB",
+      "WR"
+    ],
+    "rows": 3048,
+    "shadow_applied": 184,
+    "shadow_applied_by_position": {
+      "QB": 49,
+      "WR": 135
+    },
+    "fallback_reasons": {
+      "position_not_validated": 1325,
+      "prior_season_games_below_gate": 37,
+      "prior_season_profile_unavailable": 1401,
+      "team_change_guardrail": 101
+    },
+    "mean_projection_delta_vs_m9": 24.696652893673733,
+    "median_abs_projection_delta_vs_m9": 18.496595203290106,
+    "current_catalog_available": true,
+    "market_inputs_used": false,
+    "adp_inputs_used": false,
+    "canonical_m9_columns_modified": false,
+    "production_activation": false,
+    "runtime_projection_modified": false,
+    "head_to_head_improvement_vs_m9_validated": false,
+    "replacement_claim_vs_m9": "not_made_shadow_challenger_only",
+    "validation_baseline": "prior_season_component_persistence",
+    "team_change_policy": "fallback_to_m9_until_transfer_opportunity_model_is_validated",
+    "rookie_policy": "fallback_to_m9_without_prior_season_profile"
+  },
+  "preseason_v973_meta": {
+    "build": "V9.7.3-PRESEASON-HEAD-TO-HEAD-CALIBRATION-1",
+    "status": "complete_research_only",
+    "football_model_promotion_review_positions": [],
+    "expected_season_points_ready_positions": [],
+    "market_fallback_replacement_validated": false,
+    "production_activation_allowed": false
+  },
+  "league_value_meta": {
+    "build": "V10.4.2-STRATEGY-V972-SHADOW-1",
+    "status": "complete_research_only",
+    "league_structure": {
+      "teams": 12,
+      "roster_positions": [
+        "QB",
+        "RB",
+        "RB",
+        "WR",
+        "WR",
+        "TE",
+        "FLEX",
+        "FLEX",
+        "FLEX",
+        "K",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN"
+      ],
+      "fixed_starters_per_team": {
+        "QB": 1,
+        "RB": 2,
+        "WR": 2,
+        "TE": 1
+      },
+      "flex_per_team": 3,
+      "superflex_per_team": 0,
+      "bench_per_team": 15,
+      "selected_starters": 108,
+      "replacement_method": "fixed_slots_then_flex_marginal_starter"
+    },
+    "replacement_points": {
+      "QB": 273.05999760329723,
+      "RB": 149.000001385808,
+      "WR": 148.65824466618542,
+      "TE": 146.50851546982892
+    },
+    "draft_relevance": {
+      "draft_horizon": 300,
+      "watchlist_horizon": 450,
+      "roster_slots_per_team": 25,
+      "current_catalog_available": true,
+      "current_relevant_players": 981,
+      "ranked_watchlist_players": 312,
+      "actionable_draft_signals": 113
+    },
+    "composite_outlier_score_enabled": false,
+    "reason": "component weights require historical ADP validation",
+    "football_projection_uses_adp": false,
+    "runtime_projection_modified": false
+  },
+  "market_mistake_status": "blocked_insufficient_verified_historical_market_panel",
+  "provenance": {
+    "source_commit": "47154f1eafc387577d9c76efb2cb74e71d3610f5",
+    "league_root": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/data/research/leagues/1335691030116184065",
+    "season": 2026,
+    "requested_adp_key": "adp_dynasty_ppr",
+    "resolved_adp_key": "adp_dynasty_ppr",
+    "profile_expected_adp_key": "adp_dynasty_ppr",
+    "explicit_adp_override": false,
+    "profile_sha256": "e02134a166da869c60234246f7055d6f71006c9f1042c80be85c5474bc19b0f9",
+    "milestone1_sha256": "4b0fec1df909b9a55de8f058f986b0fba30f0b3e0d1afcb86ebd89f3d6e649b4",
+    "milestone9_sha256": "4464d8ec81b5a6648e50899929bc3baedef48a3ca16249bab813d6dc5921e5d3",
+    "season_board_sha256": "376df1c65e9cc988b259810601e89ee33cf5229f6e4cd328b9c91e456b3dd165",
+    "season_projection_v972_sha256": "d4869e0f710245d2125c3773e48f05c3a1537bfff3884cb209f522377c245a6d",
+    "preseason_v973_validation_sha256": "c677eb5707694c6dbe26e6fd749b72f8b2f1475aff25daee4032e133ab524874",
+    "preseason_v973_predictions_sha256": "1f1f2392a29519ecbd94a9633d19663b072746c81aa976df7561d79059e554ed",
+    "preseason_v973_calibration_sha256": "aea4450aed567b50315fc5ebaef613d5876e811c21edeb148349fd4f0358a549",
+    "current_manifest_sha256": "ed01ee9711252100a7e76b72482cefc71ce2263ed0d9546fefe0b09778f2c44e",
+    "current_snapshot_hydrated": true,
+    "market_snapshot_count": 4,
+    "latest_market_snapshot": "data/research/market/sleeper/2026/season_market_2026-09-01.jsonl.gz",
+    "latest_market_sha256": "bd6d8209c8a5b003c42b2cc9d86075ed55de7a520fb586a454d817563caab066"
+  },
+  "phase_readiness": {
+    "preseason_v2": {
+      "QB": "validated_candidate",
+      "RB": "diagnostic_only",
+      "WR": "validated_candidate",
+      "TE": "diagnostic_only"
+    },
+    "season_projection_v972": {
+      "status": "complete_research_only",
+      "validated_positions": [
+        "QB",
+        "WR"
+      ],
+      "shadow_applied": 184,
+      "shadow_applied_by_position": {
+        "QB": 49,
+        "WR": 135
+      }
+    },
+    "preseason_v973_head_to_head": {
+      "status": "complete_research_only",
+      "football_model_promotion_review_positions": [],
+      "expected_season_points_ready_positions": [],
+      "market_fallback_head_to_head": "blocked_insufficient_verified_historical_market"
+    },
+    "market_movement": "ok",
+    "historical_adp_curves": "blocked_insufficient_verified_historical_market",
+    "market_mistakes": "blocked_insufficient_verified_historical_market_panel",
+    "injury_opportunity": "no_unavailable_role_pool",
+    "actionable_findings": 113
+  },
+  "outputs": [
+    "preseason_v2.json",
+    "preseason_v973_validation.json",
+    "preseason_v973_predictions.csv",
+    "preseason_v973_calibration.csv",
+    "season_projection_v972.csv",
+    "market_movement.csv",
+    "adp_outcome_curves.csv",
+    "league_value_board.csv",
+    "draft_actions.csv",
+    "injury_opportunity.json",
+    "market_mistake_research.json",
+    "actionable_findings.json"
+  ]
+}

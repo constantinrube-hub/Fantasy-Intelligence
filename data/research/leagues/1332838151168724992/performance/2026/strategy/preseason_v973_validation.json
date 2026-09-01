@@ -1,0 +1,2040 @@
+{
+  "build": "V9.7.3-PRESEASON-HEAD-TO-HEAD-CALIBRATION-1",
+  "status": "complete_research_only",
+  "governance": {
+    "auto_activation": false,
+    "production_activation": false,
+    "runtime_projection_modified": false,
+    "canonical_m9_modified": false,
+    "market_inputs_used": false,
+    "adp_inputs_used": false,
+    "head_to_head_same_player_holdouts": true,
+    "requires_four_chronological_folds": true
+  },
+  "comparison": {
+    "challenger": "V9.7.2 component-first preseason football model",
+    "baseline": "M9 preseason football model",
+    "market_fallback_head_to_head": {
+      "status": "blocked_insufficient_verified_historical_market",
+      "reason": "Historical M9 MARKET_FALLBACK cannot be reconstructed without immutable verified preseason market snapshots; no hindsight market proxy is permitted."
+    },
+    "availability_model": "same fold-trained games model applied to both football models",
+    "season_total_semantics": "predicted fantasy PPG multiplied by identical pre-season expected-games prediction"
+  },
+  "per_position": {
+    "QB": {
+      "status": "diagnostic_only",
+      "folds": 4,
+      "n_test": 215,
+      "v972_prior_gate_status": "validated_candidate",
+      "all_v972_folds_exact_scoring_replay": true,
+      "all_m9_folds_exact_scoring_replay": false,
+      "ppg_mae_head_to_head_gate": {
+        "mean": 0.03723228086640792,
+        "positive_folds": 2,
+        "required_positive_folds": 3,
+        "ci95_low": -0.012738432458772658,
+        "ci95_high": 0.11418940850428402,
+        "robust": false,
+        "folds": 4
+      },
+      "expected_season_mae_head_to_head_gate": {
+        "mean": 0.019694200222241703,
+        "positive_folds": 3,
+        "required_positive_folds": 3,
+        "ci95_low": 0.0018773305573707533,
+        "ci95_high": 0.03809120682436478,
+        "robust": true,
+        "folds": 4
+      },
+      "full_schedule_mae_head_to_head_gate": {
+        "mean": 0.03723228086640774,
+        "positive_folds": 2,
+        "required_positive_folds": 3,
+        "ci95_low": -0.01273843245877262,
+        "ci95_high": 0.11418940850428373,
+        "robust": false,
+        "folds": 4
+      },
+      "availability_vs_full_schedule_gate": {
+        "mean": 0.497790905148978,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.4652054066817816,
+        "ci95_high": 0.5351264410585195,
+        "robust": true,
+        "folds": 4
+      },
+      "weighted_metrics": {
+        "v972_ppg_mae": 4.7859742283618605,
+        "m9_ppg_mae": 4.9777434998235455,
+        "v972_ppg_rmse": 6.219427465147747,
+        "m9_ppg_rmse": 6.341859108086872,
+        "v972_ppg_bias": 0.504211630502614,
+        "m9_ppg_bias": 0.7172667568444685,
+        "v972_rank_mae": 9.851162790697675,
+        "m9_rank_mae": 10.306976744186047,
+        "v972_spearman": 0.6325788382991322,
+        "m9_spearman": 0.6072891597296592,
+        "v972_top12_overlap": 0.5624031007751938,
+        "m9_top12_overlap": 0.4996124031007752,
+        "v972_expected_season_mae": 81.22098689371533,
+        "m9_expected_season_mae": 82.93980866595747,
+        "v972_full_schedule_mae": 81.36156188215166,
+        "m9_full_schedule_mae": 84.62163949700025
+      },
+      "noninferiority": {
+        "rank_mae": true,
+        "spearman": true,
+        "top12_overlap": true,
+        "absolute_calibration_bias": true,
+        "tolerances": {
+          "rank_mae_relative": 0.01,
+          "spearman_absolute": 0.01,
+          "top12_overlap_absolute": 0.02,
+          "ppg_bias_absolute": 0.1
+        }
+      },
+      "football_model_promotion_review_ready": false,
+      "expected_season_points_ready": false,
+      "market_fallback_replacement_validated": false,
+      "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared"
+    },
+    "RB": {
+      "status": "diagnostic_only",
+      "folds": 4,
+      "n_test": 420,
+      "v972_prior_gate_status": "diagnostic_only",
+      "all_v972_folds_exact_scoring_replay": true,
+      "all_m9_folds_exact_scoring_replay": false,
+      "ppg_mae_head_to_head_gate": {
+        "mean": -0.0003575017907392569,
+        "positive_folds": 1,
+        "required_positive_folds": 3,
+        "ci95_low": -0.012475259038751818,
+        "ci95_high": 0.01345057301630252,
+        "robust": false,
+        "folds": 4
+      },
+      "expected_season_mae_head_to_head_gate": {
+        "mean": -0.007160502586046645,
+        "positive_folds": 1,
+        "required_positive_folds": 3,
+        "ci95_low": -0.01565992754331191,
+        "ci95_high": 0.0019150555235070636,
+        "robust": false,
+        "folds": 4
+      },
+      "full_schedule_mae_head_to_head_gate": {
+        "mean": -0.0003575017907390079,
+        "positive_folds": 1,
+        "required_positive_folds": 3,
+        "ci95_low": -0.012475259038751355,
+        "ci95_high": 0.013450573016302661,
+        "robust": false,
+        "folds": 4
+      },
+      "availability_vs_full_schedule_gate": {
+        "mean": 0.27951820139752814,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.20670799053848982,
+        "ci95_high": 0.33960363734063553,
+        "robust": true,
+        "folds": 4
+      },
+      "weighted_metrics": {
+        "v972_ppg_mae": 2.867279303978371,
+        "m9_ppg_mae": 2.866269385820927,
+        "v972_ppg_rmse": 3.7366915859123604,
+        "m9_ppg_rmse": 3.7235381974946278,
+        "v972_ppg_bias": 0.2877962458207118,
+        "m9_ppg_bias": 0.3197827064241927,
+        "v972_rank_mae": 15.654761904761905,
+        "m9_rank_mae": 15.604761904761904,
+        "v972_spearman": 0.761999186548493,
+        "m9_spearman": 0.7601053582204735,
+        "v972_top12_overlap": 0.5607142857142857,
+        "m9_top12_overlap": 0.5607142857142857,
+        "v972_expected_season_mae": 50.654350309427166,
+        "m9_expected_season_mae": 50.30106833702148,
+        "v972_full_schedule_mae": 48.743748167632305,
+        "m9_full_schedule_mae": 48.72657955895576
+      },
+      "noninferiority": {
+        "rank_mae": true,
+        "spearman": true,
+        "top12_overlap": true,
+        "absolute_calibration_bias": true,
+        "tolerances": {
+          "rank_mae_relative": 0.01,
+          "spearman_absolute": 0.01,
+          "top12_overlap_absolute": 0.02,
+          "ppg_bias_absolute": 0.1
+        }
+      },
+      "football_model_promotion_review_ready": false,
+      "expected_season_points_ready": false,
+      "market_fallback_replacement_validated": false,
+      "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared"
+    },
+    "WR": {
+      "status": "diagnostic_only",
+      "folds": 4,
+      "n_test": 666,
+      "v972_prior_gate_status": "validated_candidate",
+      "all_v972_folds_exact_scoring_replay": true,
+      "all_m9_folds_exact_scoring_replay": false,
+      "ppg_mae_head_to_head_gate": {
+        "mean": -0.0007645706243179944,
+        "positive_folds": 1,
+        "required_positive_folds": 3,
+        "ci95_low": -0.008933852682312412,
+        "ci95_high": 0.009015991068745897,
+        "robust": false,
+        "folds": 4
+      },
+      "expected_season_mae_head_to_head_gate": {
+        "mean": -0.006007024450756027,
+        "positive_folds": 1,
+        "required_positive_folds": 3,
+        "ci95_low": -0.018034163004111703,
+        "ci95_high": 0.004347836955347563,
+        "robust": false,
+        "folds": 4
+      },
+      "full_schedule_mae_head_to_head_gate": {
+        "mean": -0.0007645706243181054,
+        "positive_folds": 1,
+        "required_positive_folds": 3,
+        "ci95_low": -0.00893385268231253,
+        "ci95_high": 0.009015991068745774,
+        "robust": false,
+        "folds": 4
+      },
+      "availability_vs_full_schedule_gate": {
+        "mean": 0.31908195072039863,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.2919008422707461,
+        "ci95_high": 0.34483247451480636,
+        "robust": true,
+        "folds": 4
+      },
+      "weighted_metrics": {
+        "v972_ppg_mae": 2.590468614225343,
+        "m9_ppg_mae": 2.5878122384153657,
+        "v972_ppg_rmse": 3.2247782695247484,
+        "m9_ppg_rmse": 3.2240041301552314,
+        "v972_ppg_bias": 0.3017945244101893,
+        "m9_ppg_bias": 0.3032880993304732,
+        "v972_rank_mae": 25.13063063063063,
+        "m9_rank_mae": 24.91141141141141,
+        "v972_spearman": 0.7716937298690721,
+        "m9_spearman": 0.7747119107247884,
+        "v972_top12_overlap": 0.5848348348348348,
+        "m9_top12_overlap": 0.58495995995996,
+        "v972_expected_season_mae": 42.091927172558854,
+        "m9_expected_season_mae": 41.824817549247115,
+        "v972_full_schedule_mae": 44.03796644183084,
+        "m9_full_schedule_mae": 43.99280805306122
+      },
+      "noninferiority": {
+        "rank_mae": true,
+        "spearman": true,
+        "top12_overlap": true,
+        "absolute_calibration_bias": true,
+        "tolerances": {
+          "rank_mae_relative": 0.01,
+          "spearman_absolute": 0.01,
+          "top12_overlap_absolute": 0.02,
+          "ppg_bias_absolute": 0.1
+        }
+      },
+      "football_model_promotion_review_ready": false,
+      "expected_season_points_ready": false,
+      "market_fallback_replacement_validated": false,
+      "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared"
+    },
+    "TE": {
+      "status": "diagnostic_only",
+      "folds": 4,
+      "n_test": 367,
+      "v972_prior_gate_status": "diagnostic_only",
+      "all_v972_folds_exact_scoring_replay": true,
+      "all_m9_folds_exact_scoring_replay": false,
+      "ppg_mae_head_to_head_gate": {
+        "mean": -0.03398347745212118,
+        "positive_folds": 0,
+        "required_positive_folds": 3,
+        "ci95_low": -0.06150950243698274,
+        "ci95_high": -0.013181624232566075,
+        "robust": false,
+        "folds": 4
+      },
+      "expected_season_mae_head_to_head_gate": {
+        "mean": -0.028459702588283384,
+        "positive_folds": 1,
+        "required_positive_folds": 3,
+        "ci95_low": -0.04877442016164437,
+        "ci95_high": -0.0021932175945818698,
+        "robust": false,
+        "folds": 4
+      },
+      "full_schedule_mae_head_to_head_gate": {
+        "mean": -0.03398347745212134,
+        "positive_folds": 0,
+        "required_positive_folds": 3,
+        "ci95_low": -0.06150950243698279,
+        "ci95_high": -0.013181624232566361,
+        "robust": false,
+        "folds": 4
+      },
+      "availability_vs_full_schedule_gate": {
+        "mean": 0.4599702863289044,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.41830072833126863,
+        "ci95_high": 0.49388560676631205,
+        "robust": true,
+        "folds": 4
+      },
+      "weighted_metrics": {
+        "v972_ppg_mae": 1.8488231145996374,
+        "m9_ppg_mae": 1.7892989008669173,
+        "v972_ppg_rmse": 2.3625326950811103,
+        "m9_ppg_rmse": 2.320392993558314,
+        "v972_ppg_bias": 0.20239430385829152,
+        "m9_ppg_bias": 0.23853689873421083,
+        "v972_rank_mae": 14.2425068119891,
+        "m9_rank_mae": 13.85558583106267,
+        "v972_spearman": 0.7532746925433135,
+        "m9_spearman": 0.7609621485801841,
+        "v972_top12_overlap": 0.6037693006357857,
+        "m9_top12_overlap": 0.6044504995458674,
+        "v972_expected_season_mae": 29.9825370996281,
+        "m9_expected_season_mae": 29.19012169221527,
+        "v972_full_schedule_mae": 31.429992948193842,
+        "m9_full_schedule_mae": 30.418081314737595
+      },
+      "noninferiority": {
+        "rank_mae": false,
+        "spearman": true,
+        "top12_overlap": true,
+        "absolute_calibration_bias": true,
+        "tolerances": {
+          "rank_mae_relative": 0.01,
+          "spearman_absolute": 0.01,
+          "top12_overlap_absolute": 0.02,
+          "ppg_bias_absolute": 0.1
+        }
+      },
+      "football_model_promotion_review_ready": false,
+      "expected_season_points_ready": false,
+      "market_fallback_replacement_validated": false,
+      "reason": "one_or_more_head_to_head_or_noninferiority_gates_not_cleared"
+    }
+  },
+  "folds": [
+    {
+      "position": "QB",
+      "test_season": 2022,
+      "n_test": 54,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "passing_attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "passing_2pt_conversions",
+        "passing_first_downs",
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "carries",
+        "rushing_yards",
+        "rushing_tds",
+        "fumbles_lost",
+        "passing_2pt_conversions",
+        "rushing_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 4.296986676295069,
+        "rmse": 5.304493649898151,
+        "bias": 0.36443281186482096,
+        "abs_bias": 0.36443281186482096,
+        "rank_mae": 8.962962962962964,
+        "spearman": 0.7126739089003239,
+        "top12_overlap": 0.6666666666666666
+      },
+      "m9_ppg": {
+        "mae": 4.295388921966368,
+        "rmse": 5.11533159837709,
+        "bias": 0.29241745583098916,
+        "abs_bias": 0.29241745583098916,
+        "rank_mae": 9.25925925925926,
+        "spearman": 0.7176291214027061,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_expected_season": {
+        "mae": 72.76580276862472,
+        "rmse": 93.58631756547788,
+        "bias": -7.1014684415072145,
+        "abs_bias": 7.1014684415072145,
+        "rank_mae": 8.962962962962964,
+        "spearman": 0.7365351629502571,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_expected_season": {
+        "mae": 72.39403076320094,
+        "rmse": 91.88574347961438,
+        "bias": -10.388729826425113,
+        "abs_bias": 10.388729826425113,
+        "rank_mae": 8.777777777777779,
+        "spearman": 0.7468267581475128,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_full_schedule_season": {
+        "mae": 73.0487734970162,
+        "rmse": 90.17639204826858,
+        "bias": 6.195357801701961,
+        "abs_bias": 6.195357801701961,
+        "rank_mae": 8.962962962962964,
+        "spearman": 0.7126739089003239,
+        "top12_overlap": 0.6666666666666666
+      },
+      "m9_full_schedule_season": {
+        "mae": 73.02161167342825,
+        "rmse": 86.96063717241051,
+        "bias": 4.97109674912681,
+        "abs_bias": 4.97109674912681,
+        "rank_mae": 9.25925925925926,
+        "spearman": 0.7176291214027061,
+        "top12_overlap": 0.5833333333333334
+      },
+      "ppg_mae_improvement_vs_m9": -0.00037196965344169565,
+      "expected_season_mae_improvement_vs_m9": -0.005135395853835458,
+      "full_schedule_mae_improvement_vs_m9": -0.0003719696534420606,
+      "rank_mae_improvement_vs_m9": 0.03199999999999995,
+      "spearman_delta_vs_m9": -0.004955212502382178,
+      "top12_overlap_delta_vs_m9": 0.08333333333333326,
+      "abs_bias_reduction_ppg": -0.0720153560338318,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 97
+      },
+      "availability_games_mae": 3.303318684787342,
+      "full_schedule_games_mae": 7.351851851851852,
+      "availability_mae_improvement_vs_full_schedule": 0.5506820932531072
+    },
+    {
+      "position": "QB",
+      "test_season": 2023,
+      "n_test": 53,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "passing_attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "passing_2pt_conversions",
+        "passing_first_downs",
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "carries",
+        "rushing_yards",
+        "rushing_tds",
+        "fumbles_lost",
+        "passing_2pt_conversions",
+        "rushing_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 5.601984101383673,
+        "rmse": 7.356612387600988,
+        "bias": 0.39167406318066766,
+        "abs_bias": 0.39167406318066766,
+        "rank_mae": 11.320754716981131,
+        "spearman": 0.4896486383965021,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_ppg": {
+        "mae": 5.695916267970331,
+        "rmse": 7.355284504528467,
+        "bias": 0.8611428812295407,
+        "abs_bias": 0.8611428812295407,
+        "rank_mae": 11.358490566037736,
+        "spearman": 0.45275868334233993,
+        "top12_overlap": 0.5
+      },
+      "v972_expected_season": {
+        "mae": 87.09588128389973,
+        "rmse": 117.90204145425861,
+        "bias": -1.0504236091135775,
+        "abs_bias": 1.0504236091135775,
+        "rank_mae": 10.830188679245284,
+        "spearman": 0.5249662347106507,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_expected_season": {
+        "mae": 89.17476409900706,
+        "rmse": 114.72957350740444,
+        "bias": -2.3866225294034646,
+        "abs_bias": 2.3866225294034646,
+        "rank_mae": 10.79245283018868,
+        "spearman": 0.5429475679938817,
+        "top12_overlap": 0.5
+      },
+      "v972_full_schedule_season": {
+        "mae": 95.23372972352243,
+        "rmse": 125.06241058921681,
+        "bias": 6.658459074071349,
+        "abs_bias": 6.658459074071349,
+        "rank_mae": 11.320754716981131,
+        "spearman": 0.4896486383965021,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_full_schedule_season": {
+        "mae": 96.8305765554956,
+        "rmse": 125.03983657698394,
+        "bias": 14.639428980902196,
+        "abs_bias": 14.639428980902196,
+        "rank_mae": 11.358490566037736,
+        "spearman": 0.45275868334233993,
+        "top12_overlap": 0.5
+      },
+      "ppg_mae_improvement_vs_m9": 0.01649114245496616,
+      "expected_season_mae_improvement_vs_m9": 0.023312456568982193,
+      "full_schedule_mae_improvement_vs_m9": 0.016491142454965982,
+      "rank_mae_improvement_vs_m9": 0.003322259136212663,
+      "spearman_delta_vs_m9": 0.03688995505416215,
+      "top12_overlap_delta_vs_m9": 0.08333333333333337,
+      "abs_bias_reduction_ppg": 0.4694688180488731,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 151
+      },
+      "availability_games_mae": 4.245616971988154,
+      "full_schedule_games_mae": 7.7924528301886795,
+      "availability_mae_improvement_vs_full_schedule": 0.4551629551685904
+    },
+    {
+      "position": "QB",
+      "test_season": 2024,
+      "n_test": 55,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "passing_attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "passing_2pt_conversions",
+        "passing_first_downs",
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "carries",
+        "rushing_yards",
+        "rushing_tds",
+        "fumbles_lost",
+        "passing_2pt_conversions",
+        "rushing_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 4.286037997354375,
+        "rmse": 6.009645468857921,
+        "bias": 0.8029300944784079,
+        "abs_bias": 0.8029300944784079,
+        "rank_mae": 8.690909090909091,
+        "spearman": 0.6847763347763348,
+        "top12_overlap": 0.5
+      },
+      "m9_ppg": {
+        "mae": 5.052396772104804,
+        "rmse": 6.752351462072926,
+        "bias": 1.098971575928703,
+        "abs_bias": 1.098971575928703,
+        "rank_mae": 10.654545454545454,
+        "spearman": 0.5993506493506494,
+        "top12_overlap": 0.4166666666666667
+      },
+      "v972_expected_season": {
+        "mae": 81.52669768659467,
+        "rmse": 105.35043738694425,
+        "bias": -7.088458115076256,
+        "abs_bias": 7.088458115076256,
+        "rank_mae": 10.10909090909091,
+        "spearman": 0.6692640692640693,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_expected_season": {
+        "mae": 85.43160458512614,
+        "rmse": 110.10763813583853,
+        "bias": -8.03687534937522,
+        "abs_bias": 8.03687534937522,
+        "rank_mae": 10.4,
+        "spearman": 0.6229437229437231,
+        "top12_overlap": 0.5
+      },
+      "v972_full_schedule_season": {
+        "mae": 72.8626459550244,
+        "rmse": 102.16397297058467,
+        "bias": 13.649811606132932,
+        "abs_bias": 13.649811606132932,
+        "rank_mae": 8.690909090909091,
+        "spearman": 0.6847763347763348,
+        "top12_overlap": 0.5
+      },
+      "m9_full_schedule_season": {
+        "mae": 85.89074512578166,
+        "rmse": 114.78997485523973,
+        "bias": 18.68251679078795,
+        "abs_bias": 18.68251679078795,
+        "rank_mae": 10.654545454545454,
+        "spearman": 0.5993506493506494,
+        "top12_overlap": 0.4166666666666667
+      },
+      "ppg_mae_improvement_vs_m9": 0.1516822231740852,
+      "expected_season_mae_improvement_vs_m9": 0.04570798965434999,
+      "full_schedule_mae_improvement_vs_m9": 0.1516822231740849,
+      "rank_mae_improvement_vs_m9": 0.18430034129692827,
+      "spearman_delta_vs_m9": 0.0854256854256854,
+      "top12_overlap_delta_vs_m9": 0.08333333333333331,
+      "abs_bias_reduction_ppg": 0.2960414814502952,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 204
+      },
+      "availability_games_mae": 3.9091153217405794,
+      "full_schedule_games_mae": 7.654545454545454,
+      "availability_mae_improvement_vs_full_schedule": 0.4893079745944611
+    },
+    {
+      "position": "QB",
+      "test_season": 2025,
+      "n_test": 53,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "passing_attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "passing_2pt_conversions",
+        "passing_first_downs",
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "carries",
+        "rushing_yards",
+        "rushing_tds",
+        "fumbles_lost",
+        "passing_2pt_conversions",
+        "rushing_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 4.98697983679323,
+        "rmse": 6.232137558155234,
+        "bias": 0.44917449382026114,
+        "abs_bias": 0.44917449382026114,
+        "rank_mae": 10.49056603773585,
+        "spearman": 0.6397355265279794,
+        "top12_overlap": 0.5
+      },
+      "m9_ppg": {
+        "mae": 4.87732954731484,
+        "rmse": 6.152120618345186,
+        "bias": 0.6101471834989243,
+        "abs_bias": 0.6101471834989243,
+        "rank_mae": 9.962264150943396,
+        "spearman": 0.6576358651830351,
+        "top12_overlap": 0.5
+      },
+      "v972_expected_season": {
+        "mae": 83.6435613553522,
+        "rmse": 108.75372245360535,
+        "bias": -14.840692862860582,
+        "abs_bias": 14.840692862860582,
+        "rank_mae": 10.0,
+        "spearman": 0.6456216739235606,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_expected_season": {
+        "mae": 84.86378212337159,
+        "rmse": 108.17173881179023,
+        "bias": -17.283723327176762,
+        "abs_bias": 17.283723327176762,
+        "rank_mae": 9.69811320754717,
+        "spearman": 0.6562651185292694,
+        "top12_overlap": 0.5
+      },
+      "v972_full_schedule_season": {
+        "mae": 84.7786572254849,
+        "rmse": 105.94633848863896,
+        "bias": 7.635966394944441,
+        "abs_bias": 7.635966394944441,
+        "rank_mae": 10.49056603773585,
+        "spearman": 0.6397355265279794,
+        "top12_overlap": 0.5
+      },
+      "m9_full_schedule_season": {
+        "mae": 82.91460230435229,
+        "rmse": 104.58605051186818,
+        "bias": 10.372502119481718,
+        "abs_bias": 10.372502119481718,
+        "rank_mae": 9.962264150943396,
+        "spearman": 0.6576358651830351,
+        "top12_overlap": 0.5
+      },
+      "ppg_mae_improvement_vs_m9": -0.022481624096685596,
+      "expected_season_mae_improvement_vs_m9": 0.014378581032901403,
+      "full_schedule_mae_improvement_vs_m9": -0.022481624096685485,
+      "rank_mae_improvement_vs_m9": -0.05303030303030311,
+      "spearman_delta_vs_m9": -0.017900338655055692,
+      "top12_overlap_delta_vs_m9": 0.0,
+      "abs_bias_reduction_ppg": 0.16097268967866313,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 259
+      },
+      "availability_games_mae": 3.646934951928697,
+      "full_schedule_games_mae": 7.226415094339623,
+      "availability_mae_improvement_vs_full_schedule": 0.4953327612213552
+    },
+    {
+      "position": "RB",
+      "test_season": 2022,
+      "n_test": 113,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "carries",
+        "rushing_yards",
+        "rushing_tds",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 2.7066104942486047,
+        "rmse": 3.421883489480811,
+        "bias": 0.955625069384708,
+        "abs_bias": 0.955625069384708,
+        "rank_mae": 17.345132743362832,
+        "spearman": 0.7547389528015355,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_ppg": {
+        "mae": 2.7578358247809622,
+        "rmse": 3.4477610178077276,
+        "bias": 1.0516524769073297,
+        "abs_bias": 1.0516524769073297,
+        "rank_mae": 16.761061946902654,
+        "spearman": 0.7516177869180847,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_expected_season": {
+        "mae": 49.05626378272195,
+        "rmse": 65.93692703817969,
+        "bias": -4.275752030838572,
+        "abs_bias": 4.275752030838572,
+        "rank_mae": 18.495575221238937,
+        "spearman": 0.7215074855030544,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_expected_season": {
+        "mae": 48.61213011480393,
+        "rmse": 65.21809191096332,
+        "bias": -3.7581810578731636,
+        "abs_bias": 3.7581810578731636,
+        "rank_mae": 18.106194690265486,
+        "spearman": 0.731201667547493,
+        "top12_overlap": 0.5
+      },
+      "v972_full_schedule_season": {
+        "mae": 46.012378402226275,
+        "rmse": 58.172019321173785,
+        "bias": 16.24562617954004,
+        "abs_bias": 16.24562617954004,
+        "rank_mae": 17.345132743362832,
+        "spearman": 0.7547389528015355,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_full_schedule_season": {
+        "mae": 46.883209021276365,
+        "rmse": 58.61193730273138,
+        "bias": 17.878092107424607,
+        "abs_bias": 17.878092107424607,
+        "rank_mae": 16.761061946902654,
+        "spearman": 0.7516177869180847,
+        "top12_overlap": 0.5833333333333334
+      },
+      "ppg_mae_improvement_vs_m9": 0.01857446700491175,
+      "expected_season_mae_improvement_vs_m9": -0.009136272507893334,
+      "full_schedule_mae_improvement_vs_m9": 0.018574467004911974,
+      "rank_mae_improvement_vs_m9": -0.034846884899683295,
+      "spearman_delta_vs_m9": 0.003121165883450794,
+      "top12_overlap_delta_vs_m9": 0.0,
+      "abs_bias_reduction_ppg": 0.09602740752262162,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 221
+      },
+      "availability_games_mae": 4.3448803742704625,
+      "full_schedule_games_mae": 6.592920353982301,
+      "availability_mae_improvement_vs_full_schedule": 0.3409778761173661
+    },
+    {
+      "position": "RB",
+      "test_season": 2023,
+      "n_test": 107,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "carries",
+        "rushing_yards",
+        "rushing_tds",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 3.2008449239209837,
+        "rmse": 4.207685860892118,
+        "bias": 0.19530200168672074,
+        "abs_bias": 0.19530200168672074,
+        "rank_mae": 18.850467289719628,
+        "spearman": 0.6778459607285586,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_ppg": {
+        "mae": 3.1934740000155264,
+        "rmse": 4.210281771827175,
+        "bias": 0.24683771352003803,
+        "abs_bias": 0.24683771352003803,
+        "rank_mae": 19.0,
+        "spearman": 0.6717419325493844,
+        "top12_overlap": 0.4166666666666667
+      },
+      "v972_expected_season": {
+        "mae": 52.27286065510282,
+        "rmse": 70.87978002628167,
+        "bias": -11.547340285908238,
+        "abs_bias": 11.547340285908238,
+        "rank_mae": 19.345794392523363,
+        "spearman": 0.657842080289845,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_expected_season": {
+        "mae": 51.93919668005133,
+        "rmse": 70.71992056223982,
+        "bias": -11.349314123201264,
+        "abs_bias": 11.349314123201264,
+        "rank_mae": 19.345794392523363,
+        "spearman": 0.6425819350733778,
+        "top12_overlap": 0.4166666666666667
+      },
+      "v972_full_schedule_season": {
+        "mae": 54.414363706656715,
+        "rmse": 71.530659635166,
+        "bias": 3.3201340286742522,
+        "abs_bias": 3.3201340286742522,
+        "rank_mae": 18.850467289719628,
+        "spearman": 0.6778459607285586,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_full_schedule_season": {
+        "mae": 54.289058000263964,
+        "rmse": 71.57479012106198,
+        "bias": 4.1962411298406455,
+        "abs_bias": 4.1962411298406455,
+        "rank_mae": 19.0,
+        "spearman": 0.6717419325493844,
+        "top12_overlap": 0.4166666666666667
+      },
+      "ppg_mae_improvement_vs_m9": -0.002308120844391253,
+      "expected_season_mae_improvement_vs_m9": -0.006424126601473585,
+      "full_schedule_mae_improvement_vs_m9": -0.002308120844390819,
+      "rank_mae_improvement_vs_m9": 0.007870142646335372,
+      "spearman_delta_vs_m9": 0.006104028179174215,
+      "top12_overlap_delta_vs_m9": 0.0,
+      "abs_bias_reduction_ppg": 0.05153571183331729,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 334
+      },
+      "availability_games_mae": 4.063868351787398,
+      "full_schedule_games_mae": 6.140186915887851,
+      "availability_mae_improvement_vs_full_schedule": 0.3381523384455837
+    },
+    {
+      "position": "RB",
+      "test_season": 2024,
+      "n_test": 100,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "carries",
+        "rushing_yards",
+        "rushing_tds",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 2.8347922834916806,
+        "rmse": 3.7550861314668897,
+        "bias": -0.3841273600052084,
+        "abs_bias": 0.3841273600052084,
+        "rank_mae": 13.01,
+        "spearman": 0.8069134217004708,
+        "top12_overlap": 0.5
+      },
+      "m9_ppg": {
+        "mae": 2.8237248981766077,
+        "rmse": 3.748441454305298,
+        "bias": -0.357510402882715,
+        "abs_bias": 0.357510402882715,
+        "rank_mae": 13.39,
+        "spearman": 0.802243870899288,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_expected_season": {
+        "mae": 51.01781092537258,
+        "rmse": 72.66168985308231,
+        "bias": -20.650768092151463,
+        "abs_bias": 20.650768092151463,
+        "rank_mae": 14.29,
+        "spearman": 0.7794181235162034,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_expected_season": {
+        "mae": 51.329779074226174,
+        "rmse": 72.43467160808768,
+        "bias": -20.881598475521525,
+        "abs_bias": 20.881598475521525,
+        "rank_mae": 14.27,
+        "spearman": 0.7831388974588877,
+        "top12_overlap": 0.4166666666666667
+      },
+      "v972_full_schedule_season": {
+        "mae": 48.19146881935857,
+        "rmse": 63.83646423493712,
+        "bias": -6.5301651200885455,
+        "abs_bias": 6.5301651200885455,
+        "rank_mae": 13.01,
+        "spearman": 0.8069134217004708,
+        "top12_overlap": 0.5
+      },
+      "m9_full_schedule_season": {
+        "mae": 48.00332326900232,
+        "rmse": 63.72350472319006,
+        "bias": -6.077676849006154,
+        "abs_bias": 6.077676849006154,
+        "rank_mae": 13.39,
+        "spearman": 0.802243870899288,
+        "top12_overlap": 0.5833333333333334
+      },
+      "ppg_mae_improvement_vs_m9": -0.003919427605082759,
+      "expected_season_mae_improvement_vs_m9": 0.006077722415334547,
+      "full_schedule_mae_improvement_vs_m9": -0.003919427605082907,
+      "rank_mae_improvement_vs_m9": 0.02837938760268863,
+      "spearman_delta_vs_m9": 0.004669550801182809,
+      "top12_overlap_delta_vs_m9": -0.08333333333333337,
+      "abs_bias_reduction_ppg": -0.0266169571224934,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 441
+      },
+      "availability_games_mae": 3.8774521885158064,
+      "full_schedule_games_mae": 5.29,
+      "availability_mae_improvement_vs_full_schedule": 0.26702227060192696
+    },
+    {
+      "position": "RB",
+      "test_season": 2025,
+      "n_test": 100,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "carries",
+        "rushing_yards",
+        "rushing_tds",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 2.7244068661211016,
+        "rmse": 3.5700663150971423,
+        "bias": 0.30404212224268684,
+        "abs_bias": 0.30404212224268684,
+        "rank_mae": 12.97,
+        "spearman": 0.8153329671579068,
+        "top12_overlap": 0.75
+      },
+      "m9_ppg": {
+        "mae": 2.6812348602521836,
+        "rmse": 3.48944752919433,
+        "bias": 0.24811411749260118,
+        "abs_bias": 0.24811411749260118,
+        "rank_mae": 12.88,
+        "spearman": 0.8221066665814237,
+        "top12_overlap": 0.6666666666666666
+      },
+      "v972_expected_season": {
+        "mae": 50.3649213987857,
+        "rmse": 71.90205269081602,
+        "bias": -11.255424435627994,
+        "abs_bias": 11.255424435627994,
+        "rank_mae": 15.29,
+        "spearman": 0.7520720791376713,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_expected_season": {
+        "mae": 49.428060463880705,
+        "rmse": 70.86676431272879,
+        "bias": -12.527597729631516,
+        "abs_bias": 12.527597729631516,
+        "rank_mae": 14.69,
+        "spearman": 0.7659418796730365,
+        "top12_overlap": 0.6666666666666666
+      },
+      "v972_full_schedule_season": {
+        "mae": 46.31491672405872,
+        "rmse": 60.69112735665141,
+        "bias": 5.168716078125675,
+        "abs_bias": 5.168716078125675,
+        "rank_mae": 12.97,
+        "spearman": 0.8153329671579068,
+        "top12_overlap": 0.75
+      },
+      "m9_full_schedule_season": {
+        "mae": 45.580992624287134,
+        "rmse": 59.3206079963036,
+        "bias": 4.21793999737422,
+        "abs_bias": 4.21793999737422,
+        "rank_mae": 12.88,
+        "spearman": 0.8221066665814237,
+        "top12_overlap": 0.6666666666666666
+      },
+      "ppg_mae_improvement_vs_m9": -0.016101538328073754,
+      "expected_season_mae_improvement_vs_m9": -0.01895402987923425,
+      "full_schedule_mae_improvement_vs_m9": -0.01610153832807328,
+      "rank_mae_improvement_vs_m9": -0.006987577639751542,
+      "spearman_delta_vs_m9": -0.00677369942351691,
+      "top12_overlap_delta_vs_m9": 0.08333333333333337,
+      "abs_bias_reduction_ppg": -0.055928004750085664,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 541
+      },
+      "availability_games_mae": 4.44451954420423,
+      "full_schedule_games_mae": 5.29,
+      "availability_mae_improvement_vs_full_schedule": 0.15982617311829306
+    },
+    {
+      "position": "WR",
+      "test_season": 2022,
+      "n_test": 177,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 2.6289451367412213,
+        "rmse": 3.209100756116002,
+        "bias": 0.2797715645403254,
+        "abs_bias": 0.2797715645403254,
+        "rank_mae": 28.937853107344633,
+        "spearman": 0.7290497288159563,
+        "top12_overlap": 0.6666666666666666
+      },
+      "m9_ppg": {
+        "mae": 2.6273864733194316,
+        "rmse": 3.181983664526748,
+        "bias": 0.2833177647867778,
+        "abs_bias": 0.2833177647867778,
+        "rank_mae": 28.29943502824859,
+        "spearman": 0.734185011239584,
+        "top12_overlap": 0.6666666666666666
+      },
+      "v972_expected_season": {
+        "mae": 42.60606658080591,
+        "rmse": 55.378431888840076,
+        "bias": -3.9403218594463705,
+        "abs_bias": 3.9403218594463705,
+        "rank_mae": 29.361581920903955,
+        "spearman": 0.7136408782459153,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_expected_season": {
+        "mae": 42.52001814367816,
+        "rmse": 55.061494662754534,
+        "bias": -5.003965621315053,
+        "abs_bias": 5.003965621315053,
+        "rank_mae": 28.62146892655367,
+        "spearman": 0.7280120861262814,
+        "top12_overlap": 0.4166666666666667
+      },
+      "v972_full_schedule_season": {
+        "mae": 44.69206732460077,
+        "rmse": 54.554712853972035,
+        "bias": 4.756116597185531,
+        "abs_bias": 4.756116597185531,
+        "rank_mae": 28.937853107344633,
+        "spearman": 0.7290497288159563,
+        "top12_overlap": 0.6666666666666666
+      },
+      "m9_full_schedule_season": {
+        "mae": 44.66557004643035,
+        "rmse": 54.09372229695472,
+        "bias": 4.816402001375223,
+        "abs_bias": 4.816402001375223,
+        "rank_mae": 28.29943502824859,
+        "spearman": 0.734185011239584,
+        "top12_overlap": 0.6666666666666666
+      },
+      "ppg_mae_improvement_vs_m9": -0.0005932372102915122,
+      "expected_season_mae_improvement_vs_m9": -0.0020237159080456414,
+      "full_schedule_mae_improvement_vs_m9": -0.0005932372102915121,
+      "rank_mae_improvement_vs_m9": -0.02255939309243361,
+      "spearman_delta_vs_m9": -0.005135282423627707,
+      "top12_overlap_delta_vs_m9": 0.0,
+      "abs_bias_reduction_ppg": 0.003546200246452358,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 323
+      },
+      "availability_games_mae": 4.0702944785194175,
+      "full_schedule_games_mae": 6.146892655367232,
+      "availability_mae_improvement_vs_full_schedule": 0.33782893134380804
+    },
+    {
+      "position": "WR",
+      "test_season": 2023,
+      "n_test": 160,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 2.549280055396721,
+        "rmse": 3.176303803065892,
+        "bias": 0.5795262600558331,
+        "abs_bias": 0.5795262600558331,
+        "rank_mae": 21.75,
+        "spearman": 0.7948883956628426,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_ppg": {
+        "mae": 2.5836937838492813,
+        "rmse": 3.2381075254132,
+        "bias": 0.6046186609943394,
+        "abs_bias": 0.6046186609943394,
+        "rank_mae": 22.15,
+        "spearman": 0.7946093472910211,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_expected_season": {
+        "mae": 40.81584001291812,
+        "rmse": 53.8141411624655,
+        "bias": -5.001808261328609,
+        "abs_bias": 5.001808261328609,
+        "rank_mae": 22.05625,
+        "spearman": 0.79346771963768,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_expected_season": {
+        "mae": 41.14300614981077,
+        "rmse": 53.960926647012826,
+        "bias": -5.431943126053457,
+        "abs_bias": 5.431943126053457,
+        "rank_mae": 21.86875,
+        "spearman": 0.8044648804254494,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_full_schedule_season": {
+        "mae": 43.337760941744264,
+        "rmse": 53.99716465212016,
+        "bias": 9.851946420949162,
+        "abs_bias": 9.851946420949162,
+        "rank_mae": 21.75,
+        "spearman": 0.7948883956628426,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_full_schedule_season": {
+        "mae": 43.922794325437785,
+        "rmse": 55.0478279320244,
+        "bias": 10.27851723690377,
+        "abs_bias": 10.27851723690377,
+        "rank_mae": 22.15,
+        "spearman": 0.7946093472910211,
+        "top12_overlap": 0.5833333333333334
+      },
+      "ppg_mae_improvement_vs_m9": 0.013319584800521318,
+      "expected_season_mae_improvement_vs_m9": 0.007951925916676239,
+      "full_schedule_mae_improvement_vs_m9": 0.013319584800521216,
+      "rank_mae_improvement_vs_m9": 0.01805869074492093,
+      "spearman_delta_vs_m9": 0.0002790483718215775,
+      "top12_overlap_delta_vs_m9": 0.0,
+      "abs_bias_reduction_ppg": 0.025092400938506287,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 500
+      },
+      "availability_games_mae": 3.755489897522118,
+      "full_schedule_games_mae": 5.24375,
+      "availability_mae_improvement_vs_full_schedule": 0.28381599093737925
+    },
+    {
+      "position": "WR",
+      "test_season": 2024,
+      "n_test": 164,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 2.955885957827179,
+        "rmse": 3.6101261161697655,
+        "bias": -0.02237853789982606,
+        "abs_bias": 0.02237853789982606,
+        "rank_mae": 27.359756097560975,
+        "spearman": 0.7433772160657391,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_ppg": {
+        "mae": 2.921025158464156,
+        "rmse": 3.5988041840119602,
+        "bias": -0.10368316057071413,
+        "abs_bias": 0.10368316057071413,
+        "rank_mae": 26.98170731707317,
+        "spearman": 0.7480093981558122,
+        "top12_overlap": 0.5
+      },
+      "v972_expected_season": {
+        "mae": 46.19160835835995,
+        "rmse": 59.5701335791497,
+        "bias": -7.934345745171336,
+        "abs_bias": 7.934345745171336,
+        "rank_mae": 28.634146341463413,
+        "spearman": 0.713450173529546,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_expected_season": {
+        "mae": 45.11806818793435,
+        "rmse": 58.88646620656563,
+        "bias": -9.349044086335514,
+        "abs_bias": 9.349044086335514,
+        "rank_mae": 28.371951219512194,
+        "spearman": 0.7240145551584939,
+        "top12_overlap": 0.4166666666666667
+      },
+      "v972_full_schedule_season": {
+        "mae": 50.250061283062045,
+        "rmse": 61.372143974886015,
+        "bias": -0.3804351442970431,
+        "abs_bias": 0.3804351442970431,
+        "rank_mae": 27.359756097560975,
+        "spearman": 0.7433772160657391,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_full_schedule_season": {
+        "mae": 49.65742769389065,
+        "rmse": 61.17967112820332,
+        "bias": -1.7626137297021414,
+        "abs_bias": 1.7626137297021414,
+        "rank_mae": 26.98170731707317,
+        "spearman": 0.7480093981558122,
+        "top12_overlap": 0.5
+      },
+      "ppg_mae_improvement_vs_m9": -0.011934439955783345,
+      "expected_season_mae_improvement_vs_m9": -0.023794018971598885,
+      "full_schedule_mae_improvement_vs_m9": -0.011934439955783506,
+      "rank_mae_improvement_vs_m9": -0.014011299435028279,
+      "spearman_delta_vs_m9": -0.0046321820900731,
+      "top12_overlap_delta_vs_m9": 0.08333333333333337,
+      "abs_bias_reduction_ppg": 0.08130462267088806,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 660
+      },
+      "availability_games_mae": 3.8682415676218995,
+      "full_schedule_games_mae": 5.524390243902439,
+      "availability_mae_improvement_vs_full_schedule": 0.29978850210817715
+    },
+    {
+      "position": "WR",
+      "test_season": 2025,
+      "n_test": 165,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 2.225931526810604,
+        "rmse": 2.9055891038094908,
+        "bias": 0.3783119087284038,
+        "abs_bias": 0.3783119087284038,
+        "rank_mae": 22.10909090909091,
+        "spearman": 0.8230922142517682,
+        "top12_overlap": 0.5
+      },
+      "m9_ppg": {
+        "mae": 2.2181600824429557,
+        "rmse": 2.882876071624704,
+        "bias": 0.4370162567353835,
+        "abs_bias": 0.4370162567353835,
+        "rank_mae": 21.8969696969697,
+        "spearman": 0.8254324162980979,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_expected_season": {
+        "mae": 38.70297902596136,
+        "rmse": 53.892923346737604,
+        "bias": -2.9636859210911513,
+        "abs_bias": 2.9636859210911513,
+        "rank_mae": 24.206060606060607,
+        "spearman": 0.7866022113034162,
+        "top12_overlap": 0.3333333333333333
+      },
+      "m9_expected_season": {
+        "mae": 38.4669158156157,
+        "rmse": 53.11883010528162,
+        "bias": -2.873364989202698,
+        "abs_bias": 2.873364989202698,
+        "rank_mae": 23.775757575757577,
+        "spearman": 0.7903718341873438,
+        "top12_overlap": 0.4166666666666667
+      },
+      "v972_full_schedule_season": {
+        "mae": 37.84083595578027,
+        "rmse": 49.39501476476134,
+        "bias": 6.431302448382862,
+        "abs_bias": 6.431302448382862,
+        "rank_mae": 22.10909090909091,
+        "spearman": 0.8230922142517682,
+        "top12_overlap": 0.5
+      },
+      "m9_full_schedule_season": {
+        "mae": 37.70872140153024,
+        "rmse": 49.00889321761997,
+        "bias": 7.429276364501518,
+        "abs_bias": 7.429276364501518,
+        "rank_mae": 21.8969696969697,
+        "spearman": 0.8254324162980979,
+        "top12_overlap": 0.5833333333333334
+      },
+      "ppg_mae_improvement_vs_m9": -0.0035035543327826004,
+      "expected_season_mae_improvement_vs_m9": -0.006136785477608583,
+      "full_schedule_mae_improvement_vs_m9": -0.0035035543327827895,
+      "rank_mae_improvement_vs_m9": -0.009687240520343155,
+      "spearman_delta_vs_m9": -0.002340202046329787,
+      "top12_overlap_delta_vs_m9": -0.08333333333333337,
+      "abs_bias_reduction_ppg": 0.05870434800697971,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 824
+      },
+      "availability_games_mae": 3.6111652304384587,
+      "full_schedule_games_mae": 5.575757575757576,
+      "availability_mae_improvement_vs_full_schedule": 0.3523453662800591
+    },
+    {
+      "position": "TE",
+      "test_season": 2022,
+      "n_test": 93,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 1.8149592399016967,
+        "rmse": 2.211668088912283,
+        "bias": 0.2790777779908961,
+        "abs_bias": 0.2790777779908961,
+        "rank_mae": 15.505376344086022,
+        "spearman": 0.7203020692074138,
+        "top12_overlap": 0.75
+      },
+      "m9_ppg": {
+        "mae": 1.760378547287578,
+        "rmse": 2.1931361434279717,
+        "bias": 0.4261880240772164,
+        "abs_bias": 0.4261880240772164,
+        "rank_mae": 15.204301075268818,
+        "spearman": 0.7181083012512234,
+        "top12_overlap": 0.6666666666666666
+      },
+      "v972_expected_season": {
+        "mae": 30.22987870645828,
+        "rmse": 39.587484487933565,
+        "bias": -3.102774116733856,
+        "abs_bias": 3.102774116733856,
+        "rank_mae": 15.774193548387096,
+        "spearman": 0.728590100258205,
+        "top12_overlap": 0.5
+      },
+      "m9_expected_season": {
+        "mae": 29.299274023570693,
+        "rmse": 38.36662522139156,
+        "bias": -2.1611017592620416,
+        "abs_bias": 2.1611017592620416,
+        "rank_mae": 14.96774193548387,
+        "spearman": 0.7425064532311219,
+        "top12_overlap": 0.5
+      },
+      "v972_full_schedule_season": {
+        "mae": 30.85430707832885,
+        "rmse": 37.59835751150881,
+        "bias": 4.744322225845233,
+        "abs_bias": 4.744322225845233,
+        "rank_mae": 15.505376344086022,
+        "spearman": 0.7203020692074138,
+        "top12_overlap": 0.75
+      },
+      "m9_full_schedule_season": {
+        "mae": 29.926435303888816,
+        "rmse": 37.28331443827552,
+        "bias": 7.245196409312676,
+        "abs_bias": 7.245196409312676,
+        "rank_mae": 15.204301075268818,
+        "spearman": 0.7181083012512234,
+        "top12_overlap": 0.6666666666666666
+      },
+      "ppg_mae_improvement_vs_m9": -0.031005088478394425,
+      "expected_season_mae_improvement_vs_m9": -0.031762038954922016,
+      "full_schedule_mae_improvement_vs_m9": -0.03100508847839496,
+      "rank_mae_improvement_vs_m9": -0.019801980198019785,
+      "spearman_delta_vs_m9": 0.0021937679561904178,
+      "top12_overlap_delta_vs_m9": 0.08333333333333337,
+      "abs_bias_reduction_ppg": 0.14711024608632028,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 174
+      },
+      "availability_games_mae": 3.498860650258532,
+      "full_schedule_games_mae": 6.548387096774194,
+      "availability_mae_improvement_vs_full_schedule": 0.4656912307486971
+    },
+    {
+      "position": "TE",
+      "test_season": 2023,
+      "n_test": 90,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 1.8427806797703603,
+        "rmse": 2.3250597709153324,
+        "bias": 0.5967831214915095,
+        "abs_bias": 0.5967831214915095,
+        "rank_mae": 12.744444444444444,
+        "spearman": 0.7752526476407522,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_ppg": {
+        "mae": 1.7139358348841194,
+        "rmse": 2.1149531346126924,
+        "bias": 0.5111921535322101,
+        "abs_bias": 0.5111921535322101,
+        "rank_mae": 11.777777777777779,
+        "spearman": 0.812595970316167,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_expected_season": {
+        "mae": 29.91701969432571,
+        "rmse": 39.60581176629649,
+        "bias": -0.7839480497292054,
+        "abs_bias": 0.7839480497292054,
+        "rank_mae": 12.655555555555555,
+        "spearman": 0.7905916155535628,
+        "top12_overlap": 0.6666666666666666
+      },
+      "m9_expected_season": {
+        "mae": 28.36719930907358,
+        "rmse": 37.49061123783797,
+        "bias": -2.196437168058762,
+        "abs_bias": 2.196437168058762,
+        "rank_mae": 11.977777777777778,
+        "spearman": 0.8207070391680056,
+        "top12_overlap": 0.6666666666666666
+      },
+      "v972_full_schedule_season": {
+        "mae": 31.32727155609613,
+        "rmse": 39.52601610556065,
+        "bias": 10.145313065355662,
+        "abs_bias": 10.145313065355662,
+        "rank_mae": 12.744444444444444,
+        "spearman": 0.7752526476407522,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_full_schedule_season": {
+        "mae": 29.13690919303003,
+        "rmse": 35.95420328841577,
+        "bias": 8.690266610047575,
+        "abs_bias": 8.690266610047575,
+        "rank_mae": 11.777777777777779,
+        "spearman": 0.812595970316167,
+        "top12_overlap": 0.5833333333333334
+      },
+      "ppg_mae_improvement_vs_m9": -0.07517483575746127,
+      "expected_season_mae_improvement_vs_m9": -0.05463424035507097,
+      "full_schedule_mae_improvement_vs_m9": -0.07517483575746142,
+      "rank_mae_improvement_vs_m9": -0.08207547169811306,
+      "spearman_delta_vs_m9": -0.03734332267541485,
+      "top12_overlap_delta_vs_m9": 0.0,
+      "abs_bias_reduction_ppg": -0.08559096795929932,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 267
+      },
+      "availability_games_mae": 3.487837455225973,
+      "full_schedule_games_mae": 6.522222222222222,
+      "availability_mae_improvement_vs_full_schedule": 0.46523786887506374
+    },
+    {
+      "position": "TE",
+      "test_season": 2024,
+      "n_test": 88,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 1.8695247512339435,
+        "rmse": 2.377423675517509,
+        "bias": -0.10627677089165348,
+        "abs_bias": 0.10627677089165348,
+        "rank_mae": 14.204545454545455,
+        "spearman": 0.7394306050721896,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_ppg": {
+        "mae": 1.8567080738792858,
+        "rmse": 2.406159399429516,
+        "bias": -0.07797899145136601,
+        "abs_bias": 0.07797899145136601,
+        "rank_mae": 14.852272727272727,
+        "spearman": 0.7186924865410055,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_expected_season": {
+        "mae": 31.97130201670584,
+        "rmse": 43.481414643593986,
+        "bias": -9.242265961706613,
+        "abs_bias": 9.242265961706613,
+        "rank_mae": 14.670454545454545,
+        "spearman": 0.7220627354695721,
+        "top12_overlap": 0.4166666666666667
+      },
+      "m9_expected_season": {
+        "mae": 32.298730629895324,
+        "rmse": 43.51884939948113,
+        "bias": -9.352284609701474,
+        "abs_bias": 9.352284609701474,
+        "rank_mae": 15.0,
+        "spearman": 0.7106500652762875,
+        "top12_overlap": 0.5
+      },
+      "v972_full_schedule_season": {
+        "mae": 31.781920770977045,
+        "rmse": 40.416202483797655,
+        "bias": -1.8067051051581111,
+        "abs_bias": 1.8067051051581111,
+        "rank_mae": 14.204545454545455,
+        "spearman": 0.7394306050721896,
+        "top12_overlap": 0.5833333333333334
+      },
+      "m9_full_schedule_season": {
+        "mae": 31.56403725594786,
+        "rmse": 40.904709790301766,
+        "bias": -1.325642854673221,
+        "abs_bias": 1.325642854673221,
+        "rank_mae": 14.852272727272727,
+        "spearman": 0.7186924865410055,
+        "top12_overlap": 0.5833333333333334
+      },
+      "ppg_mae_improvement_vs_m9": -0.006902903873240179,
+      "expected_season_mae_improvement_vs_m9": 0.010137507165263595,
+      "full_schedule_mae_improvement_vs_m9": -0.006902903873240376,
+      "rank_mae_improvement_vs_m9": 0.043611323641928004,
+      "spearman_delta_vs_m9": 0.020738118531184124,
+      "top12_overlap_delta_vs_m9": 0.0,
+      "abs_bias_reduction_ppg": -0.02829777944028747,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 357
+      },
+      "availability_games_mae": 3.399963938648544,
+      "full_schedule_games_mae": 5.681818181818182,
+      "availability_mae_improvement_vs_full_schedule": 0.4016063467978563
+    },
+    {
+      "position": "TE",
+      "test_season": 2025,
+      "n_test": 96,
+      "v972_exact_scoring_replay": true,
+      "m9_exact_scoring_replay": false,
+      "v972_targets": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "m9_targets": [
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "fumbles_lost",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "receiving_2pt_conversions"
+      ],
+      "v972_ppg": {
+        "mae": 1.868317025617601,
+        "rmse": 2.530163583312546,
+        "bias": 0.041316156948638626,
+        "abs_bias": 0.041316156948638626,
+        "rank_mae": 14.458333333333334,
+        "spearman": 0.7773030020113141,
+        "top12_overlap": 0.5
+      },
+      "m9_ppg": {
+        "mae": 1.826176625827771,
+        "rmse": 2.5576537295016664,
+        "bias": 0.0912751356884951,
+        "abs_bias": 0.0912751356884951,
+        "rank_mae": 13.583333333333334,
+        "spearman": 0.7928172955052104,
+        "top12_overlap": 0.5833333333333334
+      },
+      "v972_expected_season": {
+        "mae": 27.981312978161082,
+        "rmse": 39.0473457003222,
+        "bias": -4.417647826775375,
+        "abs_bias": 4.417647826775375,
+        "rank_mae": 14.78125,
+        "spearman": 0.7809599389055197,
+        "top12_overlap": 0.5
+      },
+      "m9_expected_season": {
+        "mae": 27.00631191253667,
+        "rmse": 38.331224629083664,
+        "bias": -4.639374070299317,
+        "abs_bias": 4.639374070299317,
+        "rank_mae": 14.135416666666666,
+        "spearman": 0.7988863004289195,
+        "top12_overlap": 0.5
+      },
+      "v972_full_schedule_season": {
+        "mae": 31.76138943549921,
+        "rmse": 43.01278091631328,
+        "bias": 0.7023746681268571,
+        "abs_bias": 0.7023746681268571,
+        "rank_mae": 14.458333333333334,
+        "spearman": 0.7773030020113141,
+        "top12_overlap": 0.5
+      },
+      "m9_full_schedule_season": {
+        "mae": 31.04500263907211,
+        "rmse": 43.48011340152833,
+        "bias": 1.5516773067044156,
+        "abs_bias": 1.5516773067044156,
+        "rank_mae": 13.583333333333334,
+        "spearman": 0.7928172955052104,
+        "top12_overlap": 0.5833333333333334
+      },
+      "ppg_mae_improvement_vs_m9": -0.023075752473136896,
+      "expected_season_mae_improvement_vs_m9": -0.0361027106841569,
+      "full_schedule_mae_improvement_vs_m9": -0.02307575247313665,
+      "rank_mae_improvement_vs_m9": -0.06441717791411043,
+      "spearman_delta_vs_m9": -0.015514293493896325,
+      "top12_overlap_delta_vs_m9": -0.08333333333333337,
+      "abs_bias_reduction_ppg": 0.049958978739856476,
+      "availability_model": {
+        "status": "ridge",
+        "features": [
+          "prev_games",
+          "target_schedule_games"
+        ],
+        "n_train": 445
+      },
+      "availability_games_mae": 3.075249123238874,
+      "full_schedule_games_mae": 6.1875,
+      "availability_mae_improvement_vs_full_schedule": 0.5029900406886668
+    }
+  ],
+  "football_model_promotion_review_positions": [],
+  "expected_season_points_ready_positions": [],
+  "production_activation_allowed": false,
+  "replacement_claim_vs_market_fallback": false
+}

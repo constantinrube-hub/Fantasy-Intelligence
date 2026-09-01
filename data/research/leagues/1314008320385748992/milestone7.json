@@ -1,0 +1,3322 @@
+{
+  "schema_version": 7,
+  "milestone": "M7",
+  "control_build": "V8.2.2",
+  "research_build": "V9.4-M7",
+  "generated_at": "2026-08-31T21:08:35.413099+00:00",
+  "status": "complete",
+  "steps_completed": [
+    31,
+    32,
+    33
+  ],
+  "scoring_signature": "04bb08fb8d01d6e8",
+  "methodology": {
+    "step31": "Separate opportunity, conversion/ability and persistence feature families by position. Same-week outcomes are descriptive; forward correlations use future games only.",
+    "step32": "Test each feature family as a residual correction after the existing M4 OOS FIE projection. Promotion uses the existing chronological expanding-window robust gate.",
+    "step33": "Publish a driver evidence ranking that combines forward association, persistence and family-level incremental evidence. The ranking is predictive, not causal, and never activates a model by itself.",
+    "anti_double_counting": "Mechanism interactions are residual candidates. They are not independent point bonuses and cannot stack directly onto projections."
+  },
+  "driver_research": {
+    "feature_evidence": [
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "qb_pass_attempt_share_prior4",
+        "same_week_spearman": 0.36066568764617646,
+        "same_week_n": 4180,
+        "next_week_spearman": 0.2882257600547835,
+        "next_week_n": 3670,
+        "next3_spearman": 0.3162335077916752,
+        "next3_n": 3670,
+        "persistence_spearman": 0.30417315590538296,
+        "persistence_n": 3670,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "qb_rush_share_prior4",
+        "same_week_spearman": 0.2798508887883138,
+        "same_week_n": 4180,
+        "next_week_spearman": 0.2393660145420643,
+        "next_week_n": 3670,
+        "next3_spearman": 0.2759212396323855,
+        "next3_n": 3670,
+        "persistence_spearman": 0.4885926811765578,
+        "persistence_n": 3670,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "inside_5_carry_share_prior4",
+        "same_week_spearman": 0.0689071030706487,
+        "same_week_n": 1572,
+        "next_week_spearman": 0.030795090447179853,
+        "next_week_n": 1420,
+        "next3_spearman": 0.02025489839435021,
+        "next3_n": 1420,
+        "persistence_spearman": 0.043276043836171924,
+        "persistence_n": 592,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "snap_share_prior4",
+        "same_week_spearman": 0.3438023147800877,
+        "same_week_n": 4180,
+        "next_week_spearman": 0.26461052914094235,
+        "next_week_n": 3670,
+        "next3_spearman": 0.2801811077412739,
+        "next3_n": 3670,
+        "persistence_spearman": 0.2914331385120297,
+        "persistence_n": 3670,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "team_pass_attempts_prior4_team",
+        "same_week_spearman": 0.028352784512177858,
+        "same_week_n": 4414,
+        "next_week_spearman": 0.020531435449602207,
+        "next_week_n": 3860,
+        "next3_spearman": 0.01414443034433123,
+        "next3_n": 3860,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "team_plays_prior4_team",
+        "same_week_spearman": 0.048348586252752866,
+        "same_week_n": 4414,
+        "next_week_spearman": 0.053162280639210704,
+        "next_week_n": 3860,
+        "next3_spearman": 0.07248714413703225,
+        "next3_n": 3860,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "opportunity_change_score_prior1",
+        "same_week_spearman": -0.014817374213837631,
+        "same_week_n": 1128,
+        "next_week_spearman": -0.04080398196726604,
+        "next_week_n": 966,
+        "next3_spearman": -0.08378814541745197,
+        "next3_n": 966,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "passing_accuracy",
+        "feature": "pfr_passing_bad_throw_pct_prior4",
+        "same_week_spearman": -0.06395712570353397,
+        "same_week_n": 3342,
+        "next_week_spearman": -0.06758884546164592,
+        "next_week_n": 2935,
+        "next3_spearman": -0.09152252032027541,
+        "next3_n": 2935,
+        "persistence_spearman": 0.11957963142782235,
+        "persistence_n": 2893,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "pressure_response",
+        "feature": "pfr_times_pressured_pct_prior4",
+        "same_week_spearman": -0.028211258610695056,
+        "same_week_n": 3342,
+        "next_week_spearman": -0.037654045339204176,
+        "next_week_n": 2935,
+        "next3_spearman": -0.05314465184722391,
+        "next3_n": 2935,
+        "persistence_spearman": 0.17883427062374924,
+        "persistence_n": 2893,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "pressure_response",
+        "feature": "pfr_times_sacked_prior4",
+        "same_week_spearman": 0.058799879455729266,
+        "same_week_n": 3342,
+        "next_week_spearman": 0.02188768904170736,
+        "next_week_n": 2935,
+        "next3_spearman": -0.008094662459694157,
+        "next3_n": 2935,
+        "persistence_spearman": 0.16542645546905482,
+        "persistence_n": 2893,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "rushing_leverage",
+        "feature": "qb_rush_share_prior4",
+        "same_week_spearman": 0.2798508887883138,
+        "same_week_n": 4180,
+        "next_week_spearman": 0.2393660145420643,
+        "next_week_n": 3670,
+        "next3_spearman": 0.2759212396323855,
+        "next3_n": 3670,
+        "persistence_spearman": 0.4885926811765578,
+        "persistence_n": 3670,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "rushing_leverage",
+        "feature": "inside_5_carry_share_prior4",
+        "same_week_spearman": 0.0689071030706487,
+        "same_week_n": 1572,
+        "next_week_spearman": 0.030795090447179853,
+        "next_week_n": 1420,
+        "next3_spearman": 0.02025489839435021,
+        "next3_n": 1420,
+        "persistence_spearman": 0.043276043836171924,
+        "persistence_n": 592,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "rushing_leverage",
+        "feature": "m7_qb_rush_goal_role",
+        "same_week_spearman": 0.14379021254669266,
+        "same_week_n": 1572,
+        "next_week_spearman": 0.1218938602230822,
+        "next_week_n": 1420,
+        "next3_spearman": 0.13590783121537262,
+        "next3_n": 1420,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "regression",
+        "feature": "xfp_residual_prior4",
+        "same_week_spearman": 0.22143371572696302,
+        "same_week_n": 2008,
+        "next_week_spearman": 0.18398866325534816,
+        "next_week_n": 1751,
+        "next3_spearman": 0.25366143474653674,
+        "next3_n": 1751,
+        "persistence_spearman": 0.14625373315965287,
+        "persistence_n": 1751,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "QB",
+        "family": "regression",
+        "feature": "opportunity_xfp_realized_prior4",
+        "same_week_spearman": 0.3585127864562585,
+        "same_week_n": 2008,
+        "next_week_spearman": 0.28621400085179927,
+        "next_week_n": 1751,
+        "next3_spearman": 0.3271725978692813,
+        "next3_n": 1751,
+        "persistence_spearman": 0.3461434271007361,
+        "persistence_n": 1751,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "offense_snap_share_prior4",
+        "same_week_spearman": 0.6459876915308744,
+        "same_week_n": 8550,
+        "next_week_spearman": 0.6135298261952938,
+        "next_week_n": 7623,
+        "next3_spearman": 0.6737001201147754,
+        "next3_n": 7623,
+        "persistence_spearman": 0.7441981012752887,
+        "persistence_n": 7623,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "carry_share_prior4",
+        "same_week_spearman": 0.6312282846982263,
+        "same_week_n": 9924,
+        "next_week_spearman": 0.6033101113544836,
+        "next_week_n": 8912,
+        "next3_spearman": 0.6676358697622021,
+        "next3_n": 8912,
+        "persistence_spearman": 0.7561227919195236,
+        "persistence_n": 8912,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "target_share_prior4",
+        "same_week_spearman": 0.5421294387363637,
+        "same_week_n": 9924,
+        "next_week_spearman": 0.5145751347238429,
+        "next_week_n": 8912,
+        "next3_spearman": 0.5611217489414806,
+        "next3_n": 8912,
+        "persistence_spearman": 0.5429120139566592,
+        "persistence_n": 8912,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "red_zone_carry_share_prior4",
+        "same_week_spearman": 0.3706894897560027,
+        "same_week_n": 6796,
+        "next_week_spearman": 0.3520517212477545,
+        "next_week_n": 6185,
+        "next3_spearman": 0.4053091738417816,
+        "next3_n": 6185,
+        "persistence_spearman": 0.3718450311202522,
+        "persistence_n": 4273,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "inside_5_carry_share_prior4",
+        "same_week_spearman": 0.2959692837620727,
+        "same_week_n": 5286,
+        "next_week_spearman": 0.28629168928422105,
+        "next_week_n": 4825,
+        "next3_spearman": 0.33639448011440554,
+        "next3_n": 4825,
+        "persistence_spearman": 0.29436766174326434,
+        "persistence_n": 2554,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "opportunity_change_score_prior1",
+        "same_week_spearman": 0.20699118350726625,
+        "same_week_n": 3094,
+        "next_week_spearman": 0.18390668770739887,
+        "next_week_n": 2685,
+        "next3_spearman": 0.19714080126755248,
+        "next3_n": 2685,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "receiving_role",
+        "feature": "target_share_prior4",
+        "same_week_spearman": 0.5421294387363637,
+        "same_week_n": 9924,
+        "next_week_spearman": 0.5145751347238429,
+        "next_week_n": 8912,
+        "next3_spearman": 0.5611217489414806,
+        "next3_n": 8912,
+        "persistence_spearman": 0.5429120139566592,
+        "persistence_n": 8912,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "competition",
+        "feature": "backfield_competition_index_prior4",
+        "same_week_spearman": -0.5033126603423451,
+        "same_week_n": 9924,
+        "next_week_spearman": -0.47889359097638123,
+        "next_week_n": 8912,
+        "next3_spearman": -0.5288030264020565,
+        "next3_n": 8912,
+        "persistence_spearman": 0.5527218739194224,
+        "persistence_n": 8912,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "competition",
+        "feature": "backfield_competitor_count",
+        "same_week_spearman": -0.38094823239980885,
+        "same_week_n": 10604,
+        "next_week_spearman": -0.33218978065303206,
+        "next_week_n": 9531,
+        "next3_spearman": -0.36088381484280263,
+        "next3_n": 9531,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "regression",
+        "feature": "xfp_residual_prior4",
+        "same_week_spearman": 0.011857234522659695,
+        "same_week_n": 5008,
+        "next_week_spearman": 0.009505163618640301,
+        "next_week_n": 4489,
+        "next3_spearman": 0.018666076421272382,
+        "next3_n": 4489,
+        "persistence_spearman": 0.06473268797826323,
+        "persistence_n": 4489,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "RB",
+        "family": "regression",
+        "feature": "opportunity_xfp_realized_prior4",
+        "same_week_spearman": 0.686367556622509,
+        "same_week_n": 5008,
+        "next_week_spearman": 0.660046763498647,
+        "next_week_n": 4489,
+        "next3_spearman": 0.727015239341039,
+        "next3_n": 4489,
+        "persistence_spearman": 0.7458696310419523,
+        "persistence_n": 4489,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "opportunity",
+        "feature": "offense_snap_share_prior4",
+        "same_week_spearman": 0.5820612675845911,
+        "same_week_n": 13647,
+        "next_week_spearman": 0.5532644527304985,
+        "next_week_n": 12201,
+        "next3_spearman": 0.6429127739384339,
+        "next3_n": 12201,
+        "persistence_spearman": 0.7561478548736114,
+        "persistence_n": 12201,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "opportunity",
+        "feature": "target_share_prior4",
+        "same_week_spearman": 0.6158651011471279,
+        "same_week_n": 15800,
+        "next_week_spearman": 0.5949881209780857,
+        "next_week_n": 14252,
+        "next3_spearman": 0.692264646316093,
+        "next3_n": 14252,
+        "persistence_spearman": 0.7078877839796482,
+        "persistence_n": 14252,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "opportunity",
+        "feature": "red_zone_target_share_prior4",
+        "same_week_spearman": 0.1840285626574757,
+        "same_week_n": 7569,
+        "next_week_spearman": 0.17173567237632884,
+        "next_week_n": 6933,
+        "next3_spearman": 0.20847455380529642,
+        "next3_n": 6933,
+        "persistence_spearman": 0.09668089053021935,
+        "persistence_n": 3479,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "opportunity",
+        "feature": "opportunity_change_score_prior1",
+        "same_week_spearman": 0.1413345331112133,
+        "same_week_n": 4916,
+        "next_week_spearman": 0.11461335880760896,
+        "next_week_n": 4248,
+        "next3_spearman": 0.11835737126563343,
+        "next3_n": 4248,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "conversion",
+        "feature": "pfr_receiving_drop_pct_prior4",
+        "same_week_spearman": 0.09952759051713968,
+        "same_week_n": 12266,
+        "next_week_spearman": 0.0922464585341227,
+        "next_week_n": 11001,
+        "next3_spearman": 0.09913055300590087,
+        "next3_n": 11001,
+        "persistence_spearman": 0.02181636107157447,
+        "persistence_n": 10344,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "competition",
+        "feature": "receiving_competition_index_prior4",
+        "same_week_spearman": -0.39826770768464226,
+        "same_week_n": 15800,
+        "next_week_spearman": -0.3758041754698534,
+        "next_week_n": 14252,
+        "next3_spearman": -0.437593719744231,
+        "next3_n": 14252,
+        "persistence_spearman": 0.3192720844127175,
+        "persistence_n": 14252,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "competition",
+        "feature": "receiving_competitor_count",
+        "same_week_spearman": -0.2228832863303456,
+        "same_week_n": 16859,
+        "next_week_spearman": -0.19777790949435747,
+        "next_week_n": 15199,
+        "next3_spearman": -0.21637155871339234,
+        "next3_n": 15199,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "regression",
+        "feature": "xfp_residual_prior4",
+        "same_week_spearman": 0.07339436161586987,
+        "same_week_n": 7995,
+        "next_week_spearman": 0.06567600616901724,
+        "next_week_n": 7167,
+        "next3_spearman": 0.0829990394437544,
+        "next3_n": 7167,
+        "persistence_spearman": 0.05880259156689774,
+        "persistence_n": 7167,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "WR",
+        "family": "regression",
+        "feature": "opportunity_xfp_realized_prior4",
+        "same_week_spearman": 0.627284478531979,
+        "same_week_n": 7995,
+        "next_week_spearman": 0.6031078856093626,
+        "next_week_n": 7167,
+        "next3_spearman": 0.6938914602777125,
+        "next3_n": 7167,
+        "persistence_spearman": 0.6997083402703881,
+        "persistence_n": 7167,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "opportunity",
+        "feature": "offense_snap_share_prior4",
+        "same_week_spearman": 0.5150990814156797,
+        "same_week_n": 6640,
+        "next_week_spearman": 0.49292824939336244,
+        "next_week_n": 5865,
+        "next3_spearman": 0.5941443144947196,
+        "next3_n": 5865,
+        "persistence_spearman": 0.7287539855663991,
+        "persistence_n": 5865,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "opportunity",
+        "feature": "target_share_prior4",
+        "same_week_spearman": 0.5567548972255246,
+        "same_week_n": 7826,
+        "next_week_spearman": 0.5421499397750423,
+        "next_week_n": 6990,
+        "next3_spearman": 0.653016704799732,
+        "next3_n": 6990,
+        "persistence_spearman": 0.6594194045120274,
+        "persistence_n": 6990,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "opportunity",
+        "feature": "red_zone_target_share_prior4",
+        "same_week_spearman": 0.17263135662486254,
+        "same_week_n": 3636,
+        "next_week_spearman": 0.16678903056232627,
+        "next_week_n": 3320,
+        "next3_spearman": 0.20599317969920447,
+        "next3_n": 3320,
+        "persistence_spearman": 0.15569409957742583,
+        "persistence_n": 1611,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "opportunity",
+        "feature": "opportunity_change_score_prior1",
+        "same_week_spearman": 0.13861162288490556,
+        "same_week_n": 2283,
+        "next_week_spearman": 0.13199797885714337,
+        "next_week_n": 1928,
+        "next3_spearman": 0.16795953203493338,
+        "next3_n": 1928,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "conversion",
+        "feature": "pfr_receiving_drop_pct_prior4",
+        "same_week_spearman": 0.11965077817639728,
+        "same_week_n": 6183,
+        "next_week_spearman": 0.11166484325817158,
+        "next_week_n": 5478,
+        "next3_spearman": 0.14596725739301342,
+        "next3_n": 5478,
+        "persistence_spearman": 0.045135911632120614,
+        "persistence_n": 5162,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "competition",
+        "feature": "receiving_competition_index_prior4",
+        "same_week_spearman": -0.29968142948067117,
+        "same_week_n": 7826,
+        "next_week_spearman": -0.2827453383940251,
+        "next_week_n": 6990,
+        "next3_spearman": -0.3514302881305007,
+        "next3_n": 6990,
+        "persistence_spearman": 0.21088198198092992,
+        "persistence_n": 6990,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "competition",
+        "feature": "receiving_competitor_count",
+        "same_week_spearman": -0.2027073936201266,
+        "same_week_n": 8377,
+        "next_week_spearman": -0.17582718628455085,
+        "next_week_n": 7476,
+        "next3_spearman": -0.21110763033324625,
+        "next3_n": 7476,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "regression",
+        "feature": "xfp_residual_prior4",
+        "same_week_spearman": 0.07887639257775987,
+        "same_week_n": 3917,
+        "next_week_spearman": 0.09075925864258573,
+        "next_week_n": 3478,
+        "next3_spearman": 0.11213663599792388,
+        "next3_n": 3478,
+        "persistence_spearman": 0.08460935811533005,
+        "persistence_n": 3478,
+        "status": "diagnostic_feature_evidence"
+      },
+      {
+        "position": "TE",
+        "family": "regression",
+        "feature": "opportunity_xfp_realized_prior4",
+        "same_week_spearman": 0.5754626824407636,
+        "same_week_n": 3917,
+        "next_week_spearman": 0.5609091313284089,
+        "next_week_n": 3478,
+        "next3_spearman": 0.6699979839269163,
+        "next3_n": 3478,
+        "persistence_spearman": 0.6464868773244652,
+        "persistence_n": 3478,
+        "status": "diagnostic_feature_evidence"
+      }
+    ],
+    "family_validation": {
+      "folds": [
+        {
+          "position": "QB",
+          "family": "opportunity",
+          "test_season": 2023,
+          "n_train": 633,
+          "n_test": 663,
+          "features": [
+            "qb_pass_attempt_share_prior4",
+            "qb_rush_share_prior4",
+            "inside_5_carry_share_prior4",
+            "snap_share_prior4",
+            "team_pass_attempts_prior4_team",
+            "team_plays_prior4_team",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 6.297406457504757,
+          "adjusted_mae": 6.278467893791022,
+          "incremental_mae_improvement": 0.003007359274255847,
+          "base_spearman": 0.4589786914119217,
+          "adjusted_spearman": 0.4559813453808395
+        },
+        {
+          "position": "QB",
+          "family": "passing_accuracy",
+          "test_season": 2023,
+          "n_train": 470,
+          "n_test": 498,
+          "features": [
+            "pfr_passing_bad_throw_pct_prior4"
+          ],
+          "base_fie_mae": 6.036560638632575,
+          "adjusted_mae": 6.042212328565625,
+          "incremental_mae_improvement": -0.0009362433795297541,
+          "base_spearman": 0.4105126448564205,
+          "adjusted_spearman": 0.40776889013753326
+        },
+        {
+          "position": "QB",
+          "family": "pressure_response",
+          "test_season": 2023,
+          "n_train": 470,
+          "n_test": 498,
+          "features": [
+            "pfr_times_pressured_pct_prior4",
+            "pfr_times_sacked_prior4"
+          ],
+          "base_fie_mae": 6.036560638632575,
+          "adjusted_mae": 6.028954731636138,
+          "incremental_mae_improvement": 0.0012599735928702355,
+          "base_spearman": 0.4105126448564205,
+          "adjusted_spearman": 0.4071260670481832
+        },
+        {
+          "position": "QB",
+          "family": "rushing_leverage",
+          "test_season": 2023,
+          "n_train": 611,
+          "n_test": 636,
+          "features": [
+            "qb_rush_share_prior4",
+            "inside_5_carry_share_prior4",
+            "m7_qb_rush_goal_role"
+          ],
+          "base_fie_mae": 6.171731374961481,
+          "adjusted_mae": 6.160708819012467,
+          "incremental_mae_improvement": 0.0017859746770139317,
+          "base_spearman": 0.47864397546198867,
+          "adjusted_spearman": 0.47677226173909076
+        },
+        {
+          "position": "QB",
+          "family": "regression",
+          "test_season": 2023,
+          "n_train": 477,
+          "n_test": 508,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 6.022103934745623,
+          "adjusted_mae": 6.00766405622419,
+          "incremental_mae_improvement": 0.0023978129035799765,
+          "base_spearman": 0.4408528166143939,
+          "adjusted_spearman": 0.44101218121008506
+        },
+        {
+          "position": "RB",
+          "family": "opportunity",
+          "test_season": 2023,
+          "n_train": 1515,
+          "n_test": 1419,
+          "features": [
+            "offense_snap_share_prior4",
+            "carry_share_prior4",
+            "target_share_prior4",
+            "red_zone_carry_share_prior4",
+            "inside_5_carry_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.447465884690601,
+          "adjusted_mae": 4.429121789918642,
+          "incremental_mae_improvement": 0.004124617309624453,
+          "base_spearman": 0.6794138061524035,
+          "adjusted_spearman": 0.6736213461235808
+        },
+        {
+          "position": "RB",
+          "family": "receiving_role",
+          "test_season": 2023,
+          "n_train": 1515,
+          "n_test": 1419,
+          "features": [
+            "target_share_prior4"
+          ],
+          "base_fie_mae": 4.447465884690601,
+          "adjusted_mae": 4.386447433609567,
+          "incremental_mae_improvement": 0.01371982442655174,
+          "base_spearman": 0.6794138061524035,
+          "adjusted_spearman": 0.6796018009983928
+        },
+        {
+          "position": "RB",
+          "family": "competition",
+          "test_season": 2023,
+          "n_train": 1581,
+          "n_test": 1474,
+          "features": [
+            "backfield_competition_index_prior4",
+            "backfield_competitor_count"
+          ],
+          "base_fie_mae": 4.508852061586326,
+          "adjusted_mae": 4.413419739631749,
+          "incremental_mae_improvement": 0.021165547383473465,
+          "base_spearman": 0.6671481932286211,
+          "adjusted_spearman": 0.6723694746978239
+        },
+        {
+          "position": "RB",
+          "family": "regression",
+          "test_season": 2023,
+          "n_train": 1278,
+          "n_test": 1190,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.426682857530239,
+          "adjusted_mae": 4.459314177525422,
+          "incremental_mae_improvement": -0.007371506169608117,
+          "base_spearman": 0.6888354040441325,
+          "adjusted_spearman": 0.6805346818539736
+        },
+        {
+          "position": "WR",
+          "family": "opportunity",
+          "test_season": 2023,
+          "n_train": 2293,
+          "n_test": 2384,
+          "features": [
+            "offense_snap_share_prior4",
+            "target_share_prior4",
+            "red_zone_target_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.463498445060922,
+          "adjusted_mae": 4.489877666501569,
+          "incremental_mae_improvement": -0.0059099878190475045,
+          "base_spearman": 0.6445159023902279,
+          "adjusted_spearman": 0.63698696588311
+        },
+        {
+          "position": "WR",
+          "family": "conversion",
+          "test_season": 2023,
+          "n_train": 1778,
+          "n_test": 1866,
+          "features": [
+            "pfr_receiving_drop_pct_prior4"
+          ],
+          "base_fie_mae": 4.734211857162639,
+          "adjusted_mae": 4.719025050585303,
+          "incremental_mae_improvement": 0.0032078848677544055,
+          "base_spearman": 0.6002756142725421,
+          "adjusted_spearman": 0.6011183241752809
+        },
+        {
+          "position": "WR",
+          "family": "competition",
+          "test_season": 2023,
+          "n_train": 2387,
+          "n_test": 2476,
+          "features": [
+            "receiving_competition_index_prior4",
+            "receiving_competitor_count"
+          ],
+          "base_fie_mae": 4.509297901187138,
+          "adjusted_mae": 4.470365171890763,
+          "incremental_mae_improvement": 0.008633878299795995,
+          "base_spearman": 0.628631807632525,
+          "adjusted_spearman": 0.6299480714407747
+        },
+        {
+          "position": "WR",
+          "family": "regression",
+          "test_season": 2023,
+          "n_train": 1928,
+          "n_test": 2042,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.4557119912697996,
+          "adjusted_mae": 4.458316253734061,
+          "incremental_mae_improvement": -0.000584477288784444,
+          "base_spearman": 0.6471061159090887,
+          "adjusted_spearman": 0.6460591380941958
+        },
+        {
+          "position": "TE",
+          "family": "opportunity",
+          "test_season": 2023,
+          "n_train": 1162,
+          "n_test": 1140,
+          "features": [
+            "offense_snap_share_prior4",
+            "target_share_prior4",
+            "red_zone_target_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.050827596640947,
+          "adjusted_mae": 4.097381549079699,
+          "incremental_mae_improvement": -0.011492454647380183,
+          "base_spearman": 0.573017460587557,
+          "adjusted_spearman": 0.556203236298076
+        },
+        {
+          "position": "TE",
+          "family": "conversion",
+          "test_season": 2023,
+          "n_train": 907,
+          "n_test": 889,
+          "features": [
+            "pfr_receiving_drop_pct_prior4"
+          ],
+          "base_fie_mae": 4.319743833299835,
+          "adjusted_mae": 4.32650122782967,
+          "incremental_mae_improvement": -0.0015643044566077842,
+          "base_spearman": 0.5432876255576954,
+          "adjusted_spearman": 0.5472366108499667
+        },
+        {
+          "position": "TE",
+          "family": "competition",
+          "test_season": 2023,
+          "n_train": 1207,
+          "n_test": 1188,
+          "features": [
+            "receiving_competition_index_prior4",
+            "receiving_competitor_count"
+          ],
+          "base_fie_mae": 4.065856143430279,
+          "adjusted_mae": 4.042858032384936,
+          "incremental_mae_improvement": 0.005656400579372186,
+          "base_spearman": 0.55803582742953,
+          "adjusted_spearman": 0.568126235930662
+        },
+        {
+          "position": "TE",
+          "family": "regression",
+          "test_season": 2023,
+          "n_train": 960,
+          "n_test": 955,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.158390799577865,
+          "adjusted_mae": 4.206389619955229,
+          "incremental_mae_improvement": -0.011542642981567913,
+          "base_spearman": 0.5702855693884229,
+          "adjusted_spearman": 0.5679280579183462
+        },
+        {
+          "position": "QB",
+          "family": "opportunity",
+          "test_season": 2024,
+          "n_train": 1296,
+          "n_test": 664,
+          "features": [
+            "qb_pass_attempt_share_prior4",
+            "qb_rush_share_prior4",
+            "inside_5_carry_share_prior4",
+            "snap_share_prior4",
+            "team_pass_attempts_prior4_team",
+            "team_plays_prior4_team",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 6.360674836751993,
+          "adjusted_mae": 6.414258766654139,
+          "incremental_mae_improvement": -0.008424252343876651,
+          "base_spearman": 0.4883081824313946,
+          "adjusted_spearman": 0.47823000975861274
+        },
+        {
+          "position": "QB",
+          "family": "passing_accuracy",
+          "test_season": 2024,
+          "n_train": 968,
+          "n_test": 498,
+          "features": [
+            "pfr_passing_bad_throw_pct_prior4"
+          ],
+          "base_fie_mae": 6.318535009607515,
+          "adjusted_mae": 6.317986900521221,
+          "incremental_mae_improvement": 8.674622922252945e-05,
+          "base_spearman": 0.37069732007232387,
+          "adjusted_spearman": 0.3723268218369328
+        },
+        {
+          "position": "QB",
+          "family": "pressure_response",
+          "test_season": 2024,
+          "n_train": 968,
+          "n_test": 498,
+          "features": [
+            "pfr_times_pressured_pct_prior4",
+            "pfr_times_sacked_prior4"
+          ],
+          "base_fie_mae": 6.318535009607515,
+          "adjusted_mae": 6.310382851785958,
+          "incremental_mae_improvement": 0.0012901974601962414,
+          "base_spearman": 0.37069732007232387,
+          "adjusted_spearman": 0.37232011766772655
+        },
+        {
+          "position": "QB",
+          "family": "rushing_leverage",
+          "test_season": 2024,
+          "n_train": 1247,
+          "n_test": 644,
+          "features": [
+            "qb_rush_share_prior4",
+            "inside_5_carry_share_prior4",
+            "m7_qb_rush_goal_role"
+          ],
+          "base_fie_mae": 6.269411660896702,
+          "adjusted_mae": 6.288807467888768,
+          "incremental_mae_improvement": -0.0030937204384011035,
+          "base_spearman": 0.499483867281718,
+          "adjusted_spearman": 0.49749432283602657
+        },
+        {
+          "position": "QB",
+          "family": "regression",
+          "test_season": 2024,
+          "n_train": 985,
+          "n_test": 515,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 6.282298730755785,
+          "adjusted_mae": 6.277972819295419,
+          "incremental_mae_improvement": 0.0006885873540504362,
+          "base_spearman": 0.4247439848208139,
+          "adjusted_spearman": 0.42470607576236075
+        },
+        {
+          "position": "RB",
+          "family": "opportunity",
+          "test_season": 2024,
+          "n_train": 2934,
+          "n_test": 1478,
+          "features": [
+            "offense_snap_share_prior4",
+            "carry_share_prior4",
+            "target_share_prior4",
+            "red_zone_carry_share_prior4",
+            "inside_5_carry_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.457867129145064,
+          "adjusted_mae": 4.4138841098980395,
+          "incremental_mae_improvement": 0.009866381830779113,
+          "base_spearman": 0.7089273069642181,
+          "adjusted_spearman": 0.7081468550895775
+        },
+        {
+          "position": "RB",
+          "family": "receiving_role",
+          "test_season": 2024,
+          "n_train": 2934,
+          "n_test": 1478,
+          "features": [
+            "target_share_prior4"
+          ],
+          "base_fie_mae": 4.457867129145064,
+          "adjusted_mae": 4.407844648884449,
+          "incremental_mae_improvement": 0.011221168960728537,
+          "base_spearman": 0.7089273069642181,
+          "adjusted_spearman": 0.7087684567357676
+        },
+        {
+          "position": "RB",
+          "family": "competition",
+          "test_season": 2024,
+          "n_train": 3055,
+          "n_test": 1536,
+          "features": [
+            "backfield_competition_index_prior4",
+            "backfield_competitor_count"
+          ],
+          "base_fie_mae": 4.501077797968541,
+          "adjusted_mae": 4.4037908658921046,
+          "incremental_mae_improvement": 0.02161414142193771,
+          "base_spearman": 0.6940088122161019,
+          "adjusted_spearman": 0.7040756760319056
+        },
+        {
+          "position": "RB",
+          "family": "regression",
+          "test_season": 2024,
+          "n_train": 2468,
+          "n_test": 1256,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.5472867470219525,
+          "adjusted_mae": 4.535724320132119,
+          "incremental_mae_improvement": 0.002542708989576178,
+          "base_spearman": 0.6953160036090892,
+          "adjusted_spearman": 0.6957994964723887
+        },
+        {
+          "position": "WR",
+          "family": "opportunity",
+          "test_season": 2024,
+          "n_train": 4677,
+          "n_test": 2342,
+          "features": [
+            "offense_snap_share_prior4",
+            "target_share_prior4",
+            "red_zone_target_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.526514631613411,
+          "adjusted_mae": 4.547216694872666,
+          "incremental_mae_improvement": -0.004573510734875448,
+          "base_spearman": 0.6545343033880536,
+          "adjusted_spearman": 0.6533452791576825
+        },
+        {
+          "position": "WR",
+          "family": "conversion",
+          "test_season": 2024,
+          "n_train": 3644,
+          "n_test": 1770,
+          "features": [
+            "pfr_receiving_drop_pct_prior4"
+          ],
+          "base_fie_mae": 4.911872313094806,
+          "adjusted_mae": 4.92337097225812,
+          "incremental_mae_improvement": -0.002340993093948894,
+          "base_spearman": 0.5950538755432427,
+          "adjusted_spearman": 0.5946537737062568
+        },
+        {
+          "position": "WR",
+          "family": "competition",
+          "test_season": 2024,
+          "n_train": 4863,
+          "n_test": 2441,
+          "features": [
+            "receiving_competition_index_prior4",
+            "receiving_competitor_count"
+          ],
+          "base_fie_mae": 4.570537969411031,
+          "adjusted_mae": 4.551305151694084,
+          "incremental_mae_improvement": 0.004207998674481105,
+          "base_spearman": 0.6412834665078754,
+          "adjusted_spearman": 0.6433320117462935
+        },
+        {
+          "position": "WR",
+          "family": "regression",
+          "test_season": 2024,
+          "n_train": 3970,
+          "n_test": 1984,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.555307285420788,
+          "adjusted_mae": 4.569827975428863,
+          "incremental_mae_improvement": -0.003187642259513003,
+          "base_spearman": 0.6562932933602567,
+          "adjusted_spearman": 0.6558850821221909
+        },
+        {
+          "position": "TE",
+          "family": "opportunity",
+          "test_season": 2024,
+          "n_train": 2302,
+          "n_test": 1178,
+          "features": [
+            "offense_snap_share_prior4",
+            "target_share_prior4",
+            "red_zone_target_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.154872336637262,
+          "adjusted_mae": 4.196451809775733,
+          "incremental_mae_improvement": -0.01000740089456596,
+          "base_spearman": 0.6043852144792996,
+          "adjusted_spearman": 0.5984553634936265
+        },
+        {
+          "position": "TE",
+          "family": "conversion",
+          "test_season": 2024,
+          "n_train": 1796,
+          "n_test": 921,
+          "features": [
+            "pfr_receiving_drop_pct_prior4"
+          ],
+          "base_fie_mae": 4.383870325783952,
+          "adjusted_mae": 4.439855749111079,
+          "incremental_mae_improvement": -0.012770775403151366,
+          "base_spearman": 0.6065171731204186,
+          "adjusted_spearman": 0.6062134251274335
+        },
+        {
+          "position": "TE",
+          "family": "competition",
+          "test_season": 2024,
+          "n_train": 2395,
+          "n_test": 1223,
+          "features": [
+            "receiving_competition_index_prior4",
+            "receiving_competitor_count"
+          ],
+          "base_fie_mae": 4.174532908870382,
+          "adjusted_mae": 4.170169537123055,
+          "incremental_mae_improvement": 0.0010452359204200247,
+          "base_spearman": 0.590927222516308,
+          "adjusted_spearman": 0.592808574126554
+        },
+        {
+          "position": "TE",
+          "family": "regression",
+          "test_season": 2024,
+          "n_train": 1915,
+          "n_test": 978,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.261397863354843,
+          "adjusted_mae": 4.303963042356018,
+          "incremental_mae_improvement": -0.009988548444914388,
+          "base_spearman": 0.6137983423014364,
+          "adjusted_spearman": 0.614277742127365
+        },
+        {
+          "position": "QB",
+          "family": "opportunity",
+          "test_season": 2025,
+          "n_train": 1960,
+          "n_test": 664,
+          "features": [
+            "qb_pass_attempt_share_prior4",
+            "qb_rush_share_prior4",
+            "inside_5_carry_share_prior4",
+            "snap_share_prior4",
+            "team_pass_attempts_prior4_team",
+            "team_plays_prior4_team",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 6.850096080686851,
+          "adjusted_mae": 6.770015984621016,
+          "incremental_mae_improvement": 0.011690360999696439,
+          "base_spearman": 0.40960249030694124,
+          "adjusted_spearman": 0.4127937395694967
+        },
+        {
+          "position": "QB",
+          "family": "passing_accuracy",
+          "test_season": 2025,
+          "n_train": 1466,
+          "n_test": 491,
+          "features": [
+            "pfr_passing_bad_throw_pct_prior4"
+          ],
+          "base_fie_mae": 6.550588669295044,
+          "adjusted_mae": 6.574530228696314,
+          "incremental_mae_improvement": -0.0036548714336915446,
+          "base_spearman": 0.3152908982687944,
+          "adjusted_spearman": 0.3165233400975241
+        },
+        {
+          "position": "QB",
+          "family": "pressure_response",
+          "test_season": 2025,
+          "n_train": 1466,
+          "n_test": 491,
+          "features": [
+            "pfr_times_pressured_pct_prior4",
+            "pfr_times_sacked_prior4"
+          ],
+          "base_fie_mae": 6.550588669295044,
+          "adjusted_mae": 6.566851106562867,
+          "incremental_mae_improvement": -0.0024825917316486272,
+          "base_spearman": 0.3152908982687944,
+          "adjusted_spearman": 0.3147762572435788
+        },
+        {
+          "position": "QB",
+          "family": "rushing_leverage",
+          "test_season": 2025,
+          "n_train": 1891,
+          "n_test": 636,
+          "features": [
+            "qb_rush_share_prior4",
+            "inside_5_carry_share_prior4",
+            "m7_qb_rush_goal_role"
+          ],
+          "base_fie_mae": 6.618410829124368,
+          "adjusted_mae": 6.618274249704107,
+          "incremental_mae_improvement": 2.0636286230592322e-05,
+          "base_spearman": 0.42679129848564545,
+          "adjusted_spearman": 0.42489131490497656
+        },
+        {
+          "position": "QB",
+          "family": "regression",
+          "test_season": 2025,
+          "n_train": 1500,
+          "n_test": 508,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 6.561757672200755,
+          "adjusted_mae": 6.552836563681511,
+          "incremental_mae_improvement": 0.001359560801374621,
+          "base_spearman": 0.3496074773669972,
+          "adjusted_spearman": 0.352041245172175
+        },
+        {
+          "position": "RB",
+          "family": "opportunity",
+          "test_season": 2025,
+          "n_train": 4412,
+          "n_test": 1507,
+          "features": [
+            "offense_snap_share_prior4",
+            "carry_share_prior4",
+            "target_share_prior4",
+            "red_zone_carry_share_prior4",
+            "inside_5_carry_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.4045271767396414,
+          "adjusted_mae": 4.368472690814678,
+          "incremental_mae_improvement": 0.008185778967460472,
+          "base_spearman": 0.7316107059524226,
+          "adjusted_spearman": 0.7311149921483487
+        },
+        {
+          "position": "RB",
+          "family": "receiving_role",
+          "test_season": 2025,
+          "n_train": 4412,
+          "n_test": 1507,
+          "features": [
+            "target_share_prior4"
+          ],
+          "base_fie_mae": 4.4045271767396414,
+          "adjusted_mae": 4.364462496671993,
+          "incremental_mae_improvement": 0.009096249940114015,
+          "base_spearman": 0.7316107059524226,
+          "adjusted_spearman": 0.7315195004981387
+        },
+        {
+          "position": "RB",
+          "family": "competition",
+          "test_season": 2025,
+          "n_train": 4591,
+          "n_test": 1575,
+          "features": [
+            "backfield_competition_index_prior4",
+            "backfield_competitor_count"
+          ],
+          "base_fie_mae": 4.431082366209873,
+          "adjusted_mae": 4.369390883786779,
+          "incremental_mae_improvement": 0.013922440912751955,
+          "base_spearman": 0.7186405226079657,
+          "adjusted_spearman": 0.7253215712916375
+        },
+        {
+          "position": "RB",
+          "family": "regression",
+          "test_season": 2025,
+          "n_train": 3724,
+          "n_test": 1284,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.496526166482638,
+          "adjusted_mae": 4.504910071277209,
+          "incremental_mae_improvement": -0.0018645293019898732,
+          "base_spearman": 0.7280773811690691,
+          "adjusted_spearman": 0.7278048490062746
+        },
+        {
+          "position": "WR",
+          "family": "opportunity",
+          "test_season": 2025,
+          "n_train": 7019,
+          "n_test": 2414,
+          "features": [
+            "offense_snap_share_prior4",
+            "target_share_prior4",
+            "red_zone_target_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.239156625668214,
+          "adjusted_mae": 4.272519187435116,
+          "incremental_mae_improvement": -0.00787009415148556,
+          "base_spearman": 0.6518969681449822,
+          "adjusted_spearman": 0.6520071770321191
+        },
+        {
+          "position": "WR",
+          "family": "conversion",
+          "test_season": 2025,
+          "n_train": 5414,
+          "n_test": 1770,
+          "features": [
+            "pfr_receiving_drop_pct_prior4"
+          ],
+          "base_fie_mae": 4.658551899411566,
+          "adjusted_mae": 4.715449906880442,
+          "incremental_mae_improvement": -0.012213668259457078,
+          "base_spearman": 0.5827559881733085,
+          "adjusted_spearman": 0.5830844815850702
+        },
+        {
+          "position": "WR",
+          "family": "competition",
+          "test_season": 2025,
+          "n_train": 7304,
+          "n_test": 2511,
+          "features": [
+            "receiving_competition_index_prior4",
+            "receiving_competitor_count"
+          ],
+          "base_fie_mae": 4.283363313016219,
+          "adjusted_mae": 4.27678602554268,
+          "incremental_mae_improvement": 0.0015355427482771312,
+          "base_spearman": 0.6365132634566929,
+          "adjusted_spearman": 0.6407012400014508
+        },
+        {
+          "position": "WR",
+          "family": "regression",
+          "test_season": 2025,
+          "n_train": 5954,
+          "n_test": 2041,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.2288691947452115,
+          "adjusted_mae": 4.2748021857729865,
+          "incremental_mae_improvement": -0.01086176680159588,
+          "base_spearman": 0.6528523593923413,
+          "adjusted_spearman": 0.6530133385517026
+        },
+        {
+          "position": "TE",
+          "family": "opportunity",
+          "test_season": 2025,
+          "n_train": 3480,
+          "n_test": 1241,
+          "features": [
+            "offense_snap_share_prior4",
+            "target_share_prior4",
+            "red_zone_target_share_prior4",
+            "opportunity_change_score_prior1"
+          ],
+          "base_fie_mae": 4.085667411233801,
+          "adjusted_mae": 4.1065502936101375,
+          "incremental_mae_improvement": -0.005111253627477833,
+          "base_spearman": 0.6145558268761862,
+          "adjusted_spearman": 0.6154832049669037
+        },
+        {
+          "position": "TE",
+          "family": "conversion",
+          "test_season": 2025,
+          "n_train": 2717,
+          "n_test": 924,
+          "features": [
+            "pfr_receiving_drop_pct_prior4"
+          ],
+          "base_fie_mae": 4.415717241886428,
+          "adjusted_mae": 4.456692424302892,
+          "incremental_mae_improvement": -0.009279394529111376,
+          "base_spearman": 0.5696651212396655,
+          "adjusted_spearman": 0.5725630372702694
+        },
+        {
+          "position": "TE",
+          "family": "competition",
+          "test_season": 2025,
+          "n_train": 3618,
+          "n_test": 1287,
+          "features": [
+            "receiving_competition_index_prior4",
+            "receiving_competitor_count"
+          ],
+          "base_fie_mae": 4.1036178930156835,
+          "adjusted_mae": 4.123610906393271,
+          "incremental_mae_improvement": -0.004872045570230922,
+          "base_spearman": 0.6014443911248409,
+          "adjusted_spearman": 0.6065212193325386
+        },
+        {
+          "position": "TE",
+          "family": "regression",
+          "test_season": 2025,
+          "n_train": 2893,
+          "n_test": 1024,
+          "features": [
+            "xfp_residual_prior4",
+            "opportunity_xfp_realized_prior4"
+          ],
+          "base_fie_mae": 4.1547530900073415,
+          "adjusted_mae": 4.226547845784237,
+          "incremental_mae_improvement": -0.017280149799893164,
+          "base_spearman": 0.6227926502973682,
+          "adjusted_spearman": 0.6209748406654225
+        }
+      ],
+      "aggregate": [
+        {
+          "position": "QB",
+          "family": "opportunity",
+          "folds": 3,
+          "n_test": 1991,
+          "mean_incremental_mae_improvement": 0.002091155976691878,
+          "positive_folds": 2,
+          "bootstrap_ci95_low": -0.008424252343876651,
+          "bootstrap_ci95_high": 0.011690360999696439,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "QB",
+          "family": "passing_accuracy",
+          "folds": 3,
+          "n_test": 1487,
+          "mean_incremental_mae_improvement": -0.0015014561946662564,
+          "positive_folds": 1,
+          "bootstrap_ci95_low": -0.0036548714336915446,
+          "bootstrap_ci95_high": 8.674622922252945e-05,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "QB",
+          "family": "pressure_response",
+          "folds": 3,
+          "n_test": 1487,
+          "mean_incremental_mae_improvement": 2.252644047261657e-05,
+          "positive_folds": 2,
+          "bootstrap_ci95_low": -0.0024825917316486272,
+          "bootstrap_ci95_high": 0.0012901974601962417,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "QB",
+          "family": "regression",
+          "folds": 3,
+          "n_test": 1531,
+          "mean_incremental_mae_improvement": 0.0014819870196683446,
+          "positive_folds": 3,
+          "bootstrap_ci95_low": 0.0006885873540504362,
+          "bootstrap_ci95_high": 0.0023978129035799765,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "QB",
+          "family": "rushing_leverage",
+          "folds": 3,
+          "n_test": 1916,
+          "mean_incremental_mae_improvement": -0.00042903649171885985,
+          "positive_folds": 2,
+          "bootstrap_ci95_low": -0.0030937204384011035,
+          "bootstrap_ci95_high": 0.0017859746770139317,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "RB",
+          "family": "competition",
+          "folds": 3,
+          "n_test": 4585,
+          "mean_incremental_mae_improvement": 0.018900709906054376,
+          "positive_folds": 3,
+          "bootstrap_ci95_low": 0.013922440912751957,
+          "bootstrap_ci95_high": 0.02161414142193771,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "RB",
+          "family": "opportunity",
+          "folds": 3,
+          "n_test": 4404,
+          "mean_incremental_mae_improvement": 0.0073922593692880125,
+          "positive_folds": 3,
+          "bootstrap_ci95_low": 0.0041246173096244525,
+          "bootstrap_ci95_high": 0.009866381830779113,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "RB",
+          "family": "receiving_role",
+          "folds": 3,
+          "n_test": 4404,
+          "mean_incremental_mae_improvement": 0.011345747775798097,
+          "positive_folds": 3,
+          "bootstrap_ci95_low": 0.009096249940114015,
+          "bootstrap_ci95_high": 0.01371982442655174,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "RB",
+          "family": "regression",
+          "folds": 3,
+          "n_test": 3730,
+          "mean_incremental_mae_improvement": -0.0022311088273406043,
+          "positive_folds": 1,
+          "bootstrap_ci95_low": -0.0073715061696081165,
+          "bootstrap_ci95_high": 0.002542708989576178,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "TE",
+          "family": "competition",
+          "folds": 3,
+          "n_test": 3698,
+          "mean_incremental_mae_improvement": 0.0006098636431870966,
+          "positive_folds": 2,
+          "bootstrap_ci95_low": -0.004872045570230923,
+          "bootstrap_ci95_high": 0.0056564005793721854,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "TE",
+          "family": "conversion",
+          "folds": 3,
+          "n_test": 2734,
+          "mean_incremental_mae_improvement": -0.007871491462956843,
+          "positive_folds": 0,
+          "bootstrap_ci95_low": -0.012770775403151368,
+          "bootstrap_ci95_high": -0.0015643044566077842,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "TE",
+          "family": "opportunity",
+          "folds": 3,
+          "n_test": 3559,
+          "mean_incremental_mae_improvement": -0.008870369723141326,
+          "positive_folds": 0,
+          "bootstrap_ci95_low": -0.011492454647380183,
+          "bootstrap_ci95_high": -0.005111253627477833,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "TE",
+          "family": "regression",
+          "folds": 3,
+          "n_test": 2957,
+          "mean_incremental_mae_improvement": -0.012937113742125153,
+          "positive_folds": 0,
+          "bootstrap_ci95_low": -0.017280149799893164,
+          "bootstrap_ci95_high": -0.009988548444914388,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "WR",
+          "family": "competition",
+          "folds": 3,
+          "n_test": 7428,
+          "mean_incremental_mae_improvement": 0.00479247324085141,
+          "positive_folds": 3,
+          "bootstrap_ci95_low": 0.0015355427482771312,
+          "bootstrap_ci95_high": 0.008633878299795995,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "WR",
+          "family": "conversion",
+          "folds": 3,
+          "n_test": 5406,
+          "mean_incremental_mae_improvement": -0.003782258828550522,
+          "positive_folds": 1,
+          "bootstrap_ci95_low": -0.012213668259457078,
+          "bootstrap_ci95_high": 0.003207884867754405,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "WR",
+          "family": "opportunity",
+          "folds": 3,
+          "n_test": 7140,
+          "mean_incremental_mae_improvement": -0.006117864235136171,
+          "positive_folds": 0,
+          "bootstrap_ci95_low": -0.00787009415148556,
+          "bootstrap_ci95_high": -0.004573510734875448,
+          "status": "diagnostic_only"
+        },
+        {
+          "position": "WR",
+          "family": "regression",
+          "folds": 3,
+          "n_test": 6067,
+          "mean_incremental_mae_improvement": -0.00487796211663111,
+          "positive_folds": 0,
+          "bootstrap_ci95_low": -0.010861766801595882,
+          "bootstrap_ci95_high": -0.000584477288784444,
+          "status": "diagnostic_only"
+        }
+      ]
+    },
+    "driver_ranking": [
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "qb_rush_share_prior4",
+        "same_week_spearman": 0.2798508887883138,
+        "same_week_n": 4180,
+        "next_week_spearman": 0.2393660145420643,
+        "next_week_n": 3670,
+        "next3_spearman": 0.2759212396323855,
+        "next3_n": 3670,
+        "persistence_spearman": 0.4885926811765578,
+        "persistence_n": 3670,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.002091155976691878,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.23486599837490932,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 1
+      },
+      {
+        "position": "QB",
+        "family": "rushing_leverage",
+        "feature": "qb_rush_share_prior4",
+        "same_week_spearman": 0.2798508887883138,
+        "same_week_n": 4180,
+        "next_week_spearman": 0.2393660145420643,
+        "next_week_n": 3670,
+        "next3_spearman": 0.2759212396323855,
+        "next3_n": 3670,
+        "persistence_spearman": 0.4885926811765578,
+        "persistence_n": 3670,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.00042903649171885985,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.23423865158190174,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 2
+      },
+      {
+        "position": "QB",
+        "family": "regression",
+        "feature": "opportunity_xfp_realized_prior4",
+        "same_week_spearman": 0.3585127864562585,
+        "same_week_n": 2008,
+        "next_week_spearman": 0.28621400085179927,
+        "next_week_n": 1751,
+        "next3_spearman": 0.3271725978692813,
+        "next3_n": 1751,
+        "persistence_spearman": 0.3461434271007361,
+        "persistence_n": 1751,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0014819870196683446,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.22433493546432437,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 3
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "qb_pass_attempt_share_prior4",
+        "same_week_spearman": 0.36066568764617646,
+        "same_week_n": 4180,
+        "next_week_spearman": 0.2882257600547835,
+        "next_week_n": 3670,
+        "next3_spearman": 0.3162335077916752,
+        "next3_n": 3670,
+        "persistence_spearman": 0.30417315590538296,
+        "persistence_n": 3670,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.002091155976691878,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.2126415790017706,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 4
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "snap_share_prior4",
+        "same_week_spearman": 0.3438023147800877,
+        "same_week_n": 4180,
+        "next_week_spearman": 0.26461052914094235,
+        "next_week_n": 3670,
+        "next3_spearman": 0.2801811077412739,
+        "next3_n": 3670,
+        "persistence_spearman": 0.2914331385120297,
+        "persistence_n": 3670,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.002091155976691878,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.19574646105166496,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 5
+      },
+      {
+        "position": "QB",
+        "family": "regression",
+        "feature": "xfp_residual_prior4",
+        "same_week_spearman": 0.22143371572696302,
+        "same_week_n": 2008,
+        "next_week_spearman": 0.18398866325534816,
+        "next_week_n": 1751,
+        "next3_spearman": 0.25366143474653674,
+        "next3_n": 1751,
+        "persistence_spearman": 0.14625373315965287,
+        "persistence_n": 1751,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0014819870196683446,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.13668882337692598,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 6
+      },
+      {
+        "position": "QB",
+        "family": "rushing_leverage",
+        "feature": "m7_qb_rush_goal_role",
+        "same_week_spearman": 0.14379021254669266,
+        "same_week_n": 1572,
+        "next_week_spearman": 0.1218938602230822,
+        "next_week_n": 1420,
+        "next3_spearman": 0.13590783121537262,
+        "next3_n": 1420,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.00042903649171885985,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.09023059200345919,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 7
+      },
+      {
+        "position": "QB",
+        "family": "passing_accuracy",
+        "feature": "pfr_passing_bad_throw_pct_prior4",
+        "same_week_spearman": -0.06395712570353397,
+        "same_week_n": 3342,
+        "next_week_spearman": -0.06758884546164592,
+        "next_week_n": 2935,
+        "next3_spearman": -0.09152252032027541,
+        "next3_n": 2935,
+        "persistence_spearman": 0.11957963142782235,
+        "persistence_n": 2893,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.0015014561946662564,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.06502789934894018,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 8
+      },
+      {
+        "position": "QB",
+        "family": "pressure_response",
+        "feature": "pfr_times_pressured_pct_prior4",
+        "same_week_spearman": -0.028211258610695056,
+        "same_week_n": 3342,
+        "next_week_spearman": -0.037654045339204176,
+        "next_week_n": 2935,
+        "next3_spearman": -0.05314465184722391,
+        "next3_n": 2935,
+        "persistence_spearman": 0.17883427062374924,
+        "persistence_n": 2893,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 2.252644047261657e-05,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.06292111708784982,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 9
+      },
+      {
+        "position": "QB",
+        "family": "pressure_response",
+        "feature": "pfr_times_sacked_prior4",
+        "same_week_spearman": 0.058799879455729266,
+        "same_week_n": 3342,
+        "next_week_spearman": 0.02188768904170736,
+        "next_week_n": 2935,
+        "next3_spearman": -0.008094662459694157,
+        "next3_n": 2935,
+        "persistence_spearman": 0.16542645546905482,
+        "persistence_n": 2893,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 2.252644047261657e-05,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.04560214622524826,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 10
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "team_plays_prior4_team",
+        "same_week_spearman": 0.048348586252752866,
+        "same_week_n": 4414,
+        "next_week_spearman": 0.053162280639210704,
+        "next_week_n": 3860,
+        "next3_spearman": 0.07248714413703225,
+        "next3_n": 3860,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.002091155976691878,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.0446046454646926,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 11
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "opportunity_change_score_prior1",
+        "same_week_spearman": -0.014817374213837631,
+        "same_week_n": 1128,
+        "next_week_spearman": -0.04080398196726604,
+        "next_week_n": 966,
+        "next3_spearman": -0.08378814541745197,
+        "next3_n": 966,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.002091155976691878,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.04423459137765886,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 12
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "inside_5_carry_share_prior4",
+        "same_week_spearman": 0.0689071030706487,
+        "same_week_n": 1572,
+        "next_week_spearman": 0.030795090447179853,
+        "next_week_n": 1420,
+        "next3_spearman": 0.02025489839435021,
+        "next3_n": 1420,
+        "persistence_spearman": 0.043276043836171924,
+        "persistence_n": 592,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.002091155976691878,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.02263675441780469,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 13
+      },
+      {
+        "position": "QB",
+        "family": "rushing_leverage",
+        "feature": "inside_5_carry_share_prior4",
+        "same_week_spearman": 0.0689071030706487,
+        "same_week_n": 1572,
+        "next_week_spearman": 0.030795090447179853,
+        "next_week_n": 1420,
+        "next3_spearman": 0.02025489839435021,
+        "next3_n": 1420,
+        "persistence_spearman": 0.043276043836171924,
+        "persistence_n": 592,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.00042903649171885985,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.022009407624797125,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 14
+      },
+      {
+        "position": "QB",
+        "family": "opportunity",
+        "feature": "team_pass_attempts_prior4_team",
+        "same_week_spearman": 0.028352784512177858,
+        "same_week_n": 4414,
+        "next_week_spearman": 0.020531435449602207,
+        "next_week_n": 3860,
+        "next3_spearman": 0.01414443034433123,
+        "next3_n": 3860,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.002091155976691878,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.012763899820884264,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 15
+      },
+      {
+        "position": "RB",
+        "family": "regression",
+        "feature": "opportunity_xfp_realized_prior4",
+        "same_week_spearman": 0.686367556622509,
+        "same_week_n": 5008,
+        "next_week_spearman": 0.660046763498647,
+        "next_week_n": 4489,
+        "next3_spearman": 0.727015239341039,
+        "next3_n": 4489,
+        "persistence_spearman": 0.7458696310419523,
+        "persistence_n": 4489,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.0022311088273406043,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.4976840479057156,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 1
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "offense_snap_share_prior4",
+        "same_week_spearman": 0.6459876915308744,
+        "same_week_n": 8550,
+        "next_week_spearman": 0.6135298261952938,
+        "next_week_n": 7623,
+        "next3_spearman": 0.6737001201147754,
+        "next3_n": 7623,
+        "persistence_spearman": 0.7441981012752887,
+        "persistence_n": 7623,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0073922593692880125,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.4762175555807032,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 2
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "carry_share_prior4",
+        "same_week_spearman": 0.6312282846982263,
+        "same_week_n": 9924,
+        "next_week_spearman": 0.6033101113544836,
+        "next_week_n": 8912,
+        "next3_spearman": 0.6676358697622021,
+        "next3_n": 8912,
+        "persistence_spearman": 0.7561227919195236,
+        "persistence_n": 8912,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0073922593692880125,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.47520039151923527,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 3
+      },
+      {
+        "position": "RB",
+        "family": "receiving_role",
+        "feature": "target_share_prior4",
+        "same_week_spearman": 0.5421294387363637,
+        "same_week_n": 9924,
+        "next_week_spearman": 0.5145751347238429,
+        "next_week_n": 8912,
+        "next3_spearman": 0.5611217489414806,
+        "next3_n": 8912,
+        "persistence_spearman": 0.5429120139566592,
+        "persistence_n": 8912,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.011345747775798097,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.3810791337778687,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 4
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "target_share_prior4",
+        "same_week_spearman": 0.5421294387363637,
+        "same_week_n": 9924,
+        "next_week_spearman": 0.5145751347238429,
+        "next_week_n": 8912,
+        "next3_spearman": 0.5611217489414806,
+        "next3_n": 8912,
+        "persistence_spearman": 0.5429120139566592,
+        "persistence_n": 8912,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0073922593692880125,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.37989308725591564,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 5
+      },
+      {
+        "position": "RB",
+        "family": "competition",
+        "feature": "backfield_competition_index_prior4",
+        "same_week_spearman": -0.5033126603423451,
+        "same_week_n": 9924,
+        "next_week_spearman": -0.47889359097638123,
+        "next_week_n": 8912,
+        "next3_spearman": -0.5288030264020565,
+        "next3_n": 8912,
+        "persistence_spearman": 0.5527218739194224,
+        "persistence_n": 8912,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.018900709906054376,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.3697678609413169,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 6
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "red_zone_carry_share_prior4",
+        "same_week_spearman": 0.3706894897560027,
+        "same_week_n": 6796,
+        "next_week_spearman": 0.3520517212477545,
+        "next_week_n": 6185,
+        "next3_spearman": 0.4053091738417816,
+        "next3_n": 6185,
+        "persistence_spearman": 0.3718450311202522,
+        "persistence_n": 4273,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0073922593692880125,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.2656990605930703,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 7
+      },
+      {
+        "position": "RB",
+        "family": "competition",
+        "feature": "backfield_competitor_count",
+        "same_week_spearman": -0.38094823239980885,
+        "same_week_n": 10604,
+        "next_week_spearman": -0.33218978065303206,
+        "next_week_n": 9531,
+        "next3_spearman": -0.36088381484280263,
+        "next3_n": 9531,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.018900709906054376,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.24824597139535842,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 8
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "inside_5_carry_share_prior4",
+        "same_week_spearman": 0.2959692837620727,
+        "same_week_n": 5286,
+        "next_week_spearman": 0.28629168928422105,
+        "next_week_n": 4825,
+        "next3_spearman": 0.33639448011440554,
+        "next3_n": 4825,
+        "persistence_spearman": 0.29436766174326434,
+        "persistence_n": 2554,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0073922593692880125,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.21619690507722758,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 9
+      },
+      {
+        "position": "RB",
+        "family": "opportunity",
+        "feature": "opportunity_change_score_prior1",
+        "same_week_spearman": 0.20699118350726625,
+        "same_week_n": 3094,
+        "next_week_spearman": 0.18390668770739887,
+        "next_week_n": 2685,
+        "next3_spearman": 0.19714080126755248,
+        "next3_n": 2685,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0073922593692880125,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.13558429895201937,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 10
+      },
+      {
+        "position": "RB",
+        "family": "regression",
+        "feature": "xfp_residual_prior4",
+        "same_week_spearman": 0.011857234522659695,
+        "same_week_n": 5008,
+        "next_week_spearman": 0.009505163618640301,
+        "next_week_n": 4489,
+        "next3_spearman": 0.018666076421272382,
+        "next3_n": 4489,
+        "persistence_spearman": 0.06473268797826323,
+        "persistence_n": 4489,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.0022311088273406043,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.021677583204241044,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 11
+      },
+      {
+        "position": "TE",
+        "family": "regression",
+        "feature": "opportunity_xfp_realized_prior4",
+        "same_week_spearman": 0.5754626824407636,
+        "same_week_n": 3917,
+        "next_week_spearman": 0.5609091313284089,
+        "next_week_n": 3478,
+        "next3_spearman": 0.6699979839269163,
+        "next3_n": 3478,
+        "persistence_spearman": 0.6464868773244652,
+        "persistence_n": 3478,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.012937113742125153,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.43805859826861776,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 1
+      },
+      {
+        "position": "TE",
+        "family": "opportunity",
+        "feature": "target_share_prior4",
+        "same_week_spearman": 0.5567548972255246,
+        "same_week_n": 7826,
+        "next_week_spearman": 0.5421499397750423,
+        "next_week_n": 6990,
+        "next3_spearman": 0.653016704799732,
+        "next3_n": 6990,
+        "persistence_spearman": 0.6594194045120274,
+        "persistence_n": 6990,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.008870369723141326,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.4327367447869204,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 2
+      },
+      {
+        "position": "TE",
+        "family": "opportunity",
+        "feature": "offense_snap_share_prior4",
+        "same_week_spearman": 0.5150990814156797,
+        "same_week_n": 6640,
+        "next_week_spearman": 0.49292824939336244,
+        "next_week_n": 5865,
+        "next3_spearman": 0.5941443144947196,
+        "next3_n": 5865,
+        "persistence_spearman": 0.7287539855663991,
+        "persistence_n": 5865,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.008870369723141326,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.4236928615393789,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 3
+      },
+      {
+        "position": "TE",
+        "family": "competition",
+        "feature": "receiving_competition_index_prior4",
+        "same_week_spearman": -0.29968142948067117,
+        "same_week_n": 7826,
+        "next_week_spearman": -0.2827453383940251,
+        "next_week_n": 6990,
+        "next3_spearman": -0.3514302881305007,
+        "next3_n": 6990,
+        "persistence_spearman": 0.21088198198092992,
+        "persistence_n": 6990,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0006098636431870966,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.1973630677442291,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 4
+      },
+      {
+        "position": "TE",
+        "family": "competition",
+        "feature": "receiving_competitor_count",
+        "same_week_spearman": -0.2027073936201266,
+        "same_week_n": 8377,
+        "next_week_spearman": -0.17582718628455085,
+        "next_week_n": 7476,
+        "next3_spearman": -0.21110763033324625,
+        "next3_n": 7476,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.0006098636431870966,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.1356101449091851,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 5
+      },
+      {
+        "position": "TE",
+        "family": "opportunity",
+        "feature": "red_zone_target_share_prior4",
+        "same_week_spearman": 0.17263135662486254,
+        "same_week_n": 3636,
+        "next_week_spearman": 0.16678903056232627,
+        "next_week_n": 3320,
+        "next3_spearman": 0.20599317969920447,
+        "next3_n": 3320,
+        "persistence_spearman": 0.15569409957742583,
+        "persistence_n": 1611,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.008870369723141326,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.12331113896242318,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 6
+      },
+      {
+        "position": "TE",
+        "family": "opportunity",
+        "feature": "opportunity_change_score_prior1",
+        "same_week_spearman": 0.13861162288490556,
+        "same_week_n": 2283,
+        "next_week_spearman": 0.13199797885714337,
+        "next_week_n": 1928,
+        "next3_spearman": 0.16795953203493338,
+        "next3_n": 1928,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.008870369723141326,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.10498512881222687,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 7
+      },
+      {
+        "position": "TE",
+        "family": "conversion",
+        "feature": "pfr_receiving_drop_pct_prior4",
+        "same_week_spearman": 0.11965077817639728,
+        "same_week_n": 6183,
+        "next_week_spearman": 0.11166484325817158,
+        "next_week_n": 5478,
+        "next3_spearman": 0.14596725739301342,
+        "next3_n": 5478,
+        "persistence_spearman": 0.045135911632120614,
+        "persistence_n": 5162,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.007871491462956843,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.07064586953277131,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 8
+      },
+      {
+        "position": "TE",
+        "family": "regression",
+        "feature": "xfp_residual_prior4",
+        "same_week_spearman": 0.07887639257775987,
+        "same_week_n": 3917,
+        "next_week_spearman": 0.09075925864258573,
+        "next_week_n": 3478,
+        "next3_spearman": 0.11213663599792388,
+        "next3_n": 3478,
+        "persistence_spearman": 0.08460935811533005,
+        "persistence_n": 3478,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.012937113742125153,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.06708455897636258,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 9
+      },
+      {
+        "position": "WR",
+        "family": "regression",
+        "feature": "opportunity_xfp_realized_prior4",
+        "same_week_spearman": 0.627284478531979,
+        "same_week_n": 7995,
+        "next_week_spearman": 0.6031078856093626,
+        "next_week_n": 7167,
+        "next3_spearman": 0.6938914602777125,
+        "next3_n": 7167,
+        "persistence_spearman": 0.6997083402703881,
+        "persistence_n": 7167,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.00487796211663111,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.465898460103408,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 1
+      },
+      {
+        "position": "WR",
+        "family": "opportunity",
+        "feature": "target_share_prior4",
+        "same_week_spearman": 0.6158651011471279,
+        "same_week_n": 15800,
+        "next_week_spearman": 0.5949881209780857,
+        "next_week_n": 14252,
+        "next3_spearman": 0.692264646316093,
+        "next3_n": 14252,
+        "persistence_spearman": 0.7078877839796482,
+        "persistence_n": 14252,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.006117864235136171,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.46553279529722624,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 2
+      },
+      {
+        "position": "WR",
+        "family": "opportunity",
+        "feature": "offense_snap_share_prior4",
+        "same_week_spearman": 0.5820612675845911,
+        "same_week_n": 13647,
+        "next_week_spearman": 0.5532644527304985,
+        "next_week_n": 12201,
+        "next3_spearman": 0.6429127739384339,
+        "next3_n": 12201,
+        "persistence_spearman": 0.7561478548736114,
+        "persistence_n": 12201,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.006117864235136171,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.4555425190265936,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 3
+      },
+      {
+        "position": "WR",
+        "family": "competition",
+        "feature": "receiving_competition_index_prior4",
+        "same_week_spearman": -0.39826770768464226,
+        "same_week_n": 15800,
+        "next_week_spearman": -0.3758041754698534,
+        "next_week_n": 14252,
+        "next3_spearman": -0.437593719744231,
+        "next3_n": 14252,
+        "persistence_spearman": 0.3192720844127175,
+        "persistence_n": 14252,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.00479247324085141,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.26572740388517585,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 4
+      },
+      {
+        "position": "WR",
+        "family": "competition",
+        "feature": "receiving_competitor_count",
+        "same_week_spearman": -0.2228832863303456,
+        "same_week_n": 16859,
+        "next_week_spearman": -0.19777790949435747,
+        "next_week_n": 15199,
+        "next3_spearman": -0.21637155871339234,
+        "next3_n": 15199,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": 0.00479247324085141,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.14639005584496784,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 5
+      },
+      {
+        "position": "WR",
+        "family": "opportunity",
+        "feature": "red_zone_target_share_prior4",
+        "same_week_spearman": 0.1840285626574757,
+        "same_week_n": 7569,
+        "next_week_spearman": 0.17173567237632884,
+        "next_week_n": 6933,
+        "next3_spearman": 0.20847455380529642,
+        "next3_n": 6933,
+        "persistence_spearman": 0.09668089053021935,
+        "persistence_n": 3479,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.006117864235136171,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.1112745938994304,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 6
+      },
+      {
+        "position": "WR",
+        "family": "opportunity",
+        "feature": "opportunity_change_score_prior1",
+        "same_week_spearman": 0.1413345331112133,
+        "same_week_n": 4916,
+        "next_week_spearman": 0.11461335880760896,
+        "next_week_n": 4248,
+        "next3_spearman": 0.11835737126563343,
+        "next3_n": 4248,
+        "persistence_spearman": null,
+        "persistence_n": 0,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.006117864235136171,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.08153975552563483,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 7
+      },
+      {
+        "position": "WR",
+        "family": "conversion",
+        "feature": "pfr_receiving_drop_pct_prior4",
+        "same_week_spearman": 0.09952759051713968,
+        "same_week_n": 12266,
+        "next_week_spearman": 0.0922464585341227,
+        "next_week_n": 11001,
+        "next3_spearman": 0.09913055300590087,
+        "next3_n": 11001,
+        "persistence_spearman": 0.02181636107157447,
+        "persistence_n": 10344,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.003782258828550522,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.04974512027603954,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 8
+      },
+      {
+        "position": "WR",
+        "family": "regression",
+        "feature": "xfp_residual_prior4",
+        "same_week_spearman": 0.07339436161586987,
+        "same_week_n": 7995,
+        "next_week_spearman": 0.06567600616901724,
+        "next_week_n": 7167,
+        "next3_spearman": 0.0829990394437544,
+        "next3_n": 7167,
+        "persistence_spearman": 0.05880259156689774,
+        "persistence_n": 7167,
+        "status": "diagnostic_feature_evidence",
+        "family_incremental_mae_improvement": -0.00487796211663111,
+        "family_status": "diagnostic_only",
+        "evidence_score": 0.04841144867525619,
+        "interpretation": "predictive_not_causal",
+        "position_evidence_rank": 9
+      }
+    ],
+    "validated_candidate_families": [],
+    "activation_composite": {
+      "status": "diagnostic_only",
+      "reason": "no_individual_family_passed",
+      "folds": [],
+      "aggregate": [],
+      "model_specs": {}
+    },
+    "activation_status": "DIAGNOSTIC_ONLY_UNTIL_CONSUMER_GATE"
+  },
+  "source_coverage": [
+    {
+      "position": "QB",
+      "family": "opportunity",
+      "requested_features": [
+        "qb_pass_attempt_share_prior4",
+        "qb_rush_share_prior4",
+        "inside_5_carry_share_prior4",
+        "snap_share_prior4",
+        "team_pass_attempts_prior4_team",
+        "team_plays_prior4_team",
+        "opportunity_change_score_prior1"
+      ],
+      "available_features": [
+        "qb_pass_attempt_share_prior4",
+        "qb_rush_share_prior4",
+        "inside_5_carry_share_prior4",
+        "snap_share_prior4",
+        "team_pass_attempts_prior4_team",
+        "team_plays_prior4_team",
+        "opportunity_change_score_prior1"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "QB",
+      "family": "passing_accuracy",
+      "requested_features": [
+        "ngs_completion_percentage_above_expectation_prior4",
+        "pfr_passing_bad_throw_pct_prior4"
+      ],
+      "available_features": [
+        "pfr_passing_bad_throw_pct_prior4"
+      ],
+      "coverage": 0.5,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "QB",
+      "family": "depth_and_aggression",
+      "requested_features": [
+        "ngs_avg_intended_air_yards_prior4",
+        "ngs_avg_air_yards_to_sticks_prior4",
+        "ngs_aggressiveness_prior4"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "QB",
+      "family": "pressure_response",
+      "requested_features": [
+        "pfr_times_pressured_pct_prior4",
+        "pfr_times_sacked_prior4",
+        "ngs_avg_time_to_throw_prior4",
+        "m7_qb_pressure_processing",
+        "m7_qb_pressure_accuracy"
+      ],
+      "available_features": [
+        "pfr_times_pressured_pct_prior4",
+        "pfr_times_sacked_prior4"
+      ],
+      "coverage": 0.4,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "QB",
+      "family": "rushing_leverage",
+      "requested_features": [
+        "qb_rush_share_prior4",
+        "inside_5_carry_share_prior4",
+        "m7_qb_rush_goal_role"
+      ],
+      "available_features": [
+        "qb_rush_share_prior4",
+        "inside_5_carry_share_prior4",
+        "m7_qb_rush_goal_role"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "QB",
+      "family": "regression",
+      "requested_features": [
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "available_features": [
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "QB",
+      "family": "premium_coverage",
+      "requested_features": [
+        "premium_qb_epa_vs_man_prior4",
+        "premium_qb_epa_vs_zone_prior4",
+        "premium_qb_epa_vs_blitz_prior4",
+        "premium_qb_epa_vs_two_high_prior4",
+        "premium_qb_pressure_to_sack_prior4"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "optional_premium",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "RB",
+      "family": "opportunity",
+      "requested_features": [
+        "offense_snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "opportunity_change_score_prior1"
+      ],
+      "available_features": [
+        "offense_snap_share_prior4",
+        "carry_share_prior4",
+        "target_share_prior4",
+        "red_zone_carry_share_prior4",
+        "inside_5_carry_share_prior4",
+        "opportunity_change_score_prior1"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "RB",
+      "family": "rushing_efficiency",
+      "requested_features": [
+        "ngs_rush_yards_over_expected_per_att_prior4",
+        "ngs_rush_pct_over_expected_prior4",
+        "ngs_efficiency_prior4",
+        "ngs_avg_time_to_los_prior4",
+        "m7_rb_role_efficiency"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "RB",
+      "family": "box_and_environment",
+      "requested_features": [
+        "ngs_percent_attempts_gte_eight_defenders_prior4",
+        "m7_rb_box_efficiency"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "RB",
+      "family": "receiving_role",
+      "requested_features": [
+        "target_share_prior4",
+        "off_part_pass_plays_prior4"
+      ],
+      "available_features": [
+        "target_share_prior4"
+      ],
+      "coverage": 0.5,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "RB",
+      "family": "competition",
+      "requested_features": [
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count"
+      ],
+      "available_features": [
+        "backfield_competition_index_prior4",
+        "backfield_competitor_count"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "RB",
+      "family": "regression",
+      "requested_features": [
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "available_features": [
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "RB",
+      "family": "premium_blocking",
+      "requested_features": [
+        "premium_yards_before_contact_over_expected_prior4",
+        "premium_run_block_win_rate_prior4",
+        "premium_short_yardage_block_win_rate_prior4"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "optional_premium",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "WR",
+      "family": "opportunity",
+      "requested_features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4",
+        "red_zone_target_share_prior4",
+        "ngs_percent_share_of_intended_air_yards_prior4",
+        "opportunity_change_score_prior1"
+      ],
+      "available_features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4",
+        "red_zone_target_share_prior4",
+        "opportunity_change_score_prior1"
+      ],
+      "coverage": 0.8,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "WR",
+      "family": "target_earning",
+      "requested_features": [
+        "ngs_avg_separation_prior4",
+        "ngs_avg_cushion_prior4",
+        "m7_wr_target_separation"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "WR",
+      "family": "target_quality",
+      "requested_features": [
+        "ngs_percent_share_of_intended_air_yards_prior4",
+        "ngs_avg_air_distance_prior4",
+        "m7_wr_target_air_role"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "WR",
+      "family": "conversion",
+      "requested_features": [
+        "ngs_avg_yac_above_expectation_prior4",
+        "pfr_receiving_drop_pct_prior4"
+      ],
+      "available_features": [
+        "pfr_receiving_drop_pct_prior4"
+      ],
+      "coverage": 0.5,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "WR",
+      "family": "competition",
+      "requested_features": [
+        "receiving_competition_index_prior4",
+        "receiving_competitor_count"
+      ],
+      "available_features": [
+        "receiving_competition_index_prior4",
+        "receiving_competitor_count"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "WR",
+      "family": "regression",
+      "requested_features": [
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "available_features": [
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "WR",
+      "family": "premium_routes",
+      "requested_features": [
+        "premium_route_participation_prior4",
+        "premium_targets_per_route_prior4",
+        "premium_first_read_share_prior4",
+        "premium_yards_per_route_run_prior4",
+        "premium_separation_win_rate_prior4"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "optional_premium",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "TE",
+      "family": "opportunity",
+      "requested_features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4",
+        "red_zone_target_share_prior4",
+        "ngs_percent_share_of_intended_air_yards_prior4",
+        "opportunity_change_score_prior1"
+      ],
+      "available_features": [
+        "offense_snap_share_prior4",
+        "target_share_prior4",
+        "red_zone_target_share_prior4",
+        "opportunity_change_score_prior1"
+      ],
+      "coverage": 0.8,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "TE",
+      "family": "target_earning",
+      "requested_features": [
+        "ngs_avg_separation_prior4",
+        "ngs_avg_cushion_prior4",
+        "m7_te_target_separation"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "TE",
+      "family": "target_quality",
+      "requested_features": [
+        "ngs_percent_share_of_intended_air_yards_prior4",
+        "m7_te_target_air_role"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "blocked_missing_source"
+    },
+    {
+      "position": "TE",
+      "family": "conversion",
+      "requested_features": [
+        "ngs_avg_yac_above_expectation_prior4",
+        "pfr_receiving_drop_pct_prior4"
+      ],
+      "available_features": [
+        "pfr_receiving_drop_pct_prior4"
+      ],
+      "coverage": 0.5,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "TE",
+      "family": "competition",
+      "requested_features": [
+        "receiving_competition_index_prior4",
+        "receiving_competitor_count"
+      ],
+      "available_features": [
+        "receiving_competition_index_prior4",
+        "receiving_competitor_count"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "TE",
+      "family": "regression",
+      "requested_features": [
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "available_features": [
+        "xfp_residual_prior4",
+        "opportunity_xfp_realized_prior4"
+      ],
+      "coverage": 1.0,
+      "source_class": "public_core_or_enrichment",
+      "status": "available"
+    },
+    {
+      "position": "TE",
+      "family": "premium_routes_blocking",
+      "requested_features": [
+        "premium_route_participation_prior4",
+        "premium_targets_per_route_prior4",
+        "premium_first_read_share_prior4",
+        "premium_pass_block_rate_prior4",
+        "premium_inline_rate_prior4",
+        "premium_slot_rate_prior4"
+      ],
+      "available_features": [],
+      "coverage": 0.0,
+      "source_class": "optional_premium",
+      "status": "blocked_missing_source"
+    }
+  ],
+  "source_enrichment": {
+    "fixture": false,
+    "feature_columns": [
+      "pfr_passing_drop_pct",
+      "pfr_passing_bad_throw_pct",
+      "pfr_times_sacked",
+      "pfr_times_blitzed",
+      "pfr_times_hurried",
+      "pfr_times_hit",
+      "pfr_times_pressured",
+      "pfr_times_pressured_pct",
+      "pfr_receiving_drop",
+      "pfr_receiving_drop_pct",
+      "pfr_def_times_blitzed",
+      "pfr_def_times_hurried",
+      "pfr_def_times_hitqb"
+    ],
+    "coverage": {
+      "pfr_passing_drop_pct": 0.036824111851123185,
+      "pfr_passing_bad_throw_pct": 0.036824111851123185,
+      "pfr_times_sacked": 0.036824111851123185,
+      "pfr_times_blitzed": 0.036824111851123185,
+      "pfr_times_hurried": 0.036824111851123185,
+      "pfr_times_hit": 0.036824111851123185,
+      "pfr_times_pressured": 0.036824111851123185,
+      "pfr_times_pressured_pct": 0.036824111851123185,
+      "pfr_receiving_drop": 0.24202157681701633,
+      "pfr_receiving_drop_pct": 0.24202157681701633,
+      "pfr_def_times_blitzed": 0.40901614229733435,
+      "pfr_def_times_hurried": 0.40901614229733435,
+      "pfr_def_times_hitqb": 0.40901614229733435
+    },
+    "source_rows": {
+      "ngs_passing": 0,
+      "ngs_receiving": 0,
+      "ngs_rushing": 0,
+      "pfr_adv_pass": 4778,
+      "pfr_adv_rec": 31432,
+      "pfr_adv_def": 55068,
+      "participation": 334682
+    },
+    "source_health": [
+      {
+        "source": "ngs_passing",
+        "season": null,
+        "path": ".cache/fie-research/leagues/1314008320385748992/ngs_passing.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/nextgen_stats/ngs_passing.csv",
+        "ok": false,
+        "rows": null,
+        "error": "404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/nextgen_stats/ngs_passing.csv"
+      },
+      {
+        "source": "ngs_receiving",
+        "season": null,
+        "path": ".cache/fie-research/leagues/1314008320385748992/ngs_receiving.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/nextgen_stats/ngs_receiving.csv",
+        "ok": false,
+        "rows": null,
+        "error": "404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/nextgen_stats/ngs_receiving.csv"
+      },
+      {
+        "source": "ngs_rushing",
+        "season": null,
+        "path": ".cache/fie-research/leagues/1314008320385748992/ngs_rushing.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/nextgen_stats/ngs_rushing.csv",
+        "ok": false,
+        "rows": null,
+        "error": "404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/nextgen_stats/ngs_rushing.csv"
+      },
+      {
+        "source": "pfr_adv_pass",
+        "season": 2019,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_pass_2019.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_pass_2019.csv",
+        "ok": true,
+        "rows": 640,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_pass",
+        "season": 2020,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_pass_2020.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_pass_2020.csv",
+        "ok": true,
+        "rows": 666,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_pass",
+        "season": 2021,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_pass_2021.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_pass_2021.csv",
+        "ok": true,
+        "rows": 706,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_pass",
+        "season": 2022,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_pass_2022.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_pass_2022.csv",
+        "ok": true,
+        "rows": 685,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_pass",
+        "season": 2023,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_pass_2023.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_pass_2023.csv",
+        "ok": true,
+        "rows": 700,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_pass",
+        "season": 2024,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_pass_2024.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_pass_2024.csv",
+        "ok": true,
+        "rows": 697,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_pass",
+        "season": 2025,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_pass_2025.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_pass_2025.csv",
+        "ok": true,
+        "rows": 684,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_rec",
+        "season": 2019,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_rec_2019.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_rec_2019.csv",
+        "ok": true,
+        "rows": 4269,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_rec",
+        "season": 2020,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_rec_2020.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_rec_2020.csv",
+        "ok": true,
+        "rows": 4428,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_rec",
+        "season": 2021,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_rec_2021.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_rec_2021.csv",
+        "ok": true,
+        "rows": 4608,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_rec",
+        "season": 2022,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_rec_2022.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_rec_2022.csv",
+        "ok": true,
+        "rows": 4547,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_rec",
+        "season": 2023,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_rec_2023.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_rec_2023.csv",
+        "ok": true,
+        "rows": 4594,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_rec",
+        "season": 2024,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_rec_2024.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_rec_2024.csv",
+        "ok": true,
+        "rows": 4453,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_rec",
+        "season": 2025,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_rec_2025.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_rec_2025.csv",
+        "ok": true,
+        "rows": 4533,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_def",
+        "season": 2019,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_def_2019.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_def_2019.csv",
+        "ok": true,
+        "rows": 7285,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_def",
+        "season": 2020,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_def_2020.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_def_2020.csv",
+        "ok": true,
+        "rows": 7643,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_def",
+        "season": 2021,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_def_2021.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_def_2021.csv",
+        "ok": true,
+        "rows": 8442,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_def",
+        "season": 2022,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_def_2022.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_def_2022.csv",
+        "ok": true,
+        "rows": 7878,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_def",
+        "season": 2023,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_def_2023.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_def_2023.csv",
+        "ok": true,
+        "rows": 7902,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_def",
+        "season": 2024,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_def_2024.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_def_2024.csv",
+        "ok": true,
+        "rows": 7992,
+        "error": null
+      },
+      {
+        "source": "pfr_adv_def",
+        "season": 2025,
+        "path": ".cache/fie-research/leagues/1314008320385748992/pfr_adv_def_2025.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_def_2025.csv",
+        "ok": true,
+        "rows": 7926,
+        "error": null
+      },
+      {
+        "source": "participation",
+        "season": 2019,
+        "path": ".cache/fie-research/leagues/1314008320385748992/participation_2019.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_2019.csv",
+        "ok": true,
+        "rows": 48034,
+        "error": null
+      },
+      {
+        "source": "participation",
+        "season": 2020,
+        "path": ".cache/fie-research/leagues/1314008320385748992/participation_2020.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_2020.csv",
+        "ok": true,
+        "rows": 48513,
+        "error": null
+      },
+      {
+        "source": "participation",
+        "season": 2021,
+        "path": ".cache/fie-research/leagues/1314008320385748992/participation_2021.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_2021.csv",
+        "ok": true,
+        "rows": 50714,
+        "error": null
+      },
+      {
+        "source": "participation",
+        "season": 2022,
+        "path": ".cache/fie-research/leagues/1314008320385748992/participation_2022.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_2022.csv",
+        "ok": true,
+        "rows": 50150,
+        "error": null
+      },
+      {
+        "source": "participation",
+        "season": 2023,
+        "path": ".cache/fie-research/leagues/1314008320385748992/participation_2023.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_2023.csv",
+        "ok": true,
+        "rows": 46168,
+        "error": null
+      },
+      {
+        "source": "participation",
+        "season": 2024,
+        "path": ".cache/fie-research/leagues/1314008320385748992/participation_2024.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_2024.csv",
+        "ok": true,
+        "rows": 45919,
+        "error": null
+      },
+      {
+        "source": "participation",
+        "season": 2025,
+        "path": ".cache/fie-research/leagues/1314008320385748992/participation_2025.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_2025.csv",
+        "ok": true,
+        "rows": 45184,
+        "error": null
+      }
+    ]
+  },
+  "optional_charting_sources": {
+    "route_source": {
+      "path": "",
+      "rows": 0,
+      "usable_rows": 0,
+      "columns": [],
+      "duplicate_keys": 0,
+      "future_key_rows": 0,
+      "status": "not_supplied",
+      "reason": "optional player feature source not supplied"
+    },
+    "qb_coverage_source": {
+      "path": "",
+      "rows": 0,
+      "usable_rows": 0,
+      "columns": [],
+      "duplicate_keys": 0,
+      "future_key_rows": 0,
+      "status": "not_supplied",
+      "reason": "optional player feature source not supplied"
+    },
+    "timing_rule": "realised week-N charting is shifted before rolling; same-game values can never enter week-N prediction"
+  },
+  "upstream": {
+    "m1_status": "complete",
+    "m6_status": "complete"
+  },
+  "limitations": [
+    "Public participation is not silently relabelled as true all-route participation.",
+    "Premium route, first-read, coverage and OL features remain absent unless supplied as point-in-time historical data.",
+    "Feature evidence ranks prediction utility, not causal football effects.",
+    "A family that does not improve the existing FIE OOS residual remains diagnostic even if its raw correlation is large."
+  ],
+  "league_id": "1314008320385748992",
+  "league_format": "REDRAFT_BESTBALL",
+  "profile_fingerprint": "51dbcac9b96a4ad5b667341a04263a9cb0eaa933c11c437e5581ba691a0d3459",
+  "profile_scoring_signature": "04bb08fb8d01d6e8"
+}

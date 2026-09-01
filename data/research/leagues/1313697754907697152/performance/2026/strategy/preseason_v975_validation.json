@@ -1,0 +1,644 @@
+{
+  "build": "V9.7.5-QB-CHRONOLOGICAL-ENSEMBLE-CALIBRATION-1",
+  "status": "complete_research_only",
+  "governance": {
+    "auto_activation": false,
+    "production_activation": false,
+    "production_activation_allowed": false,
+    "runtime_projection_modified": false,
+    "canonical_m9_modified": false,
+    "canonical_m1_modified": false,
+    "v972_shadow_modified": false,
+    "market_inputs_used": false,
+    "adp_inputs_used": false,
+    "source_predictions_are_v974_exact_oof": true,
+    "chronological_stacking": true,
+    "test_season_leakage_allowed": false,
+    "statistical_gates_lowered": false
+  },
+  "methodology": {
+    "position": "QB",
+    "outer_test_seasons": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "first_fold_policy": "predeclared_equal_weight_0.5_no_calibration",
+    "later_weight_policy": "grid_search_weight_v972_0_to_1_step_0.05_using_only_prior_exact_OOF_seasons",
+    "calibration_policy": "intercept+slope clipped to intercept[-5,5], slope[0.5,1.5]; enabled only when expanding prior-season validation improves MAE and does not worsen absolute bias",
+    "promotion_baseline": "exact-scoring M9",
+    "standalone_safety_boundary": "ensemble aggregate metrics must also be no worse than best standalone where specified"
+  },
+  "source_v974": {
+    "build": "V9.7.4-EXACT-M9-COMPARATOR-AUDIT-1",
+    "status": "complete_research_only",
+    "v972_prior_gate_status": "validated_candidate",
+    "all_v972_folds_exact_scoring_replay": true,
+    "all_m9_folds_exact_scoring_replay": true,
+    "availability_gate": {
+      "mean": 0.49779090514897795,
+      "positive_folds": 4,
+      "required_positive_folds": 3,
+      "ci95_low": 0.4652054066817815,
+      "ci95_high": 0.5351264410585195,
+      "robust": true,
+      "folds": 4
+    }
+  },
+  "folds": [
+    {
+      "position": "QB",
+      "test_season": 2022,
+      "n_test": 54,
+      "weight_v972": 0.5,
+      "weight_m9": 0.5,
+      "calibration_enabled": false,
+      "calibration_intercept": 0.0,
+      "calibration_slope": 1.0,
+      "weight_training": {
+        "status": "predeclared_equal_weight_no_prior_oof_history",
+        "n_train": 0,
+        "training_seasons": [],
+        "training_mae": null
+      },
+      "calibration_training_validation": {
+        "enabled": false,
+        "status": "insufficient_prior_seasons_for_expanding_validation",
+        "validation_folds": 0,
+        "positive_folds": 0,
+        "mean_mae_improvement": null,
+        "abs_bias_reduction": null,
+        "folds": []
+      },
+      "ensemble": {
+        "ppg": {
+          "mae": 3.552167761116856,
+          "rmse": 4.369270127820703,
+          "bias": -0.0262612398180695,
+          "abs_bias": 0.0262612398180695,
+          "rank_mae": 8.518518518518519,
+          "spearman": 0.7464455879550218,
+          "top12_overlap": 0.6666666666666666
+        },
+        "expected_season": {
+          "mae": 64.15271377213324,
+          "rmse": 81.58080846416559,
+          "bias": -10.52456185455542,
+          "abs_bias": 10.52456185455542,
+          "rank_mae": 9.037037037037036,
+          "spearman": 0.742938822184105,
+          "top12_overlap": 0.5833333333333334
+        },
+        "full_schedule": {
+          "mae": 60.38685193898655,
+          "rmse": 74.27759217295194,
+          "bias": -0.44644107690717943,
+          "abs_bias": 0.44644107690717943,
+          "rank_mae": 8.518518518518519,
+          "spearman": 0.7464455879550218,
+          "top12_overlap": 0.6666666666666666
+        }
+      },
+      "v972": {
+        "ppg": {
+          "mae": 3.6560373525219343,
+          "rmse": 4.578971586061352,
+          "bias": 0.16321821712454626,
+          "abs_bias": 0.16321821712454626,
+          "rank_mae": 8.74074074074074,
+          "spearman": 0.7306651419858966,
+          "top12_overlap": 0.6666666666666666
+        },
+        "expected_season": {
+          "mae": 64.9692804218881,
+          "rmse": 82.50024745792749,
+          "bias": -7.333605308159996,
+          "abs_bias": 7.333605308159996,
+          "rank_mae": 8.88888888888889,
+          "spearman": 0.742557651991614,
+          "top12_overlap": 0.6666666666666666
+        },
+        "full_schedule": {
+          "mae": 62.1526349928729,
+          "rmse": 77.84251696304298,
+          "bias": 2.774709691117283,
+          "abs_bias": 2.774709691117283,
+          "rank_mae": 8.74074074074074,
+          "spearman": 0.7306651419858966,
+          "top12_overlap": 0.6666666666666666
+        }
+      },
+      "m9": {
+        "ppg": {
+          "mae": 3.614967277022427,
+          "rmse": 4.372078276251925,
+          "bias": -0.215740696760685,
+          "abs_bias": 0.215740696760685,
+          "rank_mae": 8.851851851851851,
+          "spearman": 0.7327996950638459,
+          "top12_overlap": 0.5833333333333334
+        },
+        "expected_season": {
+          "mae": 64.77653271214538,
+          "rmse": 82.0508879873888,
+          "bias": -13.715518400950842,
+          "abs_bias": 13.715518400950842,
+          "rank_mae": 8.88888888888889,
+          "spearman": 0.7448446731465599,
+          "top12_overlap": 0.5833333333333334
+        },
+        "full_schedule": {
+          "mae": 61.45444370938127,
+          "rmse": 74.3253306962827,
+          "bias": -3.6675918449316476,
+          "abs_bias": 3.6675918449316476,
+          "rank_mae": 8.851851851851851,
+          "spearman": 0.7327996950638459,
+          "top12_overlap": 0.5833333333333334
+        }
+      },
+      "ppg_mae_improvement_vs_m9": 0.01737208419692734,
+      "expected_season_mae_improvement_vs_m9": 0.009630323110751786,
+      "full_schedule_mae_improvement_vs_m9": 0.017372084196927623,
+      "ppg_mae_improvement_vs_v972": 0.02841042948684017,
+      "expected_season_mae_improvement_vs_v972": 0.012568503829076745,
+      "full_schedule_mae_improvement_vs_v972": 0.028410429486840406
+    },
+    {
+      "position": "QB",
+      "test_season": 2023,
+      "n_test": 53,
+      "weight_v972": 0.55,
+      "weight_m9": 0.44999999999999996,
+      "calibration_enabled": false,
+      "calibration_intercept": 0.0,
+      "calibration_slope": 1.0,
+      "weight_training": {
+        "status": "chronological_prior_oof_grid_search",
+        "n_train": 54,
+        "training_seasons": [
+          2022
+        ],
+        "training_mae": 3.5508703719598547
+      },
+      "calibration_training_validation": {
+        "enabled": false,
+        "status": "insufficient_prior_seasons_for_expanding_validation",
+        "validation_folds": 0,
+        "positive_folds": 0,
+        "mean_mae_improvement": null,
+        "abs_bias_reduction": null,
+        "folds": []
+      },
+      "ensemble": {
+        "ppg": {
+          "mae": 4.793559657651313,
+          "rmse": 6.380714960671438,
+          "bias": 0.4415755367070437,
+          "abs_bias": 0.4415755367070437,
+          "rank_mae": 11.132075471698114,
+          "spearman": 0.47423595025569515,
+          "top12_overlap": 0.5
+        },
+        "expected_season": {
+          "mae": 78.53153823454083,
+          "rmse": 103.17742207130628,
+          "bias": -2.50121778953112,
+          "abs_bias": 2.50121778953112,
+          "rank_mae": 11.018867924528301,
+          "spearman": 0.5206031788557673,
+          "top12_overlap": 0.5
+        },
+        "full_schedule": {
+          "mae": 81.49051418007234,
+          "rmse": 108.47215433141446,
+          "bias": 7.506784124019743,
+          "abs_bias": 7.506784124019743,
+          "rank_mae": 11.132075471698114,
+          "spearman": 0.47423595025569515,
+          "top12_overlap": 0.5
+        }
+      },
+      "v972": {
+        "ppg": {
+          "mae": 4.921528432179657,
+          "rmse": 6.478291575296047,
+          "bias": 0.3894744727632767,
+          "abs_bias": 0.3894744727632767,
+          "rank_mae": 11.50943396226415,
+          "spearman": 0.47875171512805004,
+          "top12_overlap": 0.4166666666666667
+        },
+        "expected_season": {
+          "mae": 78.18367834761625,
+          "rmse": 104.81975657204488,
+          "bias": -0.5900155764221072,
+          "abs_bias": 0.5900155764221072,
+          "rank_mae": 10.943396226415095,
+          "spearman": 0.5197967922714183,
+          "top12_overlap": 0.4166666666666667
+        },
+        "full_schedule": {
+          "mae": 83.66598334705414,
+          "rmse": 110.13095678003282,
+          "bias": 6.621066036975697,
+          "abs_bias": 6.621066036975697,
+          "rank_mae": 11.50943396226415,
+          "spearman": 0.47875171512805004,
+          "top12_overlap": 0.4166666666666667
+        }
+      },
+      "m9": {
+        "ppg": {
+          "mae": 4.93230045475695,
+          "rmse": 6.4364480234388886,
+          "bias": 0.5052546148605368,
+          "abs_bias": 0.5052546148605368,
+          "rank_mae": 11.20754716981132,
+          "spearman": 0.4440770920010395,
+          "top12_overlap": 0.5833333333333334
+        },
+        "expected_season": {
+          "mae": 80.33518113869965,
+          "rmse": 102.29919679497384,
+          "bias": -4.837131605553251,
+          "abs_bias": 4.837131605553251,
+          "rank_mae": 11.056603773584905,
+          "spearman": 0.5290702379914327,
+          "top12_overlap": 0.5
+        },
+        "full_schedule": {
+          "mae": 83.84910773086818,
+          "rmse": 109.4196163984611,
+          "bias": 8.589328452629122,
+          "abs_bias": 8.589328452629122,
+          "rank_mae": 11.20754716981132,
+          "spearman": 0.4440770920010395,
+          "top12_overlap": 0.5833333333333334
+        }
+      },
+      "ppg_mae_improvement_vs_m9": 0.028129023845623304,
+      "expected_season_mae_improvement_vs_m9": 0.022451469936251335,
+      "full_schedule_mae_improvement_vs_m9": 0.028129023845623505,
+      "ppg_mae_improvement_vs_v972": 0.026001835871070786,
+      "expected_season_mae_improvement_vs_v972": -0.004449264786160927,
+      "full_schedule_mae_improvement_vs_v972": 0.02600183587107025
+    },
+    {
+      "position": "QB",
+      "test_season": 2024,
+      "n_test": 55,
+      "weight_v972": 0.55,
+      "weight_m9": 0.44999999999999996,
+      "calibration_enabled": false,
+      "calibration_intercept": 0.0,
+      "calibration_slope": 1.0,
+      "weight_training": {
+        "status": "chronological_prior_oof_grid_search",
+        "n_train": 107,
+        "training_seasons": [
+          2022,
+          2023
+        ],
+        "training_mae": 4.166408055526652
+      },
+      "calibration_training_validation": {
+        "enabled": false,
+        "status": "rejected_by_expanding_validation",
+        "validation_folds": 1,
+        "positive_folds": 0,
+        "required_positive_folds": 1,
+        "mean_mae_improvement": -0.00031588807294080363,
+        "abs_bias_reduction": -0.0038099224809157173,
+        "folds": [
+          {
+            "validation_season": 2023,
+            "n": 53,
+            "intercept": 0.4264667951992896,
+            "slope": 0.9669453985542538,
+            "raw_mae": 4.793559657651313,
+            "calibrated_mae": 4.795073885974095,
+            "mae_improvement": -0.00031588807294080363,
+            "raw_abs_bias": 0.4415755367070437,
+            "calibrated_abs_bias": 0.4453854591879594
+          }
+        ]
+      },
+      "ensemble": {
+        "ppg": {
+          "mae": 3.9807058052042708,
+          "rmse": 5.498666194996021,
+          "bias": 0.7439370589250875,
+          "abs_bias": 0.7439370589250875,
+          "rank_mae": 9.454545454545455,
+          "spearman": 0.6498556998556999,
+          "top12_overlap": 0.4166666666666667
+        },
+        "expected_season": {
+          "mae": 75.25078700341034,
+          "rmse": 94.58535013387804,
+          "bias": -7.13196212914862,
+          "abs_bias": 7.13196212914862,
+          "rank_mae": 10.327272727272728,
+          "spearman": 0.6531746031746034,
+          "top12_overlap": 0.5
+        },
+        "full_schedule": {
+          "mae": 67.6719986884726,
+          "rmse": 93.47732531493236,
+          "bias": 12.646930001726481,
+          "abs_bias": 12.646930001726481,
+          "rank_mae": 9.454545454545455,
+          "spearman": 0.6498556998556999,
+          "top12_overlap": 0.4166666666666667
+        }
+      },
+      "v972": {
+        "ppg": {
+          "mae": 3.8260260023736326,
+          "rmse": 5.30234041830797,
+          "bias": 0.7730909073450094,
+          "abs_bias": 0.7730909073450094,
+          "rank_mae": 9.127272727272727,
+          "spearman": 0.672871572871573,
+          "top12_overlap": 0.5
+        },
+        "expected_season": {
+          "mae": 74.01999831764637,
+          "rmse": 92.86332225574127,
+          "bias": -5.330499085590357,
+          "abs_bias": 5.330499085590357,
+          "rank_mae": 10.181818181818182,
+          "spearman": 0.6712842712842715,
+          "top12_overlap": 0.5833333333333334
+        },
+        "full_schedule": {
+          "mae": 65.04244204035176,
+          "rmse": 90.13978711123548,
+          "bias": 13.142545424865164,
+          "abs_bias": 13.142545424865164,
+          "rank_mae": 9.127272727272727,
+          "spearman": 0.672871572871573,
+          "top12_overlap": 0.5
+        }
+      },
+      "m9": {
+        "ppg": {
+          "mae": 4.3151520315242164,
+          "rmse": 5.887243472431776,
+          "bias": 0.7083045775229603,
+          "abs_bias": 0.7083045775229603,
+          "rank_mae": 10.472727272727273,
+          "spearman": 0.5894660894660896,
+          "top12_overlap": 0.4166666666666667
+        },
+        "expected_season": {
+          "mae": 77.39927209217458,
+          "rmse": 97.54202791221648,
+          "bias": -9.333750293497612,
+          "abs_bias": 9.333750293497612,
+          "rank_mae": 10.618181818181819,
+          "spearman": 0.6229437229437231,
+          "top12_overlap": 0.5
+        },
+        "full_schedule": {
+          "mae": 73.35758453591167,
+          "rmse": 100.0831390313402,
+          "bias": 12.041177817890325,
+          "abs_bias": 12.041177817890325,
+          "rank_mae": 10.472727272727273,
+          "spearman": 0.5894660894660896,
+          "top12_overlap": 0.4166666666666667
+        }
+      },
+      "ppg_mae_improvement_vs_m9": 0.07750508530792394,
+      "expected_season_mae_improvement_vs_m9": 0.027758466335518265,
+      "full_schedule_mae_improvement_vs_m9": 0.07750508530792388,
+      "ppg_mae_improvement_vs_v972": -0.04042831981138555,
+      "expected_season_mae_improvement_vs_v972": -0.016627785919181095,
+      "full_schedule_mae_improvement_vs_v972": -0.0404283198113854
+    },
+    {
+      "position": "QB",
+      "test_season": 2025,
+      "n_test": 53,
+      "weight_v972": 0.75,
+      "weight_m9": 0.25,
+      "calibration_enabled": false,
+      "calibration_intercept": 0.0,
+      "calibration_slope": 1.0,
+      "weight_training": {
+        "status": "chronological_prior_oof_grid_search",
+        "n_train": 162,
+        "training_seasons": [
+          2022,
+          2023,
+          2024
+        ],
+        "training_mae": 4.089855011956594
+      },
+      "calibration_training_validation": {
+        "enabled": false,
+        "status": "rejected_by_expanding_validation",
+        "validation_folds": 2,
+        "positive_folds": 1,
+        "required_positive_folds": 1,
+        "mean_mae_improvement": -0.020656698648426293,
+        "abs_bias_reduction": 0.14891516055372112,
+        "folds": [
+          {
+            "validation_season": 2023,
+            "n": 53,
+            "intercept": 0.6015762799947624,
+            "slope": 0.9474731821266132,
+            "raw_mae": 4.831466875761629,
+            "calibrated_mae": 4.8100241051716495,
+            "mae_improvement": 0.0044381491462879095,
+            "raw_abs_bias": 0.4184195082875914,
+            "calibrated_abs_bias": 0.3495712518352938
+          },
+          {
+            "validation_season": 2024,
+            "n": 55,
+            "intercept": 1.9365591576977486,
+            "slope": 0.8292800313122144,
+            "raw_mae": 3.8836899482981098,
+            "calibrated_mae": 4.05783074722445,
+            "mae_improvement": -0.044839006523332704,
+            "raw_abs_bias": 0.756894324889497,
+            "calibrated_abs_bias": 0.5308237840198587
+          }
+        ]
+      },
+      "ensemble": {
+        "ppg": {
+          "mae": 4.183622135187589,
+          "rmse": 5.284081440214017,
+          "bias": 0.4963622253483957,
+          "abs_bias": 0.4963622253483957,
+          "rank_mae": 10.226415094339623,
+          "spearman": 0.6552975326560232,
+          "top12_overlap": 0.4166666666666667
+        },
+        "expected_season": {
+          "mae": 74.33044348663202,
+          "rmse": 94.9787586487335,
+          "bias": -11.964287649373343,
+          "abs_bias": 11.964287649373343,
+          "rank_mae": 10.0,
+          "spearman": 0.6348169650056442,
+          "top12_overlap": 0.5
+        },
+        "full_schedule": {
+          "mae": 71.12157629818903,
+          "rmse": 89.82938448363828,
+          "bias": 8.438157830922723,
+          "abs_bias": 8.438157830922723,
+          "rank_mae": 10.226415094339623,
+          "spearman": 0.6552975326560232,
+          "top12_overlap": 0.4166666666666667
+        }
+      },
+      "v972": {
+        "ppg": {
+          "mae": 4.265078693743996,
+          "rmse": 5.392064776557035,
+          "bias": 0.5356074354173738,
+          "abs_bias": 0.5356074354173738,
+          "rank_mae": 10.452830188679245,
+          "spearman": 0.6356232865666828,
+          "top12_overlap": 0.4166666666666667
+        },
+        "expected_season": {
+          "mae": 73.98355905388051,
+          "rmse": 95.53693769655446,
+          "bias": -10.583273793528203,
+          "abs_bias": 10.583273793528203,
+          "rank_mae": 9.849056603773585,
+          "spearman": 0.6368327689082405,
+          "top12_overlap": 0.5833333333333334
+        },
+        "full_schedule": {
+          "mae": 72.50633779364796,
+          "rmse": 91.66510120146961,
+          "bias": 9.105326402095356,
+          "abs_bias": 9.105326402095356,
+          "rank_mae": 10.452830188679245,
+          "spearman": 0.6356232865666828,
+          "top12_overlap": 0.4166666666666667
+        }
+      },
+      "m9": {
+        "ppg": {
+          "mae": 4.124359647078426,
+          "rmse": 5.294535660079947,
+          "bias": 0.3786265951414604,
+          "abs_bias": 0.3786265951414604,
+          "rank_mae": 9.773584905660377,
+          "spearman": 0.6538461538461539,
+          "top12_overlap": 0.3333333333333333
+        },
+        "expected_season": {
+          "mae": 75.84915722984671,
+          "rmse": 95.09558370211249,
+          "bias": -16.10732921690876,
+          "abs_bias": 16.10732921690876,
+          "rank_mae": 9.735849056603774,
+          "spearman": 0.6481212707627803,
+          "top12_overlap": 0.5
+        },
+        "full_schedule": {
+          "mae": 70.11411400033323,
+          "rmse": 90.00710622135911,
+          "bias": 6.436652117404824,
+          "abs_bias": 6.436652117404824,
+          "rank_mae": 9.773584905660377,
+          "spearman": 0.6538461538461539,
+          "top12_overlap": 0.3333333333333333
+        }
+      },
+      "ppg_mae_improvement_vs_m9": -0.01436889436912783,
+      "expected_season_mae_improvement_vs_m9": 0.020022816319666036,
+      "full_schedule_mae_improvement_vs_m9": -0.014368894369128122,
+      "ppg_mae_improvement_vs_v972": 0.01909848900933241,
+      "expected_season_mae_improvement_vs_v972": -0.004688669174442942,
+      "full_schedule_mae_improvement_vs_v972": 0.019098489009332455
+    }
+  ],
+  "per_position": {
+    "QB": {
+      "status": "diagnostic_only",
+      "folds": 4,
+      "n_test": 215,
+      "ppg_mae_head_to_head_gate_vs_exact_m9": {
+        "mean": 0.027582135352670477,
+        "positive_folds": 3,
+        "required_positive_folds": 3,
+        "ci95_low": -0.003744414815440047,
+        "ci95_high": 0.06267776996548641,
+        "robust": false,
+        "folds": 4
+      },
+      "expected_season_mae_head_to_head_gate_vs_exact_m9": {
+        "mean": 0.01999018729301266,
+        "positive_folds": 4,
+        "required_positive_folds": 3,
+        "ci95_low": 0.012790884886340049,
+        "ci95_high": 0.025877780781205565,
+        "robust": true,
+        "folds": 4
+      },
+      "full_schedule_mae_head_to_head_gate_vs_exact_m9": {
+        "mean": 0.02758213535267052,
+        "positive_folds": 3,
+        "required_positive_folds": 3,
+        "ci95_low": -0.0037444148154402164,
+        "ci95_high": 0.06267776996548645,
+        "robust": false,
+        "folds": 4
+      },
+      "standalone_noninferiority": {
+        "ppg_mae_better_or_equal_best_standalone": true,
+        "expected_season_mae_better_or_equal_best_standalone": false,
+        "full_schedule_mae_better_or_equal_best_standalone": true,
+        "rank_mae": true,
+        "spearman": true,
+        "top12_overlap": true,
+        "absolute_calibration_bias": true
+      },
+      "weighted_metrics": {
+        "ensemble_ppg_mae": 4.123472155381427,
+        "v972_ppg_mae": 4.16161685972413,
+        "m9_ppg_mae": 4.24439339576892,
+        "ensemble_expected_season_mae": 73.04523190746477,
+        "v972_expected_season_mae": 72.76420759317134,
+        "m9_expected_season_mae": 74.57052402352748,
+        "ensemble_full_schedule_mae": 70.09902664148427,
+        "v972_full_schedule_mae": 70.74748661531021,
+        "m9_full_schedule_mae": 72.15468772807165,
+        "ensemble_rank_mae": 9.82325581395349,
+        "v972_rank_mae": 9.944186046511629,
+        "m9_rank_mae": 10.074418604651163,
+        "ensemble_spearman": 0.6321646503997941,
+        "v972_spearman": 0.6303522291395152,
+        "m9_spearman": 0.6054965138789946,
+        "ensemble_top12_overlap": 0.5,
+        "v972_top12_overlap": 0.5007751937984497,
+        "m9_top12_overlap": 0.4790697674418605,
+        "ensemble_ppg_bias": 0.41492619850996443,
+        "v972_ppg_bias": 0.4668052314524441,
+        "m9_ppg_bias": 0.3448951547385659
+      },
+      "football_model_promotion_review_ready": false,
+      "expected_season_points_ready": false,
+      "production_activation_allowed": false,
+      "market_fallback_replacement_validated": false,
+      "reason": "one_or_more_unchanged_head_to_head_or_standalone_safety_gates_not_cleared"
+    }
+  },
+  "football_model_promotion_review_positions": [],
+  "expected_season_points_ready_positions": [],
+  "production_activation_allowed": false,
+  "replacement_claim_vs_market_fallback": false
+}

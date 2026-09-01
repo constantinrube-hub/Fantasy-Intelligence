@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "research_build": "M9.1c-ROLE-COHORT-DENSITY-RELIABILITY",
+  "league_id": "1342896584593018880",
+  "season": 2026,
+  "status": "RESEARCH_ONLY_BLOCKED_PROMOTION",
+  "production_eligible": false,
+  "automatic_promotion": false,
+  "sleeper_is_fixed_baseline": true,
+  "adp_in_football_model": false,
+  "calibration": {
+    "method": "ROLE_COHORT_LOCAL_RESIDUAL",
+    "role_inputs": [
+      "Sleeper projection percentile",
+      "current projected opportunity share",
+      "Sleeper depth_chart_order"
+    ],
+    "cohorts": [
+      "CLEAR_STARTER",
+      "STARTER",
+      "COMMITTEE_FRINGE",
+      "DEPTH"
+    ],
+    "same_cohort_only": true,
+    "min_reference": 6,
+    "max_reference": 12,
+    "density_reliability": "1/(1 + local_market_span / position_market_IQR)",
+    "proximity_reliability": "1/(1 + 2*median_neighbor_distance / position_market_IQR)",
+    "transition_reliability": "1 / empirical team-change volatility multiplier",
+    "correction_cap": "min(median local baseline distance, smaller M9 one-sided P10/P90 spread)",
+    "signal_output": "raw FIE residual z-score + percentile/extremity are retained separately from applied correction",
+    "audit": [
+      {
+        "position_model": "QB",
+        "role_cohort": "CLEAR_STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "QB",
+        "role_cohort": "COMMITTEE_FRINGE",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "QB",
+        "role_cohort": "DEPTH",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "QB",
+        "role_cohort": "STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "RB",
+        "role_cohort": "CLEAR_STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "RB",
+        "role_cohort": "COMMITTEE_FRINGE",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "RB",
+        "role_cohort": "DEPTH",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "RB",
+        "role_cohort": "STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "TE",
+        "role_cohort": "CLEAR_STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "TE",
+        "role_cohort": "COMMITTEE_FRINGE",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "TE",
+        "role_cohort": "DEPTH",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "TE",
+        "role_cohort": "STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "WR",
+        "role_cohort": "CLEAR_STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "WR",
+        "role_cohort": "COMMITTEE_FRINGE",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "WR",
+        "role_cohort": "DEPTH",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      },
+      {
+        "position_model": "WR",
+        "role_cohort": "STARTER",
+        "status": "INSUFFICIENT_SAME_COHORT_REFERENCE",
+        "reference_n": 0
+      }
+    ]
+  },
+  "team_transition_policy": {
+    "applies_to_positions": [
+      "QB",
+      "RB",
+      "TE",
+      "WR"
+    ],
+    "team_change_is_never_a_block_reason": true,
+    "old_team_context_carried": false,
+    "m8_new_team_environment": [
+      "pfr_times_pressured_pct_prior4",
+      "pfr_times_sacked_prior4"
+    ],
+    "current_workload_role_estimators": {
+      "QB": {
+        "snap_share_prior4": [
+          "qb_pass_attempt_share_prior4",
+          "qb_rush_share_prior4"
+        ],
+        "inside_5_carry_share_prior4": [
+          "qb_rush_share_prior4"
+        ]
+      },
+      "RB": {
+        "offense_snap_share_prior4": [
+          "carry_share_prior4",
+          "target_share_prior4"
+        ],
+        "red_zone_carry_share_prior4": [
+          "carry_share_prior4"
+        ],
+        "inside_5_carry_share_prior4": [
+          "carry_share_prior4"
+        ],
+        "red_zone_target_share_prior4": [
+          "target_share_prior4"
+        ]
+      },
+      "WR": {
+        "offense_snap_share_prior4": [
+          "target_share_prior4"
+        ],
+        "red_zone_target_share_prior4": [
+          "target_share_prior4"
+        ]
+      },
+      "TE": {
+        "offense_snap_share_prior4": [
+          "target_share_prior4"
+        ],
+        "red_zone_target_share_prior4": [
+          "target_share_prior4"
+        ]
+      }
+    },
+    "role_estimator_audit": [
+      {
+        "position": "QB",
+        "target": "snap_share_prior4",
+        "status": "FIT",
+        "n": 4180,
+        "features": [
+          "qb_rush_share_prior4"
+        ],
+        "in_sample_role_mae": 0.14533612844360771
+      },
+      {
+        "position": "QB",
+        "target": "inside_5_carry_share_prior4",
+        "status": "FIT",
+        "n": 1572,
+        "features": [
+          "qb_rush_share_prior4"
+        ],
+        "in_sample_role_mae": 0.17951708974954633
+      },
+      {
+        "position": "RB",
+        "target": "offense_snap_share_prior4",
+        "status": "UNAVAILABLE_COLUMNS",
+        "features": [
+          "carry_share_prior4",
+          "target_share_prior4"
+        ]
+      },
+      {
+        "position": "RB",
+        "target": "red_zone_carry_share_prior4",
+        "status": "FIT",
+        "n": 6796,
+        "features": [
+          "carry_share_prior4"
+        ],
+        "in_sample_role_mae": 0.11254798667529352
+      },
+      {
+        "position": "RB",
+        "target": "inside_5_carry_share_prior4",
+        "status": "FIT",
+        "n": 5286,
+        "features": [
+          "carry_share_prior4"
+        ],
+        "in_sample_role_mae": 0.19769310747053884
+      },
+      {
+        "position": "RB",
+        "target": "red_zone_target_share_prior4",
+        "status": "FIT",
+        "n": 6773,
+        "features": [
+          "target_share_prior4"
+        ],
+        "in_sample_role_mae": 0.06266146960363586
+      },
+      {
+        "position": "WR",
+        "target": "offense_snap_share_prior4",
+        "status": "UNAVAILABLE_COLUMNS",
+        "features": [
+          "target_share_prior4"
+        ]
+      },
+      {
+        "position": "WR",
+        "target": "red_zone_target_share_prior4",
+        "status": "FIT",
+        "n": 7569,
+        "features": [
+          "target_share_prior4"
+        ],
+        "in_sample_role_mae": 0.0844309979085841
+      },
+      {
+        "position": "TE",
+        "target": "offense_snap_share_prior4",
+        "status": "UNAVAILABLE_COLUMNS",
+        "features": [
+          "target_share_prior4"
+        ]
+      },
+      {
+        "position": "TE",
+        "target": "red_zone_target_share_prior4",
+        "status": "FIT",
+        "n": 3636,
+        "features": [
+          "target_share_prior4"
+        ],
+        "in_sample_role_mae": 0.08468910469092815
+      }
+    ],
+    "depth_template_is_fallback": true,
+    "derived_interactions_recomputed": true
+  },
+  "market_snapshot": "data/research/market/sleeper/2026/season_market_2026-09-01.jsonl.gz",
+  "availability_snapshot": "data/research/availability/sleeper/2026/availability_2026-09-01.jsonl.gz",
+  "profile_table": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/.cache/fie-research/leagues/1342896584593018880/derived/m9_preseason_latest_profiles.csv.gz",
+  "profile_source": "EXISTING_M9_DERIVED_PROFILE",
+  "residual_model_gate": {
+    "available_seasons": [
+      2026
+    ],
+    "completed_seasons_with_immutable_preseason_market": [],
+    "required_completed_seasons": 4,
+    "status": "BLOCKED_MISSING_HISTORICAL_SLEEPER_BASELINE",
+    "semantics": "Future residual target is actual league-scored season points minus point-in-time Sleeper preseason projection."
+  },
+  "transition_volatility": {
+    "QB": {
+      "changed_n": 68,
+      "stable_n": 175,
+      "changed_median_abs_ppg_delta": 4.111722689075628,
+      "stable_median_abs_ppg_delta": 2.7716862745098023,
+      "status": "EMPIRICAL_TRANSITION_VOLATILITY",
+      "spread_multiplier": 1.4834733378339593,
+      "raw_ratio": 1.4834733378339593
+    },
+    "RB": {
+      "changed_n": 147,
+      "stable_n": 396,
+      "changed_median_abs_ppg_delta": 2.537433155080214,
+      "stable_median_abs_ppg_delta": 2.286607142857142,
+      "status": "EMPIRICAL_TRANSITION_VOLATILITY",
+      "spread_multiplier": 1.1096935313119252,
+      "raw_ratio": 1.1096935313119252
+    },
+    "TE": {
+      "changed_n": 109,
+      "stable_n": 359,
+      "changed_median_abs_ppg_delta": 1.589696969696968,
+      "stable_median_abs_ppg_delta": 1.639903846153846,
+      "status": "EMPIRICAL_TRANSITION_VOLATILITY",
+      "spread_multiplier": 1.0,
+      "raw_ratio": 0.9693842559277907
+    },
+    "WR": {
+      "changed_n": 238,
+      "stable_n": 628,
+      "changed_median_abs_ppg_delta": 2.3400000000000007,
+      "stable_median_abs_ppg_delta": 2.2151976495726498,
+      "status": "EMPIRICAL_TRANSITION_VOLATILITY",
+      "spread_multiplier": 1.056339148992609,
+      "raw_ratio": 1.056339148992609
+    }
+  },
+  "rows": 3048,
+  "exact_replay_rows": 0,
+  "true_team_changes": 89,
+  "adjusted_rows": 0,
+  "notes": [
+    "No production integration or activation path.",
+    "Historical Actual-minus-Sleeper preseason validation remains required before promotion.",
+    "M9.1c separates signal magnitude from applied correction reliability."
+  ]
+}

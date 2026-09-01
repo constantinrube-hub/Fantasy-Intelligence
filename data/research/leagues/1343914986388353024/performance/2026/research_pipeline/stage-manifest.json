@@ -1,0 +1,248 @@
+{
+  "extensions": {
+    "m91c_preseason_projection_challenger": {
+      "historical_residual_gate_status": "BLOCKED_MISSING_HISTORICAL_SLEEPER_BASELINE",
+      "integration_audit_sha256": "b4b28a7aa74fada5fcc9f63b0b4b40afed41ec3af75a5ff4cd20097147961eda",
+      "model": "M9.1c",
+      "production_activation": false,
+      "status": "complete_research_only"
+    }
+  },
+  "finished_at": "2026-09-01T08:11:51.923912+00:00",
+  "governance": {
+    "adp_in_football_model": false,
+    "automatic_promotion": false,
+    "statistical_gates_lowered": false
+  },
+  "league_id": "1343914986388353024",
+  "pipeline_fingerprint": "9ee43d615cc21af04dc4b1c44e1e16be9e081510f098cbcba641985dd9d83339",
+  "resolved_adp_key": "adp_std",
+  "schema": "fie-research-pipeline-v1",
+  "schema_version": 1,
+  "season": 2026,
+  "source_commit": "47154f1eafc387577d9c76efb2cb74e71d3610f5",
+  "stages": [
+    {
+      "finished_at": "2026-09-01T08:09:23.230856+00:00",
+      "inputs": {
+        "expected_adp_key": "adp_std",
+        "format": "CHOPPED",
+        "profile_fingerprint": "6c341e34e59835351011e7164285ff4c13cb6d6905366a1fc61417bc61d442d9",
+        "resolved_adp_key": "adp_std",
+        "roster_signature": "0f22b888761c4dd9",
+        "scoring_signature": "4bdfbec0f562ec4e",
+        "teams": 16
+      },
+      "name": "profile",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/profile.json": "c50bf5dcce62a96ea620a7d8bdb29adc2d644e54ee0ad80fc6a8de79ab1a7b68"
+      },
+      "reason": "canonical registry/profile validated",
+      "started_at": "2026-09-01T08:09:23.230616+00:00",
+      "status": "complete"
+    },
+    {
+      "finished_at": "2026-09-01T08:09:23.248850+00:00",
+      "inputs": {},
+      "name": "historical_backbone",
+      "outputs": {
+        ".cache/fie-research/leagues/1343914986388353024/derived/player_identity.csv.gz": "e75be33605cbef8141b79d8cfa73736d14e7c73d8c9fea188f18e9612ea6eb9c",
+        ".cache/fie-research/leagues/1343914986388353024/derived/player_week.csv.gz": "1774a0fc56793948a292869325a0bfa87b13abff653edd7e5a07bdc4f210055d"
+      },
+      "reason": "existing M1 derived historical backbone",
+      "started_at": "2026-09-01T08:09:23.231227+00:00",
+      "status": "reused_valid"
+    },
+    {
+      "finished_at": "2026-09-01T08:09:23.274772+00:00",
+      "inputs": {},
+      "name": "m1_m9",
+      "outputs": {
+        ".cache/fie-research/leagues/1343914986388353024/derived/player_identity.csv.gz": "e75be33605cbef8141b79d8cfa73736d14e7c73d8c9fea188f18e9612ea6eb9c",
+        ".cache/fie-research/leagues/1343914986388353024/derived/player_week.csv.gz": "1774a0fc56793948a292869325a0bfa87b13abff653edd7e5a07bdc4f210055d",
+        "data/research/leagues/1343914986388353024/milestone1.json": "42cf85783db429b8cdb8a4e52758f25cf2f15381c229b7fb7cbe124452a95cb6",
+        "data/research/leagues/1343914986388353024/milestone2.json": "d090aff7a8227d396029676dfb885e2be41540bad7da0ec155a6ae6f1e28f2ee",
+        "data/research/leagues/1343914986388353024/milestone3.json": "d31ae419f3ad67a8cdf247fe61a5b82ed45a77463ced0ee66cac88abe2a07927",
+        "data/research/leagues/1343914986388353024/milestone4.json": "3d1d4e56fb34b0bbe9a2ca1e2261b510550f1df49a0b46674d44d48b788d7694",
+        "data/research/leagues/1343914986388353024/milestone5.json": "e039adf965d2949799cadfb6da5add82061480efebcbf7d6d9bb04983453fcf2",
+        "data/research/leagues/1343914986388353024/milestone6.json": "59912259c60960be7442f0791141a4a1888e284377d449e399ef9042f3ae5f0c",
+        "data/research/leagues/1343914986388353024/milestone7.json": "9650824c95df183da4ad0970bc52e890fd455dfa56c2f96d9a71987fcdf5a46a",
+        "data/research/leagues/1343914986388353024/milestone8.json": "ac7e6d82143f2fee08504e9db4b70ab05efe441441a252d1f8055aed02d239e7",
+        "data/research/leagues/1343914986388353024/milestone9.json": "175a6c82b74e0811c782141422fd815a183d2860f5bfe0b3b80ba189b95b94c2",
+        "data/research/leagues/1343914986388353024/performance/2026/season_board.csv": "28fd8777a2b41e9bc63bb18c5a7626eabccbb85d4da474a8e1ca2e593f5321be"
+      },
+      "reason": "existing M1-M9 builders reused without gate changes",
+      "started_at": "2026-09-01T08:09:23.249042+00:00",
+      "status": "reused_valid"
+    },
+    {
+      "finished_at": "2026-09-01T08:09:23.333251+00:00",
+      "inputs": {},
+      "name": "current",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/current/milestone5_current.json": "297cd29f447907357e700f28b5c53a772a0e65553c6ecdf7c604d75fb8e79bab"
+      },
+      "reason": "complete",
+      "started_at": "2026-09-01T08:09:23.332974+00:00",
+      "status": "reused_valid"
+    },
+    {
+      "finished_at": "2026-09-01T08:09:23.377314+00:00",
+      "inputs": {},
+      "name": "controlled_runtime",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/current/milestone5_current.json": "297cd29f447907357e700f28b5c53a772a0e65553c6ecdf7c604d75fb8e79bab"
+      },
+      "reason": "existing V9.6 context: not_present",
+      "started_at": "2026-09-01T08:09:23.377083+00:00",
+      "status": "reused_valid"
+    },
+    {
+      "finished_at": "2026-09-01T08:09:25.214833+00:00",
+      "inputs": {},
+      "name": "market",
+      "outputs": {},
+      "reason": "snapshots=4",
+      "started_at": "2026-09-01T08:09:25.214813+00:00",
+      "status": "complete"
+    },
+    {
+      "finished_at": "2026-09-01T08:09:25.725839+00:00",
+      "inputs": {},
+      "name": "availability",
+      "outputs": {},
+      "reason": "availability capture complete",
+      "started_at": "2026-09-01T08:09:25.725813+00:00",
+      "status": "complete"
+    },
+    {
+      "finished_at": "2026-09-01T08:10:44.893711+00:00",
+      "inputs": {},
+      "name": "feature_evidence",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/strategy_stack.json": "84821d3ff2330086956a1d1b2d32ae8af7a900769ff7d4fce3bd03678c50fe10"
+      },
+      "reason": "existing strategy stack component evidence",
+      "started_at": "2026-09-01T08:10:44.893378+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:10:44.894142+00:00",
+      "inputs": {},
+      "name": "production_shadow",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/strategy_stack.json": "84821d3ff2330086956a1d1b2d32ae8af7a900769ff7d4fce3bd03678c50fe10"
+      },
+      "reason": "complete_research_only",
+      "started_at": "2026-09-01T08:10:44.893936+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:10:44.894458+00:00",
+      "inputs": {},
+      "name": "preseason_v971",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/strategy_stack.json": "84821d3ff2330086956a1d1b2d32ae8af7a900769ff7d4fce3bd03678c50fe10"
+      },
+      "reason": "QB:validated_candidate, RB:validated_candidate, TE:validated_candidate, WR:validated_candidate",
+      "started_at": "2026-09-01T08:10:44.894259+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:10:44.894818+00:00",
+      "inputs": {},
+      "name": "preseason_v972",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/strategy_stack.json": "84821d3ff2330086956a1d1b2d32ae8af7a900769ff7d4fce3bd03678c50fe10"
+      },
+      "reason": "shadow_applied=351; validated=['QB', 'RB', 'TE', 'WR']",
+      "started_at": "2026-09-01T08:10:44.894610+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:10:44.895198+00:00",
+      "inputs": {},
+      "name": "preseason_v973",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/strategy_stack.json": "84821d3ff2330086956a1d1b2d32ae8af7a900769ff7d4fce3bd03678c50fe10"
+      },
+      "reason": "status=complete_research_only; review=[]",
+      "started_at": "2026-09-01T08:10:44.894968+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:10:44.895494+00:00",
+      "inputs": {},
+      "name": "league_value",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/strategy_stack.json": "84821d3ff2330086956a1d1b2d32ae8af7a900769ff7d4fce3bd03678c50fe10"
+      },
+      "reason": "complete_research_only",
+      "started_at": "2026-09-01T08:10:44.895306+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:11:47.443892+00:00",
+      "inputs": {},
+      "name": "preseason_v974",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/preseason_v974_predictions.csv": "fa26c8ed614e7e8353b2e0e3569428b5c0c52207a18815fc0549f4bd3c4edc5e",
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/preseason_v974_validation.json": "fdff6f96ee37f33c49620b847bf0beadde042d673f0e3647686e5816bde49160"
+      },
+      "reason": "review=[]; production_activation_allowed=False",
+      "started_at": "2026-09-01T08:11:47.442744+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:11:49.188121+00:00",
+      "inputs": {},
+      "name": "preseason_v975",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/preseason_v975_predictions.csv": "bcae2268e3fef107f0c58b46151e0cdd2e57d28a457bc2975a1d928b392d0a76",
+        "data/research/leagues/1343914986388353024/performance/2026/strategy/preseason_v975_validation.json": "935d600277e4c07e249b40cea0881a29f5900233ef9ec4c690a9737e33ffa404"
+      },
+      "reason": "diagnostic_only",
+      "started_at": "2026-09-01T08:11:49.187614+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:11:49.318760+00:00",
+      "inputs": {},
+      "name": "model_resolver",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/research_pipeline/readiness.json": "926ce8eb8ecb98af3e7a9450132f11d54541df71649985a69cb92432c3663565"
+      },
+      "reason": "per-position selection resolved; no automatic promotion",
+      "started_at": "2026-09-01T08:11:49.318391+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:11:50.910985+00:00",
+      "inputs": {},
+      "name": "final_board",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/research_pipeline/board-meta.json": "8865d64fc5b6dae1653763783718b7e1c2b6c2f57ce6a7150e444bd9ab3d75fd",
+        "data/research/leagues/1343914986388353024/performance/2026/research_pipeline/final_player_board.csv": "e0f33b6b093d652149b2f4c4797d50b0c37a543697006f463b4f72f0f1fba899",
+        "data/research/leagues/1343914986388353024/performance/2026/research_pipeline/rankings.json": "19d5ddf7648e71bde4eea126733ab47658dbffd14d454a780cb16e1713d4e076"
+      },
+      "reason": "canonical M9 league-value board plus challenger evidence",
+      "started_at": "2026-09-01T08:11:50.908882+00:00",
+      "status": "complete_research_only"
+    },
+    {
+      "finished_at": "2026-09-01T08:11:51.279952+00:00",
+      "inputs": {},
+      "name": "report",
+      "outputs": {
+        "data/research/leagues/1343914986388353024/performance/2026/research_pipeline/league-report.json": "15ecef83a82039a226f3296e0afe71ef61f0019490cbefa391460042630b67ef",
+        "data/research/leagues/1343914986388353024/performance/2026/research_pipeline/league-report.md": "08c8433fc2e04c8e7fb2048ab6a68e56efa71f378c3027f2be242495dfd6ca63",
+        "data/research/leagues/1343914986388353024/performance/2026/research_pipeline/report-summary.json": "73e946db14fa6c4c975d0f9ff3f9c58d48054a34f435eb947a216108cc932fdf"
+      },
+      "reason": "deterministic report generated from canonical final board",
+      "started_at": "2026-09-01T08:11:51.278888+00:00",
+      "status": "complete_research_only"
+    }
+  ],
+  "started_at": "2026-09-01T08:09:23.230519+00:00",
+  "status": "complete_research_only"
+}
