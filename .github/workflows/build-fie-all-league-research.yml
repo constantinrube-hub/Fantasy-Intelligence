@@ -68,12 +68,14 @@ jobs:
           cache: pip
           cache-dependency-path: research/requirements.txt
       - run: pip install -r research/requirements.txt
+
       - name: Download every league artifact without flattening namespaces
         uses: actions/download-artifact@v4
         with:
           pattern: fie-league-research-*-${{ inputs.season }}
           path: .fie-league-artifacts
           merge-multiple: false
+
       - name: Restore league artifacts into canonical namespaces
         run: |
           python - <<'PY'
@@ -99,6 +101,7 @@ jobs:
               raise SystemExit(f'missing downloaded league artifacts: {missing}')
           print('PASS restored league artifacts',len(restored))
           PY
+
       - name: Reconcile artifact count to registry before publication
         env:
           EXPECTED: ${{ needs.registry.outputs.enabled_count }}
@@ -111,6 +114,14 @@ jobs:
           if len(present)!=int(os.environ['EXPECTED']): raise SystemExit(f'matrix artifacts incomplete: expected {os.environ["EXPECTED"]}, got {len(present)}; missing={sorted(set(ids)-set(present))}')
           print('PASS matrix artifact coverage',len(present))
           PY
+
+      - name: Reconcile current profile and storage contracts before publication
+        if: ${{ inputs.publish_app }}
+        run: |
+          python research/integrity_current_profile_reconcile_test.py
+          python research/reconcile_current_profile_snapshots.py \
+            --season "${{ inputs.season }}"
+
       - name: Build app shells once and attach only successful current-run research
         if: ${{ inputs.publish_app }}
         run: |
@@ -131,26 +142,30 @@ jobs:
               x['app_publish_complete']=all(k in research for k in ('readiness','rankings','report_summary')) and x.get('outcome')=='success'
               p.write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
           PY
+
       - name: Build exact-registry portfolio aggregation
         run: |
           python research/build_fie_portfolio_research_report.py --season "${{ inputs.season }}"
           python research/validate_fie_portfolio_report.py --season "${{ inputs.season }}"
+
       - name: Build validated deploy tree once
         if: ${{ inputs.publish_app }}
         run: |
           python research/build_app_manifest.py
           python tools/release_build.py --mode personal
           python research/integrity_fast_switch_artifacts_test.py --require-dist
+
       - name: One atomic Git publication for the entire portfolio
         shell: bash
         run: |
-          TRACKED=(data/research/leagues data/research/portfolio data/research/app app/generated/model-config.js app/generated/release.js app/generated/runtime-contracts.js functions/release.js config/build-manifest.json config/model-config.json config/release.json config/release-gate.json dist)
+          TRACKED=(data/research/leagues data/research/portfolio data/research/app data/research/shared app/generated/model-config.js app/generated/release.js app/generated/runtime-contracts.js functions/release.js config/build-manifest.json config/model-config.json config/release.json config/release-gate.json dist)
           if git diff --quiet -- "${TRACKED[@]}" && [ -z "$(git status --porcelain -- "${TRACKED[@]}")" ]; then echo "No portfolio changes to publish"; else
             git config user.name "FIE Portfolio Research Bot"; git config user.email "actions@users.noreply.github.com"
             git add -A -- "${TRACKED[@]}"; git commit -m "Build complete FIE research portfolio for ${{ inputs.season }}"
             if ! git diff --quiet; then git restore --worktree .; fi
             git fetch origin main; git rebase origin/main; git push origin HEAD:main
           fi
+
       - name: Surface incomplete leagues after portfolio report is published
         run: |
           python - <<'PY'
