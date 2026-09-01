@@ -104,6 +104,19 @@ def main():
         assert not nth1150 and not nth760, (
             "target: generic ordinal column hiding must be removed"
         )
+        guards=[
+            '.fie93-table-card{overflow:auto}',
+            ':has(th[data-fie93-sort="decision"])',
+            ':has(th[data-fie93-sort="action"])',
+            ':has(th[data-fie93-sort="faab"])',
+            '#dstSummary .fie93-table th:last-child',
+            '#kickerSummary .fie93-table th:last-child',
+            '#dstDrawerWeeks .fie93-table th:nth-child(7)',
+            '#kDrawerWeeks .fie93-table th:nth-child(7)',
+        ]
+        missing=[token for token in guards if token not in css]
+        assert not missing, f"target: missing semantic primary-action guards: {missing}"
+        print("PASS target responsive primary actions remain visible through semantic guards")
 
     print(json.dumps({
         "mode":a.mode,
