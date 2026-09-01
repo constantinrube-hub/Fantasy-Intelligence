@@ -2,7 +2,7 @@
   "schema_version": 3,
   "active_build": "V8.8-M6",
   "control_build": "V8.2.2",
-  "generated_at": "2026-09-01T08:56:00.478849+00:00",
+  "generated_at": "2026-09-01T10:08:02.035503+00:00",
   "league_id": "1391803939736801280",
   "league_format": "REDRAFT",
   "profile_fingerprint": "475871bb61493e02a1de7ddcd46303097b00d4c57b6beb993823c001ad9a8bc8",
@@ -10,10 +10,10 @@
   "operator_mode": "AUTO",
   "global_operator_mode": "AUTO",
   "league_operator_mode": "AUTO",
-  "runtime_enabled": false,
-  "runtime_allow_m5": false,
+  "runtime_enabled": true,
+  "runtime_allow_m5": true,
   "fallback": "V8.2.2",
-  "reason": "artifact_scope_match; fresh_snapshot",
+  "reason": "all promotion checks passed",
   "checks": {
     "global_operator_auto": true,
     "operator_auto": true,
@@ -21,7 +21,7 @@
     "profile_fingerprint_match": true,
     "current_profile_live_match": true,
     "format_match": true,
-    "artifact_scope_match": false,
+    "artifact_scope_match": true,
     "current_storage_integrity": true,
     "m4_complete": true,
     "m5_complete": true,
@@ -30,18 +30,18 @@
     "current_producer": true,
     "current_contract": true,
     "scoring_signature_match": true,
-    "fresh_snapshot": false,
+    "fresh_snapshot": true,
     "target_week_leakage_guard": true,
     "eligible_players": true
   },
   "current_snapshot": {
-    "path": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/data/research/leagues/1391803939736801280/current/milestone5_current.json",
+    "path": "data/research/leagues/1391803939736801280/current/milestone5_current.json",
     "season": 2026,
     "week": 1,
-    "generated_at": "2026-08-30T09:36:21.672939+00:00",
-    "age_hours": 47.32744451055555,
+    "generated_at": "2026-09-01T10:06:59.472230+00:00",
+    "age_hours": 0.01737720833333333,
     "max_age_hours": 18.0,
-    "eligible_players": 69,
+    "eligible_players": 68,
     "storage_format": "fie-current-split-v1"
   },
   "scoring_signature": "2cc8ac7dccb0df61",
@@ -196,33 +196,33 @@
     ],
     "m6_validated_candidate_positions": [],
     "artifact_paths": {
-      "milestone4": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/data/research/leagues/1391803939736801280/milestone4.json",
-      "milestone5": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/data/research/leagues/1391803939736801280/milestone5.json",
-      "milestone6": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/data/research/leagues/1391803939736801280/milestone6.json",
-      "current_snapshot": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/data/research/leagues/1391803939736801280/current/milestone5_current.json"
+      "milestone4": "data/research/leagues/1391803939736801280/milestone4.json",
+      "milestone5": "data/research/leagues/1391803939736801280/milestone5.json",
+      "milestone6": "data/research/leagues/1391803939736801280/milestone6.json",
+      "current_snapshot": "data/research/leagues/1391803939736801280/current/milestone5_current.json"
     },
     "artifact_sha256": {
       "milestone4": "35ff5d6751f364c38ac4dce719ec0ada57e3ac9e94dde9f32308f25c6501590b",
       "milestone5": "022d4f43d03d716b827f5d8ef48712069209b68c5a23a42ffbeff1d4c6dd7fcd",
       "milestone6": "a27f3afad531b1fe139c999f1edaccc45593a3b51ee34a9ece563a1f56ac29be",
-      "current_snapshot": "d8d10fe7e2a0eeae8139d4eda405bcc22afc0ff44da21718f8ea2938014e8ea2"
+      "current_snapshot": "13daf0e928493f37220473b66ad0f9c55bff570dad49d88e05d3c0139a8ce414"
     },
     "shared_current_artifacts": {
       "player_base": {
-        "path": "data/research/shared/current/player_base.49ebbc243a37bf86.json",
-        "sha256": "dcc7b65a5f3e5ca14ce7101e72a0e51beb4ce61cfe8ab3bd6b15566c5bcd5d09"
+        "path": "data/research/shared/current/player_base.fd00b64c593ea859.json",
+        "sha256": "d36b34373e44800316353431e082a6690b151a5bb21cc48f251dcaba2d42cc7d"
       },
       "scoring_overlay": {
-        "path": "data/research/shared/current/scoring/2cc8ac7dccb0df61.7c1d0a8a2d376cd8.json",
-        "sha256": "8add04cd19551116ed9a3208047079cd0c95e1115a48dacd129d9338f276a8d3"
+        "path": "data/research/shared/current/scoring/2cc8ac7dccb0df61.49d4fc9eef8242d6.json",
+        "sha256": "a929a99bb0f2f7713333f9f5ed4afabfac25ccf12a76dec494e08967d13f8f33"
       }
     },
     "audit_rule": "Feature lists, coefficients, sample sizes and holdout metrics remain versioned in the league-scoped milestone bundles; promotion requires matching League ID, profile fingerprint, scoring and hashes."
   },
   "rollback": {
     "mode": "CONTROL",
-    "operator_override": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/data/research/leagues/1391803939736801280/governance/operator_override.json",
-    "global_operator_override": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/data/research/governance/operator_override.json",
+    "operator_override": "data/research/leagues/1391803939736801280/governance/operator_override.json",
+    "global_operator_override": "data/research/governance/operator_override.json",
     "effect": "All M5/M6 decision overrides disabled; V8.2.2 remains live fallback.",
     "code_change_required": false
   },
