@@ -72,12 +72,16 @@ jobs:
             echo "mode=preflight" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Preflight — prove Tranche 1 baseline still stable
+      - name: Preflight — prove Tranche 1 behavioral baseline still stable
         if: steps.phase.outputs.mode == 'preflight'
         run: |
-          python research/tranche1_characterization.py \
-            --mode baseline \
-            --output-dir artifacts/tranche2a-preflight
+          node research/integrity_tranche1_six_format_runtime_characterization.js --mode baseline
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode baseline
+          node research/integrity_tranche1_replacement_parity_characterization.js --mode baseline
+          node research/integrity_tranche1_data_client_scope_characterization.js --mode baseline
+          python research/integrity_tranche1_direct_fetch_allowlist.py --mode baseline
+          python research/integrity_tranche1_research_stage_identity.py --mode baseline
+          python research/integrity_tranche1_responsive_decision_visibility.py --mode baseline
 
       - name: Preflight — capture exact 2A source inputs
         if: steps.phase.outputs.mode == 'preflight'
