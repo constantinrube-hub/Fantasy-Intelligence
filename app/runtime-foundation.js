@@ -10,7 +10,7 @@ let BUILD_MANIFEST=null;
 const Core=()=>window.FIECore||{};
 const Data=()=>window.FIEDataClient;
 const Contracts=()=>window.FIERuntimeContracts||{};
-const FORMAT_LABELS={REDRAFT:'Redraft',DYNASTY:'Dynasty',CHOPPED:'Chopped',REDRAFT_BESTBALL:'Redraft + Best Ball',DYNASTY_BESTBALL:'Dynasty + Best Ball'};
+const FORMAT_LABELS={REDRAFT:'Redraft',DYNASTY:'Dynasty',CHOPPED:'Chopped',REDRAFT_BESTBALL:'Redraft + Best Ball',DYNASTY_BESTBALL:'Dynasty + Best Ball',CHOPPED_BESTBALL:'Chopped + Best Ball',...Object.fromEntries(Object.entries(Contracts().league_formats||{}).map(([k,v])=>[k,String(v?.label||k)]))};
 function finite(x){if(x===null||x===undefined||(typeof x==='string'&&x.trim()===''))return null;const n=Number(x);return Number.isFinite(n)?n:null;}
 function extractLeagueId(v){const m=String(v||'').match(/([0-9]{6,32})/);return m?m[1]:null;}
 function savedEntry(id){try{return (state.savedLeagues||[]).find(x=>String(x.id)===String(id))||null;}catch{return null;}}
@@ -42,6 +42,7 @@ const LeagueProfileResolver={
     const ex=String((explicit&&typeof explicit==='object'?(explicit.formatOverride||explicit.format||'AUTO'):explicit)||'AUTO').toUpperCase();
     if(ex!=='AUTO'&&FORMAT_LABELS[ex])return{format:ex,source:'explicit_override'};
     const st=league?.settings||{},name=String(league?.name||'').toLowerCase(),lt=String(league?.type||'').toLowerCase(),t=finite(st.type),best=[1,2].includes(finite(st.best_ball))||/best\s*ball|bestball/.test(name),chopped=t===3||(st.last_chopped_leg!==undefined&&st.last_chopped_leg!==null)||/chopped|guillotine|eliminator|elimination league|chop league/.test(name),dynasty=t===2||/dynasty/.test(lt)||/dynasty/.test(name);
+    if(chopped&&best)return{format:'CHOPPED_BESTBALL',source:t===3?'sleeper_settings_type_3+best_ball':st.last_chopped_leg!==undefined?'sleeper_chopped_state+best_ball':'name_fallback+best_ball'};
     if(chopped)return{format:'CHOPPED',source:t===3?'sleeper_settings_type_3':st.last_chopped_leg!==undefined?'sleeper_chopped_state':'name_fallback'};
     if(best&&dynasty)return{format:'DYNASTY_BESTBALL',source:t===2?'sleeper_settings':'metadata'};
     if(best)return{format:'REDRAFT_BESTBALL',source:'sleeper_best_ball'};

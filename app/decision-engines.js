@@ -157,11 +157,11 @@ function monteCarloFormat(){
   try{return String(window.FIELeagueProfileResolver?.resolve?.(state.league,{formatOverride:document.getElementById('savedLeagueFormat')?.value})?.format||window.activeFormatKey?.()||'REDRAFT');}catch{return 'REDRAFT';}
 }
 function workerPlayerRecord(p,ctx){
-  const fmt=monteCarloFormat(),market=ctx.marketOf(p),decision=ctx.decisionMap.get(playerId(p))??50;
+  const fmt=monteCarloFormat(),fp=window.FIECore?.FormatRegistry?.profile?.(fmt)||{chopped:fmt.includes('CHOPPED'),bestBall:fmt.includes('BESTBALL')},market=ctx.marketOf(p),decision=ctx.decisionMap.get(playerId(p))??50;
   let utility=null;try{utility=finite((window.playerDecisionValue||playerDecisionValue)(p));}catch{}
   const season=finite(p.engineSeasonProjection)??finite(p.sleeperSeasonProjection)??(finite(p.seasonScore)??0)*2.2;
   const weekly=finite(p.weeklyProjection)??finite(p.sleeperWeeklyProjection)??season/17;
-  return {id:playerId(p),name:String(p.name||''),position:String(p.position||''),team:String(p.team||''),market:Number.isFinite(market)?market:999,decision:finite(decision)??50,mean:fmt==='CHOPPED'||fmt.includes('BESTBALL')?weekly:season,floor:fmt==='CHOPPED'?(finite(p.weeklyFloor)??weekly):season,ceiling:fmt.includes('BESTBALL')?(finite(p.weeklyCeiling)??weekly):season,vor:finite(p.projectedVOR)??0,utility:utility??season};
+  return {id:playerId(p),name:String(p.name||''),position:String(p.position||''),team:String(p.team||''),market:Number.isFinite(market)?market:999,decision:finite(decision)??50,mean:fp.chopped||fp.bestBall?weekly:season,floor:fp.chopped?(finite(p.weeklyFloor)??weekly):season,ceiling:fp.bestBall?(finite(p.weeklyCeiling)??weekly):season,vor:finite(p.projectedVOR)??0,utility:utility??season};
 }
 function monteCarloWorkerContext(ctx){
   const byRoster={},all=new Map();
@@ -174,7 +174,8 @@ function monteCarloWorkerContext(ctx){
   const rosterSlots=window.FIERuntimeContracts?.roster_slots||{};
   const players=[...all.values()].map(p=>({...workerPlayerRecord(p,ctx),draftAvailable:available.has(playerId(p))}));
   const fingerprint=window.FIECore?.ContextFingerprint?.current?.({draftId:String(ctx.d.draft_id),pick:Number(ctx.startPick),rosterId:Number(ctx.rosterId)})||`${state.league?.league_id}|${ctx.d.draft_id}|${ctx.startPick}`;
-  return {seed:String(fingerprint),format:monteCarloFormat(),rosterPositions:[...(state.league?.roster_positions||[])],slotEligibility:Object.fromEntries(Object.entries(rosterSlots).map(([k,v])=>[k,[...(v?.positions||[])]])),players,basePools:byRoster,rosterOwner:owners,history:ctx.history||{},seq:ctx.seq.map(x=>({pickNo:Number(x.pickNo),round:Number(x.round),slot:Number(x.slot)})),slotRoster:{...ctx.slotRoster},rosterId:Number(ctx.rosterId),startPick:Number(ctx.startPick),endPick:Number(ctx.endPick)};
+  const fmt=monteCarloFormat(),formatCapabilities=window.FIECore?.FormatRegistry?.profile?.(fmt)||{key:fmt,dynasty:fmt.includes('DYNASTY'),bestBall:fmt.includes('BESTBALL'),chopped:fmt.includes('CHOPPED')};
+  return {seed:String(fingerprint),format:fmt,formatCapabilities,rosterPositions:[...(state.league?.roster_positions||[])],slotEligibility:Object.fromEntries(Object.entries(rosterSlots).map(([k,v])=>[k,[...(v?.positions||[])]])),players,basePools:byRoster,rosterOwner:owners,history:ctx.history||{},seq:ctx.seq.map(x=>({pickNo:Number(x.pickNo),round:Number(x.round),slot:Number(x.slot)})),slotRoster:{...ctx.slotRoster},rosterId:Number(ctx.rosterId),startPick:Number(ctx.startPick),endPick:Number(ctx.endPick)};
 }
 function cancelDraftMonteCarlo(reason='cancelled'){
   const job=Engine.draftJob;if(!job)return;job.cancelled=true;try{job.worker?.postMessage({type:'cancel',jobId:job.id});job.worker?.terminate();}catch{}Engine.draftJob=null;Engine.draftProgress={status:'cancelled',reason};
@@ -538,5 +539,5 @@ function wrapDraftRenderer(){
 function bind(){injectDecisionStyles();wrapDraftRenderer();wrapGlobalRender();ensureMatchupPanel();const prevDrawer=window.openDrawer;if(typeof prevDrawer==='function'&&!prevDrawer.__fieExplainWrapped){const w=function(id){const r=prevDrawer.apply(this,arguments);try{augmentDrawer(id);}catch(e){console.warn('FIE drawer explanation',e);}return r;};w.__fieExplainWrapped=true;window.openDrawer=w;}const tradeBtn=document.getElementById('evaluateTradeBtn'),baseTrade=window.evaluateTrade;if(tradeBtn&&typeof baseTrade==='function'){tradeBtn.onclick=()=>{baseTrade();appendTradeCounterparty();};}try{draftPanel();renderMatchupPanel();renderStrategicWaiverPanel();renderCommandCenter();}catch{} }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 
-Engine.commandCenterItems=commandCenterItems;Engine.portfolioSnapshot=portfolioSnapshot;Engine.runDraftMonteCarlo=runDraftMonteCarlo;Engine.runDraftMonteCarloAsync=runDraftMonteCarloAsync;Engine.cancelDraftMonteCarlo=cancelDraftMonteCarlo;Engine.renderDraftPanel=draftPanel;Engine.runLeagueSimulation=runLeagueSimulation;Engine.renderMatchupPanel=renderMatchupPanel;Engine.renderStrategicWaiverPanel=renderStrategicWaiverPanel;Engine.renderCommandCenter=renderCommandCenter;Engine.counterpartyTradeFit=counterpartyTradeFit;Engine.lineupSearch=lineupSearch;Engine.simulateRedraftSeason=simulateRedraftSeason;Engine.simulateChopped=simulateChopped;window.FIEDecisionEngines=Engine;
+Engine.commandCenterItems=commandCenterItems;Engine.portfolioSnapshot=portfolioSnapshot;Engine.runDraftMonteCarlo=runDraftMonteCarlo;Engine.runDraftMonteCarloAsync=runDraftMonteCarloAsync;Engine.cancelDraftMonteCarlo=cancelDraftMonteCarlo;Engine.renderDraftPanel=draftPanel;Engine.runLeagueSimulation=runLeagueSimulation;Engine.renderMatchupPanel=renderMatchupPanel;Engine.renderStrategicWaiverPanel=renderStrategicWaiverPanel;Engine.renderCommandCenter=renderCommandCenter;Engine.counterpartyTradeFit=counterpartyTradeFit;Engine.lineupSearch=lineupSearch;Engine.simulateRedraftSeason=simulateRedraftSeason;Engine.simulateChopped=simulateChopped;Engine.__formatInternals={monteCarloFormat,workerPlayerRecord,monteCarloWorkerContext};window.FIEDecisionEngines=Engine;
 })();

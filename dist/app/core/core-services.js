@@ -7,6 +7,7 @@
 const C=window.FIERuntimeContracts||{};
 const SLOT=C.roster_slots||{};
 const ALIAS=C.position_aliases||{};
+const FORMAT=C.league_formats||{};
 function finite(x){if(x===null||x===undefined||(typeof x==='string'&&x.trim()===''))return null;const n=Number(x);return Number.isFinite(n)?n:null;}
 function canonicalPos(p){const x=String(p||'').toUpperCase();return ALIAS[x]||x;}
 function playerId(p){const id=p?.sleeperId??p?.player_id??p?.playerId??p?.id;if(id!==undefined&&id!==null&&String(id).trim())return String(id);const name=String(p?.name||p?.full_name||'unknown').trim().toLowerCase(),team=String(p?.team||'FA').toUpperCase(),pos=canonicalPos(p?.position||p?.fantasy_positions?.[0]||'UNK');return `synthetic:${pos}:${team}:${name}`;}
@@ -18,6 +19,15 @@ const Numeric={finiteOrNull:finite,optionalCap(x){const n=finite(x);return n!==n
 const PlayerIdentity={
   byId(id){const key=String(id??'');return (window.PLAYERS||[]).find(p=>String(p?.sleeperId??p?.player_id??'')===key)||null;},
   positionForId(id){const p=this.byId(id);return p?canonicalPos(p.position):'UNK';}
+};
+
+const FormatRegistry={
+  key(format){const f=String(format||'REDRAFT').toUpperCase();return FORMAT[f]?f:'REDRAFT';},
+  profile(format){const key=this.key(format),p=FORMAT[key]||{};return Object.freeze({key,label:String(p.label||key),dynasty:p.dynasty===true,bestBall:p.best_ball===true,chopped:p.chopped===true});},
+  isDynasty(format){return this.profile(format).dynasty;},
+  isBestBall(format){return this.profile(format).bestBall;},
+  isChopped(format){return this.profile(format).chopped;},
+  contractsSha:C.contract_sha256||null
 };
 
 const PositionRegistry={
@@ -35,7 +45,7 @@ function hungarianMin(cost){const n=cost.length,m=cost[0]?.length||0;if(!n||!m)r
 
 const LineupOptimizer={
   optimize(players,rosterPositions,valueFn){const slots=PositionRegistry.starterSlots(rosterPositions),pool=(players||[]).filter(Boolean);if(!slots.length)return{total:0,assignment:[],selectedPlayerIds:[],benchPlayerIds:pool.map(playerId),unfilledSlots:[]};const m=Math.max(pool.length,slots.length),NEG=-1e12;const matrix=slots.map(slot=>Array.from({length:m},(_,j)=>{if(j>=pool.length)return 0;const p=pool[j],v=finite(valueFn(p));return PositionRegistry.eligible(p.position,slot)&&v!==null?v:NEG;}));const maxVal=Math.max(0,...matrix.flat().filter(x=>x>NEG/2)),cost=matrix.map(r=>r.map(x=>x<=NEG/2?maxVal+1e9:maxVal-x)),assign=hungarianMin(cost),assignment=[],selected=new Set(),unfilled=[];let total=0;for(let i=0;i<slots.length;i++){const j=assign[i],valid=j>=0&&j<pool.length&&matrix[i][j]>NEG/2;if(!valid){unfilled.push(slots[i]);continue;}const p=pool[j],v=matrix[i][j],id=playerId(p);total+=v;selected.add(id);assignment.push({slot:slots[i],playerId:id,player:p,value:v});}return{total,assignment,selectedPlayerIds:[...selected],benchPlayerIds:pool.map(playerId).filter(id=>!selected.has(id)),unfilledSlots:unfilled};},
-  objectiveForFormat(format){const f=String(format||'REDRAFT').toUpperCase();if(f==='CHOPPED')return p=>.55*(finite(p.__fie_mean)??0)+.45*(finite(p.__fie_floor)??finite(p.__fie_mean)??0);if(f.includes('BESTBALL'))return p=>.45*(finite(p.__fie_mean)??0)+.55*(finite(p.__fie_ceiling)??finite(p.__fie_mean)??0);if(f.includes('DYNASTY'))return p=>finite(p.__fie_utility)??finite(p.__fie_mean)??0;return p=>finite(p.__fie_mean)??0;},
+  objectiveForFormat(format){const fp=FormatRegistry.profile(format);if(fp.chopped&&fp.bestBall)return p=>.50*(finite(p.__fie_mean)??0)+.225*(finite(p.__fie_floor)??finite(p.__fie_mean)??0)+.275*(finite(p.__fie_ceiling)??finite(p.__fie_mean)??0);if(fp.chopped)return p=>.55*(finite(p.__fie_mean)??0)+.45*(finite(p.__fie_floor)??finite(p.__fie_mean)??0);if(fp.bestBall)return p=>.45*(finite(p.__fie_mean)??0)+.55*(finite(p.__fie_ceiling)??finite(p.__fie_mean)??0);if(fp.dynasty)return p=>finite(p.__fie_utility)??finite(p.__fie_mean)??0;return p=>finite(p.__fie_mean)??0;},
   rosterUtility(players,{format='REDRAFT',rosterPositions=[]}={}){const vf=this.objectiveForFormat(format),opt=this.optimize(players,rosterPositions,vf),bench=(players||[]).filter(p=>opt.benchPlayerIds.includes(playerId(p))),benchBonus=bench.map(p=>Math.max(0,finite(p.__fie_vor)??0)).sort((a,b)=>b-a).slice(0,Math.max(0,(rosterPositions||[]).filter(s=>!PositionRegistry.isStarter(s)).length)).reduce((a,b)=>a+b,0)*.12;return{...opt,starterTotal:opt.total,benchBonus,total:opt.total+benchBonus,method:'canonical exact slot assignment'};}
 };
 
@@ -57,7 +67,7 @@ const ReplacementService={
 };
 
 const RosterValueService={
-  decorate(p,format){const season=finite(p.engineSeasonProjection)??finite(p.sleeperSeasonProjection)??finite(p.seasonScore)??0,weekly=finite(p.weeklyProjection)??finite(p.sleeperWeeklyProjection)??season/17;return Object.assign({},p,{__fie_mean:String(format).includes('CHOPPED')||String(format).includes('BESTBALL')?weekly:season,__fie_floor:String(format).includes('CHOPPED')?(finite(p.weeklyFloor)??weekly):season,__fie_ceiling:String(format).includes('BESTBALL')?(finite(p.weeklyCeiling)??weekly):season,__fie_utility:finite(p.m5DraftUtility)??finite(p.targetScore)??season,__fie_vor:finite(p.projectedVOR)??0});},
+  decorate(p,format){const season=finite(p.engineSeasonProjection)??finite(p.sleeperSeasonProjection)??finite(p.seasonScore)??0,weekly=finite(p.weeklyProjection)??finite(p.sleeperWeeklyProjection)??season/17,fp=FormatRegistry.profile(format);return Object.assign({},p,{__fie_mean:fp.chopped||fp.bestBall?weekly:season,__fie_floor:fp.chopped?(finite(p.weeklyFloor)??weekly):season,__fie_ceiling:fp.bestBall?(finite(p.weeklyCeiling)??weekly):season,__fie_utility:finite(p.m5DraftUtility)??finite(p.targetScore)??season,__fie_vor:finite(p.projectedVOR)??0});},
   marginal(player,rosterPool,{format='REDRAFT',rosterPositions=[]}={}){const base=(rosterPool||[]).map(p=>this.decorate(p,format)),candidate=this.decorate(player,format),before=LineupOptimizer.rosterUtility(base,{format,rosterPositions}),after=LineupOptimizer.rosterUtility(base.concat(candidate),{format,rosterPositions});return{gain:after.total-before.total,starterGain:after.starterTotal-before.starterTotal,before,after,method:'exact legal lineup marginal'};}
 };
 
@@ -67,5 +77,5 @@ const ContextFingerprint={
 
 const Diagnostics={buffer:[],max:200,redact(value){let s=String(value??'');s=s.replace(/([?&](?:api_?key|key|token|secret|authorization)=)[^&#\s]*/gi,'$1[REDACTED]');s=s.replace(/(Bearer\s+)[A-Za-z0-9._~+\/-]+/gi,'$1[REDACTED]');return s;},capture(error,context={}){const row={at:new Date().toISOString(),message:this.redact(error?.message||error),stack:this.redact(error?.stack||''),leagueId:window.state?.league?.league_id||null,release:window.FIE_BUILD_MANIFEST?.app_version||window.FIE?.VERSION||null,...context};this.buffer.push(row);if(this.buffer.length>this.max)this.buffer.splice(0,this.buffer.length-this.max);return row;},snapshot(){return this.buffer.slice();}};
 
-window.FIECore={version:'9.3.2-browser-qa',Numeric,PositionRegistry,PlayerIdentity:Object.assign(PlayerIdentity,{id:playerId,canonicalPosition:canonicalPos}),LineupOptimizer,LeagueDemandService,ReplacementService,RosterValueService,ContextFingerprint,Diagnostics};
+window.FIECore={version:'9.3.2-browser-qa',Numeric,FormatRegistry,PositionRegistry,PlayerIdentity:Object.assign(PlayerIdentity,{id:playerId,canonicalPosition:canonicalPos}),LineupOptimizer,LeagueDemandService,ReplacementService,RosterValueService,ContextFingerprint,Diagnostics};
 })();

@@ -7,7 +7,7 @@
 (function(){
 'use strict';
 const VERSION='9.3.3-cross-position-calibration';
-const WEIGHT={REDRAFT:15,DYNASTY:10,CHOPPED:8,REDRAFT_BESTBALL:8,DYNASTY_BESTBALL:7};
+const WEIGHT={REDRAFT:15,DYNASTY:10,CHOPPED:8,REDRAFT_BESTBALL:8,DYNASTY_BESTBALL:7,CHOPPED_BESTBALL:8};
 const finite=x=>{if(x===null||x===undefined||(typeof x==='string'&&x.trim()===''))return null;const n=Number(x);return Number.isFinite(n)?n:null;};
 function adjust(row){
   if(!row||row.__fieCalibration===VERSION)return row;

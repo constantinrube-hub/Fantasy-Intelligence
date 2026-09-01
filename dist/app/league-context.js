@@ -15,7 +15,7 @@ function build(league=S()?.league){
   if(!league)return null;
   const slots=(league.roster_positions||[]).map(String),starts=starterSlots(league),legal=legalPositions(league),counts={};
   for(const s of starts)counts[s]=(counts[s]||0)+1;
-  const legalSet=new Set(legal.map(canonical)),fmt=profileFormat();
+  const legalSet=new Set(legal.map(canonical)),fmt=profileFormat(),fp=window.FIECore?.FormatRegistry?.profile?.(fmt)||{dynasty:fmt.includes('DYNASTY'),bestBall:fmt.includes('BESTBALL'),chopped:fmt.includes('CHOPPED')};
   return Object.freeze({
     version:VERSION,leagueId:String(league.league_id||''),format:fmt,teamCount:Number(league.total_rosters||S()?.rosters?.length||0),
     rosterSlots:slots,starterSlots:starts,starterSlotCounts:counts,legalPositions:legal,
@@ -23,7 +23,7 @@ function build(league=S()?.league){
     hasK:legalSet.has('K'),hasDST:legalSet.has('DEF'),hasIDP:['DL','LB','DB','EDGE','IDL','CB','S'].some(x=>legalSet.has(canonical(x))),
     hasDL:['DL','EDGE','IDL'].some(x=>legalSet.has(canonical(x))),hasLB:legalSet.has('LB'),hasDB:['DB','CB','S'].some(x=>legalSet.has(canonical(x))),
     hasSuperflex:slots.some(x=>['SUPER_FLEX','SF'].includes(String(x).toUpperCase()))||starts.filter(x=>String(x).toUpperCase()==='QB').length>=2,
-    isDynasty:fmt.includes('DYNASTY'),isBestBall:fmt.includes('BESTBALL'),isChopped:fmt==='CHOPPED'
+    isDynasty:fp.dynasty===true,isBestBall:fp.bestBall===true,isChopped:fp.chopped===true
   });
 }
 function username(){return String(window.FIEPortfolioConfig?.config?.sleeper_username||DEFAULT_USERNAME);}

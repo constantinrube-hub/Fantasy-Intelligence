@@ -100,8 +100,12 @@ if(mode==='baseline'){
   assert.strictEqual(lc.isBestBall,true);
   assert.strictEqual(lc.isChopped,true,'target: hybrid must expose chopped capability');
   assert.strictEqual(draftSameAsRed,false,'target: DraftBase hybrid must not fall through to Redraft');
-  assert.ok(Number(calWeight)>0,'target: hybrid must have an explicit calibration rule');
+  assert.ok(String(hyb[0]?.architecture||'').includes('hybrid'),'target: DraftBase must identify its explicit hybrid architecture');
+  assert.strictEqual(Number(calWeight),8,'target: hybrid calibration keeps the parent-format scarcity weight');
+  const expectedHybrid=.50*sample.__fie_mean+.225*sample.__fie_floor+.275*sample.__fie_ceiling;
+  assert.ok(close(coreHybrid,expectedHybrid),'target: Core hybrid must equal the governed 50/50 Chopped + Redraft Best Ball production blend');
+  assert.ok(close(workerHybrid,expectedHybrid),'target: worker hybrid must equal the governed Core hybrid production blend');
   assert.ok(!close(coreHybrid,coreBB)&&!close(coreHybrid,coreChopped),'target: Core hybrid objective must be explicit, not generic BB or Chopped');
-  assert.ok(!close(workerHybrid,workerBB)&&!close(workerHybrid,workerChopped),'target: worker hybrid objective must match an explicit hybrid policy');
+  assert.ok(!close(workerHybrid,workerBB)&&!close(workerHybrid,workerChopped),'target: worker hybrid objective must be explicit, not generic BB or Chopped');
 }else throw new Error(`unknown mode ${mode}`);
 console.log(JSON.stringify(result));
