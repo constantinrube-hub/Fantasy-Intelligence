@@ -1,0 +1,238 @@
+name: Publish FIE Portfolio From Existing Research Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "All-league workflow run whose league artifacts should be published"
+        required: true
+        default: "33482182576"
+        type: string
+      season:
+        description: "Season"
+        required: true
+        default: "2026"
+        type: string
+      publish_app:
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: fie-portfolio-publication-${{ inputs.season }}
+  cancel-in-progress: false
+
+jobs:
+  aggregate-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - run: pip install -r research/requirements.txt
+
+      - name: Validate source run input
+        env:
+          SOURCE_RUN: ${{ inputs.source_run_id }}
+        run: |
+          [[ "$SOURCE_RUN" =~ ^[0-9]+$ ]] || {
+            echo "source_run_id must be numeric" >&2
+            exit 2
+          }
+
+      - name: Download all league artifacts from successful source run
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: fie-league-research-*-${{ inputs.season }}
+          path: .fie-league-artifacts
+          merge-multiple: false
+
+      - name: Restore exact registry league namespaces
+        run: |
+          python - <<'PY'
+          import json, shutil
+          from pathlib import Path
+          season='${{ inputs.season }}'
+          reg=json.load(open('data/research/leagues/registry.json'))
+          enabled={
+              str(k) for k,v in (reg.get('leagues') or {}).items()
+              if v.get('enabled',True)
+          }
+          root=Path('.fie-league-artifacts')
+          prefix='fie-league-research-'
+          suffix='-'+season
+          restored=set()
+
+          for src in sorted(root.iterdir() if root.is_dir() else []):
+              if (
+                  not src.is_dir()
+                  or not src.name.startswith(prefix)
+                  or not src.name.endswith(suffix)
+              ):
+                  continue
+              lid=src.name[len(prefix):-len(suffix)]
+              if lid not in enabled:
+                  raise SystemExit(
+                      f'unexpected league artifact namespace: {src.name}'
+                  )
+              dest=Path('data/research/leagues')/lid
+              shutil.copytree(src,dest,dirs_exist_ok=True)
+              restored.add(lid)
+
+          missing=sorted(enabled-restored)
+          if missing:
+              raise SystemExit(
+                  f'missing downloaded league artifacts: {missing}'
+              )
+
+          # This recovery workflow is only safe when every source matrix result
+          # was actually successful.
+          failed=[]
+          for lid in sorted(enabled):
+              p=(
+                  Path('data/research/leagues')/lid/'performance'/season/
+                  'research_pipeline'/'matrix-job-status.json'
+              )
+              if not p.is_file():
+                  failed.append((lid,'matrix status missing'))
+                  continue
+              x=json.loads(p.read_text())
+              if x.get('outcome')!='success':
+                  failed.append((lid,x.get('outcome')))
+          if failed:
+              raise SystemExit(
+                  f'source run contains non-success league artifacts: {failed}'
+              )
+
+          print('PASS restored successful league artifacts',len(restored))
+          PY
+
+      - name: Reconcile current/profile/storage/governance contracts
+        if: ${{ inputs.publish_app }}
+        run: |
+          python research/integrity_current_profile_reconcile_test.py
+          python research/reconcile_current_profile_snapshots.py \
+            --season "${{ inputs.season }}"
+
+      - name: Build app shells and attach research
+        if: ${{ inputs.publish_app }}
+        run: |
+          python research/build_league_app_snapshots.py --strict
+          python research/publish_fie_research_app_contract.py \
+            --season "${{ inputs.season }}"
+          node research/integrity_fie_app_research_contract_test.js
+          python research/integrity_fast_switch_artifacts_test.py
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          reg=json.load(open('data/research/leagues/registry.json'))
+          for lid,row in (reg.get('leagues') or {}).items():
+              if not row.get('enabled',True):
+                  continue
+              p=(
+                  Path('data/research/leagues')/str(lid)/'performance'/
+                  '${{ inputs.season }}'/'research_pipeline'/
+                  'matrix-job-status.json'
+              )
+              c=Path('data/research/leagues')/str(lid)/'app/core.json'
+              if not p.is_file():
+                  continue
+              x=json.loads(p.read_text())
+              core=json.loads(c.read_text()) if c.is_file() else {}
+              research=core.get('research') or {}
+              x['app_publish_complete']=(
+                  all(
+                      k in research
+                      for k in ('readiness','rankings','report_summary')
+                  )
+                  and x.get('outcome')=='success'
+              )
+              p.write_text(
+                  json.dumps(x,indent=2,sort_keys=True)+'\n'
+              )
+          PY
+
+      - name: Build exact-registry portfolio aggregation
+        run: |
+          python research/build_fie_portfolio_research_report.py \
+            --season "${{ inputs.season }}"
+          python research/validate_fie_portfolio_report.py \
+            --season "${{ inputs.season }}"
+
+      - name: Build validated deploy tree
+        if: ${{ inputs.publish_app }}
+        run: |
+          python research/build_app_manifest.py
+          python tools/release_build.py --mode personal
+          python research/integrity_fast_switch_artifacts_test.py \
+            --require-dist
+
+      - name: One atomic Git publication
+        shell: bash
+        run: |
+          TRACKED=(
+            data/research/leagues
+            data/research/portfolio
+            data/research/app
+            data/research/shared
+            app/generated/model-config.js
+            app/generated/release.js
+            app/generated/runtime-contracts.js
+            functions/release.js
+            config/build-manifest.json
+            config/model-config.json
+            config/release.json
+            config/release-gate.json
+            dist
+          )
+
+          if git diff --quiet -- "${TRACKED[@]}" \
+             && [ -z "$(git status --porcelain -- "${TRACKED[@]}")" ]; then
+            echo "No portfolio changes to publish"
+          else
+            git config user.name "FIE Portfolio Research Bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add -A -- "${TRACKED[@]}"
+            git commit -m \
+              "Publish complete FIE research portfolio for ${{ inputs.season }}"
+
+            if ! git diff --quiet; then
+              git restore --worktree .
+            fi
+
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+
+      - name: Require complete portfolio
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open(
+              'data/research/portfolio/${{ inputs.season }}/research-overview.json'
+          ))
+          c=p['coverage']
+          print('Portfolio coverage',c)
+          if c['completed'] != c['enabled'] or c['blocked'] or c['failed']:
+              raise SystemExit(
+                  'Portfolio publication is not complete; inspect research-overview.md'
+              )
+          PY
