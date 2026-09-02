@@ -23,8 +23,6 @@ const VERSION='9.3.4A3';
 const RELEASE='scoring-hot-path-linearized-contracts-repair';
 const INSTALL_LIMIT=120;
 const POSITIONS=['QB','RB','WR','TE','DL','LB','DB','K','P','OL','DEF'];
-const SLOT_ELIG={QB:['QB'],RB:['RB'],WR:['WR'],TE:['TE'],FLEX:['RB','WR','TE'],WRRB_FLEX:['WR','RB'],REC_FLEX:['WR','TE'],SUPER_FLEX:['QB','RB','WR','TE'],DL:['DL'],DE:['DL'],DT:['DL'],LB:['LB'],DB:['DB'],CB:['DB'],S:['DB'],IDP_FLEX:['DL','LB','DB'],DEF:['DEF'],DST:['DEF'],K:['K'],P:['P'],OL:['OL'],T:['OL'],G:['OL'],C:['OL']};
-const DIRECT_SLOT_MAP={QB:'QB',RB:'RB',WR:'WR',TE:'TE',DL:'DL',DE:'DL',DT:'DL',LB:'LB',DB:'DB',CB:'DB',S:'DB',DEF:'DEF',DST:'DEF',K:'K',P:'P',OL:'OL',T:'OL',G:'OL',C:'OL'};
 let installAttempts=0;
 let installed=false;
 let scoreEpoch=0;
@@ -73,21 +71,11 @@ function timed(name,fn){const t=now();const out=fn();const ms=now()-t;diagnostic
 function recordError(e,where){diagnostics.errors.push({at:new Date().toISOString(),where,message:String(e?.message||e)});if(diagnostics.errors.length>20)diagnostics.errors.shift();try{window.FIECore?.Diagnostics?.capture?.(e,{domain:'v9.3.4a3',feature:where});}catch{}}
 function required(name){return typeof window[name]==='function';}
 
-function demandValue(p){const a=finite(p?.engineSeasonProjection);if(a!==null)return a;const b=finite(p?.sleeperSeasonProjection);if(b!==null)return b;return finite(p?.modelScore)??0;}
+function demandValue(p){const fn=window.FIECore?.LeagueDemandService?.defaultValue;if(typeof fn==='function')return Number(fn(p))||0;const a=finite(p?.engineSeasonProjection);if(a!==null)return a;const b=finite(p?.sleeperSeasonProjection);if(b!==null)return b;return finite(p?.modelScore)??0;}
 function demandFingerprint(){const league=st()?.league||{},slots=(league.roster_positions||[]).join('|'),teams=Number(league.total_rosters||st()?.rosters?.length||1),ps=arr();let sig=0;for(let i=0;i<ps.length;i+=Math.max(1,Math.floor(ps.length/32))){const p=ps[i];sig=(sig+Math.round(demandValue(p)*10)+(String(p?.position||'').charCodeAt(0)||0)*17)>>>0;}return `${activeLeagueId()}|${teams}|${slots}|${ps.length}|${scoreEpoch}|${sig}`;}
 function computeMarginalDemand(){
-  const state=st(),players=arr();if(!state?.league)return {};
-  const teams=Math.max(1,Number(state.league.total_rosters||state.rosters?.length||1)||1),slots=state.league.roster_positions||[],counts={};
-  for(const s of slots)counts[s]=(counts[s]||0)+teams;
-  const pools=Object.fromEntries(POSITIONS.map(pos=>[pos,players.filter(p=>p?.position===pos).slice().sort((a,b)=>demandValue(b)-demandValue(a))]));
-  const used=Object.fromEntries(POSITIONS.map(pos=>[pos,0])),out=Object.fromEntries(POSITIONS.map(pos=>[pos,0]));
-  const take=(pos,n)=>{if(!pos||!pools[pos])return;const k=Math.min(Number(n)||0,Math.max(0,pools[pos].length-used[pos]));used[pos]+=k;out[pos]+=k;};
-  for(const [slot,n] of Object.entries(counts)){const pos=DIRECT_SLOT_MAP[slot];if(pos)take(pos,n);}
-  for(const slot of ['WRRB_FLEX','REC_FLEX','FLEX','IDP_FLEX','SUPER_FLEX']){
-    let n=counts[slot]||0;const elig=SLOT_ELIG[slot]||[];
-    while(n-->0){let best=null,bestPos=null;for(const pos of elig){const cand=pools[pos]?.[used[pos]];if(cand&&(!best||demandValue(cand)>demandValue(best))){best=cand;bestPos=pos;}}if(bestPos){used[bestPos]++;out[bestPos]++;}}
-  }
-  const perTeam={};for(const pos of POSITIONS)perTeam[pos]=(out[pos]||0)/teams;
+  const state=st(),players=arr(),svc=window.FIECore?.LeagueDemandService;if(!state?.league||!svc?.starterDemand)return {};
+  const profile=svc.starterDemand({league:state.league,players,valueFn:demandValue}),perTeam={...profile.perTeam};
   diagnostics.demand={...perTeam};return perTeam;
 }
 function invalidateDemand(){scoreEpoch++;demandMemo=null;demandMemoKey='';}
@@ -101,23 +89,27 @@ function fastNormalizeTFG(){
   const groups={};for(const p of arr()){const v=finite(p?.tfgGrade);if(v===null)continue;(groups[p.position]??=[]).push(v);}for(const a of Object.values(groups))a.sort((x,y)=>x-y);
   for(const p of arr()){const v=finite(p?.tfgGrade),a=groups[p.position];if(v===null||!a?.length){p.tfgModelScore=null;continue;}const less=lowerBound(a,v),equal=upperBound(a,v)-less;p.tfgModelScore=round1(clamp(((less+equal*.5)/a.length)*100,1,99));}
 }
-function fastLeagueFit(p,demand,owned,teams){
-  const d=Number(demand[p.position]||0);if(d<=0)return round1((Number(window.scoringFit?.(p))||10)*.68+10*.32);
-  const pressure=(Number(owned[p.position]||0)/Math.max(1,teams*d));const scarcity=clamp(45+d*7+Math.min(20,pressure*7),20,95),fit=Number(window.scoringFit?.(p));return round1((Number.isFinite(fit)?fit:50)*.68+scarcity*.32);
+function fastLeagueFit(p,demand,profiles){
+  const pos=window.FIECore?.PlayerIdentity?.canonicalPosition?.(p.position)||p.position,d=Number(demand[pos]||0);if(d<=0)return round1((Number(window.scoringFit?.(p))||10)*.68+10*.32);
+  const structuralPressure=Number(profiles?.[pos]?.structuralPressure||0),scarcity=clamp(45+d*7+Math.min(20,structuralPressure*7),20,95),fit=Number(window.scoringFit?.(p));return round1((Number.isFinite(fit)?fit:50)*.68+scarcity*.32);
 }
-function replacementIndex(effective,n){const rank=Math.max(1,Math.round(Number(effective)||1));return Math.max(0,Math.min(n-1,rank-1));}
+function canonicalReplacementProfiles(){
+  const state=st(),players=arr(),svc=window.FIECore?.ReplacementService;if(!state?.league||!svc?.profiles)return {};
+  return svc.profiles({league:state.league,players,state,valueFn:demandValue});
+}
 function fastReplacementLevels(){
   const state=st(),players=arr();state.replacementLevels={};if(!state.league)return state.replacementLevels;
-  const d=demandMap(),owned=ownershipByPosition(),teams=Math.max(1,Number(state.league.total_rosters||state.rosters?.length||1)||1),ownW=Number(state.replacement?.ownershipInfluence||0)/100,totalDemand=Math.max(1,Object.values(d).reduce((a,b)=>a+(Number(b)||0),0)),bench=countSlot('BN'),benchShare=(bench/totalDemand)*(Number(state.replacement?.benchInfluence||0)/100),byPos={};
-  for(const p of players){if(!p.leagueEligible||finite(p.modelScore)===null)continue;(byPos[p.position]??=[]).push(p);}for(const xs of Object.values(byPos))xs.sort((a,b)=>Number(b.modelScore)-Number(a.modelScore));
-  for(const [pos,pool] of Object.entries(byPos)){if(!pool.length)continue;const actual=Number(owned[pos]||0),projected=teams*Number(d[pos]||0)*(1+benchShare),effective=actual*ownW+projected*(1-ownW),idx=replacementIndex(effective,pool.length),repl=pool[idx];state.replacementLevels[pos]={score:round1(repl.modelScore),player:repl.name,effectiveOwned:round1(effective),actualOwned:actual,projectedOwned:round1(projected),slotsPerTeam:Math.round(Number(d[pos]||0)*100)/100,cutoff:idx+1,method:'marginal starter allocation · A3 cached'};}
+  const profiles=canonicalReplacementProfiles(),byPos={};
+  for(const p of players){if(!p.leagueEligible||finite(p.modelScore)===null)continue;const pos=window.FIECore?.PlayerIdentity?.canonicalPosition?.(p.position)||p.position;(byPos[pos]??=[]).push(p);}for(const xs of Object.values(byPos))xs.sort((a,b)=>Number(b.modelScore)-Number(a.modelScore));
+  for(const [pos,profile] of Object.entries(profiles)){const pool=byPos[pos]||[];if(!pool.length)continue;const idx=Math.min(pool.length-1,Math.max(0,Number(profile.cutoff||1)-1)),repl=pool[idx];state.replacementLevels[pos]={score:round1(repl.modelScore),player:repl.name,effectiveOwned:round1(profile.structuralDemand),actualOwned:Number(profile.actualOwned||0),projectedOwned:round1(profile.structuralDemand),slotsPerTeam:Math.round(Number(profile.perTeam||0)*100)/100,cutoff:idx+1,structuralCutoff:profile.structuralCutoff,sourceCutoff:profile.sourceCutoff,source:profile.source,ownershipAffectsCutoff:false,method:'FIECore replacement profile · A3 adapter'};}
   return state.replacementLevels;
 }
 function fastProjectedReplacementLevels(){
-  const state=st(),players=arr();state.projectedReplacementLevels={};if(!state.league)return state.projectedReplacementLevels;
-  const byPos={};for(const p of players){if(!p.leagueEligible||finite(p.engineSeasonProjection)===null)continue;(byPos[p.position]??=[]).push(p);}for(const xs of Object.values(byPos))xs.sort((a,b)=>Number(b.engineSeasonProjection)-Number(a.engineSeasonProjection));
-  for(const [pos,r] of Object.entries(state.replacementLevels||{})){const xs=byPos[pos]||[];if(!xs.length)continue;const idx=replacementIndex(r.effectiveOwned,xs.length),rp=xs[idx];state.projectedReplacementLevels[pos]={points:Number(rp.engineSeasonProjection),player:rp.name,cutoff:idx+1,method:'canonical cutoff · A3 cached'};}
-  for(const p of players){const r=state.projectedReplacementLevels[p.position];p.projectedReplacementPoints=r?.points??null;p.projectedVOR=(r&&finite(p.engineSeasonProjection)!==null)?round1(Number(p.engineSeasonProjection)-r.points):null;}
+  const state=st(),players=arr(),svc=window.FIECore?.ReplacementService;state.projectedReplacementLevels={};if(!state.league||!svc?.projectedLevels)return state.projectedReplacementLevels;
+  const levels=svc.projectedLevels({league:state.league,players,state,demandValueFn:demandValue,valueFn:p=>finite(p.engineSeasonProjection)});
+  for(const [pos,r] of Object.entries(levels))state.projectedReplacementLevels[pos]={points:Number(r.points),player:r.player,cutoff:r.cutoff,structuralCutoff:r.structuralCutoff,sourceCutoff:r.sourceCutoff,source:r.source,method:'FIECore projected replacement · A3 adapter'};
+  svc.applyProjectionVOR(players,state.projectedReplacementLevels,{projectionFn:p=>finite(p.engineSeasonProjection)});
+  for(const p of players)if(finite(p.projectedVOR)!==null)p.projectedVOR=round1(p.projectedVOR);
   return state.projectedReplacementLevels;
 }
 function fastProjectionRanksAndEdges(){
@@ -188,8 +180,8 @@ function fastAssignScores(reason='model input changed'){
   try{
     if(!state)throw new Error('state unavailable');state.modelHealth=state.modelHealth||{};state.modelHealth.recomputeCount=(Number(state.modelHealth.recomputeCount)||0)+1;state.modelHealth.lastReason=reason;
     timed('normalize-tfg',fastNormalizeTFG);
-    const d=timed('starter-demand',demandMap),owned=ownershipByPosition(),teams=Math.max(1,Number(state.league?.total_rosters||state.rosters?.length||1)||1);
-    timed('model-pass',()=>{for(const p of players){p.leagueEligible=Number(d[p.position]||0)>0;p.leagueFit=fastLeagueFit(p,d,owned,teams);const v=Number(window.weightedModel?.(p));p.modelScore=round1(Number.isFinite(v)?v:0);}});
+    const d=timed('starter-demand',demandMap),profiles=timed('replacement-profiles',canonicalReplacementProfiles);
+    timed('model-pass',()=>{for(const p of players){const pos=window.FIECore?.PlayerIdentity?.canonicalPosition?.(p.position)||p.position;p.leagueEligible=Number(d[pos]||0)>0;p.leagueFit=fastLeagueFit(p,d,profiles);const v=Number(window.weightedModel?.(p));p.modelScore=round1(Number.isFinite(v)?v:0);}});
     timed('replacement',fastReplacementLevels);
     timed('projected-replacement',fastProjectedReplacementLevels);
     if(state.projectionStatus?.season)timed('projection-ranks',fastProjectionRanksAndEdges);

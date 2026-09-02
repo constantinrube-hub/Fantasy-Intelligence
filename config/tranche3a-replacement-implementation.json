@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "tranche": "3A",
+  "change_package": "C10-004",
+  "phase": "implementation",
+  "baseline_commit": "a3e75122de8f2ab2ae5ed34f62f4162b896f0f49",
+  "baseline_tree": "cae20c74e28eacc408f84ca0cf95cc5a46f1538d",
+  "owner_contract": {
+    "starter_demand": "FIECore.LeagueDemandService",
+    "replacement_cutoff": "FIECore.ReplacementService",
+    "cutoff_convention": "replacement_player_rank_1_based",
+    "a3_role": "performance_adapter",
+    "d_role": "derived_economics",
+    "vor_source": "FIECore.ReplacementService"
+  },
+  "intended_behavior_changes": [
+    "Replacement cutoff now means the first player beyond structural demand; integer starter demand N maps to replacement rank N+1.",
+    "A3 actual-ownership influence no longer changes the football replacement cutoff.",
+    "A3 league-fit scarcity no longer uses actual ownership pressure; it uses structural replacement pressure.",
+    "D starter economics consumes the Core replacement frontier instead of selecting an independent first-non-starter frontier.",
+    "Projected VOR carries canonical replacement source and cutoff provenance."
+  ],
+  "preserved": [
+    "six league-format capability semantics",
+    "league-specific scoring/profile isolation",
+    "ADP outside football model",
+    "candidate model promotion remains fail-closed",
+    "M6/current-feature governance",
+    "statistical/governance thresholds",
+    "responsive primary-action contract",
+    "production decision authority"
+  ],
+  "not_in_scope": [
+    "C10-006 DataClient reliability",
+    "C10-007 player identity",
+    "C10-009 uncertainty/fallback semantics",
+    "slot-taxonomy consolidation",
+    "workflow cleanup",
+    "artifact deletion"
+  ]
+}

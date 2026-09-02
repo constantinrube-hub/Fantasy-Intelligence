@@ -42,6 +42,8 @@ def main():
   run([sys.executable,'research/integrity_v931_completion_test.py']),
   run(['node','research/integrity_v931_persistent_cache_test.js']),
   run(['node','research/integrity_v93_scarcity_runtime_test.js']),
+  run(['node','research/integrity_tranche3a_replacement_ownership.js','--mode','target']),
+  run(['node','research/integrity_tranche3a_all_league_replacement_profiles.js']),
   run(['node','research/integrity_v93_league_context_runtime_test.js']),
   run(['node','research/integrity_v93_decision_ui_runtime_test.js']),
   run(['node','research/integrity_value_finder_runtime_test.js']),

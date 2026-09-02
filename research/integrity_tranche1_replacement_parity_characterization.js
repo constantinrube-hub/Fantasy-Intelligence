@@ -53,6 +53,10 @@ if(mode==='baseline'){
   assert.ok(conventionMismatches.every(x=>x.dReplacementRank===x.coreCutoff+1),`unexpected D replacement relation ${JSON.stringify(conventionMismatches)}`);
   console.log('KNOWN_GAP_REPRODUCED D replacement frontier is recomputed as first non-starter rather than carrying canonical cutoff provenance');
 }else if(mode==='target'){
-  for(const x of replacementRows)assert.ok(x.dHasStructuralCutoff,`${x.position}: target D economics must expose/consume canonical structural cutoff provenance`);
+  for(const x of replacementRows){
+    assert.ok(x.dHasStructuralCutoff,`${x.position}: target D economics must expose/consume canonical structural cutoff provenance`);
+    assert.strictEqual(x.dReplacementRank,x.coreCutoff,`${x.position}: Core/A3/D replacement rank must use one canonical cutoff`);
+  }
+  console.log('PASS target Core/A3/D replacement cutoff parity');
 }else throw new Error(`unknown mode ${mode}`);
 console.log(JSON.stringify({mode,demand,replacementRows,conventionMismatches}));
