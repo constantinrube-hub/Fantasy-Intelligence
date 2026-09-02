@@ -5,6 +5,7 @@ on:
     branches:
       - audit-implementation-2026-09
     paths:
+      - ".github/workflows/validate-fie-tranche3a-replacement-preflight.yml"
       - "config/tranche3a-replacement-preflight.json"
       - "research/integrity_tranche3a_replacement_ownership.js"
       - "research/tranche3a_preflight.py"
@@ -90,18 +91,23 @@ jobs:
         run: |
           python - <<'PY'
           import subprocess
-          lines=subprocess.check_output(['git','status','--porcelain'],text=True).splitlines()
+          lines=subprocess.check_output(
+              ['git','status','--porcelain','--untracked-files=all'],
+              text=True
+          ).splitlines()
           changed=[]
           for line in lines:
               path=line[3:].strip()
               if ' -> ' in path:
                   path=path.split(' -> ',1)[1]
+              if path == 'artifacts' or path.startswith('artifacts/'):
+                  continue
               changed.append(path)
           if changed:
               print('Unexpected preflight drift:')
               for p in changed: print(' -',p)
               raise SystemExit(1)
-          print('PASS Tranche 3A preflight did not alter generated/runtime tree')
+          print('PASS Tranche 3A preflight did not alter tracked/generated/runtime tree')
           PY
 
       - name: Upload Tranche 3A preflight evidence and exact source
