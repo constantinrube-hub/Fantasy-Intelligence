@@ -18,9 +18,10 @@ Do not implement the same football concept in the feature module.
 | League demand / replacement | `FIECore.LeagueDemandService` / `ReplacementService` |
 | Legal lineup | `FIECore.LineupOptimizer` |
 | Roster marginal value | `FIECore.RosterValueService` |
-| Production draft valuation source | `FIEDecisionService` |
+| Production draft authority | `FIEDecisionService` |
+| Candidate decision coefficient promotion | decision validation + `config/model-config.json` |
 | Current research features | `FIECurrentFeatures` |
-| Production research activation | governance + model config |
+| Current-feature runtime activation | league-scoped lineage + M6 governance |
 
 ## Rule 2: change source contracts, not generated files
 
@@ -31,13 +32,15 @@ If adding a roster slot or scoring family:
 3. run scoring/runtime integrity tests;
 4. update documentation if semantics changed.
 
-## Rule 3: never silently promote a candidate model
+## Rule 3: never silently promote candidate decision coefficients
 
-1. implement candidate logic;
+1. implement candidate logic as research/diagnostic behavior;
 2. create historical/forward decision validation;
-3. generate model-config evidence;
-4. promote only after the relevant domain gate passes;
-5. keep fallback operational throughout.
+3. update the governed model configuration only after the relevant domain gate passes;
+4. preserve `FIEDecisionService` as the production authority;
+5. keep `FIE_DRAFT_V71` as compatibility fallback only, not as a second production owner.
+
+Candidate promotion and current-feature activation are different gates. A league-scoped current feature may affect a decision only when its lineage and M6 runtime governance permit it.
 
 ## Rule 4: all new data requests use DataClient
 
@@ -82,7 +85,7 @@ Prefer:
 - explicit events/hooks;
 - extending a canonical service.
 
-Legacy wrappers still exist for compatibility, but 9.1 establishes a no-new-wrapper rule.
+Legacy wrappers still exist for compatibility, but the no-new-wrapper rule remains.
 
 ## Rule 9: add tests with the change
 
@@ -92,11 +95,10 @@ At minimum test:
 - league-switch/stale state if asynchronous;
 - one edge case;
 - cross-position/slot behavior if football logic changed;
-- fail-closed behavior if research/model logic changed.
+- fail-closed behavior if research/model logic changed;
+- production-authority identity if decision routing changed.
 
 ## Rule 10: build output is generated
-
-Never edit `dist/`.
 
 After all source changes:
 

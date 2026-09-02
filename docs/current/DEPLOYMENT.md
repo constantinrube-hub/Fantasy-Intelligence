@@ -20,7 +20,7 @@ This is the preferred release entry point because it guarantees the generators, 
 
 ### 1. Make source changes
 
-Do not edit `dist/`.
+Do not edit generated `dist/` output by hand. Controlled implementation packages may carry deterministic `dist/` mirrors, but source owners remain authoritative.
 
 ### 2. Generate contracts/configuration
 
@@ -49,6 +49,7 @@ At minimum:
 node research/integrity_runtime_foundation_test.js
 node research/integrity_league_switch_runtime_test.js
 node research/integrity_v9_model_runtime_test.js
+node research/integrity_decision_service_test.js
 node research/integrity_monte_carlo_worker_test.js
 python research/integrity_scoring_relevance_test.py
 python research/production_readiness.py
@@ -83,25 +84,28 @@ python tools/build_dist.py --mode public
 python research/release_gate.py
 ```
 
-Expected safe state before V9 empirical promotion can be:
+The safe source state is:
 
 ```text
-RESEARCH_ARTIFACT_READY
-RUNTIME_FALLBACK_ONLY
 DEPLOYABLE_SOURCE
+browser_preview_required = true
 ```
 
-Research being fail-closed is not itself a deployment failure because the governed fallback remains active.
+Candidate decision coefficients may remain **NOT PROMOTED** while the source is deployable. That does not replace the production decision authority: `FIEDecisionService` continues to own the canonical V9 decision route.
+
+Governed current-feature activation is a separate **league-scoped** runtime decision. A league may activate eligible current features only when its lineage and M6 gates pass; another league may remain gated without changing the global production decision authority.
+
+`FIE_DRAFT_V71` is a compatibility fallback if canonical V9 rows are unavailable, not the normal unpromoted production state.
 
 ### 7. Commit/push to GitHub
 
-Cloudflare Pages now uses:
+Cloudflare Pages uses:
 
 ```toml
 pages_build_output_dir = "dist"
 ```
 
-If Cloudflare builds from Git, configure its build command to run the generation/build pipeline or commit the generated `dist` only if that is your chosen workflow. The recommended repository workflow is to build `dist` during CI/deployment, not hand-edit it.
+If Cloudflare builds from Git, configure its build command to run the generation/build pipeline or commit the deterministic generated output according to the controlled workflow. Never treat generated output as the semantic source of truth.
 
 ### 8. Preview deploy
 
@@ -109,7 +113,7 @@ Run the browser smoke suite in `TESTING.md` against the preview URL.
 
 ### 9. Production deploy
 
-Promote only after the preview checks pass.
+Promote/deploy only after the preview checks pass. A deployment does not itself promote candidate model coefficients.
 
 ## What to upload manually
 
