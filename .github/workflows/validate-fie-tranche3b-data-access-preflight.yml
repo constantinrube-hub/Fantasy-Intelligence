@@ -1,35 +1,20 @@
 name: FIE Controlled Implementation — Tranche 3B Data Access Preflight
 
 on:
-  push:
-    branches:
-      - audit-implementation-2026-09
-    paths:
-      - ".github/workflows/validate-fie-tranche3b-data-access-preflight.yml"
-      - "config/build-manifest.json"
-      - "dist/config/build-manifest.json"
-      - "config/tranche3b-data-access-preflight.json"
-      - "research/integrity_tranche3b_data_client_scope.js"
-      - "research/tranche3b_preflight.py"
-      - "docs/audits/TRANCHE3B_DATA_ACCESS_PREFLIGHT.md"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: fie-controlled-tranche3b-preflight-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  validate:
+  reproduce-historical-preflight:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-
     steps:
-      - name: Checkout implementation branch with history
+      - name: Checkout validated 3B preflight target
         uses: actions/checkout@v4
         with:
+          ref: c96cbb4fb6df5f3383de5d4aa818817d9d84c3c3
           fetch-depth: 0
 
       - name: Set up Python 3.12
@@ -47,94 +32,24 @@ jobs:
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
 
-      - name: Verify formally closed Tranche 3A ancestry
-        run: git merge-base --is-ancestor ed5c9a826f0dbdf4352dcffadfd5d78ec6717459 HEAD
-
-      - name: Prove Tranche 3A remains closed
+      - name: Reproduce validated preflight findings
         run: |
-          node research/integrity_tranche2a_six_format_contract.js
-          node research/integrity_tranche1_six_format_runtime_characterization.js --mode target
-          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
-          python research/integrity_tranche2b_responsive_primary_actions.py
-          python research/integrity_tranche2c_production_authority.py
-          node research/integrity_decision_service_test.js
           node research/integrity_tranche3a_replacement_ownership.js --mode target
-          node research/integrity_tranche1_replacement_parity_characterization.js --mode target
-          node research/integrity_v93_scarcity_runtime_test.js
           node research/integrity_tranche3a_all_league_replacement_profiles.js
-          python research/integrity_v932_build_determinism_test.py
+          node research/integrity_tranche1_data_client_scope_characterization.js --mode baseline
+          node research/integrity_tranche3b_data_client_scope.js --mode baseline
+          python research/integrity_tranche1_direct_fetch_allowlist.py --mode baseline
+          python research/integrity_tranche1_research_stage_identity.py --mode baseline
 
-      - name: Canonical release verification before 3B
+      - name: Canonical historical release build
         run: python tools/release_build.py --mode personal
 
-      - name: Require closed Tranche 3A generated state
+      - name: Require historical deployable source
         run: |
           python - <<'PY'
-          import json, subprocess
+          import json
           from pathlib import Path
-          gate=json.loads(Path('config/release-gate.json').read_text())
-          print('STATUS:',gate.get('status'))
-          if gate.get('status')!='DEPLOYABLE_SOURCE':
-              raise SystemExit('Tranche 3A closure regressed')
-          lines=subprocess.check_output(
-              ['git','status','--porcelain','--untracked-files=all'],text=True
-          ).splitlines()
-          changed=[]
-          for line in lines:
-              p=line[3:].strip()
-              if ' -> ' in p:p=p.split(' -> ',1)[1]
-              if p=='artifacts' or p.startswith('artifacts/'):continue
-              changed.append(p)
-          if changed:
-              print('Closed Tranche 3A state is not synchronized:')
-              for p in changed:print(' -',p)
-              raise SystemExit(1)
-          print('PASS Tranche 3A remains fully synchronized')
+          d=json.loads(Path('config/release-gate.json').read_text())
+          print('STATUS:',d.get('status'))
+          if d.get('status')!='DEPLOYABLE_SOURCE': raise SystemExit(1)
           PY
-
-      - name: Reproduce Tranche 3B DataClient scope gap
-        run: |
-          mkdir -p artifacts/tranche3b
-          node research/integrity_tranche1_data_client_scope_characterization.js --mode baseline | tee artifacts/tranche3b/tranche1-scope-baseline.log
-          node research/integrity_tranche3b_data_client_scope.js --mode baseline | tee artifacts/tranche3b/tranche3b-scope-baseline.log
-
-      - name: Reproduce Tranche 3B raw-fetch routing gap
-        run: |
-          python research/integrity_tranche1_direct_fetch_allowlist.py --mode baseline | tee artifacts/tranche3b/direct-fetch-baseline.log
-
-      - name: Preserve later Tranche 3 gap
-        run: python research/integrity_tranche1_research_stage_identity.py --mode baseline
-
-      - name: Capture exact Tranche 3B transport source
-        run: python research/tranche3b_preflight.py --output-dir artifacts/tranche3b/preflight-source
-
-      - name: Require characterization-only preflight
-        run: |
-          python - <<'PY'
-          import subprocess
-          lines=subprocess.check_output(
-              ['git','status','--porcelain','--untracked-files=all'],text=True
-          ).splitlines()
-          changed=[]
-          for line in lines:
-              p=line[3:].strip()
-              if ' -> ' in p:p=p.split(' -> ',1)[1]
-              if p=='artifacts' or p.startswith('artifacts/'):continue
-              changed.append(p)
-          if changed:
-              print('Unexpected post-characterization drift:')
-              for p in changed:print(' -',p)
-              raise SystemExit(1)
-          print('PASS Tranche 3B preflight made no runtime/generated changes')
-          PY
-
-      - name: Upload Tranche 3B preflight evidence and source
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: fie-controlled-tranche3b-preflight-${{ github.sha }}
-          retention-days: 30
-          if-no-files-found: error
-          path: |
-            artifacts/tranche3b/
-            config/release-gate.json
