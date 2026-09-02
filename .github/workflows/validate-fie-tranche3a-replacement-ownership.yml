@@ -14,14 +14,22 @@ on:
       - "research/integrity_tranche1_replacement_parity_characterization.js"
       - "research/integrity_tranche3a_all_league_replacement_profiles.js"
       - "research/integrity_v931_completion_test.py"
+      - "research/integrity_v932_build_determinism_test.py"
       - "research/release_gate.py"
+      - "tools/build_dist.py"
       - "config/tranche3a-replacement-implementation.json"
       - "config/tranche3a-final-release-gate-compatibility.json"
+      - "config/tranche3a-dist-determinism.json"
       - "config/release-gate.json"
       - "docs/audits/TRANCHE3A_REPLACEMENT_IMPLEMENTATION.md"
       - "docs/audits/TRANCHE3A_FINAL_RELEASE_GATE_COMPATIBILITY.md"
+      - "docs/audits/TRANCHE3A_DIST_DETERMINISM.md"
       - "config/build-manifest.json"
       - "dist/config/build-manifest.json"
+      - "dist/data/research/leagues/**/current/milestone5_current.json"
+      - "dist/data/research/leagues/**/governance/active_release.json"
+      - "dist/data/research/shared/current/runtime_player_base.*.json"
+      - "dist/data/research/shared/current/scoring/*.json"
       - ".github/workflows/validate-fie-tranche3a-replacement-ownership.yml"
   workflow_dispatch:
 
@@ -78,6 +86,9 @@ jobs:
           node research/integrity_tranche3a_all_league_replacement_profiles.js
           node research/integrity_v9_model_runtime_test.js
 
+      - name: Require deterministic dist current partition
+        run: python research/integrity_v932_build_determinism_test.py
+
       - name: Keep later Tranche 3 gaps frozen
         run: |
           node research/integrity_tranche1_data_client_scope_characterization.js --mode baseline
@@ -104,39 +115,65 @@ jobs:
               raise SystemExit(1)
           PY
 
-      - name: Require no drift except deterministic manifest sync
+      - name: Capture only deterministic generated reconciliation
         shell: bash
         run: |
           python - <<'PY'
-          import subprocess, pathlib, shutil
-          lines=subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines()
-          changed=[]
+          import fnmatch, pathlib, shutil, subprocess
+          lines=subprocess.check_output(
+              ['git','status','--porcelain','--untracked-files=all'],text=True
+          ).splitlines()
+          allowed_exact={
+              'config/build-manifest.json',
+              'dist/config/build-manifest.json',
+              'config/release-gate.json',
+          }
+          allowed_patterns=[
+              'dist/data/research/leagues/*/current/milestone5_current.json',
+              'dist/data/research/leagues/*/governance/active_release.json',
+              'dist/data/research/shared/current/runtime_player_base.*.json',
+              'dist/data/research/shared/current/scoring/*.json',
+          ]
+          rows=[]
           for line in lines:
+              status=line[:2]
               path=line[3:].strip()
               if ' -> ' in path:
                   path=path.split(' -> ',1)[1]
-              if path == 'artifacts' or path.startswith('artifacts/'):
+              if path=='artifacts' or path.startswith('artifacts/'):
                   continue
-              changed.append(path)
-          allowed={'config/build-manifest.json','dist/config/build-manifest.json'}
-          unexpected=sorted(set(changed)-allowed)
+              rows.append((status,path))
+          def allowed(path):
+              return path in allowed_exact or any(fnmatch.fnmatch(path,p) for p in allowed_patterns)
+          unexpected=[p for _,p in rows if not allowed(p)]
           if unexpected:
               print('Unexpected generated/source drift:')
               for p in unexpected: print(' -',p)
               raise SystemExit(1)
+
           out=pathlib.Path('artifacts/tranche3a/generated-sync')
           out.mkdir(parents=True,exist_ok=True)
-          for p in sorted(set(changed)&allowed):
-              dest=out/p
-              dest.parent.mkdir(parents=True,exist_ok=True)
-              shutil.copy2(p,dest)
-          if changed:
-              print('MANIFEST_SYNC_REQUIRED:', ', '.join(sorted(changed)))
+          deletions=[]
+          for status,p in rows:
+              src=pathlib.Path(p)
+              if src.exists():
+                  dst=out/p
+                  dst.parent.mkdir(parents=True,exist_ok=True)
+                  shutil.copy2(src,dst)
+              else:
+                  deletions.append(p)
+          (out/'DELETE_PATHS.txt').write_text(
+              ''.join(f'{p}\n' for p in deletions),encoding='utf-8'
+          )
+          if rows:
+              print('GENERATED_SYNC_REQUIRED:')
+              for status,p in rows: print(f' {status} {p}')
+              print('DELETE_COUNT:',len(deletions))
           else:
               print('PASS generated tree fully synchronized')
           PY
 
-      - name: Upload Tranche 3A evidence and deterministic manifest sync
+      - name: Upload Tranche 3A evidence and generated reconciliation
         if: always()
         uses: actions/upload-artifact@v4
         with:
