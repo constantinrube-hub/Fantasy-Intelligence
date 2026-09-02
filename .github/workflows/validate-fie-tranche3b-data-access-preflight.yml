@@ -5,6 +5,7 @@ on:
     branches:
       - audit-implementation-2026-09
     paths:
+      - ".github/workflows/validate-fie-tranche3b-data-access-preflight.yml"
       - "config/build-manifest.json"
       - "dist/config/build-manifest.json"
       - "config/tranche3b-data-access-preflight.json"
@@ -46,10 +47,10 @@ jobs:
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
 
-      - name: Verify successful Tranche 3A determinism ancestry
-        run: git merge-base --is-ancestor a11a733dd169af3a8160e599478d41b3398bc068 HEAD
+      - name: Verify formally closed Tranche 3A ancestry
+        run: git merge-base --is-ancestor ed5c9a826f0dbdf4352dcffadfd5d78ec6717459 HEAD
 
-      - name: Prove Tranche 3A target contracts
+      - name: Prove Tranche 3A remains closed
         run: |
           node research/integrity_tranche2a_six_format_contract.js
           node research/integrity_tranche1_six_format_runtime_characterization.js --mode target
@@ -63,10 +64,10 @@ jobs:
           node research/integrity_tranche3a_all_league_replacement_profiles.js
           python research/integrity_v932_build_determinism_test.py
 
-      - name: Canonical final Tranche 3A release build
+      - name: Canonical release verification before 3B
         run: python tools/release_build.py --mode personal
 
-      - name: Formally close Tranche 3A generated state
+      - name: Require closed Tranche 3A generated state
         run: |
           python - <<'PY'
           import json, subprocess
@@ -74,7 +75,7 @@ jobs:
           gate=json.loads(Path('config/release-gate.json').read_text())
           print('STATUS:',gate.get('status'))
           if gate.get('status')!='DEPLOYABLE_SOURCE':
-              raise SystemExit('Tranche 3A cannot close: release gate is not DEPLOYABLE_SOURCE')
+              raise SystemExit('Tranche 3A closure regressed')
           lines=subprocess.check_output(
               ['git','status','--porcelain','--untracked-files=all'],text=True
           ).splitlines()
@@ -85,10 +86,10 @@ jobs:
               if p=='artifacts' or p.startswith('artifacts/'):continue
               changed.append(p)
           if changed:
-              print('Tranche 3A final state is not synchronized:')
+              print('Closed Tranche 3A state is not synchronized:')
               for p in changed:print(' -',p)
               raise SystemExit(1)
-          print('PASS Tranche 3A final generated tree fully synchronized')
+          print('PASS Tranche 3A remains fully synchronized')
           PY
 
       - name: Reproduce Tranche 3B DataClient scope gap
@@ -101,14 +102,13 @@ jobs:
         run: |
           python research/integrity_tranche1_direct_fetch_allowlist.py --mode baseline | tee artifacts/tranche3b/direct-fetch-baseline.log
 
-      - name: Preserve later Tranche 3 gaps
-        run: |
-          python research/integrity_tranche1_research_stage_identity.py --mode baseline
+      - name: Preserve later Tranche 3 gap
+        run: python research/integrity_tranche1_research_stage_identity.py --mode baseline
 
       - name: Capture exact Tranche 3B transport source
         run: python research/tranche3b_preflight.py --output-dir artifacts/tranche3b/preflight-source
 
-      - name: Require preflight itself changes no runtime/generated state
+      - name: Require characterization-only preflight
         run: |
           python - <<'PY'
           import subprocess

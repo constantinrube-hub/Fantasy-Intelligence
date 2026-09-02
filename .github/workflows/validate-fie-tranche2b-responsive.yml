@@ -1,35 +1,20 @@
 name: FIE Controlled Implementation — Tranche 2B Responsive Correctness
 
 on:
-  push:
-    branches:
-      - audit-implementation-2026-09
-    paths:
-      - "app/decision-ui.css"
-      - "dist/app/decision-ui.css"
-      - "research/integrity_tranche1_responsive_decision_visibility.py"
-      - "research/integrity_tranche2b_responsive_primary_actions.py"
-      - "config/tranche2b-responsive.json"
-      - "config/build-manifest.json"
-      - "dist/config/build-manifest.json"
-      - "docs/audits/TRANCHE2B_RESPONSIVE_CORRECTION.md"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: fie-controlled-tranche2b-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  validate:
+  reproduce-historical-tranche2b:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - name: Checkout implementation branch with history
+      - name: Checkout validated Tranche 2B target
         uses: actions/checkout@v4
         with:
+          ref: a0e9617598777a9aab60389ea0d44211c51cd038
           fetch-depth: 0
 
       - name: Set up Python 3.12
@@ -47,77 +32,28 @@ jobs:
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
 
-      - name: Verify validated Tranche 2A ancestry
-        run: git merge-base --is-ancestor 7533ce190a8732b4447d2e14c489153db05b8746 HEAD
-
-      - name: Preserve Tranche 2A six-format target
+      - name: Reproduce validated Tranche 2B target
         run: |
           node research/integrity_tranche2a_six_format_contract.js
           node research/integrity_tranche1_six_format_runtime_characterization.js --mode target
           node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+          python research/integrity_tranche2b_responsive_primary_actions.py
 
-      - name: Responsive primary-action target
-        run: python research/integrity_tranche2b_responsive_primary_actions.py
-
-      - name: Keep unrelated Tranche 1 gaps frozen
-        run: |
-          node research/integrity_tranche1_replacement_parity_characterization.js --mode baseline
-          node research/integrity_tranche1_data_client_scope_characterization.js --mode baseline
-          python research/integrity_tranche1_direct_fetch_allowlist.py --mode baseline
-          python research/integrity_tranche1_research_stage_identity.py --mode baseline
-
-      - name: Canonical deterministic release build
+      - name: Canonical historical release build
         run: python tools/release_build.py --mode personal
 
-      - name: Require deployable source
+      - name: Require historical deployable source and synchronized dist
         run: |
-          python - <<'PY2'
+          python - <<'PY'
           import json
           from pathlib import Path
           d=json.loads(Path("config/release-gate.json").read_text())
           print("STATUS:",d.get("status"))
           if d.get("status")!="DEPLOYABLE_SOURCE":
               raise SystemExit(1)
-          PY2
-
-      - name: Require no generated drift except deterministic manifest sync
-        shell: bash
-        run: |
-          python - <<'PY2'
-          import subprocess, pathlib, shutil
-          lines=subprocess.check_output(['git','status','--porcelain'],text=True).splitlines()
-          changed=[]
-          for line in lines:
-              path=line[3:].strip()
-              if ' -> ' in path:
-                  path=path.split(' -> ',1)[1]
-              changed.append(path)
-          allowed={'config/build-manifest.json','dist/config/build-manifest.json'}
-          unexpected=sorted(set(changed)-allowed)
-          if unexpected:
-              print('Unexpected generated/source drift:')
-              for p in unexpected: print(' -',p)
-              raise SystemExit(1)
-          out=pathlib.Path('artifacts/tranche2b/generated-sync')
-          out.mkdir(parents=True,exist_ok=True)
-          for p in sorted(set(changed)&allowed):
-              dest=out/p
-              dest.parent.mkdir(parents=True,exist_ok=True)
-              shutil.copy2(p,dest)
-          if changed:
-              print('MANIFEST_SYNC_REQUIRED:', ', '.join(sorted(changed)))
-          else:
-              print('PASS generated tree fully synchronized')
-          PY2
-
-      - name: Upload Tranche 2B evidence and deterministic manifest sync
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: fie-controlled-tranche2b-${{ github.sha }}
-          retention-days: 30
-          if-no-files-found: warn
-          path: |
-            artifacts/tranche2b/
-            config/release-gate.json
-            config/build-manifest.json
+          PY
+          if [ -n "$(git status --porcelain -- dist)" ]; then
+            echo "::error::Validated Tranche 2B historical dist is not synchronized."
+            git status --short -- dist
+            exit 1
+          fi
