@@ -195,7 +195,28 @@
       "cmd": "node research/integrity_v93_scarcity_runtime_test.js",
       "ok": true,
       "code": 0,
-      "stdout": "V9.3.1 scarcity runtime integrity OK: QB demand 12->24, structural replacement cutoff 12->24, stale/ownership feedback blocked\n",
+      "stdout": "V9.3.1 scarcity runtime integrity OK: QB demand 12->24, structural replacement cutoff 13->25, stale/ownership feedback blocked\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_tranche2a_six_format_contract.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS six-format generated capability contract, semantic DraftBase architectures, Core, legacy shell and Monte Carlo objectives\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_tranche3a_replacement_ownership.js --mode target",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS Tranche 3A one-owner replacement/scarcity/VOR contract\n{\"mode\":\"target\",\"zero\":{\"QB\":{\"coreCutoff\":5,\"a3Cutoff\":5,\"a3ProjectedCutoff\":5,\"dReplacementRank\":5,\"dStructuralCutoff\":5,\"coreSource\":\"FIECore.ReplacementService\"},\"RB\":{\"coreCutoff\":4,\"a3Cutoff\":4,\"a3ProjectedCutoff\":4,\"dReplacementRank\":4,\"dStructuralCutoff\":4,\"coreSource\":\"FIECore.ReplacementService\"},\"WR\":{\"coreCutoff\":4,\"a3Cutoff\":4,\"a3ProjectedCutoff\":4,\"dReplacementRank\":4,\"dStructuralCutoff\":4,\"coreSource\":\"FIECore.ReplacementService\"},\"TE\":{\"coreCutoff\":3,\"a3Cutoff\":3,\"a3ProjectedCutoff\":3,\"dReplacementRank\":3,\"dStructuralCutoff\":3,\"coreSource\":\"FIECore.ReplacementService\"}},\"ownership100\":{\"QB\":{\"coreCutoff\":5,\"a3Cutoff\":5,\"actualOwned\":2},\"RB\":{\"coreCutoff\":4,\"a3Cutoff\":4,\"actualOwned\":1},\"WR\":{\"coreCutoff\":4,\"a3Cutoff\":4,\"actualOwned\":1},\"TE\":{\"coreCutoff\":3,\"a3Cutoff\":3,\"actualOwned\":1}}}\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_tranche3a_all_league_replacement_profiles.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "{\"enabled\":22,\"formatCounts\":{\"DYNASTY\":7,\"CHOPPED\":5,\"REDRAFT\":4,\"REDRAFT_BESTBALL\":2,\"DYNASTY_BESTBALL\":3,\"CHOPPED_BESTBALL\":1},\"results\":[{\"leagueId\":\"1312066407394975744\",\"format\":\"DYNASTY\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"K\"]},{\"leagueId\":\"1313696967989157888\",\"format\":\"CHOPPED\",\"teams\":18,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1313697754907697152\",\"format\":\"REDRAFT\",\"teams\":16,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"DEF\"]},{\"leagueId\":\"1314002567004459008\",\"format\":\"DYNASTY\",\"teams\":16,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1314007486205804544\",\"format\":\"REDRAFT_BESTBALL\",\"teams\":16,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1314008320385748992\",\"format\":\"REDRAFT_BESTBALL\",\"teams\":16,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1315816926198382592\",\"format\":\"DYNASTY\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1316165875291668480\",\"format\":\"DYNASTY\",\"teams\":16,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"K\",\"DEF\"]},{\"leagueId\":\"1331042152091766784\",\"format\":\"DYNASTY\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"DL\",\"LB\",\"DB\"]},{\"leagueId\":\"1332838151168724992\",\"format\":\"DYNASTY_BESTBALL\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1335691030116184065\",\"format\":\"DYNASTY\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"K\"]},{\"leagueId\":\"1341105213464924160\",\"format\":\"DYNASTY_BESTBALL\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1341131690998788096\",\"format\":\"DYNASTY_BESTBALL\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1342896584593018880\",\"format\":\"DYNASTY\",\"teams\":10,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"DL\",\"LB\",\"DB\"]},{\"leagueId\":\"1343914986388353024\",\"format\":\"CHOPPED\",\"teams\":16,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1387106650413887488\",\"format\":\"REDRAFT\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"K\",\"DEF\"]},{\"leagueId\":\"1387526015705690112\",\"format\":\"CHOPPED\",\"teams\":18,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1391803939736801280\",\"format\":\"REDRAFT\",\"teams\":12,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"K\",\"DEF\"]},{\"leagueId\":\"1396507356048658438\",\"format\":\"CHOPPED\",\"teams\":18,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1397547920563171328\",\"format\":\"CHOPPED\",\"teams\":18,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]},{\"leagueId\":\"1399128582088835072\",\"format\":\"REDRAFT\",\"teams\":8,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\",\"K\",\"DEF\"]},{\"leagueId\":\"1399318410818519040\",\"format\":\"CHOPPED_BESTBALL\",\"teams\":18,\"checked\":[\"QB\",\"RB\",\"WR\",\"TE\"]}]}\nPASS Tranche 3A Core/A3/D replacement parity across all 22 enabled league profiles\n",
       "stderr": ""
     },
     {
