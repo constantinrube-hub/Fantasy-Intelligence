@@ -28,13 +28,18 @@ assert 'league-enrichment' in rt
 assert 'persistentHits' in client and 'persistentStores' in client
 assert 'PERSISTENT_CACHE' in client
 
-# Canonical structural replacement is implemented in core services and the
-# current universal starter-economics layer, rather than asserted through old
-# duplicated literals in index.html.
+# Canonical structural replacement is implemented in Core and consumed by the
+# universal starter-economics layer. Detailed numerical Core/A3/D parity is
+# governed by the permanent Tranche 3A semantic tests; this completion contract
+# only verifies current ownership/provenance and guards against the old duplicate
+# replacement implementation returning.
 assert 'const LeagueDemandService=' in core
 assert 'const ReplacementService=' in core
-assert 'canonical structural starter-slot demand' in core
 replacement=core[core.index('const ReplacementService='):core.index('const RosterValueService=')]
+assert "source:'FIECore.ReplacementService'" in replacement
+assert "cutoffConvention:'replacement_player_rank_1_based'" in replacement
+assert 'rankForDemand:replacementRankForDemand' in replacement
+assert "method:'canonical replacement level from structural cutoff'" in replacement
 assert 'projectedReplacementLevels' not in replacement
 assert 'universal-starter-slot-economics' in d
 assert "SUPER_FLEX:['QB','RB','WR','TE']" in d
