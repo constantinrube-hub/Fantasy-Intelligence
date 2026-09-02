@@ -1,4 +1,9 @@
-/* Permanent Tranche 2A six-format capability + production-semantics contract. */
+/* Permanent Tranche 2A six-format capability + production-semantics contract.
+ * Later correctness tranches may change shared football economics (for example
+ * replacement/scarcity/VOR), so forward validation freezes format semantics and
+ * relationships rather than obsolete absolute DraftBase fixture values. Historical
+ * 2A numerics remain reproducible in the pinned Tranche 2A workflow.
+ */
 'use strict';
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const EXPECTED={
@@ -26,8 +31,9 @@ const sample={__fie_mean:10,__fie_floor:2,__fie_ceiling:20,__fie_utility:14,__fi
 const objectiveExpected={REDRAFT:10,DYNASTY:14,CHOPPED:6.4,REDRAFT_BESTBALL:15.5,DYNASTY_BESTBALL:15.5,CHOPPED_BESTBALL:10.95};
 for(const [fmt,v] of Object.entries(objectiveExpected))assert.ok(Math.abs(ctx.FIECore.LineupOptimizer.objectiveForFormat(fmt)(sample)-v)<1e-9,`${fmt} Core objective drift`);
 
-// DraftBase five-format numerics are frozen from the Tranche-1 preflight fixture.
-// Only the sixth format is allowed to move from its accidental Redraft fallback.
+// DraftBase format semantics must survive later shared-economics corrections.
+// Absolute values are intentionally not frozen here: scarcity/VOR are canonical
+// shared inputs and may change under a separately validated correctness tranche.
 ctx.state.league={league_id:'fixture',total_rosters:12,roster_positions:['QB','RB','WR','TE','FLEX','BN']};ctx.state.rosters=[];
 ctx.FIEProjectionResolver={week:p=>({value:p.weeklyProjection}),range:p=>({low:p.weeklyFloor,high:p.weeklyCeiling})};
 vm.runInContext(fs.readFileSync('app/core/draft-value-service.js','utf8'),ctx,{filename:'app/core/draft-value-service.js'});
@@ -37,19 +43,37 @@ const draftPlayers=[
 {sleeperId:'c',name:'C',position:'WR',team:'C',leagueEligible:true,engineSeasonProjection:250,projectedVOR:48,weeklyProjection:15,weeklyFloor:5,weeklyCeiling:30,currentOpportunity:70},
 {sleeperId:'d',name:'D',position:'TE',team:'D',leagueEligible:true,engineSeasonProjection:190,projectedVOR:28,weeklyProjection:11,weeklyFloor:4,weeklyCeiling:20,currentOpportunity:65}
 ];
-const draftExpected={
-REDRAFT:[87.95,62.95000000000001,37.95,12.95],
-DYNASTY:[90.3,63.63333333333334,36.96666666666667,10.3],
-CHOPPED:[92.24,64.24,36.24,8.24],
-REDRAFT_BESTBALL:[82.90666666666668,56.90666666666666,52.906666666666666,8.24],
-DYNASTY_BESTBALL:[87.04333333333334,60.04333333333335,47.04333333333334,6.71],
-CHOPPED_BESTBALL:[87.57333333333334,60.57333333333334,44.57333333333334,8.24]
+const architectureExpected={
+  REDRAFT:'season projection + VOR + structural scarcity',
+  DYNASTY:'dynasty asset + current production + scarcity',
+  CHOPPED:'early-week mean + downside protection + scarcity',
+  REDRAFT_BESTBALL:'season value + normalized ceiling/spike + scarcity',
+  DYNASTY_BESTBALL:'dynasty asset + normalized best-ball ceiling/spike + scarcity',
+  CHOPPED_BESTBALL:'hybrid survival floor + best-ball ceiling/spike + season value + scarcity'
 };
-for(const [fmt,vals] of Object.entries(draftExpected)){
+const draftRows={};
+for(const fmt of Object.keys(EXPECTED)){
   const rows=ctx.FIEDraftBaseValueService.compute(draftPlayers,fmt).sort((a,b)=>a.id.localeCompare(b.id));
-  rows.forEach((r,i)=>assert.ok(Math.abs(r.baseValue-vals[i])<1e-9,`${fmt} DraftBase fixture drift for ${r.id}`));
-  if(fmt==='CHOPPED_BESTBALL')assert.ok(rows.every(r=>r.architecture.includes('hybrid')),'hybrid DraftBase architecture label missing');
+  draftRows[fmt]=rows;
+  assert.deepStrictEqual(rows.map(r=>r.id),['a','b','c','d'],`${fmt} DraftBase player set drift`);
+  for(const r of rows){
+    assert.ok(Number.isFinite(r.baseValue)&&Number.isFinite(r.rawBaseValue),`${fmt}/${r.id} DraftBase must stay finite`);
+    assert.strictEqual(r.format,fmt,`${fmt}/${r.id} format tag drift`);
+    assert.strictEqual(r.architecture,architectureExpected[fmt],`${fmt}/${r.id} architecture drift`);
+  }
 }
+// Tranche 2A defined CHOPPED_BESTBALL as the exact 50/50 blend of the existing
+// CHOPPED and REDRAFT_BESTBALL component weights. That relationship must remain
+// true even when a shared input such as scarcity is intentionally corrected.
+for(let i=0;i<draftPlayers.length;i++){
+  const hybrid=draftRows.CHOPPED_BESTBALL[i],chopped=draftRows.CHOPPED[i],bestball=draftRows.REDRAFT_BESTBALL[i];
+  const midpoint=(chopped.rawBaseValue+bestball.rawBaseValue)/2;
+  assert.ok(Math.abs(hybrid.rawBaseValue-midpoint)<1e-9,`hybrid DraftBase component blend drift for ${hybrid.id}`);
+}
+const vec=fmt=>draftRows[fmt].map(r=>Math.round(r.rawBaseValue*1e9)/1e9).join('|');
+assert.notStrictEqual(vec('CHOPPED_BESTBALL'),vec('REDRAFT'),'hybrid DraftBase collapsed to Redraft');
+assert.notStrictEqual(vec('CHOPPED_BESTBALL'),vec('CHOPPED'),'hybrid DraftBase collapsed to Chopped');
+assert.notStrictEqual(vec('CHOPPED_BESTBALL'),vec('REDRAFT_BESTBALL'),'hybrid DraftBase collapsed to Best Ball');
 
 // Legacy shell remains active. Execute just the V8.2 league-engine layer and
 // require it to surface the canonical capabilities for all six formats.
@@ -83,4 +107,4 @@ for(const [fmt,v] of Object.entries(objectiveExpected)){
   const got=wctx.rosterUtility([wp],{format:fmt,formatCapabilities:ctx.FIECore.FormatRegistry.profile(fmt),rosterPositions:['QB'],slotEligibility:{QB:['QB']}}).starterTotal;
   assert.ok(Math.abs(got-v)<1e-9,`${fmt} worker objective drift: ${got} != ${v}`);
 }
-console.log('PASS six-format generated capability contract, Core, legacy shell and Monte Carlo objectives');
+console.log('PASS six-format generated capability contract, semantic DraftBase architectures, Core, legacy shell and Monte Carlo objectives');

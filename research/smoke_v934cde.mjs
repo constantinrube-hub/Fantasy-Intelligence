@@ -9,7 +9,6 @@ const listeners = new Map();
 window.addEventListener = (type, fn)=>{ if(!listeners.has(type)) listeners.set(type,[]); listeners.get(type).push(fn); };
 window.dispatchEvent = (evt)=>{ for(const fn of listeners.get(evt.type)||[]) fn(evt); return true; };
 window.FIEPerformance = { push(){} };
-window.FIECore = { Diagnostics:{capture(){} } };
 window.FIELeagueController = { generation:1 };
 window.render = ()=>{};
 const nullEl = null;
@@ -26,6 +25,13 @@ window.PLAYERS = [];
 globalThis.PLAYERS = window.PLAYERS;
 
 function load(rel){ const code=fs.readFileSync(new URL(rel, ROOT),'utf8'); vm.runInThisContext(code,{filename:rel}); }
+
+// Shared canonical contracts/Core are real dependencies of D after C10-004.
+// Do not fake FIECore with a Diagnostics-only stub: that would bypass the
+// ReplacementService integration this smoke is intended to exercise.
+load('app/generated/runtime-contracts.js');
+load('app/core/core-services.js');
+assert(window.FIECore?.ReplacementService?.profiles,'canonical ReplacementService unavailable in C-E smoke');
 
 // C: load without a live league to avoid any network work.
 load('app/v9.3.4c-weekly-context.js');
@@ -71,6 +77,8 @@ assert.equal(window.FIE934D.VERSION,'9.3.4D');
 const dctx=window.FIE934D.compute({rerank:true,render:false});
 assert(dctx);
 assert.equal(dctx.effectiveDemand.QB,4);
+assert.equal(dctx.replacementByPosition.QB.source,'FIECore.ReplacementService');
+assert.equal(dctx.replacementByPosition.QB.replacementRank,dctx.replacementByPosition.QB.structuralCutoff);
 const oneQb=window.FIE934D.computeDemand(window.PLAYERS,{league_id:'L1',total_rosters:2,roster_positions:['QB','RB','WR','FLEX','BN']},window.state.rosters);
 assert.equal(oneQb.effectiveDemand.QB,2);
 assert.equal(dctx.perTeamDemand.QB,2);
@@ -108,6 +116,7 @@ console.log('V9.3.4C-E smoke: PASS', {
   lineup: lineup.lineup.map(x=>`${x.slot}:${x.position}`),
   winProbability: Math.round(wp*1000)/1000,
   qbDemand: dctx.effectiveDemand.QB,
+  replacementSource: dctx.replacementByPosition.QB.source,
   returnPoints: ret.points,
   completedPublicPoints: completed
 });
