@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "tranche": "3B",
+  "change_package": "C10-006",
+  "phase": "target_implementation",
+  "preflight_head": "c96cbb4fb6df5f3383de5d4aa818817d9d84c3c3",
+  "preflight_run": 33643778396,
+  "production_behavior_change": true,
+  "target_contract": {
+    "canonical_transport": "FIEDataClient",
+    "inflight_identity": "request kind + URL + AbortSignal identity",
+    "same_scope_coalescing": true,
+    "cross_scope_coalescing": false,
+    "cross_scope_abort_propagation": false,
+    "aborted_scope_fails_closed_before_cache_or_network": true,
+    "league_live_overlay_abort_guard": true,
+    "research_report_primary_transport": "FIEDataClient.json",
+    "research_report_raw_fetch": false,
+    "research_report_transport_cache": "no-store",
+    "specialist_fallback_paths_changed": false
+  },
+  "frozen": [
+    "C10-007 player identity",
+    "C10-009 uncertainty/fallback semantics",
+    "C10-005 research producer typing",
+    "ADP boundary",
+    "research/statistical promotion thresholds",
+    "Tranche 3A football economics"
+  ]
+}
