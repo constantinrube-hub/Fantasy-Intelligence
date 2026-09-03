@@ -61,14 +61,10 @@ function vfAvailable(p){return !window.FIEDraftStateService?.isDrafted?.(p?.slee
 function vfM5Research(){return window.FIE_M5?.getResearchBundle?.()||null;}
 function vfM5Current(){return window.FIE_M5?.getCurrentBundle?.()||null;}
 function vfM5CurrentMap(){
-  const m=new Map();
-  for(const r of vfM5Current()?.players||[]){
-    if(r.sleeper_id)m.set(`s:${r.sleeper_id}`,r);
-    if(r.full_name)m.set(`n:${vfName(r.full_name)}`,r);
-  }
-  return m;
+  const identity=window.FIECore?.PlayerIdentity,rows=(vfM5Current()?.players||[]).filter(Boolean);
+  return identity?.index?{rows,index:identity.index(rows),identity}:null;
 }
-function vfM5Row(p,map){return map.get(`s:${p.sleeperId}`)||map.get(`n:${vfName(p.name)}`)||null;}
+function vfM5Row(p,ctx){if(!ctx?.identity?.resolve)return null;const res=ctx.identity.resolve(p,{players:ctx.rows,index:ctx.index});return res.status==='resolved'?res.player:null;}
 function vfM5Position(p){
   const raw=String(p.rawPosition||p.depthPosition||p.position||'').toUpperCase();
   const role=String(p.roleProfile||p.role||'').toLowerCase();

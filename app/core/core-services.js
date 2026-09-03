@@ -10,14 +10,42 @@ const ALIAS=C.position_aliases||{};
 const FORMAT=C.league_formats||{};
 function finite(x){if(x===null||x===undefined||(typeof x==='string'&&x.trim()===''))return null;const n=Number(x);return Number.isFinite(n)?n:null;}
 function canonicalPos(p){const x=String(p||'').toUpperCase();return ALIAS[x]||x;}
-function playerId(p){const id=p?.sleeperId??p?.player_id??p?.playerId??p?.id;if(id!==undefined&&id!==null&&String(id).trim())return String(id);const name=String(p?.name||p?.full_name||'unknown').trim().toLowerCase(),team=String(p?.team||'FA').toUpperCase(),pos=canonicalPos(p?.position||p?.fantasy_positions?.[0]||'UNK');return `synthetic:${pos}:${team}:${name}`;}
+const IDENTITY_RULES=Object.freeze([
+  {field:'sleeperId',namespace:'sleeper',output:'raw'},
+  {field:'sleeper_id',namespace:'sleeper',output:'raw'},
+  {field:'player_id',namespace:'legacy',output:'raw'},
+  {field:'playerId',namespace:'legacy',output:'raw'},
+  {field:'canonical_player_id',namespace:'canonical',output:'canonical'},
+  {field:'internal_id',namespace:'canonical',output:'canonical'},
+  {field:'gsis_id',namespace:'gsis',output:'gsis'},
+  {field:'pfr_id',namespace:'pfr',output:'pfr'},
+  {field:'fantasypros_id',namespace:'fantasypros',output:'fantasypros'},
+  {field:'id',namespace:'legacy',output:'raw'}
+]);
+function identityRaw(v){if(v===undefined||v===null)return null;const s=String(v).trim();return s||null;}
+function identityName(p){return String(p?.name||p?.full_name||'').trim().toLowerCase().replace(/\s+/g,' ');}
+function identityOutput(ns,v){if(ns==='sleeper'||ns==='legacy')return v;if(ns==='canonical')return `canonical:${v}`;return `${ns}:${v}`;}
+function identityAliases(p){if(!p||typeof p!=='object')return[];const out=[],seen=new Set();for(const r of IDENTITY_RULES){const v=identityRaw(p?.[r.field]);if(!v)continue;const keys=[];if(r.namespace==='sleeper')keys.push(`sleeper:${v}`,`legacy:${v}`);else keys.push(`${r.namespace}:${v}`);const token=identityOutput(r.namespace,v),sig=`${r.namespace}|${v}`;if(seen.has(sig))continue;seen.add(sig);out.push({field:r.field,namespace:r.namespace,value:v,id:token,keys});}
+  const pos=canonicalPos(p?.position||p?.position_model||p?.fantasy_positions?.[0]||'UNK'),team=identityRaw(p?.team??(pos==='DEF'?(p?.sleeperId??p?.sleeper_id):null));if(pos==='DEF'&&team){const v=team.toUpperCase(),sig=`teamdef|${v}`;if(!seen.has(sig)){seen.add(sig);out.push({field:'team',namespace:'teamdef',value:v,id:`teamdef:${v}`,keys:[`teamdef:${v}`]});}}
+  for(const a of [...out])if(a.namespace==='canonical'&&/^DST:/i.test(a.value)){const v=a.value.replace(/^DST:/i,'').toUpperCase(),sig=`teamdef|${v}`;if(!seen.has(sig)){seen.add(sig);out.push({field:a.field,namespace:'teamdef',value:v,id:`teamdef:${v}`,keys:[`teamdef:${v}`]});}}
+  return out;}
+function identityLookupKeys(subject){if(subject&&typeof subject==='object')return [...new Set(identityAliases(subject).flatMap(a=>a.keys))];const raw=identityRaw(subject);if(!raw)return[];const m=/^(canonical|gsis|pfr|fantasypros|teamdef):(.*)$/i.exec(raw);if(m)return[`${m[1].toLowerCase()}:${m[2]}`];return[`sleeper:${raw}`,`legacy:${raw}`];}
+function governedIdentityId(p){return identityAliases(p)[0]?.id??null;}
+function syntheticIdentityId(p){const name=identityName(p)||'unknown',team=String(p?.team||'FA').toUpperCase(),pos=canonicalPos(p?.position||p?.fantasy_positions?.[0]||'UNK');return `synthetic:${pos}:${team}:${name}`;}
+function playerId(p){return PlayerIdentity.id(p);}
 function fnv(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,'0');}
 function stable(value){if(value===null||typeof value!=='object')return JSON.stringify(value);if(Array.isArray(value))return '['+value.map(stable).join(',')+']';return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}';}
 
 const Numeric={finiteOrNull:finite,optionalCap(x){const n=finite(x);return n!==null&&n>=0?Math.trunc(n):null;},positiveIntOrNull(x){const n=finite(x);return n!==null&&n>0?Math.trunc(n):null;}};
 
 const PlayerIdentity={
-  byId(id){const key=String(id??'');return (window.PLAYERS||[]).find(p=>String(p?.sleeperId??p?.player_id??'')===key)||null;},
+  source:'FIECore.PlayerIdentity',
+  aliases(subject){return identityAliases(subject).map(a=>({...a,keys:[...a.keys]}));},
+  governedId(subject){return governedIdentityId(subject);},
+  id(subject,{allowSynthetic=true}={}){const stable=governedIdentityId(subject);return stable??(allowSynthetic?syntheticIdentityId(subject):null);},
+  index(players=(window.PLAYERS||[])){const map=new Map();for(const p of players||[])for(const key of identityLookupKeys(p)){if(!map.has(key))map.set(key,new Set());map.get(key).add(p);}return{players:[...(players||[])],map};},
+  resolve(subject,{players=(window.PLAYERS||[]),index=null}={}){const idx=index?.map instanceof Map?index:this.index(players),keys=identityLookupKeys(subject),candidates=new Set();for(const key of keys)for(const p of idx.map.get(key)||[])candidates.add(p);const xs=[...candidates];if(xs.length===1){const player=xs[0],id=this.governedId(player);return{status:'resolved',id,player,source:this.source,matchedKeys:keys.filter(k=>idx.map.get(k)?.has(player)),aliases:this.aliases(player)};}if(xs.length>1)return{status:'ambiguous',id:null,player:null,source:this.source,reason:'canonical_alias_collision',candidateIds:xs.map(p=>this.governedId(p)).filter(Boolean),matchedKeys:keys};if(!keys.length){const name=identityName(subject),nameMatches=name?(players||[]).filter(p=>identityName(p)===name):[];if(nameMatches.length>1)return{status:'ambiguous',id:null,player:null,source:this.source,reason:'display_name_collision_not_identity',candidateIds:nameMatches.map(p=>this.governedId(p)).filter(Boolean),matchedKeys:[]};return{status:'unavailable',id:null,player:null,source:this.source,reason:nameMatches.length===1?'display_name_not_canonical':'no_stable_identity',candidateIds:[],matchedKeys:[]};}return{status:'unavailable',id:null,player:null,source:this.source,reason:'no_canonical_match',candidateIds:[],matchedKeys:keys};},
+  byId(id){const r=this.resolve(id);return r.status==='resolved'?r.player:null;},
   positionForId(id){const p=this.byId(id);return p?canonicalPos(p.position):'UNK';}
 };
 
@@ -89,5 +117,5 @@ const ContextFingerprint={
 
 const Diagnostics={buffer:[],max:200,redact(value){let s=String(value??'');s=s.replace(/([?&](?:api_?key|key|token|secret|authorization)=)[^&#\s]*/gi,'$1[REDACTED]');s=s.replace(/(Bearer\s+)[A-Za-z0-9._~+\/-]+/gi,'$1[REDACTED]');return s;},capture(error,context={}){const row={at:new Date().toISOString(),message:this.redact(error?.message||error),stack:this.redact(error?.stack||''),leagueId:window.state?.league?.league_id||null,release:window.FIE_BUILD_MANIFEST?.app_version||window.FIE?.VERSION||null,...context};this.buffer.push(row);if(this.buffer.length>this.max)this.buffer.splice(0,this.buffer.length-this.max);return row;},snapshot(){return this.buffer.slice();}};
 
-window.FIECore={version:'9.3.2-browser-qa',Numeric,FormatRegistry,PositionRegistry,PlayerIdentity:Object.assign(PlayerIdentity,{id:playerId,canonicalPosition:canonicalPos}),LineupOptimizer,LeagueDemandService,ReplacementService,RosterValueService,ContextFingerprint,Diagnostics};
+window.FIECore={version:'9.3.2-browser-qa',Numeric,FormatRegistry,PositionRegistry,PlayerIdentity:Object.assign(PlayerIdentity,{canonicalPosition:canonicalPos}),LineupOptimizer,LeagueDemandService,ReplacementService,RosterValueService,ContextFingerprint,Diagnostics};
 })();

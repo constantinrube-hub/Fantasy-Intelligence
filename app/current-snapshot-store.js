@@ -16,7 +16,7 @@ async function getJSON(path,{force=false,fetchResponse=null,sourceId='research-a
   const p=loader();cache.set(key,p);
   try{return await p;}catch(e){cache.delete(key);throw e;}
 }
-function pid(row){if(row?.sleeper_id!=null&&String(row.sleeper_id))return String(row.sleeper_id);if(row?.canonical_player_id!=null&&String(row.canonical_player_id))return `canonical:${row.canonical_player_id}`;return '';}
+function pid(row){const canonical=window.FIECore?.PlayerIdentity?.governedId?.(row);if(canonical)return String(canonical);if(row?.sleeper_id!=null&&String(row.sleeper_id))return String(row.sleeper_id);if(row?.canonical_player_id!=null&&String(row.canonical_player_id))return `canonical:${row.canonical_player_id}`;return '';}
 function positionModel(row){return String(row?.position_model||row?.position||'').toUpperCase().replace('DST','DEF');}
 function sanitizeUncertainty(players){
   for(const pos of ['DEF','K']){

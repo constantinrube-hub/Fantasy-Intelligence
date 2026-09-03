@@ -16,8 +16,8 @@ function format(){try{return String(window.activeFormatKey?.()||'REDRAFT')}catch
 function rosterId(){return Number(window.state?.selectedRoster||0);}
 function dstPlayers(){return (window.PLAYERS||[]).filter(p=>String(p.position||'').toUpperCase()==='DEF'&&p.leagueEligible!==false);}
 function ownerStatus(p){if(Number(p.ownerRosterId)===rosterId()&&rosterId())return'Yours';if(p.availability==='FA'||p.ownerRosterId==null)return'FA';return p.owner||'Owned';}
-function currentMap(){const m=new Map();for(const r of bundle?.players||[]){if(r.position_model!=='DEF')continue;for(const k of[r.sleeper_id,r.team,String(r.canonical_player_id||'').replace(/^DST:/,'')])if(k)m.set(String(k).toUpperCase(),r);}return m;}
-function rowFor(p,m=currentMap()){return m.get(String(p.sleeperId||'').toUpperCase())||m.get(String(p.team||'').toUpperCase())||null;}
+function currentMap(){const identity=window.FIECore?.PlayerIdentity,rows=(bundle?.players||[]).filter(r=>r.position_model==='DEF');return identity?.index?{identity,rows,index:identity.index(rows)}:null;}
+function rowFor(p,ctx=currentMap()){if(!ctx?.identity?.resolve)return null;const res=ctx.identity.resolve(p,{players:ctx.rows,index:ctx.index});return res.status==='resolved'?res.player:null;}
 function currentProjection(p,r){return num(r?.decision_weekly_projection)??num(p.weeklyProjection)??num(p.sleeperWeeklyProjection);}
 function currentRange(p,r){const lo=num(r?.p10),hi=num(r?.p90);if(lo!==null||hi!==null)return{low:lo,high:hi,source:'FIE empirical',estimate:false};const rr=window.FIEProjectionResolver?.range?.(p)||{};return{low:num(rr.low),high:num(rr.high),source:rr.source||'Unavailable',estimate:rr.estimate===true};}
 function opponent(team,w){return window.FIESpecialTeamsSeries?.opponent?.(team,w,season())||'—';}
