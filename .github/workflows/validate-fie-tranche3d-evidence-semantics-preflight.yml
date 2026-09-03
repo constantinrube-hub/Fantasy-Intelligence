@@ -1,0 +1,161 @@
+name: FIE Controlled Implementation — Tranche 3D Evidence Semantics Preflight
+
+on:
+  push:
+    branches:
+      - audit-implementation-2026-09
+    paths:
+      - "config/tranche3d-evidence-semantics-preflight.json"
+      - "docs/audits/TRANCHE3D_EVIDENCE_SEMANTICS_PREFLIGHT.md"
+      - "research/integrity_tranche3d_evidence_semantics_characterization.py"
+      - ".github/workflows/validate-fie-tranche3d-evidence-semantics-preflight.yml"
+      - "config/build-manifest.json"
+      - "dist/config/build-manifest.json"
+      - "config/release-gate.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche3d-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout implementation branch with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Verify successful Tranche 3C target ancestry
+        run: git merge-base --is-ancestor 406608787b5930e510730fbb2ab5bfba0a089ae8 HEAD
+
+      - name: Preserve Tranche 2A, 2B and 2C contracts
+        run: |
+          node research/integrity_tranche2a_six_format_contract.js
+          node research/integrity_tranche1_six_format_runtime_characterization.js --mode target
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+          python research/integrity_tranche2b_responsive_primary_actions.py
+          python research/integrity_tranche2c_production_authority.py
+          node research/integrity_decision_service_test.js
+
+      - name: Preserve Tranche 3A economics
+        run: |
+          node research/integrity_tranche3a_replacement_ownership.js --mode target
+          node research/integrity_tranche1_replacement_parity_characterization.js --mode target
+          node research/integrity_v93_scarcity_runtime_test.js
+          node research/integrity_tranche3a_all_league_replacement_profiles.js
+
+      - name: Preserve Tranche 3B data access
+        run: |
+          node research/integrity_tranche3b_data_client_scope.js --mode target
+          node research/integrity_tranche1_data_client_scope_characterization.js --mode target
+          node research/integrity_tranche3b_research_report_transport.js
+          python research/integrity_tranche1_direct_fetch_allowlist.py --mode target
+          node research/integrity_v931_persistent_cache_test.js
+          node research/integrity_league_fast_switch_runtime_test.js
+
+      - name: Preserve Tranche 3C canonical identity
+        run: |
+          node research/integrity_tranche3c_player_identity.js --mode target
+          node research/integrity_tranche3c_identity_fixtures.js
+          node research/integrity_tranche3c_current_feature_identity.js
+          node research/integrity_tranche3c_current_snapshot_identity.js
+          node research/integrity_tranche3c_value_finder_identity.js
+          python research/integrity_tranche3c_storage_identity.py
+
+      - name: Characterize Tranche 3D evidence semantics baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tranche3d-preflight
+          python research/integrity_tranche3d_evidence_semantics_characterization.py --mode baseline | tee artifacts/tranche3d-preflight/evidence-semantics-baseline.log
+          grep -F "KNOWN_GAP_REPRODUCED evidence semantics are fragmented across projection and specialist surfaces" artifacts/tranche3d-preflight/evidence-semantics-baseline.log
+
+      - name: Preserve current projection and specialist runtime behavior
+        run: |
+          node research/integrity_v932_browser_qa_runtime_test.js
+          python research/integrity_dst_test.py
+          python research/integrity_kicker_test.py
+          python research/integrity_value_finder_test.py
+          node research/integrity_value_finder_runtime_test.js
+
+      - name: Require evidence-surface source and dist mirrors before build
+        run: |
+          cmp app/core/projection-service.js dist/app/core/projection-service.js
+          cmp app/current-player-features.js dist/app/current-player-features.js
+          cmp app/current-snapshot-store.js dist/app/current-snapshot-store.js
+          cmp app/decision-ui.js dist/app/decision-ui.js
+          cmp app/dst-intelligence.js dist/app/dst-intelligence.js
+          cmp app/kicker-intelligence.js dist/app/kicker-intelligence.js
+
+      - name: Canonical deterministic release build
+        run: python tools/release_build.py --mode personal
+
+      - name: Require deployable source
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('config/release-gate.json').read_text())
+          print('STATUS:',d.get('status'))
+          if d.get('status')!='DEPLOYABLE_SOURCE':
+              raise SystemExit(1)
+          PY
+
+      - name: Capture only deterministic Tranche 3D preflight synchronization
+        run: |
+          python - <<'PY'
+          import pathlib, shutil, subprocess
+          lines=subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines()
+          changed=[]
+          for line in lines:
+              p=line[3:].strip()
+              if ' -> ' in p:p=p.split(' -> ',1)[1]
+              if p=='artifacts' or p.startswith('artifacts/'):continue
+              changed.append(p)
+          allowed={'config/build-manifest.json','dist/config/build-manifest.json','config/release-gate.json'}
+          unexpected=sorted(set(changed)-allowed)
+          if unexpected:
+              print('Unexpected source/generated drift:')
+              for p in unexpected:print(' -',p)
+              raise SystemExit(1)
+          out=pathlib.Path('artifacts/tranche3d-preflight/generated-sync');out.mkdir(parents=True,exist_ok=True)
+          for p in sorted(set(changed)&allowed):
+              src=pathlib.Path(p);dst=out/p;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+          if changed:
+              print('TRANCHE3D_PREFLIGHT_SYNC_REQUIRED:',', '.join(sorted(changed)))
+          else:
+              print('PASS Tranche 3D preflight generated tree fully synchronized')
+          PY
+
+      - name: Upload Tranche 3D preflight evidence and deterministic sync
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche3d-preflight-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            artifacts/tranche3d-preflight/
+            config/release-gate.json
+            config/build-manifest.json
