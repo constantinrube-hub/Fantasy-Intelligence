@@ -69,7 +69,9 @@ function bootEvidenceSemantics(){
   if(typeof document==='undefined'||typeof document.querySelector!=='function'||typeof document.createElement!=='function')return;
   const existing=document.querySelector('script[data-fie-evidence-semantics]');
   if(existing)return;
-  const e=document.createElement('script');e.src='app/core/evidence-semantics.js?v=1.0.0';e.async=false;e.dataset.fieEvidenceSemantics='1';
+  const e=document.createElement('script');e.src='app/core/evidence-semantics.js?v=1.0.0';e.async=false;
+  if(e.dataset)e.dataset.fieEvidenceSemantics='1';
+  else if(typeof e.setAttribute==='function')e.setAttribute('data-fie-evidence-semantics','1');
   e.onerror=()=>console.error('FIE Tranche 3D evidence semantics failed to load');
   (document.head||document.documentElement).appendChild(e);
 }
