@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from fie_research_pipeline_contract import (
-    PIPELINE_SCHEMA, ROOT, STAGES, build_pipeline_fingerprint, current_path,
+    PIPELINE_SCHEMA, ROOT, STAGES, artifact_content_sha256, build_pipeline_fingerprint, current_path,
     derived_dir, league_root, league_row, load_json, load_profile, pipeline_dir,
     profile_fingerprint, profile_format, repo_relative, resolve_adp_key,
     research_stage_contract, research_stage_primary_output,
@@ -54,7 +54,7 @@ def _finish(stage: dict, status: str, *, reason: str | None = None, outputs: dic
 
 
 def _hash_outputs(paths: list[Path]) -> dict:
-    return {repo_relative(p): sha256_file(p) for p in paths if p.is_file()}
+    return {repo_relative(p): artifact_content_sha256(p) for p in paths if p.is_file()}
 
 
 def validate_profile(league_id: str, row: dict, profile: dict) -> None:

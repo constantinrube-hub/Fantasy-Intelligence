@@ -207,6 +207,20 @@ def sha256_file(path: str | Path) -> str | None:
     return h.hexdigest()
 
 
+def artifact_content_sha256(path: str | Path) -> str | None:
+    """Hash JSON by canonical content; hash other artifacts by exact bytes.
+
+    Canonical JSON avoids operating-system line-ending drift while retaining an
+    exact semantic content identity. Invalid JSON still fails closed.
+    """
+    p = Path(path)
+    if not p.is_file():
+        return None
+    if p.suffix.lower() == ".json":
+        return sha256_bytes(canonical_bytes(load_json(p)))
+    return sha256_file(p)
+
+
 def short_hash(obj: Any, n: int = 16) -> str:
     return sha256_bytes(canonical_bytes(obj))[:n]
 

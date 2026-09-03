@@ -14,7 +14,7 @@ from fie_research_pipeline_contract import (  # noqa: E402
     RESEARCH_STAGE_CONTRACTS,
     research_stage_contract,
     research_stage_primary_output,
-    sha256_file,
+    artifact_content_sha256,
 )
 
 EXPECTED = {
@@ -69,7 +69,7 @@ def main() -> None:
         for key in ("artifact_type", "producer", "producer_dependencies", "validator", "schema"):
             assert stage[key] == expected[key], (name, key, stage.get(key))
         assert list(stage.get("outputs") or {}) == [primary.relative_to(ROOT).as_posix()]
-        assert stage["outputs"][primary.relative_to(ROOT).as_posix()] == sha256_file(primary)
+        assert stage["outputs"][primary.relative_to(ROOT).as_posix()] == artifact_content_sha256(primary)
         assert stage.get("status") == "reused_valid"
 
     assert "if not primary.is_file()" in runner
