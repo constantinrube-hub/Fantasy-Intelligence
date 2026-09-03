@@ -1,15 +1,16 @@
 /* Tranche 3C / C10-007 player-identity characterization.
-   Baseline mode freezes the current fragmented ownership before any behavior change. */
+ * Revision 2: characterizes the actual inline identity implementation.
+ * Baseline mode freezes current fragmentation before any production identity change.
+ */
 'use strict';
 const fs=require('fs'),assert=require('assert');
-const mode=(process.argv.includes('--mode')?process.argv[process.argv.indexOf('--mode')+1]:'baseline');
+
+const mode=(process.argv.includes('--mode')
+  ? process.argv[process.argv.indexOf('--mode')+1]
+  : 'baseline');
+
 const read=p=>fs.readFileSync(p,'utf8');
 const compact=s=>String(s).replace(/\s+/g,'');
-
-const core=read('app/core/core-services.js');
-const currentFeatures=read('app/current-player-features.js');
-const currentStore=read('app/current-snapshot-store.js');
-const valueFinder=read('app/value-finder.js');
 
 function functionBody(src,name){
   const re=new RegExp(`function\\s+${name}\\s*\\([^)]*\\)\\s*\\{`);
@@ -26,6 +27,7 @@ function functionBody(src,name){
   }
   throw new Error(`unterminated function ${name}`);
 }
+
 function sliceBetween(src,startToken,endToken){
   const a=src.indexOf(startToken);
   assert(a>=0,`missing ${startToken}`);
@@ -34,89 +36,106 @@ function sliceBetween(src,startToken,endToken){
   return src.slice(a,b);
 }
 
+const core=read('app/core/core-services.js');
+const currentFeatures=read('app/current-player-features.js');
+const currentStore=read('app/current-snapshot-store.js');
+const valueFinder=read('app/value-finder.js');
+
 const corePlayerId=compact(functionBody(core,'playerId'));
-const synth=compact(functionBody(core,'synthesizePlayerId'));
-const currentId=compact(functionBody(currentFeatures,'idOf'));
-const storeId=compact(functionBody(currentStore,'idOf'));
-const coreIdentity=compact(sliceBetween(core,'const PlayerIdentity={','const LeagueDemandService='));
-const storeCompact=compact(currentStore);
-const vfCompact=compact(valueFinder);
+const coreIdentity=compact(sliceBetween(core,'const PlayerIdentity={','const FormatRegistry='));
+const featureRowsById=compact(functionBody(currentFeatures,'rowsById'));
+const featureApply=compact(functionBody(currentFeatures,'apply'));
+const snapshotPid=compact(functionBody(currentStore,'pid'));
+const vfMap=compact(functionBody(valueFinder,'vfM5CurrentMap'));
+const vfRow=compact(functionBody(valueFinder,'vfM5Row'));
 
 const observed={
   corePlayerId:{
-    sleeperId:corePlayerId.includes('sleeperId'),
-    sleeper_id:corePlayerId.includes('sleeper_id'),
-    player_id:corePlayerId.includes('player_id'),
-    playerId:corePlayerId.includes('playerId'),
-    syntheticFallback:corePlayerId.includes('synthesizePlayerId')
+    sleeperId:corePlayerId.includes('p?.sleeperId'),
+    sleeper_id:corePlayerId.includes('p?.sleeper_id'),
+    player_id:corePlayerId.includes('p?.player_id'),
+    playerId:corePlayerId.includes('p?.playerId'),
+    id:corePlayerId.includes('p?.id'),
+    inlineSynthetic:corePlayerId.includes('`synthetic:${pos}:${team}:${name}`')
   },
-  syntheticStableId:synth.includes('`syn:${team}:${pos}:${name}`'),
-  coreById:{
-    sleeperId:coreIdentity.includes('sleeperId'),
-    sleeper_id:coreIdentity.includes('sleeper_id'),
-    player_id:coreIdentity.includes('player_id')
+  corePlayerIdentity:{
+    sleeperId:coreIdentity.includes('p?.sleeperId'),
+    sleeper_id:coreIdentity.includes('p?.sleeper_id'),
+    player_id:coreIdentity.includes('p?.player_id'),
+    hasResolve:coreIdentity.includes('resolve('),
+    explicitUnavailable:coreIdentity.includes("status:'unavailable'")||coreIdentity.includes('status:"unavailable"'),
+    explicitAmbiguous:coreIdentity.includes("status:'ambiguous'")||coreIdentity.includes('status:"ambiguous"')
   },
   currentFeatures:{
-    sleeperFirst:/sleeper_id\?\?p\?\.player_id\?\?p\?\.id/.test(currentId)
+    snapshotSleeperIdIndex:featureRowsById.includes('r?.sleeper_id')&&featureRowsById.includes('String(r.sleeper_id)'),
+    liveSleeperIdLookup:featureApply.includes('map.get(String(p.sleeperId))')
   },
-  currentStore:{
-    sleeperFirst:/sleeper_id\?\?p\?\.player_id\?\?p\?\.id/.test(storeId),
-    rosterFilterPlayerFirst:
-      storeCompact.includes("row?.player_id||row?.id||row?.sleeper_id") ||
-      storeCompact.includes("row.player_id||row.id||row.sleeper_id")
+  currentSnapshotStore:{
+    sleeperId: snapshotPid.includes('row?.sleeper_id'),
+    canonicalPlayerId: snapshotPid.includes('row?.canonical_player_id'),
+    canonicalPrefix: snapshotPid.includes('`canonical:${row.canonical_player_id}`')
   },
   valueFinder:{
-    stableSleeperLookup:vfCompact.includes('m5Map.get(String(p.sleeperId))'),
-    normalizedNameKey:vfCompact.includes('`n:${vfName('),
-    normalizedNameFallback:
-      vfCompact.includes("||m5Map.get(`n:${vfName(p.fullName||p.name||'')}`)")
+    sleeperKey:vfMap.includes('`s:${r.sleeper_id}`'),
+    normalizedNameKey:vfMap.includes('`n:${vfName(r.full_name)}`'),
+    sleeperLookup:vfRow.includes('map.get(`s:${p.sleeperId}`)'),
+    normalizedNameFallback:vfRow.includes('||map.get(`n:${vfName(p.name)}`)')
   }
 };
 
-// Pure conflict fixture expresses the currently observed precedence mismatch.
-const conflict={sleeper_id:'snake',player_id:'player',id:'generic'};
-const currentCoreChoice=conflict.player_id;   // sleeper_id is not in current Core playerId chain.
-const currentFeatureChoice=conflict.sleeper_id;
+// Actual precedence conflict: Core ignores snake_case sleeper_id on a raw row,
+// while current snapshot storage prefers it.
+const conflict={sleeper_id:'sleeper-snake',player_id:'player-id',id:'generic-id'};
+const currentCoreChoice=conflict.player_id;
+const currentSnapshotChoice=conflict.sleeper_id;
 const conflictFixture={
   row:conflict,
   coreChoice:currentCoreChoice,
-  currentFeatureChoice,
-  diverges:currentCoreChoice!==currentFeatureChoice
+  currentSnapshotChoice,
+  diverges:currentCoreChoice!==currentSnapshotChoice
 };
 
 if(mode==='baseline'){
-  assert(observed.corePlayerId.sleeperId,'Core playerId should currently recognize sleeperId');
-  assert(observed.corePlayerId.player_id,'Core playerId should currently recognize player_id');
+  assert(observed.corePlayerId.sleeperId,'Core playerId must currently recognize sleeperId');
+  assert(observed.corePlayerId.player_id,'Core playerId must currently recognize player_id');
+  assert(observed.corePlayerId.playerId,'Core playerId must currently recognize playerId');
+  assert(observed.corePlayerId.id,'Core playerId must currently recognize id');
   assert(!observed.corePlayerId.sleeper_id,'baseline expects Core playerId to omit sleeper_id');
-  assert(observed.corePlayerId.syntheticFallback,'baseline expects synthetic playerId fallback');
-  assert(observed.syntheticStableId,'baseline expects syn:team:position:name identifier');
-  assert(observed.coreById.sleeperId && observed.coreById.player_id,
-    'baseline expects Core PlayerIdentity.byId to use its local ID subset');
-  assert(!observed.coreById.sleeper_id,
+  assert(observed.corePlayerId.inlineSynthetic,'baseline expects inline synthetic:position:team:name fallback');
+
+  assert(observed.corePlayerIdentity.sleeperId&&observed.corePlayerIdentity.player_id,
+    'baseline expects Core PlayerIdentity.byId to use sleeperId/player_id');
+  assert(!observed.corePlayerIdentity.sleeper_id,
     'baseline expects Core PlayerIdentity.byId to omit sleeper_id');
-  assert(observed.currentFeatures.sleeperFirst,
-    'baseline expects current-player-features to prefer sleeper_id');
-  assert(observed.currentStore.sleeperFirst,
-    'baseline expects current snapshot idOf to prefer sleeper_id');
-  assert(observed.currentStore.rosterFilterPlayerFirst,
-    'baseline expects current snapshot roster filter to use a different precedence');
-  assert(observed.valueFinder.stableSleeperLookup,
-    'baseline expects Value Finder stable Sleeper lookup');
-  assert(observed.valueFinder.normalizedNameKey && observed.valueFinder.normalizedNameFallback,
+  assert(!observed.corePlayerIdentity.hasResolve,
+    'baseline expects no canonical resolve() operation yet');
+  assert(!observed.corePlayerIdentity.explicitUnavailable&&!observed.corePlayerIdentity.explicitAmbiguous,
+    'baseline expects no explicit unavailable/ambiguous resolution states');
+
+  assert(observed.currentFeatures.snapshotSleeperIdIndex&&observed.currentFeatures.liveSleeperIdLookup,
+    'baseline expects current-feature bridge sleeper_id -> sleeperId');
+  assert(observed.currentSnapshotStore.sleeperId&&observed.currentSnapshotStore.canonicalPlayerId&&observed.currentSnapshotStore.canonicalPrefix,
+    'baseline expects current snapshot pid to prefer sleeper_id then canonical:<canonical_player_id>');
+
+  assert(observed.valueFinder.sleeperKey&&observed.valueFinder.sleeperLookup,
+    'baseline expects Value Finder Sleeper-ID path');
+  assert(observed.valueFinder.normalizedNameKey&&observed.valueFinder.normalizedNameFallback,
     'baseline expects Value Finder normalized-name fallback');
-  assert(conflictFixture.diverges,'identity conflict fixture must reproduce divergent resolution');
+
+  assert(conflictFixture.diverges,'identity conflict fixture must reproduce divergent precedence');
+
   console.log('KNOWN_GAP_REPRODUCED player identity is fragmented across stable IDs, synthetic IDs and display-name fallback');
   console.log(JSON.stringify({mode,observed,conflictFixture}));
 }else if(mode==='target'){
-  // Future implementation target. This preflight does not run target mode.
-  const c=compact(core);
-  assert(c.includes('constPlayerIdentity={') || c.includes('PlayerIdentity={'));
-  assert(c.includes("status:'unavailable'") || c.includes('status:"unavailable"'),
-    'target must expose explicit unavailable identity state');
-  assert(c.includes("status:'ambiguous'") || c.includes('status:"ambiguous"'),
-    'target must expose explicit ambiguous identity state');
-  assert(!vfCompact.includes("||m5Map.get(`n:${vfName(p.fullName||p.name||'')}`)"),
-    'target must remove display-name fallback from governed current-feature joins');
+  // Frozen contract for the subsequent production implementation.
+  assert(observed.corePlayerIdentity.hasResolve,
+    'target requires FIECore.PlayerIdentity.resolve()');
+  assert(observed.corePlayerIdentity.explicitUnavailable,
+    'target requires explicit unavailable identity state');
+  assert(observed.corePlayerIdentity.explicitAmbiguous,
+    'target requires explicit ambiguous identity state');
+  assert(!observed.valueFinder.normalizedNameFallback,
+    'target forbids display-name fallback for governed current-feature identity joins');
   console.log('PASS Tranche 3C canonical player identity contract');
 }else{
   throw new Error(`unknown mode ${mode}`);

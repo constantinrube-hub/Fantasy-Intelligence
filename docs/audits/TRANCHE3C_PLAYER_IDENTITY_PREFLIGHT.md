@@ -1,94 +1,70 @@
-# Combined Tranche 3B Final Sync + Tranche 3C Player Identity Preflight
+# Tranche 3C Player Identity Preflight — Harness Correction
 
-Validated Tranche 3B target:
+## Why this correction exists
 
-- commit `96a3f6200cdefd521b18265b705a10d2885bf896`
-- workflow run `33645046578`
-- target artifact `9852443209`
-- release gate `DEPLOYABLE_SOURCE`
-- final build-manifest SHA256 `c2a9a48e817e2955832f07b30a869dcfcd5eb0be0caf1dfb5ef659282fd75373`
+GitHub run `33775902008` was displayed as successful, but the identity
+characterization itself failed with:
 
-## Combined transition
+`AssertionError: missing function synthesizePlayerId`
 
-This package synchronizes the exact two build manifests emitted by the successful
-Tranche 3B target run and then starts a characterization-only Tranche 3C /
-C10-007 preflight.
+The production source was not at fault. The first characterization assumed that
+the synthetic fallback lived in a separate `synthesizePlayerId()` function.
+Current Core actually implements the fallback inline inside `playerId()`.
 
-No player-identity production behavior changes in this package.
+The workflow also used:
 
-## Formal Tranche 3B closure
+`node ... | tee ...`
 
-The Tranche 3C workflow first re-runs the preserved 2A/2B/2C/3A contracts and the
-Tranche 3B target contracts:
+without Bash `pipefail`, so the successful `tee` process masked the failing Node
+exit status.
 
-- scope-aware DataClient coalescing;
-- no cross-scope abort propagation;
-- ResearchReportService through `FIEDataClient.json`;
-- persistent cache behavior;
-- fast league switching;
-- canonical release build.
+That green run therefore must **not** be accepted as a completed 3C preflight.
 
-It then requires:
+## Revision 2
 
-- `STATUS: DEPLOYABLE_SOURCE`
-- zero tracked/generated/runtime drift.
+The corrected characterization tests the actual current source:
 
-Only after `PASS Tranche 3B final generated tree fully synchronized` may the
-workflow characterize Tranche 3C.
+- Core `playerId()`:
+  `sleeperId -> player_id -> playerId -> id -> synthetic:position:team:name`
+- Core `PlayerIdentity.byId()`:
+  `sleeperId -> player_id`
+- current-player-features:
+  research `sleeper_id` -> live `sleeperId`
+- current-snapshot-store:
+  `sleeper_id` -> `canonical:<canonical_player_id>`
+- Value Finder:
+  Sleeper-ID lookup -> normalized-name fallback
 
-## Audited C10-007 gap
+It also freezes a direct conflict fixture in which Core selects `player_id`
+while current-snapshot storage selects `sleeper_id`.
 
-Runtime identity is currently fragmented:
-
-- Core `playerId()` recognizes one alias set and can synthesize
-  `syn:team:position:name`.
-- Core `PlayerIdentity.byId()` uses a narrower alias set.
-- current-player-features prefers `sleeper_id`.
-- current-snapshot-store uses more than one local precedence.
-- Value Finder can fall back from Sleeper ID to normalized display name.
-
-That makes identity ownership non-canonical and creates collision/ambiguity risk
-when research or cross-source archives expand.
-
-## Frozen Tranche 3C target
-
-The subsequent implementation must establish one canonical
-`FIECore.PlayerIdentity` path with:
-
-1. stable runtime aliases:
-   `sleeperId`, `sleeper_id`, `player_id`, `playerId`, `id`;
-2. governed crosswalk fields:
-   Sleeper, GSIS, PFR, FantasyPros and internal ID;
-3. explicit `resolved`, `unavailable`, and `ambiguous` outcomes;
-4. deterministic ambiguity for duplicate-name collisions;
-5. no silent synthetic name-position ID as governed research identity;
-6. no display-name fallback for governed current-feature activation;
-7. fail-closed research activation when mapping is incomplete;
-8. canonical consumers in current-player-features, current-snapshot-store and
-   Value Finder;
-9. offense, IDP, D/ST and kicker fixtures;
-10. a canonical-only current-feature fixture.
-
-This does **not** mean all display-name helpers must disappear. Human-facing
-search/display may retain name helpers; governed identity joins may not silently
-promote them to canonical identity.
-
-## Preserved boundaries
-
-- ADP remains outside football/player-quality modeling.
-- league-specific decisions remain independent.
-- cross-league validation pooling remains disabled.
-- statistical and research-promotion thresholds remain fail-closed.
-- Tranche 3A economics remains unchanged.
-- Tranche 3B transport remains unchanged.
-- C10-009 evidence/uncertainty remains frozen.
-- C10-005 research producer typing remains frozen.
-
-## Preflight result expected
-
-The current source should deliberately produce:
+Expected valid baseline output:
 
 `KNOWN_GAP_REPRODUCED player identity is fragmented across stable IDs, synthetic IDs and display-name fallback`
 
-The workflow then captures the exact identity-related source bytes and requires
-no runtime/generated drift.
+## Workflow hardening
+
+All characterization pipelines now use:
+
+`set -euo pipefail`
+
+Therefore a failing producer process cannot be hidden by `tee`.
+
+The workflow additionally greps the produced log for the exact expected
+KNOWN_GAP marker before source capture proceeds.
+
+## Lifecycle correction
+
+Tranche 3A is already complete. Its active push workflow still expected the
+pre-3B DataClient bug and therefore produced a false red status on later
+manifest commits.
+
+The replacement 3A workflow is manual-only and tests only preserved 3A target
+contracts. It no longer requires subsequently fixed defects to remain broken.
+
+## Scope
+
+No production runtime file changes in this correction.
+
+C10-007 production implementation remains blocked until this revised preflight
+is genuinely green.
