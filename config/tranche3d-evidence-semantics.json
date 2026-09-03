@@ -1,0 +1,65 @@
+{
+  "package": "C10-009",
+  "tranche": "3D",
+  "mode": "target_implementation",
+  "branch": "audit-implementation-2026-09",
+  "preflight_commit": "cb4c4cacdea3803c5d02ad1c91ff46acde41c5a2",
+  "preflight_run": 33785965838,
+  "preflight_artifact": 9905450475,
+  "canonical_owner": "FIEEvidenceSemantics",
+  "schema": "fie-evidence-v1",
+  "evidence_status": [
+    "observed",
+    "modeled_available",
+    "modeled_unavailable"
+  ],
+  "uncertainty_kind": [
+    "calibrated_range",
+    "heuristic_range",
+    "exact",
+    "unavailable",
+    "not_applicable"
+  ],
+  "canonical_fields": [
+    "evidenceStatus",
+    "source",
+    "asOf",
+    "confidence",
+    "reason",
+    "fallback",
+    "uncertaintyKind",
+    "availability",
+    "byeState",
+    "low",
+    "high",
+    "leagueLocalProvenance"
+  ],
+  "runtime_adapters": [
+    "FIEProjectionResolver.week/range",
+    "FIECurrentFeatures.apply/lineage",
+    "FIECurrentSnapshotStore.load",
+    "FIEDST.board",
+    "FIEKicker.board"
+  ],
+  "scope": {
+    "football_model_value_changes": false,
+    "ranking_changes": false,
+    "replacement_or_scarcity_changes": false,
+    "adp_boundary_changes": false,
+    "governance_threshold_changes": false,
+    "destructive_actions": false,
+    "metadata_enrichment_only": true
+  },
+  "preservation_constraints": [
+    "league-specific decisions preserved",
+    "ADP remains outside the football model",
+    "fail-closed research governance preserved",
+    "real zero remains distinct from unavailable/null",
+    "verified bye remains a true zero and unknown schedule is not a bye",
+    "C10-004 replacement/scarcity/VOR ownership preserved",
+    "C10-006 scope-safe DataClient preserved",
+    "C10-007 governed PlayerIdentity preserved",
+    "existing D/ST and kicker scoring formulas preserved",
+    "existing projection fallback and uncertainty math preserved"
+  ]
+}

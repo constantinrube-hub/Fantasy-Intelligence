@@ -2,6 +2,8 @@
  * V9.3.3A fixes missing projection semantics: absent overlays remain null,
  * never synthetic zeroes. V9.3.3C also rejects degenerate shared D/ST/K
  * uncertainty templates so they cannot be presented as empirical P10/P90.
+ * Tranche 3D boots the canonical evidence-semantics adapter without changing
+ * snapshot values, storage layout, projection math or governance.
  */
 (function(){
 'use strict';
@@ -58,6 +60,20 @@ async function load(path,{force=false,fetchResponse=null,sourceId='research-arti
 }
 function clear(){cache.clear();}
 window.FIECurrentSnapshotStore={VERSION,FORMAT,load,clear,sanitizeUncertainty};
+
+/* C10-009 canonical evidence owner. This is a metadata-only runtime adapter.
+ * It is loaded independently so projection/DST/K math remains owned by the
+ * existing canonical services and can be regression-tested unchanged. */
+function bootEvidenceSemantics(){
+  if(window.FIEEvidenceSemantics)return;
+  if(typeof document==='undefined'||typeof document.querySelector!=='function'||typeof document.createElement!=='function')return;
+  const existing=document.querySelector('script[data-fie-evidence-semantics]');
+  if(existing)return;
+  const e=document.createElement('script');e.src='app/core/evidence-semantics.js?v=1.0.0';e.async=false;e.dataset.fieEvidenceSemantics='1';
+  e.onerror=()=>console.error('FIE Tranche 3D evidence semantics failed to load');
+  (document.head||document.documentElement).appendChild(e);
+}
+bootEvidenceSemantics();
 
 /* Keep the stable V9.3.4A-B -> A2 -> A3 performance baseline, then
  * layer the roadmap modules C, D and E in order. No generated application
