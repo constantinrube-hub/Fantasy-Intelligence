@@ -89,13 +89,20 @@
     {
       "finished_at": "2026-09-01T08:16:38.791238+00:00",
       "inputs": {},
+      "artifact_type": "controlled_runtime_bundle",
       "name": "controlled_runtime",
       "outputs": {
-        "data/research/leagues/1391803939736801280/current/milestone5_current.json": "d8d10fe7e2a0eeae8139d4eda405bcc22afc0ff44da21718f8ea2938014e8ea2"
+        "data/research/leagues/1391803939736801280/performance/2026/runtime/v96_runtime.json": "cf023e650610bbe0855f031f6a24681b40a1b3904465ea0dd2f0bad7e96d8b69"
       },
-      "reason": "existing V9.6 context: blocked_current weekly nflverse stats not yet available",
+      "producer": "research/build_v96_runtime_bundle.py",
+      "producer_dependencies": [],
+      "reason": "validated controlled_runtime_bundle with exact dedicated validator contract",
+      "schema": "fie-v96-runtime-v1",
       "started_at": "2026-09-01T08:16:38.791030+00:00",
-      "status": "reused_valid"
+      "status": "reused_valid",
+      "validator": [
+        "research/validate_v96_runtime_bundle.py"
+      ]
     },
     {
       "finished_at": "2026-09-01T08:16:39.796769+00:00",
@@ -118,24 +125,41 @@
     {
       "finished_at": "2026-09-01T08:17:39.882334+00:00",
       "inputs": {},
+      "artifact_type": "feature_evidence_bundle",
       "name": "feature_evidence",
       "outputs": {
-        "data/research/leagues/1391803939736801280/performance/2026/strategy/strategy_stack.json": "fb5fdceb78d7242478a0eba71d98771b251ec52350de20d953fbb260a66bd34b"
+        "data/research/leagues/1391803939736801280/performance/2026/evidence/feature_evidence.json": "ed200e63b941f0ab52d641ddb1f7b7c6efef55518992d751fd7b354174856419"
       },
-      "reason": "existing strategy stack component evidence",
+      "producer": "research/fie_feature_evidence_hardening.py",
+      "producer_dependencies": [
+        "research/fie_feature_evidence.py"
+      ],
+      "reason": "validated feature_evidence_bundle with exact dedicated validator contract",
+      "schema": "fie-feature-evidence-v1",
       "started_at": "2026-09-01T08:17:39.882082+00:00",
-      "status": "complete_research_only"
+      "status": "reused_valid",
+      "validator": [
+        "research/validate_feature_evidence_bundle.py",
+        "research/validate_feature_evidence_hardening.py"
+      ]
     },
     {
       "finished_at": "2026-09-01T08:17:39.882725+00:00",
       "inputs": {},
+      "artifact_type": "production_shadow_bundle",
       "name": "production_shadow",
       "outputs": {
-        "data/research/leagues/1391803939736801280/performance/2026/strategy/strategy_stack.json": "fb5fdceb78d7242478a0eba71d98771b251ec52350de20d953fbb260a66bd34b"
+        "data/research/leagues/1391803939736801280/performance/2026/shadow/production_shadow.json": "70f4b37edcd348b308be7f1294d869f19f75403b4d870660207077ffa621cd47"
       },
-      "reason": "complete_research_only",
+      "producer": "research/fie_production_shadow.py",
+      "producer_dependencies": [],
+      "reason": "validated production_shadow_bundle with exact dedicated validator contract",
+      "schema": "fie-production-shadow-v1",
       "started_at": "2026-09-01T08:17:39.882564+00:00",
-      "status": "complete_research_only"
+      "status": "reused_valid",
+      "validator": [
+        "research/validate_production_shadow.py"
+      ]
     },
     {
       "finished_at": "2026-09-01T08:17:39.882981+00:00",

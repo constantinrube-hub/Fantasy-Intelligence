@@ -86,6 +86,58 @@ PIPELINE_FILES = {
     "matrix_status": "matrix-job-status.json",
 }
 
+# Exact, repository-owned provenance for research artifacts that predate the
+# unified runner.  These are evidence/runtime bundles, not football-model
+# promotion decisions.  A stage may only claim a successful status after the
+# listed validator(s) accept its primary artifact.
+RESEARCH_STAGE_CONTRACTS = {
+    "feature_evidence": {
+        "artifact_type": "feature_evidence_bundle",
+        "producer": "research/fie_feature_evidence_hardening.py",
+        "producer_dependencies": ["research/fie_feature_evidence.py"],
+        "validator": [
+            "research/validate_feature_evidence_bundle.py",
+            "research/validate_feature_evidence_hardening.py",
+        ],
+        "schema": "fie-feature-evidence-v1",
+        "output_dir": "evidence",
+        "primary_output": "feature_evidence.json",
+    },
+    "production_shadow": {
+        "artifact_type": "production_shadow_bundle",
+        "producer": "research/fie_production_shadow.py",
+        "producer_dependencies": [],
+        "validator": ["research/validate_production_shadow.py"],
+        "schema": "fie-production-shadow-v1",
+        "output_dir": "shadow",
+        "primary_output": "production_shadow.json",
+    },
+    "controlled_runtime": {
+        "artifact_type": "controlled_runtime_bundle",
+        "producer": "research/build_v96_runtime_bundle.py",
+        "producer_dependencies": [],
+        "validator": ["research/validate_v96_runtime_bundle.py"],
+        "schema": "fie-v96-runtime-v1",
+        "output_dir": "runtime",
+        "primary_output": "v96_runtime.json",
+    },
+}
+
+
+def research_stage_contract(name: str) -> dict:
+    """Return a defensive copy of one typed research-stage contract."""
+    if name not in RESEARCH_STAGE_CONTRACTS:
+        raise ValueError(f"no typed research-stage contract for {name}")
+    contract = dict(RESEARCH_STAGE_CONTRACTS[name])
+    contract["producer_dependencies"] = list(contract["producer_dependencies"])
+    contract["validator"] = list(contract["validator"])
+    return contract
+
+
+def research_stage_primary_output(league_id: str, season: int | str, name: str) -> Path:
+    contract = research_stage_contract(name)
+    return league_root(league_id) / "performance" / str(season) / contract["output_dir"] / contract["primary_output"]
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()

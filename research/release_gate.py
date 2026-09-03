@@ -53,6 +53,8 @@ def main():
   run([sys.executable,'research/integrity_tranche3c_storage_identity.py']),
   run(['node','research/integrity_tranche3d_evidence_semantics.js']),
   run([sys.executable,'research/integrity_tranche3d_evidence_semantics_characterization.py','--mode','target']),
+  run([sys.executable,'research/integrity_tranche3e_research_producer_typing.py']),
+  run([sys.executable,'research/integrity_tranche1_research_stage_identity.py','--mode','target']),
   run(['node','research/integrity_v93_league_context_runtime_test.js']),
   run(['node','research/integrity_v93_decision_ui_runtime_test.js']),
   run(['node','research/integrity_value_finder_runtime_test.js']),

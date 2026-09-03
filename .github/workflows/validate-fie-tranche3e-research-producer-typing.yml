@@ -1,0 +1,99 @@
+name: FIE Controlled Implementation — Tranche 3E Research Producer Typing
+
+on:
+  push:
+    branches: [audit-implementation-2026-09]
+    paths:
+      - "research/fie_research_pipeline_contract.py"
+      - "research/run_fie_league_research_pipeline.py"
+      - "research/integrity_tranche3e_research_producer_typing.py"
+      - "research/integrity_tranche1_research_stage_identity.py"
+      - "research/release_gate.py"
+      - "data/research/leagues/1391803939736801280/performance/2026/research_pipeline/stage-manifest.json"
+      - "config/tranche3e-research-producer-typing.json"
+      - "docs/audits/TRANCHE3E_RESEARCH_PRODUCER_TYPING.md"
+      - ".github/workflows/validate-fie-tranche3e-research-producer-typing.yml"
+      - ".github/workflows/validate-fie-tranche3e-research-producer-typing-preflight.yml"
+      - "config/build-manifest.json"
+      - "dist/config/build-manifest.json"
+      - "config/release-gate.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche3e-target-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+      - name: Verify authorized preflight ancestry
+        run: git merge-base --is-ancestor c5ace5b61ae538ed25f8958fcded09edd28963ab HEAD
+      - name: Validate typed producer contracts and governed pilot artifacts
+        run: |
+          python research/integrity_tranche3e_research_producer_typing.py
+          python research/integrity_tranche1_research_stage_identity.py --mode target
+          python research/validate_feature_evidence_bundle.py data/research/leagues/1391803939736801280/performance/2026/evidence/feature_evidence.json
+          python research/validate_feature_evidence_hardening.py data/research/leagues/1391803939736801280/performance/2026/evidence/feature_evidence.json
+          python research/validate_production_shadow.py data/research/leagues/1391803939736801280/performance/2026/shadow/production_shadow.json
+          python research/validate_v96_runtime_bundle.py data/research/leagues/1391803939736801280/performance/2026/runtime/v96_runtime.json
+      - name: Preserve completed contracts
+        run: |
+          node research/integrity_tranche3a_replacement_ownership.js --mode target
+          node research/integrity_tranche3b_data_client_scope.js --mode target
+          node research/integrity_tranche3c_player_identity.js --mode target
+          node research/integrity_tranche3d_evidence_semantics.js
+          python research/integrity_tranche3d_evidence_semantics_characterization.py --mode target
+          node research/integrity_tranche2a_six_format_contract.js
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+          node research/integrity_tranche3a_all_league_replacement_profiles.js
+      - name: Canonical deterministic release build
+        run: python tools/release_build.py --mode personal
+      - name: Require deployable source
+        run: python -c "import json; assert json.load(open('config/release-gate.json'))['status'] == 'DEPLOYABLE_SOURCE'"
+      - name: Capture deterministic generated synchronization
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib, shutil, subprocess
+          lines = subprocess.check_output(['git','status','--porcelain','--untracked-files=all'], text=True).splitlines()
+          changed=[]
+          for line in lines:
+              path=line[3:].strip().split(' -> ')[-1]
+              if not (path == 'artifacts' or path.startswith('artifacts/')): changed.append(path)
+          allowed={'config/build-manifest.json','dist/config/build-manifest.json','config/release-gate.json'}
+          unexpected=sorted(set(changed)-allowed)
+          if unexpected: raise SystemExit('Unexpected source/generated drift:\n- '+'\n- '.join(unexpected))
+          out=pathlib.Path('artifacts/tranche3e/generated-sync'); out.mkdir(parents=True,exist_ok=True)
+          for path in sorted(set(changed)&allowed):
+              dst=out/path; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(path,dst)
+          print('TRANCHE3E_TARGET_SYNC_REQUIRED:', ', '.join(sorted(changed)) if changed else 'none')
+          PY
+      - name: Upload Tranche 3E target evidence and deterministic sync
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche3e-target-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            artifacts/tranche3e/
+            config/release-gate.json
+            config/build-manifest.json
