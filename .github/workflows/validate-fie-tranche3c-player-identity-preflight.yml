@@ -1,0 +1,147 @@
+name: FIE Controlled Implementation — Tranche 3C Player Identity Preflight
+
+on:
+  push:
+    branches:
+      - audit-implementation-2026-09
+    paths:
+      - "config/build-manifest.json"
+      - "dist/config/build-manifest.json"
+      - "config/tranche3c-player-identity-preflight.json"
+      - "research/integrity_tranche3c_player_identity.js"
+      - "research/tranche3c_preflight.py"
+      - "docs/audits/TRANCHE3C_PLAYER_IDENTITY_PREFLIGHT.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche3c-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout implementation branch with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Verify validated Tranche 3B target ancestry
+        run: git merge-base --is-ancestor 96a3f6200cdefd521b18265b705a10d2885bf896 HEAD
+
+      - name: Preserve Tranche 2A, 2B and 2C contracts
+        run: |
+          node research/integrity_tranche2a_six_format_contract.js
+          node research/integrity_tranche1_six_format_runtime_characterization.js --mode target
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+          python research/integrity_tranche2b_responsive_primary_actions.py
+          python research/integrity_tranche2c_production_authority.py
+          node research/integrity_decision_service_test.js
+
+      - name: Preserve closed Tranche 3A economics
+        run: |
+          node research/integrity_tranche3a_replacement_ownership.js --mode target
+          node research/integrity_tranche1_replacement_parity_characterization.js --mode target
+          node research/integrity_v93_scarcity_runtime_test.js
+          node research/integrity_tranche3a_all_league_replacement_profiles.js
+          python research/integrity_v932_build_determinism_test.py
+
+      - name: Preserve Tranche 3B data-access target
+        run: |
+          node research/integrity_tranche3b_data_client_scope.js --mode target
+          node research/integrity_tranche1_data_client_scope_characterization.js --mode target
+          node research/integrity_tranche3b_research_report_transport.js
+          python research/integrity_tranche1_direct_fetch_allowlist.py --mode target
+          node research/integrity_v931_persistent_cache_test.js
+          node research/integrity_league_fast_switch_runtime_test.js
+
+      - name: Canonical final Tranche 3B release build
+        run: python tools/release_build.py --mode personal
+
+      - name: Formally close Tranche 3B generated state
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          gate=json.loads(Path('config/release-gate.json').read_text())
+          print('STATUS:',gate.get('status'))
+          if gate.get('status')!='DEPLOYABLE_SOURCE':
+              raise SystemExit('Tranche 3B cannot close: release gate is not DEPLOYABLE_SOURCE')
+          lines=subprocess.check_output(
+              ['git','status','--porcelain','--untracked-files=all'],text=True
+          ).splitlines()
+          changed=[]
+          for line in lines:
+              p=line[3:].strip()
+              if ' -> ' in p:p=p.split(' -> ',1)[1]
+              if p=='artifacts' or p.startswith('artifacts/'):continue
+              changed.append(p)
+          if changed:
+              print('Tranche 3B final state is not synchronized:')
+              for p in changed:print(' -',p)
+              raise SystemExit(1)
+          print('PASS Tranche 3B final generated tree fully synchronized')
+          PY
+
+      - name: Reproduce Tranche 3C player-identity gap
+        run: |
+          mkdir -p artifacts/tranche3c
+          node research/integrity_tranche3c_player_identity.js --mode baseline | tee artifacts/tranche3c/player-identity-baseline.log
+
+      - name: Keep later research-stage identity gap frozen
+        run: |
+          python research/integrity_tranche1_research_stage_identity.py --mode baseline | tee artifacts/tranche3c/research-stage-identity-baseline.log
+
+      - name: Capture exact Tranche 3C identity source
+        run: python research/tranche3c_preflight.py --output-dir artifacts/tranche3c/preflight-source
+
+      - name: Require characterization-only preflight
+        run: |
+          python - <<'PY'
+          import subprocess
+          lines=subprocess.check_output(
+              ['git','status','--porcelain','--untracked-files=all'],text=True
+          ).splitlines()
+          changed=[]
+          for line in lines:
+              p=line[3:].strip()
+              if ' -> ' in p:p=p.split(' -> ',1)[1]
+              if p=='artifacts' or p.startswith('artifacts/'):continue
+              changed.append(p)
+          if changed:
+              print('Unexpected post-characterization drift:')
+              for p in changed:print(' -',p)
+              raise SystemExit(1)
+          print('PASS Tranche 3C preflight made no runtime/generated changes')
+          PY
+
+      - name: Upload Tranche 3C preflight evidence and exact source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche3c-preflight-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            artifacts/tranche3c/
+            config/release-gate.json

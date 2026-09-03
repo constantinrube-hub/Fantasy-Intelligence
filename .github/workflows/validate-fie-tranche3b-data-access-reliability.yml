@@ -1,0 +1,56 @@
+name: FIE Controlled Implementation — Tranche 3B Data Access Reliability
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce-historical-tranche3b:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout validated Tranche 3B target
+        uses: actions/checkout@v4
+        with:
+          ref: 96a3f6200cdefd521b18265b705a10d2885bf896
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Reproduce validated Tranche 3B target
+        run: |
+          node research/integrity_tranche3b_data_client_scope.js --mode target
+          node research/integrity_tranche1_data_client_scope_characterization.js --mode target
+          node research/integrity_tranche3b_research_report_transport.js
+          python research/integrity_tranche1_direct_fetch_allowlist.py --mode target
+          node research/integrity_v931_persistent_cache_test.js
+          node research/integrity_league_fast_switch_runtime_test.js
+
+      - name: Canonical historical release build
+        run: python tools/release_build.py --mode personal
+
+      - name: Require historical deployable source
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('config/release-gate.json').read_text())
+          print('STATUS:',d.get('status'))
+          if d.get('status')!='DEPLOYABLE_SOURCE':
+              raise SystemExit(1)
+          PY
