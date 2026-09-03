@@ -5,8 +5,6 @@ on:
     branches:
       - audit-implementation-2026-09
     paths:
-      - "config/build-manifest.json"
-      - "dist/config/build-manifest.json"
       - "config/tranche3c-player-identity-preflight.json"
       - "research/integrity_tranche3c_player_identity.js"
       - "research/tranche3c_preflight.py"
@@ -46,8 +44,8 @@ jobs:
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
 
-      - name: Verify validated Tranche 3B target ancestry
-        run: git merge-base --is-ancestor 96a3f6200cdefd521b18265b705a10d2885bf896 HEAD
+      - name: Verify corrected preflight ancestry
+        run: git merge-base --is-ancestor 48103345158239afd99f148fb3dd5ef99f69248f HEAD
 
       - name: Preserve Tranche 2A, 2B and 2C contracts
         run: |
@@ -66,7 +64,7 @@ jobs:
           node research/integrity_tranche3a_all_league_replacement_profiles.js
           python research/integrity_v932_build_determinism_test.py
 
-      - name: Preserve Tranche 3B data-access target
+      - name: Preserve closed Tranche 3B data access
         run: |
           node research/integrity_tranche3b_data_client_scope.js --mode target
           node research/integrity_tranche1_data_client_scope_characterization.js --mode target
@@ -75,10 +73,10 @@ jobs:
           node research/integrity_v931_persistent_cache_test.js
           node research/integrity_league_fast_switch_runtime_test.js
 
-      - name: Canonical final Tranche 3B release build
+      - name: Canonical release verification
         run: python tools/release_build.py --mode personal
 
-      - name: Formally close Tranche 3B generated state
+      - name: Require deployable synchronized production state
         run: |
           python - <<'PY'
           import json, subprocess
@@ -86,7 +84,7 @@ jobs:
           gate=json.loads(Path('config/release-gate.json').read_text())
           print('STATUS:',gate.get('status'))
           if gate.get('status')!='DEPLOYABLE_SOURCE':
-              raise SystemExit('Tranche 3B cannot close: release gate is not DEPLOYABLE_SOURCE')
+              raise SystemExit('release gate is not DEPLOYABLE_SOURCE')
           lines=subprocess.check_output(
               ['git','status','--porcelain','--untracked-files=all'],text=True
           ).splitlines()
@@ -97,20 +95,26 @@ jobs:
               if p=='artifacts' or p.startswith('artifacts/'):continue
               changed.append(p)
           if changed:
-              print('Tranche 3B final state is not synchronized:')
+              print('Unexpected generated/runtime drift before 3C characterization:')
               for p in changed:print(' -',p)
               raise SystemExit(1)
-          print('PASS Tranche 3B final generated tree fully synchronized')
+          print('PASS production tree synchronized before corrected 3C preflight')
           PY
 
-      - name: Reproduce Tranche 3C player-identity gap
+      - name: Reproduce corrected Tranche 3C player-identity gap
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p artifacts/tranche3c
-          node research/integrity_tranche3c_player_identity.js --mode baseline | tee artifacts/tranche3c/player-identity-baseline.log
+          node research/integrity_tranche3c_player_identity.js --mode baseline             | tee artifacts/tranche3c/player-identity-baseline.log
+          grep -F "KNOWN_GAP_REPRODUCED player identity is fragmented across stable IDs, synthetic IDs and display-name fallback"             artifacts/tranche3c/player-identity-baseline.log
 
       - name: Keep later research-stage identity gap frozen
+        shell: bash
         run: |
-          python research/integrity_tranche1_research_stage_identity.py --mode baseline | tee artifacts/tranche3c/research-stage-identity-baseline.log
+          set -euo pipefail
+          python research/integrity_tranche1_research_stage_identity.py --mode baseline             | tee artifacts/tranche3c/research-stage-identity-baseline.log
+          grep -F "KNOWN_GAP_REPRODUCED unified research stages are status-labelled but not typed to exact dedicated producers"             artifacts/tranche3c/research-stage-identity-baseline.log
 
       - name: Capture exact Tranche 3C identity source
         run: python research/tranche3c_preflight.py --output-dir artifacts/tranche3c/preflight-source
@@ -132,14 +136,14 @@ jobs:
               print('Unexpected post-characterization drift:')
               for p in changed:print(' -',p)
               raise SystemExit(1)
-          print('PASS Tranche 3C preflight made no runtime/generated changes')
+          print('PASS corrected Tranche 3C preflight made no runtime/generated changes')
           PY
 
-      - name: Upload Tranche 3C preflight evidence and exact source
+      - name: Upload corrected Tranche 3C evidence and exact source
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: fie-controlled-tranche3c-preflight-${{ github.sha }}
+          name: fie-controlled-tranche3c-preflight-r2-${{ github.sha }}
           retention-days: 30
           if-no-files-found: error
           path: |

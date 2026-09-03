@@ -1,52 +1,17 @@
 name: FIE Controlled Implementation — Tranche 3A Replacement Ownership
 
 on:
-  push:
-    branches:
-      - audit-implementation-2026-09
-    paths:
-      - "app/core/core-services.js"
-      - "app/v9.3.4a3-score-performance.js"
-      - "app/v9.3.4d-starter-economics.js"
-      - "dist/app/core/core-services.js"
-      - "dist/app/v9.3.4a3-score-performance.js"
-      - "dist/app/v9.3.4d-starter-economics.js"
-      - "research/integrity_tranche1_replacement_parity_characterization.js"
-      - "research/integrity_tranche3a_all_league_replacement_profiles.js"
-      - "research/integrity_v931_completion_test.py"
-      - "research/integrity_v932_build_determinism_test.py"
-      - "research/release_gate.py"
-      - "tools/build_dist.py"
-      - "config/tranche3a-replacement-implementation.json"
-      - "config/tranche3a-final-release-gate-compatibility.json"
-      - "config/tranche3a-dist-determinism.json"
-      - "config/release-gate.json"
-      - "docs/audits/TRANCHE3A_REPLACEMENT_IMPLEMENTATION.md"
-      - "docs/audits/TRANCHE3A_FINAL_RELEASE_GATE_COMPATIBILITY.md"
-      - "docs/audits/TRANCHE3A_DIST_DETERMINISM.md"
-      - "config/build-manifest.json"
-      - "dist/config/build-manifest.json"
-      - "dist/data/research/leagues/**/current/milestone5_current.json"
-      - "dist/data/research/leagues/**/governance/active_release.json"
-      - "dist/data/research/shared/current/runtime_player_base.*.json"
-      - "dist/data/research/shared/current/scoring/*.json"
-      - ".github/workflows/validate-fie-tranche3a-replacement-ownership.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: fie-controlled-tranche3a-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  validate:
+  validate-historical-target:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-
     steps:
-      - name: Checkout implementation branch with history
+      - name: Checkout selected ref
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -66,10 +31,7 @@ jobs:
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
 
-      - name: Verify successful 3A preflight ancestry
-        run: git merge-base --is-ancestor a3e75122de8f2ab2ae5ed34f62f4162b896f0f49 HEAD
-
-      - name: Preserve Tranche 2A, 2B and 2C targets
+      - name: Require preserved Tranche 3A target
         run: |
           node research/integrity_tranche2a_six_format_contract.js
           node research/integrity_tranche1_six_format_runtime_characterization.js --mode target
@@ -77,31 +39,13 @@ jobs:
           python research/integrity_tranche2b_responsive_primary_actions.py
           python research/integrity_tranche2c_production_authority.py
           node research/integrity_decision_service_test.js
-
-      - name: Require one-owner replacement target
-        run: |
           node research/integrity_tranche3a_replacement_ownership.js --mode target
           node research/integrity_tranche1_replacement_parity_characterization.js --mode target
           node research/integrity_v93_scarcity_runtime_test.js
           node research/integrity_tranche3a_all_league_replacement_profiles.js
-          node research/integrity_v9_model_runtime_test.js
+          python research/integrity_v932_build_determinism_test.py
 
-      - name: Require deterministic dist current partition
-        run: python research/integrity_v932_build_determinism_test.py
-
-      - name: Keep later Tranche 3 gaps frozen
-        run: |
-          node research/integrity_tranche1_data_client_scope_characterization.js --mode baseline
-          python research/integrity_tranche1_direct_fetch_allowlist.py --mode baseline
-          python research/integrity_tranche1_research_stage_identity.py --mode baseline
-
-      - name: Require source and dist runtime mirrors match before build
-        run: |
-          cmp app/core/core-services.js dist/app/core/core-services.js
-          cmp app/v9.3.4a3-score-performance.js dist/app/v9.3.4a3-score-performance.js
-          cmp app/v9.3.4d-starter-economics.js dist/app/v9.3.4d-starter-economics.js
-
-      - name: Canonical deterministic release build
+      - name: Canonical release verification
         run: python tools/release_build.py --mode personal
 
       - name: Require deployable source
@@ -109,78 +53,8 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          d=json.loads(Path("config/release-gate.json").read_text())
-          print("STATUS:",d.get("status"))
-          if d.get("status")!="DEPLOYABLE_SOURCE":
+          d=json.loads(Path('config/release-gate.json').read_text())
+          print('STATUS:',d.get('status'))
+          if d.get('status')!='DEPLOYABLE_SOURCE':
               raise SystemExit(1)
           PY
-
-      - name: Capture only deterministic generated reconciliation
-        shell: bash
-        run: |
-          python - <<'PY'
-          import fnmatch, pathlib, shutil, subprocess
-          lines=subprocess.check_output(
-              ['git','status','--porcelain','--untracked-files=all'],text=True
-          ).splitlines()
-          allowed_exact={
-              'config/build-manifest.json',
-              'dist/config/build-manifest.json',
-              'config/release-gate.json',
-          }
-          allowed_patterns=[
-              'dist/data/research/leagues/*/current/milestone5_current.json',
-              'dist/data/research/leagues/*/governance/active_release.json',
-              'dist/data/research/shared/current/runtime_player_base.*.json',
-              'dist/data/research/shared/current/scoring/*.json',
-          ]
-          rows=[]
-          for line in lines:
-              status=line[:2]
-              path=line[3:].strip()
-              if ' -> ' in path:
-                  path=path.split(' -> ',1)[1]
-              if path=='artifacts' or path.startswith('artifacts/'):
-                  continue
-              rows.append((status,path))
-          def allowed(path):
-              return path in allowed_exact or any(fnmatch.fnmatch(path,p) for p in allowed_patterns)
-          unexpected=[p for _,p in rows if not allowed(p)]
-          if unexpected:
-              print('Unexpected generated/source drift:')
-              for p in unexpected: print(' -',p)
-              raise SystemExit(1)
-
-          out=pathlib.Path('artifacts/tranche3a/generated-sync')
-          out.mkdir(parents=True,exist_ok=True)
-          deletions=[]
-          for status,p in rows:
-              src=pathlib.Path(p)
-              if src.exists():
-                  dst=out/p
-                  dst.parent.mkdir(parents=True,exist_ok=True)
-                  shutil.copy2(src,dst)
-              else:
-                  deletions.append(p)
-          (out/'DELETE_PATHS.txt').write_text(
-              ''.join(f'{p}\n' for p in deletions),encoding='utf-8'
-          )
-          if rows:
-              print('GENERATED_SYNC_REQUIRED:')
-              for status,p in rows: print(f' {status} {p}')
-              print('DELETE_COUNT:',len(deletions))
-          else:
-              print('PASS generated tree fully synchronized')
-          PY
-
-      - name: Upload Tranche 3A evidence and generated reconciliation
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: fie-controlled-tranche3a-${{ github.sha }}
-          retention-days: 30
-          if-no-files-found: warn
-          path: |
-            artifacts/tranche3a/
-            config/release-gate.json
-            config/build-manifest.json
