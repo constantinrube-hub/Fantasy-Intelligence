@@ -69,7 +69,7 @@
       "cmd": "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python research/integrity_dist_hygiene_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "PASS integrity_dist_hygiene_test files=404\n",
+      "stdout": "PASS integrity_dist_hygiene_test files=405\n",
       "stderr": ""
     },
     {
@@ -259,6 +259,20 @@
       "ok": true,
       "code": 0,
       "stdout": "PASS Tranche 3C current-snapshot governed identity storage contract\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_tranche3d_evidence_semantics.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS Tranche 3D canonical typed evidence runtime adapters preserve projection, feature, snapshot, D/ST and kicker values\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python research/integrity_tranche3d_evidence_semantics_characterization.py --mode target",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS Tranche 3D shared typed evidence semantics across projection, current and specialist API surfaces\n{\"mode\": \"target\", \"preserved\": {\"availability_available\": true, \"availability_unavailable\": true, \"calibrated_range\": true, \"current_feature_signal_lineage\": true, \"decision_ui_evidence_language\": true, \"dst_local_semantics\": true, \"feature_completed_week_freshness\": true, \"heuristic_range\": true, \"kicker_local_semantics\": true, \"legacy_projection_math\": true, \"missing_data_null\": true, \"projection_confidence\": true, \"projection_source\": true, \"season_baseline_label\": true, \"season_div_17_heuristic\": true, \"snapshot_provenance_language\": false, \"verified_bye_explicit\": true, \"verified_bye_true_zero\": true}, \"target\": {\"adapters\": {\"current_features\": true, \"current_snapshot\": true, \"dst\": true, \"kicker\": true, \"projection\": true}, \"runtime_bootstrap\": true, \"typed_contract\": true}}\n",
       "stderr": ""
     },
     {
