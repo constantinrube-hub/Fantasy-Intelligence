@@ -5,7 +5,8 @@
 - Frozen PRE-audit reference: `45cbcff99ba10f4e88130f2441553817fc0d1ccc`
 - Authorized branch: `audit-implementation-2026-09`
 - Last validated target head: `398a82d772641fc5d40fdc9b7473e0921906fdc6` — Tranche 5E target green
-- Current authorized boundary: Tranche 5E is closed after exact release-artifact synchronization; the next phase is research-completeness assessment and new football-model design
+- Last synchronized closure head: `b4c4ef5` — Tranche 5E exact generated-state closure
+- Current authorized boundary: Tranche 6A Sol design; it defines research-completeness semantics and an M10 research challenger without changing production behavior
 
 ## Completed validated tranches
 
@@ -25,6 +26,7 @@
 - 5D documentation cleanup — `c4c5b3a8ed8224e88c48382839030081137be8db`, GitHub Actions run `33902337318`, success, `DEPLOYABLE_SOURCE` across 51 checks; its release artifact SHA-256 is `f6665d078ba387cc35404827092ece00c8c2c32c3d2c7a84d1eddbd70732e1a2`
 - 5E regression and closure preflight — `bae3e59d0878e9a6f721bbc4e51a0a914925d2ee`, GitHub Actions run `33908414208`, success; it preserves the completed behavioral suite and authorizes a bounded manifest-hygiene closure target
 - 5E regression and closure target — `398a82d772641fc5d40fdc9b7473e0921906fdc6`, GitHub Actions run `33908811493`, success in 57 seconds, `DEPLOYABLE_SOURCE` across 52 checks; its release artifact SHA-256 is `44f9f4fb1c12ced64b99066ce2a821e85ac19613047fccee73154b943dd54a5f`
+- 6A research-completeness and M10 football-model architecture — Sol design only; `docs/audits/TRANCHE6A_RESEARCH_COMPLETENESS_MODEL_DESIGN.md` is the implementation boundary and does not authorize training, promotion, or runtime integration
 
 ## Permanent invariants
 
@@ -55,4 +57,4 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 
 ## Known-safe stopping point
 
-Tranche 5D is closed. Tranche 5E is limited to regression and release-hygiene closure: it did not change football-model, runtime, data, ranking, recommendation, promotion, or scheduled operational-workflow behavior. Its green release artifact synchronized only `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`. The next phase is research-completeness assessment and new football-model design; it must begin with `MODEL_SWITCH_REQUIRED: GPT-5.6 Sol — High`.
+Tranches 5D and 5E are closed. Tranche 6A records the required Sol-only research-completeness and M10 architecture decision. The next implementation boundary is Tranche 6B, a deterministic machine-readable inventory of existing evidence. It must run under Terra, change no model or runtime behavior, and preserve all permanent invariants.
