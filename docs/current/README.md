@@ -16,6 +16,6 @@ This directory contains the current operational and architectural documentation 
 
 ## Historical references
 
-Files in this directory whose names begin with a version number document specific implementation or repair events. They remain useful evidence, but they are not current operating instructions. Root-level patch, upload, apply, and versioned release-note files have the same historical status pending the later evidence-backed archive cleanup.
+Historical implementation, patch, upload, and release records are indexed in [`../archive/README.md`](../archive/README.md). They remain useful evidence, but they are not current operating instructions. `V9.3.4A3-SCORE-FIX.md` remains here only because a preserved historical manifest requires its exact path; it is not current guidance.
 
 Repository-wide lifecycle rules are machine-readable in [`../../config/repository-lifecycle-contract.json`](../../config/repository-lifecycle-contract.json).

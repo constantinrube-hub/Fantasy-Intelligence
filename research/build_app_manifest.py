@@ -38,6 +38,7 @@ COMPONENTS={
  'research_lab_ux':'app/core/research-lab-ux.js',
  'research_lab_ux_contract':'config/research-lab-ux-contract.json',
  'repository_lifecycle_contract':'config/repository-lifecycle-contract.json',
+ 'documentation_cleanup_contract':'config/tranche5d-documentation-cleanup-preflight.json',
  'runtime':'app/runtime-foundation.js',
  'current_player_features':'app/current-player-features.js',
  'decision_model':'app/decision-model-v9.js',
@@ -86,6 +87,7 @@ COMPONENTS={
  'build_determinism_integrity':'research/integrity_v932_build_determinism_test.py',
  'release_gate':'research/release_gate.py',
  'repository_lifecycle_integrity':'research/integrity_tranche5c_documentation_lifecycle.py',
+ 'documentation_cleanup_integrity':'research/integrity_tranche5d_documentation_cleanup.py',
 }
 def sha(path):
  h=hashlib.sha256()

@@ -22,8 +22,9 @@
     "RELEASE_NOTES_*.md",
     "*-UPLOAD-AND-VALIDATION.md"
   ],
-  "historical_document_policy": "retained as historical evidence pending evidence-backed archive cleanup; never treated as current operational guidance",
-  "versioned_docs_in_current_policy": "historical implementation references; canonical topic guides take precedence",
+  "historical_document_policy": "archived as historical evidence under docs/archive except records whose preserved historical manifests require their original paths; never treated as current operational guidance",
+  "versioned_docs_in_current_policy": "canonical topic guides own current guidance; a versioned document remains in docs/current only when a preserved historical manifest requires that exact path",
+  "documentation_cleanup_contract": "config/tranche5d-documentation-cleanup-preflight.json",
   "workflow_classification_rules": [
     {"pattern": "_*.yml", "class": "reusable_component", "lifecycle": "retained_for_provenance"},
     {"pattern": "validate-fie-tranche*.yml", "class": "controlled_audit", "lifecycle": "manual_historical_validation"},
@@ -40,7 +41,7 @@
   ],
   "controlled_audit_trigger_policy": "completed and in-progress controlled-tranche validators are workflow_dispatch-only except the new tranche preflight/target while it is being introduced",
   "active_controlled_workflows": [
-    "validate-fie-tranche5d-documentation-cleanup-preflight.yml"
+    "validate-fie-tranche5d-documentation-cleanup.yml"
   ],
   "scheduled_workflows": [
     "build-fie-current.yml",
