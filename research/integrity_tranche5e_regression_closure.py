@@ -94,7 +94,14 @@ def main() -> None:
         subprocess.run(["git", "merge-base", "--is-ancestor", commit, closure], cwd=ROOT, check=True)
         assert changed_between(commit, closure) <= set(data["target_allowed_paths"]), changed_between(commit, closure)
         subprocess.run(["git", "merge-base", "--is-ancestor", closure, "HEAD"], cwd=ROOT, check=True)
-        assert not (lifecycle.get("active_controlled_workflows") or []), lifecycle
+        # The 5E closure itself had no active controlled workflow. Later tranches
+        # may explicitly register a temporary push-triggered target in the current
+        # lifecycle contract, so check the frozen closure state rather than
+        # incorrectly freezing future audit work.
+        closure_lifecycle = json.loads(
+            git_output("show", f"{closure}:config/repository-lifecycle-contract.json")
+        )
+        assert not (closure_lifecycle.get("active_controlled_workflows") or []), closure_lifecycle
         assert workflow_flags(preflight_workflow) == {"push": False, "schedule": False, "dispatch": True}
         assert workflow_flags(release_workflow) == {"push": True, "schedule": False, "dispatch": True}
         if args.mode == "release":

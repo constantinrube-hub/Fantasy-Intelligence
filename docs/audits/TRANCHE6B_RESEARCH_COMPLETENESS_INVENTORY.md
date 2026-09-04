@@ -27,3 +27,7 @@ At the 5E/6A evidence boundary it records:
 - no matrix cell is `PRODUCTION_AUTHORIZED`.
 
 The inventory is a truthful evidence map, not a scorecard. Its aggregate counts are descriptive only and cannot promote a model for a particular league.
+
+## Controlled validation lifecycle
+
+While Tranche 6B is being introduced, its validator is the one explicitly registered active controlled workflow and starts on a push to `audit-implementation-2026-09`. This makes the target visible and runnable from GitHub Actions before the branch is merged. Once its release gate is green and closure is recorded, it returns to the repository-wide manual-only historical-validation policy.
