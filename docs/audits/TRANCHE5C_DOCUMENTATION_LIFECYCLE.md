@@ -8,7 +8,7 @@ No historical document or workflow was deleted. Root patch/upload/release notes 
 
 ## Workflow lifecycle
 
-All controlled-tranche validators are manual-only after this target is committed. Their validation logic remains available through `workflow_dispatch`, while old audit packages no longer create misleading branch noise. The four scheduled current-season and market-capture workflows remain scheduled and unchanged.
+Completed controlled-tranche validators are manual-only after this target is committed. Their validation logic remains available through `workflow_dispatch`, while old audit packages no longer create misleading branch noise. A newly introduced preflight may temporarily use a narrowly scoped push trigger only while named in the lifecycle contract's `active_controlled_workflows`; it must return to manual-only when its tranche closes. The four scheduled current-season and market-capture workflows remain scheduled and unchanged.
 
 ## Traceability
 

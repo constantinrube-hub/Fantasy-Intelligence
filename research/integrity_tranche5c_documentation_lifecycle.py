@@ -60,11 +60,20 @@ def main() -> None:
 
     workflow_dir = ROOT / ".github/workflows"
     workflows = {path.name: workflow_flags(path) for path in workflow_dir.glob("*.yml")}
+    lifecycle_contract = ROOT / "config/repository-lifecycle-contract.json"
+    active_controlled = set()
+    if lifecycle_contract.is_file():
+        active_controlled = set(
+            json.loads(lifecycle_contract.read_text(encoding="utf-8")).get(
+                "active_controlled_workflows", []
+            )
+        )
     completed_tranche_push = sorted(
         name
         for name, flags in workflows.items()
         if name.startswith("validate-fie-tranche")
         and "tranche5c" not in name
+        and name not in active_controlled
         and flags["push"]
     )
     scheduled = sorted(name for name, flags in workflows.items() if flags["schedule"])
@@ -73,8 +82,6 @@ def main() -> None:
         str(path.relative_to(ROOT)).replace("\\", "/")
         for path in (ROOT / "docs/audits").glob("*TRANCHE4*")
     )
-    lifecycle_contract = ROOT / "config/repository-lifecycle-contract.json"
-
     facts = {
         "canonical_documents_present": canonical,
         "root_legacy_document_count": len(root_legacy),
@@ -83,6 +90,7 @@ def main() -> None:
         "versioned_current_documents": versioned_current,
         "workflow_count": len(workflows),
         "completed_tranche_push_workflows": completed_tranche_push,
+        "active_controlled_workflows": sorted(active_controlled),
         "scheduled_workflows": scheduled,
         "explicit_tranche4_disposition": explicit_tranche4,
         "lifecycle_contract_present": lifecycle_contract.is_file(),
@@ -124,13 +132,22 @@ def main() -> None:
 
         assert not completed_tranche_push, completed_tranche_push
         for name, flags in workflows.items():
-            if name.startswith("validate-fie-tranche") and name != (
-                "validate-fie-tranche5c-documentation-lifecycle.yml"
+            if (
+                name.startswith("validate-fie-tranche")
+                and name != "validate-fie-tranche5c-documentation-lifecycle.yml"
+                and name not in active_controlled
             ):
                 assert flags["dispatch"] and not flags["push"] and not flags["schedule"], (
                     name,
                     flags,
                 )
+        for name in active_controlled:
+            assert name.startswith("validate-fie-tranche") and name in workflows, name
+            flags = workflows[name]
+            assert flags["dispatch"] and flags["push"] and not flags["schedule"], (
+                name,
+                flags,
+            )
         expected_scheduled = set(contract.get("scheduled_workflows") or [])
         assert set(scheduled) == expected_scheduled, (scheduled, expected_scheduled)
         rules = contract.get("workflow_classification_rules") or []
