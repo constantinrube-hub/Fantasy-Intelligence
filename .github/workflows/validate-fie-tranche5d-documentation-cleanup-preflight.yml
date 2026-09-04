@@ -1,6 +1,14 @@
 name: FIE Controlled Implementation — Tranche 5D Documentation Cleanup Preflight
 
 on:
+  push:
+    branches: [audit-implementation-2026-09]
+    paths:
+      - ".github/workflows/validate-fie-tranche5d-documentation-cleanup-preflight.yml"
+      - "config/tranche5d-documentation-cleanup-preflight.json"
+      - "docs/audits/AUDIT_CURRENT_STATE.md"
+      - "docs/audits/TRANCHE5D_DOCUMENTATION_CLEANUP_PREFLIGHT.md"
+      - "research/integrity_tranche5d_documentation_cleanup.py"
   workflow_dispatch:
 
 permissions:
