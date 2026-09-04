@@ -5,7 +5,7 @@
 - Frozen PRE-audit reference: `45cbcff99ba10f4e88130f2441553817fc0d1ccc`
 - Authorized branch: `audit-implementation-2026-09`
 - Last validated target head: `c4c5b3a8ed8224e88c48382839030081137be8db` — Tranche 5D target green
-- Current authorized boundary: Tranche 5E regression and closure preflight; target release authorization requires an independently green preflight
+- Current authorized boundary: Tranche 5E target release; its independently validated preflight authorizes one deterministic release gate from the manual-only controlled-workflow state
 
 ## Completed validated tranches
 
@@ -23,6 +23,7 @@
 - 5C documentation/workflow lifecycle — `5a45ad0ab985f8549cc6512684e7d7ab6a838d8d`, GitHub Actions run `33884966348`, success, `DEPLOYABLE_SOURCE` across 50 checks
 - 5D documentation cleanup preflight — `0f9390bcdb2b3630c5e9ad41902edbf1c6800622`, GitHub Actions run `33897065034`, success; it authorizes relocation of 29 evidence-backed historical records and explicitly preserves four path-bound records
 - 5D documentation cleanup — `c4c5b3a8ed8224e88c48382839030081137be8db`, GitHub Actions run `33902337318`, success, `DEPLOYABLE_SOURCE` across 51 checks; its release artifact SHA-256 is `f6665d078ba387cc35404827092ece00c8c2c32c3d2c7a84d1eddbd70732e1a2`
+- 5E regression and closure preflight — `bae3e59d0878e9a6f721bbc4e51a0a914925d2ee`, GitHub Actions run `33908414208`, success; it preserves the completed behavioral suite and authorizes a bounded manifest-hygiene closure target
 
 ## Permanent invariants
 
@@ -53,4 +54,4 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 
 ## Known-safe stopping point
 
-Tranche 5D is closed after exact generated-state synchronization. Tranche 5E is limited to regression and release-hygiene closure: it may not change football-model, runtime, data, ranking, recommendation, promotion, or scheduled operational-workflow behavior. Its preflight is the only temporarily active controlled validator.
+Tranche 5D is closed after exact generated-state synchronization. Tranche 5E is limited to regression and release-hygiene closure: it may not change football-model, runtime, data, ranking, recommendation, promotion, or scheduled operational-workflow behavior. Its target awaits one deterministic release artifact before final generated-state synchronization.

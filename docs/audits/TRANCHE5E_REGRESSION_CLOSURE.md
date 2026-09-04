@@ -11,3 +11,9 @@ The preflight must reproduce exactly one tracked-blob manifest mismatch, `reposi
 ## Closure boundary
 
 After a green preflight, the target restores the preflight validator to manual-only, leaves no controlled workflow active, and uses the path-limited 5E release gate for one deterministic build. Only the three generated outputs captured in that gate's artifact may be synchronized into the closure commit.
+
+## Preflight evidence
+
+- Commit: `bae3e59d0878e9a6f721bbc4e51a0a914925d2ee`
+- GitHub Actions run: `33908414208` — success
+- Result: the documented single lifecycle-contract manifest drift reproduced while the completed behavioral preservation suite passed
