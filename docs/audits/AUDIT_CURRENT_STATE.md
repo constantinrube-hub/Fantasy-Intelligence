@@ -4,8 +4,8 @@
 
 - Frozen PRE-audit reference: `45cbcff99ba10f4e88130f2441553817fc0d1ccc`
 - Authorized branch: `audit-implementation-2026-09`
-- Last validated target head: `5a45ad0ab985f8549cc6512684e7d7ab6a838d8d` — Tranche 5C target green
-- Current authorized boundary: validate the Tranche 5D archival-cleanup target with its focused integrity check and one deterministic release gate
+- Last validated target head: `c4c5b3a8ed8224e88c48382839030081137be8db` — Tranche 5D target green
+- Current authorized boundary: Tranche 5D closure synchronization only; its controlled validator returns to manual-only historical validation
 
 ## Completed validated tranches
 
@@ -22,6 +22,7 @@
 - 5C preflight — `f0f1eec27286be51dc1de2e078dd3c6f01618628`, GitHub Actions run `33868785052`, success
 - 5C documentation/workflow lifecycle — `5a45ad0ab985f8549cc6512684e7d7ab6a838d8d`, GitHub Actions run `33884966348`, success, `DEPLOYABLE_SOURCE` across 50 checks
 - 5D documentation cleanup preflight — `0f9390bcdb2b3630c5e9ad41902edbf1c6800622`, GitHub Actions run `33897065034`, success; it authorizes relocation of 29 evidence-backed historical records and explicitly preserves four path-bound records
+- 5D documentation cleanup — `c4c5b3a8ed8224e88c48382839030081137be8db`, GitHub Actions run `33902337318`, success, `DEPLOYABLE_SOURCE` across 51 checks; its release artifact SHA-256 is `f6665d078ba387cc35404827092ece00c8c2c32c3d2c7a84d1eddbd70732e1a2`
 
 ## Permanent invariants
 
@@ -52,4 +53,4 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 
 ## Known-safe stopping point
 
-Tranche 5C is closed after deterministic generated-state synchronization. Tranche 5D preflight is green; its documentation-only target awaits focused and release-gate validation. No football-model, runtime, or scheduled operational-workflow change is authorized.
+Tranche 5D is closed after exact generated-state synchronization. Its completed controlled validator is manual-only, no controlled workflow remains active, and no football-model, runtime, or scheduled operational-workflow change was made. The next authorized phase is 5E regression and closure.

@@ -16,3 +16,13 @@ The archive index separates historical evidence from current operational documen
 ## Validation
 
 `research/integrity_tranche5d_documentation_cleanup.py --mode target` requires an exact Git `R100` rename from the validated preflight head for every relocated record, unchanged path-bound exceptions, the archive index, and the redirected changelog link. The target also retains the 5C lifecycle contract and runs the complete deterministic release gate.
+
+## Closure evidence
+
+- Target commit: `c4c5b3a8ed8224e88c48382839030081137be8db`
+- GitHub Actions run: `33902337318` — success
+- Release decision: `DEPLOYABLE_SOURCE` across 51 checks
+- Downloaded target artifact SHA-256: `f6665d078ba387cc35404827092ece00c8c2c32c3d2c7a84d1eddbd70732e1a2`
+- Synchronized generated outputs: `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
+
+After synchronization, `validate-fie-tranche5d-documentation-cleanup.yml` is restored to manual-only validation and `active_controlled_workflows` is empty. No source behavior or scheduled operational workflow changed.
