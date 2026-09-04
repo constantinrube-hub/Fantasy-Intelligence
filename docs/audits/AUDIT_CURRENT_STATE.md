@@ -4,8 +4,8 @@
 
 - Frozen PRE-audit reference: `45cbcff99ba10f4e88130f2441553817fc0d1ccc`
 - Authorized branch: `audit-implementation-2026-09`
-- Last validated target head: `c4c5b3a8ed8224e88c48382839030081137be8db` — Tranche 5D target green
-- Current authorized boundary: Tranche 5E target release; its independently validated preflight authorizes one deterministic release gate from the manual-only controlled-workflow state
+- Last validated target head: `398a82d772641fc5d40fdc9b7473e0921906fdc6` — Tranche 5E target green
+- Current authorized boundary: Tranche 5E is closed after exact release-artifact synchronization; the next phase is research-completeness assessment and new football-model design
 
 ## Completed validated tranches
 
@@ -24,6 +24,7 @@
 - 5D documentation cleanup preflight — `0f9390bcdb2b3630c5e9ad41902edbf1c6800622`, GitHub Actions run `33897065034`, success; it authorizes relocation of 29 evidence-backed historical records and explicitly preserves four path-bound records
 - 5D documentation cleanup — `c4c5b3a8ed8224e88c48382839030081137be8db`, GitHub Actions run `33902337318`, success, `DEPLOYABLE_SOURCE` across 51 checks; its release artifact SHA-256 is `f6665d078ba387cc35404827092ece00c8c2c32c3d2c7a84d1eddbd70732e1a2`
 - 5E regression and closure preflight — `bae3e59d0878e9a6f721bbc4e51a0a914925d2ee`, GitHub Actions run `33908414208`, success; it preserves the completed behavioral suite and authorizes a bounded manifest-hygiene closure target
+- 5E regression and closure target — `398a82d772641fc5d40fdc9b7473e0921906fdc6`, GitHub Actions run `33908811493`, success in 57 seconds, `DEPLOYABLE_SOURCE` across 52 checks; its release artifact SHA-256 is `44f9f4fb1c12ced64b99066ce2a821e85ac19613047fccee73154b943dd54a5f`
 
 ## Permanent invariants
 
@@ -48,10 +49,10 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 ## Required validation
 
 - Targeted: `research/integrity_tranche5c_documentation_lifecycle.py --mode target`
-- Current target: `research/integrity_tranche5d_documentation_cleanup.py --mode target`
+- Current target: `research/integrity_tranche5e_regression_closure.py --mode target`
 - Preserve relevant 5B, 5A, 2A, 3A–3E, all-league profile, and all-league replacement contracts.
 - Closure: deterministic personal release build, `DEPLOYABLE_SOURCE`, and source/dist parity with only authorized generated synchronization.
 
 ## Known-safe stopping point
 
-Tranche 5D is closed after exact generated-state synchronization. Tranche 5E is limited to regression and release-hygiene closure: it may not change football-model, runtime, data, ranking, recommendation, promotion, or scheduled operational-workflow behavior. Its target awaits one deterministic release artifact before final generated-state synchronization.
+Tranche 5D is closed. Tranche 5E is limited to regression and release-hygiene closure: it did not change football-model, runtime, data, ranking, recommendation, promotion, or scheduled operational-workflow behavior. Its green release artifact synchronized only `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`. The next phase is research-completeness assessment and new football-model design; it must begin with `MODEL_SWITCH_REQUIRED: GPT-5.6 Sol — High`.
