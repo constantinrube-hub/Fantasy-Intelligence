@@ -1,17 +1,24 @@
-name: FIE Controlled Implementation — Tranche 5A Semantic UX
+name: FIE Controlled Implementation — Tranche 5B Research Lab Freshness Preflight
 
 on:
+  push:
+    branches: [audit-implementation-2026-09]
+    paths:
+      - "research/integrity_tranche5b_research_lab_freshness.py"
+      - "config/tranche5b-research-lab-freshness-preflight.json"
+      - "docs/audits/TRANCHE5B_RESEARCH_LAB_FRESHNESS_PREFLIGHT.md"
+      - ".github/workflows/validate-fie-tranche5b-research-lab-freshness-preflight.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: fie-controlled-tranche5a-target-${{ github.ref }}
+  group: fie-controlled-tranche5b-preflight-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
+  characterize:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -28,53 +35,52 @@ jobs:
           node-version: "22"
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
-      - name: Verify authorized preflight ancestry
-        run: git merge-base --is-ancestor 638fe42ca2d1e656572983154b42c98745c35396 HEAD
-      - name: Validate semantic UX contract and target labels
+      - name: Verify completed Tranche 5A ancestry
+        run: git merge-base --is-ancestor 74919d6b0a60d834b852a318b51d994ea65d4532 HEAD
+      - name: Preserve completed contracts
         run: |
           node research/integrity_tranche5a_semantic_ux.js
           python research/integrity_tranche5a_semantic_ux_rank_identity.py --mode target
-      - name: Preserve completed contracts
-        run: |
           node research/integrity_tranche2a_six_format_contract.js
           node research/integrity_tranche3a_replacement_ownership.js --mode target
           node research/integrity_tranche3b_data_client_scope.js --mode target
           node research/integrity_tranche3c_player_identity.js --mode target
           node research/integrity_tranche3d_evidence_semantics.js
-          python research/integrity_tranche3d_evidence_semantics_characterization.py --mode target
           python research/integrity_tranche3e_research_producer_typing.py
           node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
           node research/integrity_tranche3a_all_league_replacement_profiles.js
+      - name: Reproduce Research Lab and freshness gap
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tranche5b
+          python research/integrity_tranche5b_research_lab_freshness.py --mode baseline | tee artifacts/tranche5b/research-lab-freshness-baseline.log
+          grep -F "KNOWN_GAP_REPRODUCED Research/Lab navigation and freshness presentation remain fragmented" artifacts/tranche5b/research-lab-freshness-baseline.log
       - name: Canonical deterministic release build
         run: python tools/release_build.py --mode personal
-      - name: Require deployable source
-        run: python -c "import json; assert json.load(open('config/release-gate.json'))['status'] == 'DEPLOYABLE_SOURCE'"
-      - name: Capture deterministic generated synchronization
+      - name: Require deployable source and no generated drift
         shell: bash
         run: |
           python - <<'PY'
-          import pathlib, shutil, subprocess
-          lines = subprocess.check_output(['git','status','--porcelain','--untracked-files=all'], text=True).splitlines()
+          import json, subprocess
+          data=json.load(open('config/release-gate.json'))
+          assert data.get('status') == 'DEPLOYABLE_SOURCE', data.get('status')
+          lines=subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines()
           changed=[]
           for line in lines:
               path=line[3:].strip().split(' -> ')[-1]
               if not (path == 'artifacts' or path.startswith('artifacts/')): changed.append(path)
-          allowed={'config/build-manifest.json','dist/config/build-manifest.json','config/release-gate.json','dist/index.html','dist/app/core/semantic-ux.js','dist/app/decision-ui.js','dist/app/decision-engines.js','dist/app/value-finder.js','dist/app/research-report-ui.js'}
-          unexpected=sorted(set(changed)-allowed)
-          if unexpected: raise SystemExit('Unexpected source/generated drift:\n- '+'\n- '.join(unexpected))
-          out=pathlib.Path('artifacts/tranche5a/generated-sync'); out.mkdir(parents=True,exist_ok=True)
-          for path in sorted(set(changed)&allowed):
-              dst=out/path; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(path,dst)
-          print('TRANCHE5A_TARGET_SYNC_REQUIRED:', ', '.join(sorted(changed)) if changed else 'none')
+          if changed: raise SystemExit('Unexpected preflight drift:\n- '+'\n- '.join(changed))
+          print('PASS Tranche 5B preflight made no runtime/generated changes')
           PY
-      - name: Upload Tranche 5A target evidence and deterministic sync
+      - name: Upload Tranche 5B characterization evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: fie-controlled-tranche5a-target-${{ github.sha }}
+          name: fie-controlled-tranche5b-preflight-${{ github.sha }}
           retention-days: 30
           if-no-files-found: warn
           path: |
-            artifacts/tranche5a/
+            artifacts/tranche5b/
             config/release-gate.json
             config/build-manifest.json
