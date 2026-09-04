@@ -37,6 +37,7 @@ COMPONENTS={
  'semantic_ux_contract':'config/semantic-ux-contract.json',
  'research_lab_ux':'app/core/research-lab-ux.js',
  'research_lab_ux_contract':'config/research-lab-ux-contract.json',
+ 'repository_lifecycle_contract':'config/repository-lifecycle-contract.json',
  'runtime':'app/runtime-foundation.js',
  'current_player_features':'app/current-player-features.js',
  'decision_model':'app/decision-model-v9.js',
@@ -84,6 +85,7 @@ COMPONENTS={
  'manifest_builder':'research/build_app_manifest.py',
  'build_determinism_integrity':'research/integrity_v932_build_determinism_test.py',
  'release_gate':'research/release_gate.py',
+ 'repository_lifecycle_integrity':'research/integrity_tranche5c_documentation_lifecycle.py',
 }
 def sha(path):
  h=hashlib.sha256()

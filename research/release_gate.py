@@ -56,6 +56,7 @@ def main():
   run([sys.executable,'research/integrity_tranche3e_research_producer_typing.py']),
   run(['node','research/integrity_tranche5a_semantic_ux.js']),
   run([sys.executable,'research/integrity_tranche5a_semantic_ux_rank_identity.py','--mode','target']),
+  run([sys.executable,'research/integrity_tranche5c_documentation_lifecycle.py','--mode','target']),
   run([sys.executable,'research/integrity_tranche1_research_stage_identity.py','--mode','target']),
   run(['node','research/integrity_v93_league_context_runtime_test.js']),
   run(['node','research/integrity_v93_decision_ui_runtime_test.js']),

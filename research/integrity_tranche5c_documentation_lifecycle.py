@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import argparse
+import fnmatch
 import re
 from pathlib import Path
 
@@ -31,6 +33,10 @@ def workflow_flags(path: Path) -> dict[str, bool]:
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mode", choices=("baseline", "target"), default="baseline")
+    args = ap.parse_args()
+
     canonical = {path: (ROOT / path).is_file() for path in CANONICAL_DOCS}
     assert all(canonical.values()), canonical
 
@@ -84,16 +90,61 @@ def main() -> None:
 
     assert root_legacy, facts
     assert versioned_current, facts
-    assert completed_tranche_push, facts
     assert scheduled, facts
-    assert not explicit_tranche4, facts
-    assert not lifecycle_contract.is_file(), facts
 
-    print(
-        "KNOWN_GAP_REPRODUCED documentation and workflow lifecycle ownership "
-        "remain fragmented"
-    )
-    print(json.dumps(facts, sort_keys=True))
+    if args.mode == "baseline":
+        assert completed_tranche_push, facts
+        assert not explicit_tranche4, facts
+        assert not lifecycle_contract.is_file(), facts
+        print(
+            "KNOWN_GAP_REPRODUCED documentation and workflow lifecycle ownership "
+            "remain fragmented"
+        )
+    else:
+        assert lifecycle_contract.is_file(), facts
+        contract = json.loads(lifecycle_contract.read_text(encoding="utf-8"))
+        assert contract.get("schema") == "fie-repository-lifecycle-v1", contract
+        documented = {
+            row["path"] for row in contract.get("canonical_documents", [])
+        }
+        assert documented == set(CANONICAL_DOCS), documented
+        assert (ROOT / "docs/current/README.md").is_file()
+        assert explicit_tranche4 == ["docs/audits/TRANCHE4_DISPOSITION.md"], explicit_tranche4
+        disposition = contract.get("tranche4_disposition") or {}
+        assert disposition.get("standalone_package") is False, disposition
+        assert disposition.get("validated_boundary_head") == (
+            "e7ec67c0cb0d7fd791201d3b2cb49b5600d7ba47"
+        ), disposition
+
+        doc_patterns = contract.get("historical_document_patterns") or []
+        for name in root_legacy:
+            assert any(fnmatch.fnmatch(name, pattern) for pattern in doc_patterns), name
+        for name in versioned_current:
+            assert fnmatch.fnmatch(name, "V*.md"), name
+
+        assert not completed_tranche_push, completed_tranche_push
+        for name, flags in workflows.items():
+            if name.startswith("validate-fie-tranche") and name != (
+                "validate-fie-tranche5c-documentation-lifecycle.yml"
+            ):
+                assert flags["dispatch"] and not flags["push"] and not flags["schedule"], (
+                    name,
+                    flags,
+                )
+        expected_scheduled = set(contract.get("scheduled_workflows") or [])
+        assert set(scheduled) == expected_scheduled, (scheduled, expected_scheduled)
+        rules = contract.get("workflow_classification_rules") or []
+        unmatched = [
+            name
+            for name in workflows
+            if not any(fnmatch.fnmatch(name, rule["pattern"]) for rule in rules)
+        ]
+        assert not unmatched, unmatched
+        print(
+            "TARGET_GAP_CLOSED documentation and workflow lifecycle ownership "
+            "are explicit"
+        )
+    print(json.dumps({"mode": args.mode, **facts}, sort_keys=True))
 
 
 if __name__ == "__main__":

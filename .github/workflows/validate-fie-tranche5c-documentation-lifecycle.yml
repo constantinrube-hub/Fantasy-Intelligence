@@ -1,17 +1,31 @@
-name: FIE Controlled Implementation — Tranche 5C Documentation Lifecycle Preflight
+name: FIE Controlled Implementation — Tranche 5C Documentation Lifecycle
 
 on:
+  push:
+    branches: [audit-implementation-2026-09]
+    paths:
+      - "config/repository-lifecycle-contract.json"
+      - "docs/current/README.md"
+      - "docs/audits/TRANCHE4_DISPOSITION.md"
+      - "docs/audits/TRANCHE5C_DOCUMENTATION_LIFECYCLE.md"
+      - "research/integrity_tranche5c_documentation_lifecycle.py"
+      - "research/build_app_manifest.py"
+      - "research/release_gate.py"
+      - ".github/workflows/validate-fie-tranche0-baseline.yml"
+      - ".github/workflows/validate-fie-tranche3a-replacement-preflight.yml"
+      - ".github/workflows/validate-fie-tranche5c-documentation-lifecycle-preflight.yml"
+      - ".github/workflows/validate-fie-tranche5c-documentation-lifecycle.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: fie-controlled-tranche5c-preflight-${{ github.ref }}
+  group: fie-controlled-tranche5c-target-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  characterize:
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -28,8 +42,10 @@ jobs:
           node-version: "22"
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
-      - name: Verify completed Tranche 5B ancestry
-        run: git merge-base --is-ancestor bf88365ab4409d43732ca701386f97f29755f8ae HEAD
+      - name: Verify authorized preflight ancestry
+        run: git merge-base --is-ancestor f0f1eec27286be51dc1de2e078dd3c6f01618628 HEAD
+      - name: Validate documentation and workflow lifecycle contract
+        run: python research/integrity_tranche5c_documentation_lifecycle.py --mode target
       - name: Preserve completed contracts
         run: |
           node research/integrity_tranche5b_research_lab_freshness.js
@@ -44,35 +60,35 @@ jobs:
           python research/integrity_tranche3e_research_producer_typing.py
           node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
           node research/integrity_tranche3a_all_league_replacement_profiles.js
-      - name: Reproduce documentation and workflow lifecycle gap
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts/tranche5c
-          python research/integrity_tranche5c_documentation_lifecycle.py | tee artifacts/tranche5c/documentation-lifecycle-baseline.log
-          grep -F "KNOWN_GAP_REPRODUCED documentation and workflow lifecycle ownership remain fragmented" artifacts/tranche5c/documentation-lifecycle-baseline.log
       - name: Canonical deterministic release build
         run: python tools/release_build.py --mode personal
-      - name: Require deployable source and no generated drift
+      - name: Require deployable source
+        run: python -c "import json; assert json.load(open('config/release-gate.json'))['status'] == 'DEPLOYABLE_SOURCE'"
+      - name: Capture deterministic generated synchronization
         shell: bash
         run: |
           python - <<'PY'
-          import json, subprocess
-          data=json.load(open('config/release-gate.json'))
-          assert data.get('status') == 'DEPLOYABLE_SOURCE', data.get('status')
+          import pathlib, shutil, subprocess
           lines=subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines()
           changed=[]
           for line in lines:
               path=line[3:].strip().split(' -> ')[-1]
               if not (path == 'artifacts' or path.startswith('artifacts/')): changed.append(path)
-          if changed: raise SystemExit('Unexpected preflight drift:\n- '+'\n- '.join(changed))
-          print('PASS Tranche 5C preflight made no runtime/generated changes')
+          allowed={'config/build-manifest.json','config/release-gate.json','dist/config/build-manifest.json'}
+          unexpected=sorted(set(changed)-allowed)
+          if unexpected: raise SystemExit('Unexpected source/generated drift:\n- '+'\n- '.join(unexpected))
+          out=pathlib.Path('artifacts/tranche5c/generated-sync');out.mkdir(parents=True,exist_ok=True)
+          for path in sorted(set(changed)&allowed):
+              src=pathlib.Path(path)
+              if src.exists():
+                  dst=out/path;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+          print('TRANCHE5C_TARGET_SYNC_REQUIRED:', ', '.join(sorted(changed)) if changed else 'none')
           PY
-      - name: Upload Tranche 5C characterization evidence
+      - name: Upload Tranche 5C target evidence and deterministic sync
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: fie-controlled-tranche5c-preflight-${{ github.sha }}
+          name: fie-controlled-tranche5c-target-${{ github.sha }}
           retention-days: 30
           if-no-files-found: warn
           path: |
