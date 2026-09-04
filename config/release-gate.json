@@ -69,7 +69,7 @@
       "cmd": "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python research/integrity_dist_hygiene_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "PASS integrity_dist_hygiene_test files=405\n",
+      "stdout": "PASS integrity_dist_hygiene_test files=406\n",
       "stderr": ""
     },
     {
@@ -280,6 +280,20 @@
       "ok": true,
       "code": 0,
       "stdout": "PASS Tranche 3E exact producers, validators, schemas and governed outputs are typed fail-closed\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_tranche5a_semantic_ux.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS Tranche 5A semantic UX contract and browser mirror\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python research/integrity_tranche5a_semantic_ux_rank_identity.py --mode target",
+      "ok": true,
+      "code": 0,
+      "stdout": "TARGET_GAP_CLOSED canonical rank vocabulary and surface roles enforced\n{\"draft_board_rank_and_decision_rank_both_present\": true, \"labels_present\": [\"Draft Rank\", \"FIE Pos\", \"Asset Rank\", \"League Rank\", \"FIE League Rank\", \"Board Rank\", \"Decision Rank\", \"Market Rank\"], \"mode\": \"target\", \"parallel_research_panels\": 6, \"research_report_declares_no_rank_calculation\": true, \"separate_research_overlay\": true, \"value_finder_declares_timing_not_second_board\": true}\n",
       "stderr": ""
     },
     {
