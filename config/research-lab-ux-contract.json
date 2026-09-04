@@ -1,0 +1,34 @@
+{
+  "schema": "fie-research-lab-ux-v1",
+  "version": "1.0.0",
+  "navigation_groups": [
+    {
+      "id": "evidence",
+      "label": "Evidence & validation",
+      "routes": ["validation", "research", "research2", "research3", "research4"]
+    },
+    {
+      "id": "decision_evidence",
+      "label": "Decision evidence",
+      "routes": ["research5"]
+    },
+    {
+      "id": "production_data",
+      "label": "Production & data",
+      "routes": ["research6", "features", "model"]
+    }
+  ],
+  "freshness_states": {
+    "current": "Available evidence is within the configured maximum age.",
+    "aging": "Available evidence is within the configured maximum age but approaching it.",
+    "stale": "Evidence is older than the configured maximum age and must not be presented as current.",
+    "unavailable": "The source explicitly reports no available evidence.",
+    "unknown": "No trustworthy as-of timestamp is available."
+  },
+  "invariants": [
+    "Freshness is display-only and never changes evidence availability, scores, ranks, recommendations, or promotion decisions.",
+    "All milestone and diagnostics routes remain addressable by their existing route IDs.",
+    "The League Research Report remains league-scoped evidence and never owns canonical ranking.",
+    "Future or invalid timestamps are shown as unknown rather than current."
+  ]
+}

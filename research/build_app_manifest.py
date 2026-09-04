@@ -35,6 +35,8 @@ COMPONENTS={
  'decision_service':'app/core/decision-service.js',
  'semantic_ux':'app/core/semantic-ux.js',
  'semantic_ux_contract':'config/semantic-ux-contract.json',
+ 'research_lab_ux':'app/core/research-lab-ux.js',
+ 'research_lab_ux_contract':'config/research-lab-ux-contract.json',
  'runtime':'app/runtime-foundation.js',
  'current_player_features':'app/current-player-features.js',
  'decision_model':'app/decision-model-v9.js',

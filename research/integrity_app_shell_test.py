@@ -12,6 +12,7 @@ REQUIRED = (
     'app/decision-ui.css',
     'app/current-snapshot-store.js',
     'app/core/semantic-ux.js',
+    'app/core/research-lab-ux.js',
     'app/decision-engines.js',
     'app/value-finder.js',
     'app/dst-intelligence.js',

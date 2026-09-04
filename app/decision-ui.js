@@ -6,7 +6,7 @@
 'use strict';
 const VERSION='9.3.2-decision-ux';
 const HANDLED=new Set(['draft','myroster','startsit','waivers','targets','all','offense','idp','team','draftassistant','trades','leagueintel']);
-const PANEL_IDS=['modelPanel','teamPanel','tradePanel','draftAssistantPanel','draftAnalysisPanel','leagueIntelPanel','validationPanel','featuresPanel','homePanel','dstPanel','kickerPanel','valueFinderPanel','leagueRulesPanel','researchPanel','research2Panel','research3Panel','research4Panel','research5Panel','research6Panel','matchupSimPanel'];
+const PANEL_IDS=['modelPanel','teamPanel','tradePanel','draftAssistantPanel','draftAnalysisPanel','leagueIntelPanel','validationPanel','featuresPanel','homePanel','dstPanel','kickerPanel','valueFinderPanel','leagueRulesPanel','labOverviewPanel','researchPanel','research2Panel','research3Panel','research4Panel','research5Panel','research6Panel','matchupSimPanel'];
 const UI={page:{},sort:{},weeklyMode:'points',weeklyRosterFilter:'ALL',drawerWrapped:false,postRenderWrapped:false,searchTimer:null};
 const $=id=>document.getElementById(id);
 const finite=x=>window.FIECore?.Numeric?.finiteOrNull?.(x)??((x===null||x===undefined||(typeof x==='string'&&x.trim()===''))?null:(Number.isFinite(Number(x))?Number(x):null));
