@@ -18,10 +18,10 @@ def git_output(*args: str) -> str:
     return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
 
 
-def changed_since(commit: str) -> set[str]:
+def changed_between(start: str, end: str = "HEAD") -> set[str]:
     return {
         path.replace("\\", "/")
-        for path in git_output("diff", "--name-only", commit, "HEAD").splitlines()
+        for path in git_output("diff", "--name-only", start, end).splitlines()
         if path
     }
 
@@ -72,7 +72,7 @@ def main() -> None:
 
     if args.mode == "preflight":
         assert not TARGET.exists(), TARGET
-        assert changed_since(baseline) <= set(data["preflight_allowed_paths"])
+        assert changed_between(baseline) <= set(data["preflight_allowed_paths"])
         assert set(lifecycle.get("active_controlled_workflows") or []) == {data["preflight_workflow"]}
         assert workflow_flags(preflight_workflow) == {"push": True, "schedule": False, "dispatch": True}
         assert workflow_flags(release_workflow) == {"push": True, "schedule": False, "dispatch": True}
@@ -87,8 +87,13 @@ def main() -> None:
         commit = str(validated.get("commit") or "")
         run = str(validated.get("github_actions_run") or "")
         assert len(commit) == 40 and run.isdigit(), validated
-        subprocess.run(["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=ROOT, check=True)
-        assert changed_since(commit) <= set(data["target_allowed_paths"]), changed_since(commit)
+        closure = str(target.get("validated_closure_head") or "")
+        assert len(closure) == 40, target
+        # The bounded 5E authorization is immutable once its synchronized closure
+        # is validated. Later tranches must preserve it, not be treated as 5E edits.
+        subprocess.run(["git", "merge-base", "--is-ancestor", commit, closure], cwd=ROOT, check=True)
+        assert changed_between(commit, closure) <= set(data["target_allowed_paths"]), changed_between(commit, closure)
+        subprocess.run(["git", "merge-base", "--is-ancestor", closure, "HEAD"], cwd=ROOT, check=True)
         assert not (lifecycle.get("active_controlled_workflows") or []), lifecycle
         assert workflow_flags(preflight_workflow) == {"push": False, "schedule": False, "dispatch": True}
         assert workflow_flags(release_workflow) == {"push": True, "schedule": False, "dispatch": True}
