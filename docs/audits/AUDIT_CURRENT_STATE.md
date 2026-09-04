@@ -5,7 +5,7 @@
 - Frozen PRE-audit reference: `45cbcff99ba10f4e88130f2441553817fc0d1ccc`
 - Authorized branch: `audit-implementation-2026-09`
 - Last validated target head: `c4c5b3a8ed8224e88c48382839030081137be8db` — Tranche 5D target green
-- Current authorized boundary: Tranche 5D closure synchronization only; its controlled validator returns to manual-only historical validation
+- Current authorized boundary: Tranche 5E regression and closure preflight; target release authorization requires an independently green preflight
 
 ## Completed validated tranches
 
@@ -53,4 +53,4 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 
 ## Known-safe stopping point
 
-Tranche 5D is closed after exact generated-state synchronization. Its completed controlled validator is manual-only, no controlled workflow remains active, and no football-model, runtime, or scheduled operational-workflow change was made. The next authorized phase is 5E regression and closure.
+Tranche 5D is closed after exact generated-state synchronization. Tranche 5E is limited to regression and release-hygiene closure: it may not change football-model, runtime, data, ranking, recommendation, promotion, or scheduled operational-workflow behavior. Its preflight is the only temporarily active controlled validator.
