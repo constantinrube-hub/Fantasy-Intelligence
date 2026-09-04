@@ -5,7 +5,7 @@
 - Frozen PRE-audit reference: `45cbcff99ba10f4e88130f2441553817fc0d1ccc`
 - Authorized branch: `audit-implementation-2026-09`
 - Last validated target head: `5a45ad0ab985f8549cc6512684e7d7ab6a838d8d` — Tranche 5C target green
-- Current authorized boundary: assess whether evidence-backed cleanup is necessary; do not begin cleanup without a dedicated preflight
+- Current authorized boundary: validate the dedicated Tranche 5D cleanup preflight; do not begin archival relocation until that workflow passes
 
 ## Completed validated tranches
 
@@ -21,6 +21,7 @@
 - 5B Research/Lab grouping and display-only freshness — `bf88365ab4409d43732ca701386f97f29755f8ae`
 - 5C preflight — `f0f1eec27286be51dc1de2e078dd3c6f01618628`, GitHub Actions run `33868785052`, success
 - 5C documentation/workflow lifecycle — `5a45ad0ab985f8549cc6512684e7d7ab6a838d8d`, GitHub Actions run `33884966348`, success, `DEPLOYABLE_SOURCE` across 50 checks
+- 5D documentation cleanup preflight package — pending independent manual-workflow validation; it proposes relocation of 29 evidence-backed historical records and explicitly preserves four path-bound records
 
 ## Permanent invariants
 
@@ -45,9 +46,10 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 ## Required validation
 
 - Targeted: `research/integrity_tranche5c_documentation_lifecycle.py --mode target`
+- Current preflight: `research/integrity_tranche5d_documentation_cleanup.py`
 - Preserve relevant 5B, 5A, 2A, 3A–3E, all-league profile, and all-league replacement contracts.
 - Closure: deterministic personal release build, `DEPLOYABLE_SOURCE`, and source/dist parity with only authorized generated synchronization.
 
 ## Known-safe stopping point
 
-Tranche 5C is closed after deterministic generated-state synchronization. The next possible tranche is conditional evidence-backed cleanup; no football-model, runtime, or scheduled operational-workflow change is authorized.
+Tranche 5C is closed after deterministic generated-state synchronization. Tranche 5D has a characterization package awaiting its manual preflight workflow; no archival relocation is authorized until it is green. No football-model, runtime, or scheduled operational-workflow change is authorized.
