@@ -33,6 +33,8 @@ COMPONENTS={
  'research_value_finder_bridge':'app/core/research-value-finder-bridge.js',
  'current_snapshot_store':'app/current-snapshot-store.js',
  'decision_service':'app/core/decision-service.js',
+ 'semantic_ux':'app/core/semantic-ux.js',
+ 'semantic_ux_contract':'config/semantic-ux-contract.json',
  'runtime':'app/runtime-foundation.js',
  'current_player_features':'app/current-player-features.js',
  'decision_model':'app/decision-model-v9.js',

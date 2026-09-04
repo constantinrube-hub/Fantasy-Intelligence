@@ -34,7 +34,8 @@ def write_json(path: str | Path, obj: Any, *, compact: bool = False) -> None:
         text = json.dumps(obj, separators=(",", ":"), allow_nan=False)
     else:
         text = json.dumps(obj, indent=2, allow_nan=False)
-    p.write_text(text + "\n", encoding="utf-8")
+    with p.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text + "\n")
 
 
 def stable_bytes(obj: Any) -> bytes:

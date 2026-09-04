@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+'use strict';
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
+const ROOT=path.resolve(__dirname,'..');
+const expected=JSON.parse(fs.readFileSync(path.join(ROOT,'config/semantic-ux-contract.json'),'utf8'));
+const context={window:{}};vm.createContext(context);
+vm.runInContext(fs.readFileSync(path.join(ROOT,'app/core/semantic-ux.js'),'utf8'),context);
+const api=context.window.FIESemanticUX;
+assert(api,'browser semantic UX API missing');
+assert.deepStrictEqual(JSON.parse(JSON.stringify(api.contract)),expected,'browser contract must exactly mirror JSON contract');
+assert.strictEqual(api.term('league_rank'),'League Rank');
+assert.strictEqual(api.term('position_rank'),'Position Rank');
+assert.strictEqual(api.term('decision_rank'),'Decision Rank');
+assert.strictEqual(api.contract.rank_terms.decision_rank.roster_aware,true);
+assert.strictEqual(api.contract.rank_terms.market_rank.market_input,true);
+assert.strictEqual(api.contract.surface_roles.draft_board.owns_canonical_rank,true);
+for(const [key,role] of Object.entries(api.contract.surface_roles))if(key!=='draft_board')assert.strictEqual(role.owns_canonical_rank,false,key);
+assert(Object.isFrozen(api.contract)&&Object.isFrozen(api.contract.rank_terms),'contract must be immutable');
+const index=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
+assert(index.indexOf('app/core/semantic-ux.js')<index.indexOf('app/decision-ui.js'),'semantic contract must load before decision UI');
+console.log('PASS Tranche 5A semantic UX contract and browser mirror');
