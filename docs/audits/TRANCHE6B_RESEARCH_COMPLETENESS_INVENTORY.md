@@ -30,4 +30,6 @@ The inventory is a truthful evidence map, not a scorecard. Its aggregate counts 
 
 ## Controlled validation lifecycle
 
-While Tranche 6B is being introduced, its validator is the one explicitly registered active controlled workflow and starts on a push to `audit-implementation-2026-09`. This makes the target visible and runnable from GitHub Actions before the branch is merged. Once its release gate is green and closure is recorded, it returns to the repository-wide manual-only historical-validation policy.
+The target validated successfully at `d365e22e44af4c4d621083900c4b7d20c43636fc` in GitHub Actions run `33925069372` (50 seconds, `DEPLOYABLE_SOURCE`). Its release artifact SHA-256 is `1cd361bac926e4b8f3964eea14e4d935fb425aff4f9c8d344c22915e73e62095`. The verified generated synchronization is limited to `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`.
+
+The workflow has now returned to the repository-wide manual-only historical-validation policy. It remains available for future verification but no longer starts from ordinary pushes.
