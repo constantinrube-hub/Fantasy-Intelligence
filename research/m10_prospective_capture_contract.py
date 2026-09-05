@@ -270,7 +270,7 @@ def create_missed_capture(root: Path, season: int, week: int, captured_at: str, 
     return {"status": "CREATED", "manifest": paths["missed"]}
 
 
-def validate_capture(root: Path, season: int, week: int, *, require_outcome: bool = False) -> dict[str, Any]:
+def validate_capture(root: Path, season: int, week: int, *, require_outcome: bool = False, require_fixture: bool | None = True) -> dict[str, Any]:
     contract = load_contract()
     paths = capture_paths(root, season, week)
     has_capture, has_missed = paths["manifest"].exists(), paths["missed"].exists()
@@ -284,7 +284,9 @@ def validate_capture(root: Path, season: int, week: int, *, require_outcome: boo
         assert not paths["forecasts"].exists() and not paths["scoring"].exists() and not paths["decisions"].exists()
         return {"status": "MISSED", "reason": missed["reason"]}
     manifest = read_json(paths["manifest"])
-    assert manifest["schema"] == SCHEMA and manifest["fixture"] is True and manifest["status"] == "CAPTURED"
+    assert manifest["schema"] == SCHEMA and isinstance(manifest.get("fixture"), bool) and manifest["status"] == "CAPTURED"
+    if require_fixture is not None:
+        assert manifest["fixture"] is require_fixture
     assert manifest["capture_contract_sha256"] == contract_sha256()
     assert manifest["expected_models"] == list(MODELS) and manifest["expected_positions"] == list(POSITIONS)
     assert manifest["first_write_immutable"] is True
