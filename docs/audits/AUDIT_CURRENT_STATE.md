@@ -14,7 +14,8 @@
 - Last validated target head: `81bd41a72695db391febb0e32edee0b596277020` — Tranche 7C target green
 - Last synchronized closure head: `90ca7f8ae468f86e7e0918de41a98546fcecee53` — Tranche 7C audit-branch operational capture closure
 - Last validated target head: `8d34c04c6f768f12abe3bd128c0ab68c06f4bc18` — Tranche 7C-R1 portable season-lock target green, GitHub Actions run `33964009179`, success in 1m 4s, `DEPLOYABLE_SOURCE`; verified artifact SHA-256 `da28b8c410be591fb1e1a318d2ce82c08569b570a76623c9561fcf2162509e86`
-- Current authorized boundary: Tranche 7C-R2 time-safe weekly source-envelope and bundle producer. It may reuse established schedule, identity, profile, and completed-game owners, but cannot activate a scheduler, create live forecasts, alter app/runtime behavior, or authorize 6F until its own controlled target is validated
+- Last validated target head: `a3c692299667245b8ac5b20a095b8b5c5b7701c0` — Tranche 7C-R2 source-bundle target green, GitHub Actions run `33984172910`, success in 55s, `DEPLOYABLE_SOURCE`; verified artifact SHA-256 `126276ebd11c5765a34ddded2656c8095647f6afdb1ca846ee847473ef8ef63`
+- Current authorized boundary: Tranche 7C-R3 operational missed-capture and monotonic outcome-revision extension. It remains research-only and cannot activate a scheduler, write live forecasts, alter app/runtime behavior, or authorize 6F until separately validated
 
 ## Completed validated tranches
 
