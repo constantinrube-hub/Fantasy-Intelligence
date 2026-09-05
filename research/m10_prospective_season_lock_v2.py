@@ -191,7 +191,10 @@ def make_fixture_input() -> dict[str, Any]:
                 team = f"T{player % 4:02d}"
                 base = float(5 + pos_index * 4 + player % 7 + season - 2019)
                 targets = {name: round(max(0.0, base * (0.2 + index * 0.05)), 5) for index, name in enumerate(offline["targets"][position])}
-                if player == 0 and season == 2020 and "rushing_yards" in targets:
+                # Keep a legitimate negative continuous-yardage observation in
+                # the first declared outer test season so the OOS residual
+                # fixture proves that it is retained rather than zero-clamped.
+                if player == 0 and season == 2022 and "rushing_yards" in targets:
                     targets["rushing_yards"] = -1.0
                 row_key = f"{season}-01-fixture-{position.lower()}-{player}-{team}"
                 rows.append({"row_key": row_key, "season": season, "week": 1, "canonical_player_id": f"fixture-{position.lower()}-{player}", "position_model": position, "team": team,
