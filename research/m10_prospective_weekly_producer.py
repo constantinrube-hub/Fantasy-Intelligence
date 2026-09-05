@@ -61,6 +61,11 @@ def validate_raw_envelope(path: Path) -> tuple[dict[str, Any], dict[str, Path]]:
         item = _safe(root, str(record["path"]))
         assert item.is_file() and sha256_file(item) == str(record["sha256"])
         _time_record(record, observed)
+        response_files = record.get("response_files") or []
+        assert response_files, "raw source responses must be preserved before transformation"
+        for response in response_files:
+            raw = _safe(root, str(response["path"]))
+            assert raw.is_file() and sha256_file(raw) == str(response["sha256"])
         paths[str(record["role"])] = item
     schedule = read_json(paths["schedule"])
     assert int(schedule["season"]) == int(capture["season"]) and int(schedule["week"]) == int(capture["week"])
@@ -280,7 +285,7 @@ def fixture_raw_envelope(root: Path, observed_at: str = "2026-09-09T06:00:00+00:
     records = []
     for role, payload in payloads.items():
         path = raw / f"{role}.json"; write_json(path, payload)
-        records.append({"role": role, "path": path.name, "sha256": sha256_file(path), "captured_at": observed_at, "as_of": observed_at, "point_in_time_eligible": True, "historical_reconstruction": False, "source_identity": f"fixture-public-core-{role}", "release_or_etag": "fixture-r8b-v1"})
+        records.append({"role": role, "path": path.name, "sha256": sha256_file(path), "captured_at": observed_at, "as_of": observed_at, "point_in_time_eligible": True, "historical_reconstruction": False, "source_identity": f"fixture-public-core-{role}", "release_or_etag": "fixture-r8b-v1", "response_files": [{"path": path.name, "sha256": sha256_file(path)}]})
     manifest = raw / "raw-envelope.json"
     write_json(manifest, {"schema": RAW_SCHEMA, "fixture": True, "research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "runtime_integration": False, "shadow_integration": False, "automatic_promotion": False, "historical_reconstruction": False, "capture": {"season": 2026, "week": 5, "observed_at": observed_at, "first_kickoff_at": kickoff, "hours_before_first_kickoff": capture_hours(observed_at, kickoff)}, "source_records": records})
     return manifest

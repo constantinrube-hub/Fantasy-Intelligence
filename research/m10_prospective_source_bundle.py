@@ -55,7 +55,7 @@ def create_bundle(input_manifest: Path, output_root: Path) -> dict[str, Any]:
     if hours > 18.0: return {"status": "WINDOW_NOT_REACHED", "manifest": None}
     assert hours >= 0.0, "post-kickoff processing belongs to the later typed-miss component"
     destination = bundle_path(output_root, int(capture["season"]), int(capture["week"]))
-    records = [{key: row[key] for key in ("role", "path", "sha256", "captured_at", "as_of", "point_in_time_eligible", "historical_reconstruction", "source_identity") if key in row} for row in value["source_records"]]
+    records = [{key: row[key] for key in ("role", "path", "sha256", "captured_at", "as_of", "point_in_time_eligible", "historical_reconstruction", "source_identity", "response_files") if key in row} for row in value["source_records"]]
     for output, source in zip(records, value["source_records"]):
         if source.get("release_or_etag") is not None:
             output["release_or_etag"] = source["release_or_etag"]

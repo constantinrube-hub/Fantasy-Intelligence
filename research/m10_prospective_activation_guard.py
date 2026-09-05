@@ -7,6 +7,8 @@ LOCK_PATH = Path("data/research/prospective/m10/season-locks/2026/season-lock.js
 WRITE_PREFIXES = (
     "data/research/prospective/m10/season-locks/2026/",
     "data/research/prospective/m10/forecasts/",
+    "data/research/prospective/m10/scoring-replay/",
+    "data/research/prospective/m10/decision-traces/",
     "data/research/prospective/m10/outcomes/",
     "data/research/prospective/m10/source-bundles/",
 )
