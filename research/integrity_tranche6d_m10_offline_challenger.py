@@ -25,6 +25,11 @@ def main(argv=None) -> None:
     assert contract["research_only"] is True and contract["production_model"] == "M9"
     assert contract["production_activation"] is False and contract["app_integration"] is False
     assert contract["ensemble_policy"] == "PROHIBITED_IN_TRANCHE_6D"
+    assert contract["hgb_loss_policy"] == {
+        "count_targets": "poisson_when_outer_training_target_sum_is_positive",
+        "zero_sum_count_target_fallback": "squared_error",
+        "continuous_targets": "squared_error",
+    }
     assert contract["positions"] == ["QB", "RB", "WR", "TE"]
     assert [f["test_season"] for f in contract["outer_folds"]] == [2022, 2023, 2024, 2025]
     assert all(2026 not in f["train_seasons"] and f["test_season"] != 2026 for f in contract["outer_folds"])
@@ -41,6 +46,8 @@ def main(argv=None) -> None:
         cwd=ROOT, text=True, capture_output=True, check=False,
     ).stdout.strip()
     assert not forbidden, forbidden
+    builder = (ROOT / "research/build_m10_offline_challenger.py").read_text(encoding="utf-8")
+    assert 'float(observed.sum()) > 0 else "squared_error"' in builder
     subprocess.run(["git", "merge-base", "--is-ancestor", "dcc41be", "HEAD"], cwd=ROOT, check=True)
     print(f"PASS Tranche 6D {a.mode}: offline research only; M9 champion and production surfaces unchanged")
 

@@ -19,6 +19,11 @@
       {"learning_rate": 0.05, "max_depth": 3, "max_iter": 120, "l2_regularization": 2.0}
     ]}
   ],
+  "hgb_loss_policy": {
+    "count_targets": "poisson_when_outer_training_target_sum_is_positive",
+    "zero_sum_count_target_fallback": "squared_error",
+    "continuous_targets": "squared_error"
+  },
   "quantiles": [0.1, 0.25, 0.5, 0.75, 0.9],
   "ensemble_policy": "PROHIBITED_IN_TRANCHE_6D",
   "availability_policy": "EXTERNAL_GOVERNED_INPUT_UNTIL_PROSPECTIVE_HISTORY_IS_SUFFICIENT",

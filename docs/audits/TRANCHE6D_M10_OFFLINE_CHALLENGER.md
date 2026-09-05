@@ -10,6 +10,8 @@ M10 is an offline research challenger for QB/RB/WR/TE. M9 remains the production
 
 The ladder contains the M9 champion comparator, a median-imputed standardized Ridge baseline, and a shallow regularized histogram-gradient-boosting challenger. Its two-option hyperparameter search is selected using only the final season inside each outer training window. Ensembles are prohibited in 6D.
 
+Count targets use Poisson loss only when the applicable training window contains positive mass. A sparse all-zero count target deterministically falls back to squared-error loss; this avoids an undefined Poisson fit without looking at validation or test rows. Continuous targets always use squared-error loss.
+
 ## Component and evaluation contract
 
 M10 predicts raw position-appropriate outcomes from lagged public-core evidence. Team target/carry budgets and completion/reception identities are reconciled before the existing canonical scorer transforms raw outcomes into league fantasy points. The artifact reports paired MAE, bias, rank correlation, pinball loss at P10/P25/P50/P75/P90, and P10–P90 coverage/width for every position and held-out season.

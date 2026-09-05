@@ -61,8 +61,14 @@ def linear_model(alpha: float) -> Pipeline:
     return Pipeline([("impute", SimpleImputer(strategy="median")), ("scale", StandardScaler()), ("ridge", Ridge(alpha=alpha))])
 
 
-def hgb_model(spec: dict[str, Any], target: str) -> Pipeline:
-    loss = "poisson" if target in COUNT_TARGETS else "squared_error"
+def hgb_loss(target: str, training_target: pd.Series) -> str:
+    """Choose a valid deterministic loss from the outer training window only."""
+    observed = pd.to_numeric(training_target, errors="coerce").dropna().clip(lower=0)
+    return "poisson" if target in COUNT_TARGETS and float(observed.sum()) > 0 else "squared_error"
+
+
+def hgb_model(spec: dict[str, Any], target: str, training_target: pd.Series) -> Pipeline:
+    loss = hgb_loss(target, training_target)
     return Pipeline([
         ("impute", SimpleImputer(strategy="median")),
         ("model", HistGradientBoostingRegressor(loss=loss, random_state=106, **spec)),
@@ -88,7 +94,7 @@ def choose_hgb_spec(train: pd.DataFrame, features: list[str], target: str, specs
         return dict(specs[0])
     scored = []
     for i, spec in enumerate(specs):
-        pred = fit_predict(hgb_model(spec, target), tr, va.loc[ok], features, target)
+        pred = fit_predict(hgb_model(spec, target, tr[target]), tr, va.loc[ok], features, target)
         scored.append((float(mean_absolute_error(y[ok], pred)), i, spec))
     return dict(min(scored, key=lambda row: (row[0], row[1]))[2])
 
@@ -146,7 +152,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 raw = test[["season", "week", "team"] + [c for c in ("team_pass_attempts_prior4", "team_rush_attempts_prior4") if c in test]].copy()
                 for target in targets:
                     if candidate == "M10_LINEAR": model = linear_model(6.0)
-                    else: model = hgb_model(choose_hgb_spec(train, features, target, contract["candidate_ladder"][2]["search_space"]), target)
+                    else: model = hgb_model(choose_hgb_spec(train, features, target, contract["candidate_ladder"][2]["search_space"]), target, train[target])
                     raw[target] = fit_predict(model, train, test, features, target)
                 predictions[candidate] = reconcile(raw)
             actual = pd.to_numeric(test.fantasy_points, errors="coerce")
