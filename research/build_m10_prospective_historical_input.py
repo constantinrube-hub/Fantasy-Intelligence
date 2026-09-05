@@ -38,7 +38,10 @@ def make_rows(primary: pd.DataFrame) -> list[dict]:
     for _, row in frame.iterrows():
         position=str(row["position_model"])
         targets={name: float(row.get(name, 0.0) or 0.0) for name in TARGETS[position]}
-        features={"player_prior4_volume": row.get("_volume_prior4"), "player_prior4_efficiency": row.get("_efficiency_prior4"), "team_prior4_budget": row.get("_team_budget_prior4")}
+        def optional(name: str):
+            value=row.get(name)
+            return None if pd.isna(value) else float(value)
+        features={"player_prior4_volume": optional("_volume_prior4"), "player_prior4_efficiency": optional("_efficiency_prior4"), "team_prior4_budget": optional("_team_budget_prior4")}
         result.append({"season":int(row["season"]), "week":int(row["week"]), "position_model":position, "canonical_player_id":str(row["canonical_player_id"]), "features":features, "targets":targets})
     return result
 

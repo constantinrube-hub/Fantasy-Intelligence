@@ -1,0 +1,33 @@
+name: FIE Controlled Implementation — Tranche 7C-R7 Real 2026 Season Lock
+on:
+  push:
+    branches: [audit-implementation-2026-09]
+    paths:
+      - 'research/build_m10_prospective_historical_input.py'
+      - 'research/m10_prospective_season_lock.py'
+      - 'research/build_m10_prospective_season_lock.py'
+      - '.github/workflows/validate-fie-tranche7cr7-real-season-lock.yml'
+      - 'config/repository-lifecycle-contract.json'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r research/requirements.txt
+      - name: Build hash-recorded historical input and immutable lock candidate
+        run: |
+          mkdir -p artifacts/tranche7cr7
+          python research/build_m10_prospective_historical_input.py --output artifacts/tranche7cr7/historical-input.json
+          python research/build_m10_prospective_season_lock.py --input artifacts/tranche7cr7/historical-input.json --output artifacts/tranche7cr7/season-lock.json
+          python research/validate_m10_prospective_season_lock.py artifacts/tranche7cr7/season-lock.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fie-controlled-tranche7cr7-target-${{ github.sha }}
+          path: artifacts/tranche7cr7/
+          if-no-files-found: error
