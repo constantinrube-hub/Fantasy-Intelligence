@@ -28,7 +28,9 @@ jobs:
         with: {python-version: '3.12'}
       - run: pip install -r research/requirements.txt
       - name: Verify no-network capture contract
-        run: python research/integrity_m10_prospective_r8c_workflow_test.py
+        run: |
+          python research/integrity_m10_prospective_r8c_workflow_test.py
+          python research/integrity_m10_prospective_week1_source_boundary.py
       - name: Capture public-core source envelope and immutable evidence
         env:
           INPUT_SEASON: ${{ inputs.season }}

@@ -39,6 +39,29 @@ def _fetch(url: str, destination: Path) -> dict[str, Any]:
     return {"path": destination, "sha256": hashlib.sha256(response.content).hexdigest(), "source_identity": url, "release_or_etag": response.headers.get("ETag") or response.headers.get("Last-Modified") or "NOT_EXPOSED"}
 
 
+def _completed_game_responses(responses: Path, *, season: int, week: int) -> list[dict[str, Any]]:
+    """Capture the completed history available at the forecast cutoff.
+
+    Week 1 has no current-season completed games.  Its shared as-of features
+    therefore use the prior completed season and must not request a weekly
+    file that the public source cannot publish until Week 1 has finished.
+    From Week 2 onward, retain that prior-season context and add the current
+    season's completed-game file; an unavailable current file then remains a
+    retryable source failure rather than being replaced with invented rows.
+    """
+    history = _fetch(
+        SOURCE_TEMPLATES["player_week"].format(season=season - 1),
+        responses / f"player-week-{season - 1}.csv",
+    )
+    if week == 1:
+        return [history]
+    current = _fetch(
+        SOURCE_TEMPLATES["player_week"].format(season=season),
+        responses / f"player-week-{season}.csv",
+    )
+    return [history, current]
+
+
 def _number(frame: pd.DataFrame, *names: str) -> pd.Series:
     for name in names:
         if name in frame:
@@ -83,9 +106,10 @@ def capture(output_dir: Path, *, season: int | None, week: int | None) -> Path |
     home = "home_team" if "home_team" in slice_ else "home"; away = "away_team" if "away_team" in slice_ else "away"
     games = [{"home_team": str(row[home]), "away_team": str(row[away]), "kickoff_at": pd.to_datetime(str(row.get("gameday") or row.get("game_date")) + " " + str(row.get("gametime")), utc=True).isoformat()} for _, row in slice_.iterrows()]
     schedule_path = output_dir / "schedule.json"; write_json(schedule_path, {"season": resolved_season, "week": resolved_week, "season_type": "REG", "first_kickoff_at": kickoff.isoformat(), "games": games})
-    stats_response = _fetch(SOURCE_TEMPLATES["player_week"].format(season=resolved_season), responses / "player-week.csv")
+    completed_responses = _completed_game_responses(responses, season=resolved_season, week=resolved_week)
     players_response = _fetch(SOURCE_TEMPLATES["players"], responses / "players.csv")
-    stats, players = pd.read_csv(stats_response["path"], low_memory=False), pd.read_csv(players_response["path"], low_memory=False)
+    stats = pd.concat([pd.read_csv(item["path"], low_memory=False) for item in completed_responses], ignore_index=True, sort=False)
+    players = pd.read_csv(players_response["path"], low_memory=False)
     identity, _ = build_identity(players)
     id_map = identity[["gsis_id", "canonical_player_id", "position"]].dropna(subset=["gsis_id"]).drop_duplicates("gsis_id")
     players_out = identity[["canonical_player_id", "position"]].copy()
@@ -97,7 +121,11 @@ def capture(output_dir: Path, *, season: int | None, week: int | None) -> Path |
     current = stats.assign(_source_id=source_id).merge(id_map, left_on="_source_id", right_on="gsis_id", how="inner")
     current["position_model"] = current.get("position", current.get("position_y", "")).map(normalize_position)
     current["team"] = current.get("recent_team", current.get("team", "")).astype(str)
-    current = current[(pd.to_numeric(current.get("week"), errors="coerce") < resolved_week) & current["position_model"].isin(["QB", "RB", "WR", "TE"])]
+    seasons = pd.to_numeric(current.get("season"), errors="coerce")
+    weeks = pd.to_numeric(current.get("week"), errors="coerce")
+    current = current[((seasons < resolved_season) | ((seasons == resolved_season) & (weeks < resolved_week))) & current["position_model"].isin(["QB", "RB", "WR", "TE"])]
+    if "season_type" in current:
+        current = current[current["season_type"].astype(str).str.upper().isin({"REG", "REGULAR"})]
     targets = {"attempts": ("attempts", "passing_attempts"), "completions": ("completions",), "passing_yards": ("passing_yards",), "passing_tds": ("passing_tds",), "interceptions": ("interceptions", "passing_interceptions"), "carries": ("carries", "rushing_attempts"), "rushing_yards": ("rushing_yards",), "rushing_tds": ("rushing_tds",), "targets": ("targets",), "receptions": ("receptions",), "receiving_yards": ("receiving_yards",), "receiving_tds": ("receiving_tds",)}
     normalized = pd.DataFrame({"season": pd.to_numeric(current.get("season"), errors="coerce"), "week": pd.to_numeric(current.get("week"), errors="coerce"), "canonical_player_id": current["canonical_player_id"], "position_model": current["position_model"], "team": current["team"]})
     for name, aliases in targets.items(): normalized[name] = _number(current, *aliases)
@@ -105,7 +133,7 @@ def capture(output_dir: Path, *, season: int | None, week: int | None) -> Path |
     completed_path = output_dir / "completed-games.json"; write_json(completed_path, {"player_games": normalized.to_dict("records")})
     profiles_path = output_dir / "roster-profile-snapshot.json"; write_json(profiles_path, _profile_payload())
     manifest = output_dir / "raw-envelope.json"
-    write_json(manifest, {"schema": RAW_SCHEMA, "fixture": False, "research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "runtime_integration": False, "shadow_integration": False, "automatic_promotion": False, "historical_reconstruction": False, "capture": {"season": resolved_season, "week": resolved_week, "observed_at": observed, "first_kickoff_at": kickoff.isoformat(), "hours_before_first_kickoff": capture_hours(observed, kickoff.isoformat())}, "source_records": [_record("schedule", schedule_path, observed, [state_response, games_response]), _record("completed_games", completed_path, observed, [stats_response]), _record("identity_snapshot", identity_path, observed, [players_response]), _record("roster_profile_snapshot", profiles_path, observed, [])]})
+    write_json(manifest, {"schema": RAW_SCHEMA, "fixture": False, "research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "runtime_integration": False, "shadow_integration": False, "automatic_promotion": False, "historical_reconstruction": False, "capture": {"season": resolved_season, "week": resolved_week, "observed_at": observed, "first_kickoff_at": kickoff.isoformat(), "hours_before_first_kickoff": capture_hours(observed, kickoff.isoformat())}, "source_records": [_record("schedule", schedule_path, observed, [state_response, games_response]), _record("completed_games", completed_path, observed, completed_responses), _record("identity_snapshot", identity_path, observed, [players_response]), _record("roster_profile_snapshot", profiles_path, observed, [])]})
     # The governed profile snapshot is local evidence, not an HTTP response.
     value = __import__("json").loads(manifest.read_text(encoding="utf-8")); value["source_records"][-1]["source_identity"] = "governed repository league profiles"; value["source_records"][-1]["release_or_etag"] = "NOT_APPLICABLE_LOCAL_GOVERNED_STATE"; value["source_records"][-1]["response_files"] = [{"path": profiles_path.name, "sha256": sha256_file(profiles_path)}]; write_json(manifest, value)
     return manifest
