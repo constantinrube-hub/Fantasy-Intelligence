@@ -25,4 +25,6 @@ The capture manifest requires a verified zero-to-18-hour lead time, schedule has
 
 The controlled 7B workflow runs focused fixture and integrity checks, preserves 6B–6E closures, then performs its single release gate. Its generated synchronization must remain limited to `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`.
 
-After a green target and artifact verification, the workflow returns to manual-only and a closure record freezes its validated target. Only then may 7C connect this contract to real time-safe inputs; recurring scheduled rollout remains a separate explicit boundary.
+The target validated successfully at `0b120fd652a142372a221240381acfa47c40a238` in GitHub Actions run `33960545413` (50 seconds, `DEPLOYABLE_SOURCE`). Its release artifact SHA-256 is `eb2c764ed9f11244ae14b08d67b904fbbd2f20f6258aa3975d0e1be06c211af4`; the verified fixture capture manifest SHA-256 is `67b52ebfd86770ccbebf873c3919eb84addf5f91e8b09a6f7b047ba2142762a2b`. Generated synchronization is limited to `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`.
+
+The workflow has returned to manual-only. Only then may 7C connect this contract to real time-safe inputs; recurring scheduled rollout remains a separate explicit boundary.

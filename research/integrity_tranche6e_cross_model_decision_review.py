@@ -28,6 +28,10 @@ def sha256(path: str) -> str:
     return hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
 
 
+def git_blob_sha256(revision: str, path: str) -> str:
+    return hashlib.sha256(subprocess.check_output(["git", "show", f"{revision}:{path}"], cwd=ROOT)).hexdigest()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("target", "closure"), default="target")
@@ -69,7 +73,7 @@ def main(argv: list[str] | None = None) -> int:
         assert target.get("release_artifact", {}).get("sha256") == "ce9f3c819fc7144768c0b6a2b4930f1ef06d899170e2a2495ab3fa837a819b56", target
         assert target.get("review_artifact", {}).get("sha256") == "d6b15e2cfb378cf5e5c02e567761d249f731cbee675ff7908b64eff78278c848", target
         for path, expected in (target.get("authorized_generated_synchronization") or {}).items():
-            assert sha256(path) == expected, path
+            assert git_blob_sha256("02b1143", path) == expected, path
 
     forbidden = subprocess.run(
         ["git", "grep", "-l", "m10-cross-model-decision-review", "--", "app", "functions", "dist/app"],
