@@ -194,3 +194,32 @@ def append_outcomes(outcome_manifest: Path, output_root: Path) -> dict[str, Any]
     write_jsonl_gzip(output, rows)
     write_json(meta, {"schema": "fie-m10-prospective-outcome-v1", "fixture": bool(value.get("fixture") is True), "season": season, "week": week, "revision": 1, "forecast_manifest_sha256": sha256_file(paths["manifest"]), "outcome_path": output.relative_to(output_root).as_posix(), "outcome_sha256": sha256_file(output), "rows": len(rows), "append_only": True, "source_release_or_commit": value["source_release_or_commit"], "source_payload_sha256": value["source_payload_sha256"]})
     return {"status": "CREATED", "manifest": meta}
+
+
+def create_operational_missed_capture(output_root: Path, *, season: int, week: int, observed_at: str, first_kickoff_at: str, reason: str) -> dict[str, Any]:
+    """Write a permanent miss only after the verified kickoff has passed."""
+    from m10_prospective_capture_contract import create_missed_capture, parse_time
+    if reason == "WINDOW_NOT_REACHED":
+        raise ValueError("WINDOW_NOT_REACHED is a successful no-write state, never a permanent miss")
+    if parse_time(observed_at) < parse_time(first_kickoff_at):
+        raise ValueError("operational missed capture may be recorded only after kickoff")
+    return create_missed_capture(output_root, season, week, observed_at, first_kickoff_at, reason)
+
+
+def append_outcome_revision(outcome_manifest: Path, output_root: Path) -> dict[str, Any]:
+    """Append, never overwrite, a corrected model-independent outcome revision."""
+    value, root = read_json(outcome_manifest), outcome_manifest.parent
+    assert value.get("schema") == OUTCOME_INPUT_SCHEMA and value.get("historical_reconstruction") is False
+    revision = int(value["revision"]); assert revision >= 2 and value.get("parent_revision_sha256") and value.get("source_diff_manifest_sha256")
+    season, week = int(value["season"]), int(value["week"]); paths = capture_paths(output_root, season, week)
+    assert paths["manifest"].is_file(), "outcome revisions require an immutable forecast"
+    parent_dir = paths["outcome_dir"].parent / f"revision_{revision - 1}"
+    parent_meta = parent_dir / "outcome-manifest.json"; assert parent_meta.is_file() and sha256_file(parent_meta) == value["parent_revision_sha256"]
+    target_dir = paths["outcome_dir"].parent / f"revision_{revision}"; target = target_dir / "outcomes.jsonl.gz"; meta = target_dir / "outcome-manifest.json"
+    if meta.exists(): return {"status": "EXISTS", "manifest": meta}
+    rows_path = bundle_path(root, str(value["rows_path"])); assert rows_path.is_file() and sha256_file(rows_path) == value["rows_sha256"]
+    rows = read_jsonl_gzip(rows_path); forecasts = {r["forecast_id"] for r in read_jsonl_gzip(paths["forecasts"])}
+    assert {r["forecast_id"] for r in rows} == forecasts and all("model" not in r and int(r["revision"]) == revision for r in rows)
+    write_jsonl_gzip(target, rows)
+    write_json(meta, {"schema":"fie-m10-prospective-outcome-v1","fixture":bool(value.get("fixture")),"season":season,"week":week,"revision":revision,"parent_revision_sha256":value["parent_revision_sha256"],"source_diff_manifest_sha256":value["source_diff_manifest_sha256"],"outcome_path":target.relative_to(output_root).as_posix(),"outcome_sha256":sha256_file(target),"rows":len(rows),"append_only":True,"source_payload_sha256":value["source_payload_sha256"]})
+    return {"status":"CREATED","manifest":meta}
