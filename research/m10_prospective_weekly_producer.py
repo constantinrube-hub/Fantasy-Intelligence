@@ -135,6 +135,7 @@ def attach_default_distributions(rows: list[dict[str, Any]], lock: dict[str, Any
     """Attach only marginal default-PPR quantiles; samples remain frozen in the lock."""
     from fie_research import DEFAULT_PPR
     for row in rows:
+        row["predicted_fantasy_points_default"] = _score(row["predicted_raw_components"], DEFAULT_PPR)
         row["prediction_quantiles"] = _quantiles(_score_many(_residual_components(lock, row), DEFAULT_PPR))
         row["distribution_interpretation"] = "player_level_marginal_not_joint_simulation"
 
