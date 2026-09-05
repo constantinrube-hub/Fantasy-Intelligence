@@ -49,7 +49,14 @@ def main(argv: list[str] | None = None) -> int:
         assert set(lifecycle.get("active_controlled_workflows") or []) == {WORKFLOW}, lifecycle
         assert flags(workflow) == {"push": True, "schedule": False, "dispatch": True}
     else:
-        assert not lifecycle.get("active_controlled_workflows"), lifecycle
+        closure_lifecycle = json.loads(subprocess.check_output(
+            ["git", "show", "02b1143:config/repository-lifecycle-contract.json"], cwd=ROOT, text=True
+        ))
+        assert not closure_lifecycle.get("active_controlled_workflows"), closure_lifecycle
+        for active in lifecycle.get("active_controlled_workflows") or []:
+            active_path = ROOT / ".github/workflows" / str(active)
+            assert active_path.is_file(), active_path
+            assert flags(active_path) == {"push": True, "schedule": False, "dispatch": True}, active
         assert flags(workflow) == {"push": False, "schedule": False, "dispatch": True}
         target = json.loads(TARGET.read_text(encoding="utf-8"))
         assert target.get("tranche") == "6E" and target.get("decision") == "RETAIN_M9_NO_6F_SHADOW_APPROVAL", target
