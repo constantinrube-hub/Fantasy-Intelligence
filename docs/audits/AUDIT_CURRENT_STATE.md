@@ -22,7 +22,8 @@
 - Sol corrective checkpoint: the closed R7 v1 artifact remains immutable portable point-model validation evidence, but it is not activation-eligible and must not be copied to the canonical 2026 lock path. It lacks a shared historical/prospective feature owner, correct team-change budget isolation, the required residual distribution, and complete provenance bindings. See `TRANCHE7CR8_OPERATIONAL_RUNNER_DESIGN.md`.
 - Last validated target head: `99524b4d67c2fa382efec2eba92d8f549bca3cdd` — Tranche 7C-R8A corrected-lock preflight green, GitHub Actions run `33994558619`, success in 1m 11s. It validates shared historical/prospective feature parity, target-week team-budget isolation, signed yardage, null and insufficient-history behavior, v2 provenance/residual contracts, and v1 activation rejection.
 - Last validated target head: `0a615877d86145d1a7bd77076390a7550e342fc6` — Tranche 7C-R8A real corrected v2 lock green, GitHub Actions run `33994847360`; externally verified artifact SHA-256 `2224aecfa50c1e9cdf53d0edab65d4585d0ea7ec727018df3cc69888f6442641`; first-written lock SHA-256 `2f8ce6e90c5badefc1aeda5d2d696bb95b7d1ed2d51b3255423fb8712b8bf1b2`.
-- Current authorized boundary: R8A is closed. Terra High may begin the separately controlled R8B weekly-producer and R8C workflow preflight only. The installed lock remains research-only with M9 champion; app/runtime/rankings, 6F, shadow use, and production activation remain forbidden.
+- R8A closure: `7d0356a` — the independently verified v2 lock was first-written exactly at the canonical research-only 2026 path. R8A validators are manual-only.
+- Current authorized boundary: R8B weekly-producer preflight is active. Terra High may validate the frozen v2 producer only; R8C workflow work remains ordered after R8B's controlled target. The installed lock remains research-only with M9 champion; app/runtime/rankings, 6F, shadow use, and production activation remain forbidden.
 
 ## Completed validated tranches
 

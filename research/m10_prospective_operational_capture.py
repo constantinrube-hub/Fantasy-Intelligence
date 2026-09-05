@@ -19,6 +19,7 @@ from m10_prospective_capture_contract import (
 
 
 INPUT_SCHEMA = "fie-m10-prospective-operational-input-v1"
+R8_INPUT_SCHEMA = "fie-m10-prospective-operational-input-v2"
 OUTCOME_INPUT_SCHEMA = "fie-m10-prospective-operational-outcome-input-v1"
 REQUIRED_SOURCES = {"forecast_rows", "profile_snapshot", "decision_inputs"}
 
@@ -32,7 +33,7 @@ def bundle_path(root: Path, raw: str) -> Path:
 
 def parse_bundle(path: Path) -> tuple[dict[str, Any], Path]:
     value = read_json(path)
-    if value.get("schema") != INPUT_SCHEMA:
+    if value.get("schema") not in {INPUT_SCHEMA, R8_INPUT_SCHEMA}:
         raise ValueError("invalid operational input schema")
     return value, path.parent
 
@@ -64,6 +65,11 @@ def validate_input_bundle(path: Path) -> tuple[dict[str, Any], dict[str, Path]]:
         assert sha256_file(item) == str(record["sha256"]), item
         _timestamps_ok(record, captured_at)
         paths[role] = item
+    if value.get("schema") == R8_INPUT_SCHEMA:
+        from m10_prospective_activation_guard import validate_activation_lock
+        lock = validate_activation_lock(ROOT)
+        assert str(value.get("season_lock_sha256")) == str(lock["season_lock_sha256"])
+        assert len(str(value.get("source_bundle_sha256") or "")) == 64
     return value, paths
 
 
@@ -118,7 +124,10 @@ def validate_decisions(rows: list[dict[str, Any]], forecast_ids: set[str]) -> No
         model = str(row["model"])
         assert model in MODELS
         ids = tuple(sorted(str(item) for item in row.get("legal_forecast_ids") or []))
-        assert ids and set(ids) <= forecast_ids
+        if row.get("status") == "BLOCKED_INCOMPLETE_LEGAL_ROSTER":
+            assert row.get("blocker") == "INCOMPLETE_LEGAL_ROSTER_AT_CUTOFF" and not ids and not row.get("selected_forecast_ids")
+        else:
+            assert ids and set(ids) <= forecast_ids and set(row.get("selected_forecast_ids") or []) <= set(ids)
         grouped.setdefault((str(row["domain"]), str(row["league_id"])), {})[model] = ids
     assert all(set(models) == set(MODELS) and len(set(models.values())) == 1 for models in grouped.values())
 
@@ -148,11 +157,19 @@ def create_operational_capture(input_manifest: Path, output_root: Path, *, score
         return {"status": "EXISTS", "manifest": paths["manifest"] if paths["manifest"].exists() else paths["missed"]}
     forecasts = read_jsonl_gzip(inputs["forecast_rows"])
     profiles = read_json(inputs["profile_snapshot"])["profiles"]
-    decisions = read_json(inputs["decision_inputs"])["decision_traces"]
     validate_forecasts(forecasts, capture)
     validate_profiles(profiles, fixture=fixture)
+    if manifest_input.get("schema") == R8_INPUT_SCHEMA:
+        from m10_prospective_activation_guard import validate_activation_lock
+        from m10_prospective_weekly_producer import build_decision_traces, exact_profile_scoring
+        lock = validate_activation_lock(ROOT)
+        roster_states = read_json(inputs["decision_inputs"]).get("league_roster_states") or []
+        scoring = exact_profile_scoring(forecasts, profiles, lock)
+        decisions = build_decision_traces(profiles, roster_states, scoring, capture=capture)
+    else:
+        decisions = read_json(inputs["decision_inputs"])["decision_traces"]
+        scoring = replay_scoring(forecasts, profiles, score)
     validate_decisions(decisions, {str(row["forecast_id"]) for row in forecasts})
-    scoring = replay_scoring(forecasts, profiles, score)
     write_jsonl_gzip(paths["forecasts"], forecasts)
     write_jsonl_gzip(paths["scoring"], scoring)
     write_jsonl_gzip(paths["decisions"], decisions)

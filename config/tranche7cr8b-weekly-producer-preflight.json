@@ -1,0 +1,27 @@
+{
+  "schema": "fie-controlled-implementation-preflight-v1",
+  "tranche": "7C-R8B",
+  "phase": "governed_weekly_producer_preflight",
+  "source_r8a_closure": "7d0356a",
+  "workflow": "validate-fie-tranche7cr8b-weekly-producer-preflight.yml",
+  "research_only": true,
+  "production_model": "M9",
+  "production_activation": false,
+  "app_integration": false,
+  "runtime_integration": false,
+  "shadow_integration": false,
+  "scheduled_collection": false,
+  "live_provider_request": false,
+  "season_lock_schema": "fie-m10-prospective-season-lock-v2",
+  "required_source_envelope_fields": ["source_identity", "observed_at", "release_or_etag", "sha256"],
+  "required_behaviors": [
+    "frozen_lock_only_no_training_or_selection",
+    "shared_candidate_universe",
+    "exact_profile_residual_replay",
+    "typed_incomplete_legal_roster_blocker",
+    "before_window_no_write_success",
+    "post_kickoff_typed_miss_only",
+    "first_write_immutable"
+  ],
+  "lifecycle": "preflight_active"
+}
