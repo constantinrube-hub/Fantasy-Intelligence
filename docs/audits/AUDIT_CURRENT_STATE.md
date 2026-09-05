@@ -11,7 +11,8 @@
 - Last validated target head: `24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2` — Tranche 6D target green
 - Last validated target head: `b248c7387f5ae3c9aa7b7c64ee0076f85cc96924` — Tranche 6E target green
 - Last validated target head: `0b120fd652a142372a221240381acfa47c40a238` — Tranche 7B target green
-- Current authorized boundary: Tranche 7C operational prospective collection, after the closed 7B deterministic contract; scheduled rollout remains separate and 6F remains unauthorized
+- Last validated target head: `81bd41a72695db391febb0e32edee0b596277020` — Tranche 7C target green
+- Current authorized boundary: no active implementation target; Tranche 7C is closed after audit-branch validation. Any schedule/default-branch rollout and later Tranche 7D evidence accrual require a separately authorized operational decision; 6F remains unauthorized
 
 ## Completed validated tranches
 
@@ -38,6 +39,7 @@
 - 6E cross-model and decision review — `b248c7387f5ae3c9aa7b7c64ee0076f85cc96924`, GitHub Actions run `33951332941`, success in 1m 37s, `DEPLOYABLE_SOURCE`; retains M9, preserves QB M10-HGB as a research lead only, and authorizes no 6F shadow integration; release artifact SHA-256 `ce9f3c819fc7144768c0b6a2b4930f1ef06d899170e2a2495ab3fa837a819b56`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
 - 7A prospective M10 evidence design — completed Sol design; `docs/audits/TRANCHE7A_PROSPECTIVE_M10_EVIDENCE_DESIGN.md` and `config/m10-prospective-evidence-contract.json` define a separate evidence-accrual path and authorize only the bounded Terra 7B implementation; they do not authorize 6F, training changes, scheduled rollout, shadow integration, or production behavior
 - 7B deterministic prospective-capture contract — `0b120fd652a142372a221240381acfa47c40a238`, GitHub Actions run `33960545413`, success in 50 seconds, `DEPLOYABLE_SOURCE`; its no-network fixture validates first-write capture, typed missed periods, paired M9/M10 rows, and separate outcome revisions while preserving M9 and all production surfaces; release artifact SHA-256 `eb2c764ed9f11244ae14b08d67b904fbbd2f20f6258aa3975d0e1be06c211af4`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
+- 7C audit-branch operational prospective collection — `81bd41a72695db391febb0e32edee0b596277020`, GitHub Actions run `33961901784`, success in 49 seconds, `DEPLOYABLE_SOURCE`; validates a hash-locked, time-safe input bundle, exact profile replay, paired decision trace, and separated outcomes without provider requests, a schedule, shadow integration, or app/runtime change; release artifact SHA-256 `35313391341dabc4c79082aae67cc3c534faeae67b15f69afc618abc58e65a6f`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
 
 ## Permanent invariants
 
@@ -72,6 +74,6 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 - Preserve relevant 5B, 5A, 2A, 3A–3E, all-league profile, and all-league replacement contracts.
 - Closure: deterministic personal release build, `DEPLOYABLE_SOURCE`, and source/dist parity with only authorized generated synchronization.
 
-## Active Tranche 7C boundary
+## Closed Tranche 7C boundary
 
-Tranches 5D, 5E, 6B, 6C, 6D, 6E, and 7B are closed. The 7A Sol design authorizes Terra to implement 7C only as a time-safe operational connection to the closed 7B contract. It must begin with real-input eligibility, profile/replay, decision-trace, and outcome-ingestion contracts on the audit branch. It must not enable recurring schedules, select a model, create 6F shadow integration, or write app/runtime artifacts. Tranche 6F remains unauthorized.
+Tranches 5D, 5E, 6B, 6C, 6D, 6E, 7B, and 7C are closed. The 7C adapter remains an audit-branch, explicit-input contract: it does not request provider data, enable recurring schedules, select a model, create 6F shadow integration, or write app/runtime artifacts. A schedule/default-branch rollout must be explicitly authorized before real prospective evidence can accrue; it is not implied by this closure. Tranche 6F remains unauthorized.
