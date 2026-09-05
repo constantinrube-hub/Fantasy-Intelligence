@@ -13,7 +13,8 @@
 - Last validated target head: `0b120fd652a142372a221240381acfa47c40a238` — Tranche 7B target green
 - Last validated target head: `81bd41a72695db391febb0e32edee0b596277020` — Tranche 7C target green
 - Last synchronized closure head: `90ca7f8ae468f86e7e0918de41a98546fcecee53` — Tranche 7C audit-branch operational capture closure
-- Current authorized boundary: Tranche 7C-R1 portable 2026 season-lock controlled target. It implements only the offline, first-write immutable Ridge/HGB JSON exporter and validator from the Sol rollout design. The target does not activate a schedule, write prospective evidence, alter app/runtime behavior, or authorize 6F; later rollout components remain separately bounded
+- Last validated target head: `8d34c04c6f768f12abe3bd128c0ab68c06f4bc18` — Tranche 7C-R1 portable season-lock target green, GitHub Actions run `33964009179`, success in 1m 4s, `DEPLOYABLE_SOURCE`; verified artifact SHA-256 `da28b8c410be591fb1e1a318d2ce82c08569b570a76623c9561fcf2162509e86`
+- Current authorized boundary: Tranche 7C-R2 time-safe weekly source-envelope and bundle producer. It may reuse established schedule, identity, profile, and completed-game owners, but cannot activate a scheduler, create live forecasts, alter app/runtime behavior, or authorize 6F until its own controlled target is validated
 
 ## Completed validated tranches
 
