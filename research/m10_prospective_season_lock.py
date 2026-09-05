@@ -111,7 +111,9 @@ def export_hgb(x: np.ndarray, y: np.ndarray, features: list[str], target: str, c
     spec = {"schema": HGB_SCHEMA, "target": target, "features": features, "imputer_medians": [float(v) for v in imp.statistics_],
             "baseline_prediction": float(np.ravel(model._baseline_prediction)[0]), "iterations": iterations,
             "loss": loss_for(target, y), "inverse_link": "exp" if loss_for(target, y) == "poisson" else "identity", "learning_rate": float(candidate["learning_rate"]), "candidate": candidate, "n_train": int(len(y)), "prediction_floor": 0.0}
-    spec["sklearn_export_probes"] = [{"features": [float(v) for v in row], "prediction": float(max(0.0, value))} for row, value in zip(x[:3], model.predict(imp.transform(x[:3])))]
+    probe_rows = x[np.isfinite(x).all(axis=1)][:3]
+    assert len(probe_rows) == 3, "insufficient complete rows for portable HGB probes"
+    spec["sklearn_export_probes"] = [{"features": [float(v) for v in row], "prediction": float(max(0.0, value))} for row, value in zip(probe_rows, model.predict(imp.transform(probe_rows)))]
     return spec
 
 
@@ -162,8 +164,10 @@ def build_lock(value: dict[str, Any]) -> dict[str, Any]:
         for target in offline["targets"][position]:
             x, y = matrix(rows, features, target); selected = choose_hgb(rows, features, target, offline["candidate_ladder"][2]["search_space"])
             entries = {"M9": export_ridge(x, y, features, 10.0, target), "M10_LINEAR": export_ridge(x, y, features, 6.0, target), "M10_HGB": export_hgb(x, y, features, target, selected)}
+            probe_rows = x[np.isfinite(x).all(axis=1)][:3]
+            assert len(probe_rows) == 3, f"insufficient complete rows for portable {target} probes"
             for spec in entries.values():
-                probes = [[float(v) for v in row] for row in x[:3]]
+                probes = [[float(v) for v in row] for row in probe_rows]
                 predictor = ridge_predict if spec["schema"] != HGB_SCHEMA else hgb_predict
                 spec["portable_probes"] = [{"features": row, "prediction": predictor(spec, row)} for row in probes]
                 spec["parameter_sha256"] = sha256_bytes(canonical_bytes({k: v for k, v in spec.items() if k != "parameter_sha256"}))

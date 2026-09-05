@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 
 from build_m10_prospective_historical_input import make_rows
-from m10_prospective_season_lock import loss_for, matrix
+from m10_prospective_capture_contract import canonical_bytes
+from m10_prospective_season_lock import export_hgb, loss_for, matrix
 
 
 def row(week: int, rushing_yards: float | None, carries: float) -> dict:
@@ -37,6 +38,14 @@ def main() -> int:
         assert "negative count label" in str(error)
     else:
         raise AssertionError("negative count labels must fail")
+    spec = export_hgb(
+        np.asarray([[np.nan], [np.nan], [1.0], [2.0], [3.0]]),
+        np.asarray([-3.0, 5.0, 4.0, 2.0, 1.0]), ["x"], "rushing_yards",
+        {"learning_rate": 0.05, "max_depth": 2, "max_iter": 2, "l2_regularization": 1.0},
+    )
+    assert len(spec["sklearn_export_probes"]) == 3
+    assert all(np.isfinite(probe["features"]).all() for probe in spec["sklearn_export_probes"])
+    canonical_bytes(spec)
     print("PASS M10 target domains preserve negative yardage, null labels, and count safeguards")
     return 0
 
