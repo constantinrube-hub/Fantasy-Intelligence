@@ -71,3 +71,9 @@ Production code must never infer promotion from the presence of a model file.
 The logical hydrated `milestone5_current` object remains the consumer contract. Physical storage may use `fie-current-split-v1`, where a namespaced league manifest references a content-addressed shared player base and a scoring overlay. Consumers must load through `app/current-snapshot-store.js` in the browser or `research/current_snapshot_storage.py` in Python when player rows are required. Top-level league metadata remains directly readable from the manifest for governance/readiness checks.
 
 Do not assume `players` or `scoring_settings` are physically embedded in the league manifest.
+
+## Prospective point-in-time evidence
+
+Sleeper market and availability archives are immutable first-write evidence. Their sidecars record the observed capture time, source endpoint, capture intent, release cadence, and whether the provider exposes release/revision identifiers. `data/research/portfolio/2026/point-in-time-evidence-report.json` reports archive coverage and age using the latest stored capture as its deterministic reference.
+
+Current endpoints must not recreate older market, injury, depth-chart, or forecast state. Provider revision metadata that is not exposed remains explicit missing evidence rather than a fabricated identifier.

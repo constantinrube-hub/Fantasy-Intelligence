@@ -44,7 +44,10 @@ jobs:
             --output-root data/research/market/sleeper \
             --cache-dir .cache/fie-market
       - name: Verify archive after capture
-        run: python research/production_readiness.py
+        run: |
+          python research/production_readiness.py
+          python research/build_fie_point_in_time_evidence_report.py
+          python research/validate_fie_point_in_time_evidence_report.py --verify-deterministic
       - name: Commit first-write market evidence
         run: |
           if git diff --quiet -- data/research/market/sleeper; then
@@ -53,7 +56,7 @@ jobs:
           fi
           git config user.name "FIE Market Evidence Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/research/market/sleeper
+          git add data/research/market/sleeper data/research/portfolio/2026/point-in-time-evidence-report.json
           git commit -m "Capture immutable Sleeper pregame benchmark"
           git fetch origin main
           git rebase origin/main

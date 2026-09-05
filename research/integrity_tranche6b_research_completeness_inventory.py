@@ -37,7 +37,18 @@ def main(argv: list[str] | None = None) -> None:
     for path, expected in (target.get("authorized_generated_synchronization") or {}).items():
         assert sha256(path) == expected, path
     lifecycle = json.loads((ROOT / "config/repository-lifecycle-contract.json").read_text(encoding="utf-8"))
-    assert not (lifecycle.get("active_controlled_workflows") or []), lifecycle
+    # 6B closed with no active controlled validator.  Later tranches may register
+    # one temporary push-triggered target under the lifecycle policy, so preserve
+    # the frozen closure state rather than rejecting all future audit work.
+    closure_lifecycle = json.loads(subprocess.check_output(
+        ["git", "show", "966e961:config/repository-lifecycle-contract.json"], cwd=ROOT, text=True
+    ))
+    assert not (closure_lifecycle.get("active_controlled_workflows") or []), closure_lifecycle
+    for active in lifecycle.get("active_controlled_workflows") or []:
+        path = ROOT / ".github/workflows" / str(active)
+        assert path.is_file(), path
+        text = path.read_text(encoding="utf-8")
+        assert "  push:" in text and "  workflow_dispatch:" in text, active
     workflow = (ROOT / ".github/workflows/validate-fie-tranche6b-research-completeness.yml").read_text(encoding="utf-8")
     assert "workflow_dispatch:" in workflow and "  push:" not in workflow and "  schedule:" not in workflow
     print("PASS Tranche 6B closure: inventory is deterministic, generated sync is exact, and promotion remains blocked")

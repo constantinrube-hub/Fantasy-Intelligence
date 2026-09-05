@@ -105,9 +105,21 @@ def main(argv=None):
             }
             h.write(json.dumps(rec, separators=(",", ":")) + "\n"); kept += 1
     meta = out.with_suffix(out.suffix + ".meta.json")
-    meta.write_text(json.dumps({"season": a.season, "captured_at": captured, "market_as_of": day,
-                                "rows": kept, "source": "Sleeper season projection endpoint",
-                                "immutable_first_write": not a.force, "adp_keys": ADP_KEYS}, indent=2))
+    meta.write_text(json.dumps({
+        "season": a.season, "captured_at": captured, "market_as_of": day,
+        "rows": kept, "source": "Sleeper season projection endpoint",
+        "immutable_first_write": not a.force, "adp_keys": ADP_KEYS,
+        "point_in_time_metadata": {
+            "schema": "fie-point-in-time-source-metadata-v1",
+            "capture_intent": "prospective_preseason_market",
+            "source_endpoint": f"https://api.sleeper.com/projections/nfl/{a.season}?season_type=regular",
+            "source_release_identifier": None,
+            "source_revision_identifier": None,
+            "revision_metadata_status": "NOT_EXPOSED_BY_PROVIDER",
+            "as_of_semantics": "provider response observed and immutably first-written at captured_at; never reconstructed later",
+            "release_cadence": "daily scheduled prospective capture",
+        },
+    }, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {out} rows={kept}")
 
 
