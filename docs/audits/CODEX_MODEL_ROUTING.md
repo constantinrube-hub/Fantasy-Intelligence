@@ -27,7 +27,8 @@ Return to Terra after the Sol-only design or reasoning result is documented and 
 7. 6E cross-model and decision review — Sol High.
 8. 6F approved shadow integration — Terra High; 6G production-promotion reasoning returns to Sol before any activation.
 9. 7A prospective M10 evidence design — Sol High; this path is separate from, and does not authorize, 6F.
-10. 7B deterministic capture contract and 7C operational collection — Terra High, with scheduled rollout kept behind a separate explicit boundary.
-11. 7D evidence accrual — operational; 7E checkpoint review returns to Sol High before any model or shadow recommendation.
+10. 7B deterministic capture contract and audit-branch 7C operational adapter — Terra High.
+11. 7C-R default-branch rollout design — Sol High; portable season-lock and scheduled-workflow implementation returns to Terra High after the design is committed.
+12. 7D evidence accrual — operational; 7E checkpoint review returns to Sol High before any model or shadow recommendation.
 
 See `AUDIT_CURRENT_STATE.md` for the active boundary and preservation requirements.

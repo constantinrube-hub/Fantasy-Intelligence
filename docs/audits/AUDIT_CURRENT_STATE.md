@@ -13,7 +13,7 @@
 - Last validated target head: `0b120fd652a142372a221240381acfa47c40a238` — Tranche 7B target green
 - Last validated target head: `81bd41a72695db391febb0e32edee0b596277020` — Tranche 7C target green
 - Last synchronized closure head: `90ca7f8ae468f86e7e0918de41a98546fcecee53` — Tranche 7C audit-branch operational capture closure
-- Current authorized boundary: no active implementation target; Tranche 7C is closed after audit-branch validation. Any schedule/default-branch rollout and later Tranche 7D evidence accrual require a separately authorized operational decision; 6F remains unauthorized
+- Current authorized boundary: user-authorized Tranche 7C-R default-branch rollout. The Sol design is `docs/audits/TRANCHE7C_DEFAULT_BRANCH_ROLLOUT_DESIGN.md`; Terra may implement its portable 2026 season lock and controlled rollout target on the audit branch. No schedule activates until the validated rollout reaches `main`; 6F remains unauthorized
 
 ## Completed validated tranches
 
@@ -78,3 +78,7 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 ## Closed Tranche 7C boundary
 
 Tranches 5D, 5E, 6B, 6C, 6D, 6E, 7B, and 7C are closed. The 7C adapter remains an audit-branch, explicit-input contract: it does not request provider data, enable recurring schedules, select a model, create 6F shadow integration, or write app/runtime artifacts. A schedule/default-branch rollout must be explicitly authorized before real prospective evidence can accrue; it is not implied by this closure. Tranche 6F remains unauthorized.
+
+## Authorized Tranche 7C-R rollout
+
+The user explicitly authorized the separate operational rollout after 7C closure. Sol resolved the missing producer boundary in `TRANCHE7C_DEFAULT_BRANCH_ROLLOUT_DESIGN.md` and `config/m10-prospective-rollout-design.json`. Terra may now implement the immutable 2026 season lock, weekly time-safe input producer, operational missed-capture behavior, outcome revisions, and default-branch workflow under that contract. Audit-branch validation cannot write real evidence; merge of a green, closed rollout to `main` is the activation event. M9 remains champion, and this authorization does not create 6F or any app/runtime/model-promotion path.
