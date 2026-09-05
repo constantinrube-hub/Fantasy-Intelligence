@@ -44,6 +44,15 @@ def main() -> int:
     assert design["workflow"]["audit_target_real_evidence_write"] is False
     assert design["current_terra_authority"] == "R8A_corrected_lock_preflight_only"
 
+    for path in (
+        "config/m10-prospective-feature-contract.json",
+        "config/m10-prospective-target-contract.json",
+        "research/m10_prospective_features.py",
+        "research/m10_prospective_season_lock_v2.py",
+        "research/integrity_tranche7cr8_corrected_lock.py",
+    ):
+        assert (ROOT / path).is_file(), path
+
     for text in (doc, state, rollout):
         assert "R8A" in text and "M9" in text
     assert "not eligible for activation" in doc

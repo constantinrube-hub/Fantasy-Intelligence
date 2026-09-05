@@ -16,8 +16,10 @@ def validate_activation_lock(root: Path) -> dict:
     path = root / LOCK_PATH
     if not path.is_file():
         raise ValueError("2026 immutable season lock is absent")
-    from m10_prospective_season_lock import load_json, validate_lock
+    from m10_prospective_season_lock_v2 import LOCK_SCHEMA, load_json, validate_lock
     lock = load_json(path)
+    if lock.get("schema") != LOCK_SCHEMA:
+        raise ValueError("operational collection requires the corrected R8A v2 season lock")
     validate_lock(lock)
     if any("fixture" in str(row.get("path", "")).lower() for row in lock.get("source_files", [])):
         raise ValueError("fixture season lock cannot activate operational collection")

@@ -24,7 +24,7 @@ def main() -> None:
     rejects(lambda: validate_write_plan("refs/heads/main", ["app/main.js"]))
     validate_write_plan("refs/heads/main", [])
     validate_write_plan("refs/heads/main", ["data/research/prospective/m10/forecasts/2026/week_01/manifest.json"])
-    print("PASS prospective activation requires main, a real lock, and research-only writes")
+    print("PASS prospective activation requires main, a corrected v2 lock, and research-only writes")
 
 
 if __name__ == "__main__":
