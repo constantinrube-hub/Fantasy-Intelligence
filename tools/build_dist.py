@@ -47,9 +47,12 @@ def useful_rows(snapshot,allowed):
   if pos_ok and (evidence or projected): rows.append(r)
  return rows
 def partition_compatible(entries):
- """Partition compact league snapshots if invariant player rows conflict."""
+ """Partition compact league snapshots deterministically if invariant player rows conflict."""
  groups=[]
- for e in entries:
+ # The greedy compatibility partition is order-sensitive. Canonicalize by league
+ # ID here so identical source trees cannot emit different content-addressed
+ # runtime bases merely because Path.iterdir() has a different filesystem order.
+ for e in sorted(entries,key=lambda x:str(x.get('lid',''))):
   candidate={player_id(r):base_row(r) for r in e['rows']}
   placed=False
   for g in groups:
@@ -135,7 +138,8 @@ def main():
  leagues=ROOT/'data/research/leagues';current_entries=[];cache={}
  for extra in ['registry.json','portfolio-status.json']:
   if (leagues/extra).exists(): copy(leagues/extra,DIST/'data/research/leagues'/extra)
- for d in leagues.iterdir():
+ # Directory enumeration order is filesystem-dependent; canonicalize it.
+ for d in sorted(leagues.iterdir(),key=lambda p:p.name):
   if not d.is_dir() or not (d/'profile.json').exists(): continue
   profile=json.loads((d/'profile.json').read_text())
   for name in ['profile.json','milestone1.json','milestone2.json','milestone3.json','milestone4.json','milestone5.json','milestone6.json']:

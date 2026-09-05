@@ -102,6 +102,16 @@ def main(argv=None):
         "captured_at":captured,"availability_as_of":day,"source":SOURCE,"rows":len(rows),
         "positions":sorted(POSITIONS),"rows_with_injury_status":injured,"immutable_first_write":True,
         "semantics":"prospective point-in-time evidence; no historical reconstruction",
+        "point_in_time_metadata": {
+            "schema":"fie-point-in-time-source-metadata-v1",
+            "capture_intent":"prospective_availability",
+            "source_endpoint":URL,
+            "source_release_identifier":None,
+            "source_revision_identifier":None,
+            "revision_metadata_status":"NOT_EXPOSED_BY_PROVIDER",
+            "as_of_semantics":"provider response observed and immutably first-written at captured_at; never reconstructed later",
+            "release_cadence":"daily scheduled prospective capture",
+        },
     },indent=2)+"\n",encoding="utf-8")
     print(f"Wrote {out} rows={len(rows)} injury_status={injured}")
 

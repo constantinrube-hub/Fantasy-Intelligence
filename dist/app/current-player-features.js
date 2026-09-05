@@ -13,22 +13,29 @@ const FAMILY={
 };
 function familyFor(k){for(const [f,s] of Object.entries(FAMILY))if(s.has(k))return f;return 'other';}
 function currentBundle(){return window.FIE_M5?.getCurrentBundle?.()||null;}
-function rowsById(){const m=new Map();for(const r of currentBundle()?.players||[])if(r?.sleeper_id)m.set(String(r.sleeper_id),r);return m;}
 function apply(){
-  const map=rowsById();let matched=0,withFeatures=0;
-  const live=(typeof PLAYERS!=='undefined'?PLAYERS:(window.PLAYERS||[]));
-  for(const p of live){
-    const row=map.get(String(p.sleeperId));p.currentResearchFeatures=null;p.currentFeatureFamilies={};p.currentFeatureLineage=null;
-    const cf=row?.current_features;if(!cf)continue;matched++;
-    const vals=cf.values&&typeof cf.values==='object'?cf.values:{};if(Object.keys(vals).length)withFeatures++;
+  const live=(typeof PLAYERS!=='undefined'?PLAYERS:(window.PLAYERS||[])),identity=window.FIECore?.PlayerIdentity;let matched=0,withFeatures=0,identityUnavailable=0,identityAmbiguous=0;
+  for(const p of live){p.currentResearchFeatures=null;p.currentFeatureFamilies={};p.currentFeatureLineage=null;}
+  if(!identity?.resolve||!identity?.index){API.lastApply={leagueId:String(state?.league?.league_id||''),matched,withFeatures,identityUnavailable:(currentBundle()?.players||[]).length,identityAmbiguous,identityOwner:'unavailable',at:new Date().toISOString()};return API.lastApply;}
+  const idx=identity.index(live),resolvedRows=new Map(),ambiguousPlayers=new Set();
+  for(const row of currentBundle()?.players||[]){
+    const cf=row?.current_features;if(!cf)continue;const res=identity.resolve(row,{players:live,index:idx});
+    if(res.status==='unavailable'){identityUnavailable++;continue;}
+    if(res.status==='ambiguous'){identityAmbiguous++;continue;}
+    const target=res.player;if(ambiguousPlayers.has(target))continue;
+    if(resolvedRows.has(target)){resolvedRows.delete(target);ambiguousPlayers.add(target);identityAmbiguous++;continue;}
+    resolvedRows.set(target,{row,res});
+  }
+  for(const [p,{row,res}] of resolvedRows){
+    const cf=row.current_features;matched++;const vals=cf.values&&typeof cf.values==='object'?cf.values:{};if(Object.keys(vals).length)withFeatures++;
     p.currentResearchFeatures={...vals};
     for(const [k,v] of Object.entries(vals)){const fam=familyFor(k);(p.currentFeatureFamilies[fam]??={})[k]=v;}
-    p.currentFeatureLineage={schemaVersion:cf.schema_version||1,asOfCompletedWeek:cf.as_of_completed_week??null,windowGames:cf.window_games??null,source:cf.source||'research current snapshot',leakageSafe:cf.leakage_safe===true,routeParticipationIsProxy:cf.route_participation_is_proxy===true,activationEligible:row?.activation_eligible===true,weeklyActivationEligible:row?.weekly_activation_eligible===true,waiverActivationEligible:row?.waiver_activation_eligible===true};
+    p.currentFeatureLineage={schemaVersion:cf.schema_version||1,asOfCompletedWeek:cf.as_of_completed_week??null,windowGames:cf.window_games??null,source:cf.source||'research current snapshot',leakageSafe:cf.leakage_safe===true,routeParticipationIsProxy:cf.route_participation_is_proxy===true,activationEligible:row?.activation_eligible===true,weeklyActivationEligible:row?.weekly_activation_eligible===true,waiverActivationEligible:row?.waiver_activation_eligible===true,identityResolved:true,identityStatus:res.status,identitySource:res.source,canonicalId:res.id};
     // Convenience mirrors for visuals/explanations only. They are not independent
     // model inputs and must never be treated as additional evidence channels.
     for(const k of ['snap_share','target_share','carry_share','red_zone_target_share','red_zone_carry_share','inside_10_carry_share','inside_5_carry_share','opportunity_change_score'])if(Number.isFinite(Number(vals[k])))p[`research_${k}`]=Number(vals[k]);
   }
-  API.lastApply={leagueId:String(state?.league?.league_id||''),matched,withFeatures,at:new Date().toISOString()};return API.lastApply;
+  API.lastApply={leagueId:String(state?.league?.league_id||''),matched,withFeatures,identityUnavailable,identityAmbiguous,identityOwner:identity.source||'FIECore.PlayerIdentity',at:new Date().toISOString()};return API.lastApply;
 }
 function lineage(p){return p?.currentFeatureLineage||null;}
 function families(p){return p?.currentFeatureFamilies||{};}
@@ -42,7 +49,7 @@ function summary(p){
 }
 function signalLineage(p){
   const lines=[{family:'Baseline',source:p?.sleeperWeeklyProjection!=null?'Sleeper weekly projection':'fallback projection',active:true}];
-  if(p?.currentFeatureLineage){const governed=p.currentFeatureLineage.leakageSafe===true&&p.currentFeatureLineage.activationEligible===true&&window.FIE_M6_GOVERNANCE_ALLOW===true;lines.push({family:'Opportunity',source:p.currentFeatureLineage.source,active:governed,diagnostic:!governed,reason:governed?'governed current feature family':'diagnostic until leakage, player and M6 governance gates all pass'});}
+  if(p?.currentFeatureLineage){const governed=p.currentFeatureLineage.identityResolved===true&&p.currentFeatureLineage.leakageSafe===true&&p.currentFeatureLineage.activationEligible===true&&window.FIE_M6_GOVERNANCE_ALLOW===true;lines.push({family:'Opportunity',source:p.currentFeatureLineage.source,active:governed,diagnostic:!governed,reason:governed?'governed current feature family':'diagnostic until leakage, player and M6 governance gates all pass'});}
   if(Number.isFinite(Number(p?.pffScore))||Number.isFinite(Number(p?.tfgModelScore)))lines.push({family:'Talent / efficiency',source:'PFF / TFG enrichment',active:true});
   if(Number.isFinite(Number(p?.teamEnvironmentScore)))lines.push({family:'Environment',source:'team environment model',active:true});
   if(Number.isFinite(Number(p?.matchupScore)))lines.push({family:'Matchup',source:'opponent context',active:true});

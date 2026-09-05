@@ -29,6 +29,7 @@ function compute(rows=(window.PLAYERS||[]).filter(legal),fmt=format()){
   const out=pool.map(p=>{const id=pid(p),shape=shapes.get(id)||{},sc=scarcityByPos.get(pos(p))??50,sP=seasonPct.get(id),vP=vorPct.get(id),dP=dynPct.get(id),mP=meanPct.get(id),fP=floorPct.get(id),cP=ceilPct.get(id),spP=spikePct.get(id),hP=healthPct.get(id)??50;let base=null,architecture='';
     if(f==='DYNASTY'){base=weighted([[dP,55],[sP,18],[vP,12],[sc,10],[hP,5]]);architecture='dynasty asset + current production + scarcity';}
     else if(f==='DYNASTY_BESTBALL'){base=weighted([[dP,43],[sP,13],[vP,10],[cP,14],[spP,10],[sc,7],[hP,3]]);architecture='dynasty asset + normalized best-ball ceiling/spike + scarcity';}
+    else if(f==='CHOPPED_BESTBALL'){base=weighted([[mP,19],[fP,15],[sP,21],[vP,15],[cP,11],[spP,7],[sc,8],[hP,4]]);architecture='hybrid survival floor + best-ball ceiling/spike + season value + scarcity';}
     else if(f==='CHOPPED'){base=weighted([[mP,38],[fP,30],[sP,12],[vP,8],[sc,8],[hP,4]]);architecture='early-week mean + downside protection + scarcity';}
     else if(f==='REDRAFT_BESTBALL'){base=weighted([[sP,30],[vP,22],[cP,22],[spP,14],[sc,8],[hP,4]]);architecture='season value + normalized ceiling/spike + scarcity';}
     else{base=weighted([[sP,46],[vP,34],[sc,15],[hP,5]]);architecture='season projection + VOR + structural scarcity';}
@@ -36,8 +37,9 @@ function compute(rows=(window.PLAYERS||[]).filter(legal),fmt=format()){
     let adjusted=base??0,lowData=false;
     if(!hasTeam){adjusted=Math.min(adjusted,20);lowData=true;}
     if(!f.includes('DYNASTY')&&!primaryAvailable){adjusted=Math.min(adjusted,32);lowData=true;}
-    if(f==='CHOPPED'&&shape.mean===null){adjusted=Math.min(adjusted,34);lowData=true;}
-    if(f.includes('BESTBALL')&&shape.ceiling===null&&season(p)===null){adjusted=Math.min(adjusted,34);lowData=true;}
+    const fp=window.FIECore?.FormatRegistry?.profile?.(f)||{chopped:f.includes('CHOPPED'),bestBall:f.includes('BESTBALL')};
+    if(fp.chopped&&shape.mean===null){adjusted=Math.min(adjusted,34);lowData=true;}
+    if(fp.bestBall&&shape.ceiling===null&&season(p)===null){adjusted=Math.min(adjusted,34);lowData=true;}
     const conf=lowData?'LOW':confidence(p,shape);
     return{p,id,position:pos(p),baseValue:adjusted,rawBaseValue:base??0,seasonProjection:season(p),vor:num(p?.projectedVOR),shape,scarcity:sc,confidence:conf,dataCoverage,lowData,primaryAvailable,architecture,format:f};});
   const overall=[...out].sort((a,b)=>b.baseValue-a.baseValue||String(a.p.name).localeCompare(String(b.p.name)));overall.forEach((x,i)=>x.overallRank=i+1);

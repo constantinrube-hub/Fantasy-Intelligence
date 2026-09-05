@@ -3,13 +3,13 @@
   "tranche": "3C",
   "change_package": "C10-007",
   "phase": "preflight_characterization",
-  "combined_with": "Tranche 3B final manifest synchronization",
-  "validated_3b_target": {
-    "commit": "96a3f6200cdefd521b18265b705a10d2885bf896",
-    "run": "33645046578",
-    "artifact": "9852443209",
-    "final_build_manifest_sha256": "c2a9a48e817e2955832f07b30a869dcfcd5eb0be0caf1dfb5ef659282fd75373"
-  },
+  "preflight_revision": 2,
+  "correction_of_run": "33775902008",
+  "correction_reason": [
+    "revision 1 assumed a non-existent synthesizePlayerId function",
+    "revision 1 piped node through tee without pipefail, masking the failing node process"
+  ],
+  "validated_current_head_before_correction": "48103345158239afd99f148fb3dd5ef99f69248f",
   "production_behavior_change": false,
   "target_contract": {
     "owner": "FIECore.PlayerIdentity",
@@ -39,20 +39,8 @@
     "synthetic_name_position_as_governed_identity": false,
     "display_name_fallback_for_governed_research_join": false,
     "incomplete_governed_mapping": "fail_closed",
-    "duplicate_name_collision": "ambiguous_not_guessed",
-    "league_specific_decisions_preserved": true,
-    "cross_league_validation_pooling": false,
-    "adp_in_football_identity_model": false
+    "duplicate_name_collision": "ambiguous_not_guessed"
   },
-  "required_future_validation": [
-    "offense identity fixture",
-    "IDP identity fixture",
-    "D/ST entity fixture",
-    "kicker entity fixture",
-    "duplicate-name ambiguity fixture",
-    "canonical-only current-feature fixture",
-    "incomplete crosswalk blocks governed research activation"
-  ],
   "frozen": [
     "C10-009 evidence/uncertainty semantics",
     "C10-005 research producer typing",

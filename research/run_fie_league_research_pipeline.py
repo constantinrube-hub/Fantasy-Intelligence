@@ -17,9 +17,10 @@ from pathlib import Path
 from typing import Any
 
 from fie_research_pipeline_contract import (
-    PIPELINE_SCHEMA, ROOT, STAGES, build_pipeline_fingerprint, current_path,
+    PIPELINE_SCHEMA, ROOT, STAGES, artifact_content_sha256, build_pipeline_fingerprint, current_path,
     derived_dir, league_root, league_row, load_json, load_profile, pipeline_dir,
     profile_fingerprint, profile_format, repo_relative, resolve_adp_key,
+    research_stage_contract, research_stage_primary_output,
     roster_positions, roster_signature, scoring_signature, sha256_file,
     source_commit, stage_template, strategy_dir, team_count, utc_now,
     validate_status, write_json,
@@ -53,7 +54,7 @@ def _finish(stage: dict, status: str, *, reason: str | None = None, outputs: dic
 
 
 def _hash_outputs(paths: list[Path]) -> dict:
-    return {repo_relative(p): sha256_file(p) for p in paths if p.is_file()}
+    return {repo_relative(p): artifact_content_sha256(p) for p in paths if p.is_file()}
 
 
 def validate_profile(league_id: str, row: dict, profile: dict) -> None:
@@ -206,6 +207,44 @@ def build_v975(league_id: str, season: int) -> tuple[str, str]:
     return "complete_research_only", str(((x.get("per_position") or {}).get("QB") or {}).get("status") or x.get("status") or "complete_research_only")
 
 
+def _research_stage_producer_command(name: str, league_id: str, season: int) -> list[str]:
+    """Build the exact dedicated producer command for an explicitly forced stage."""
+    root = league_root(league_id)
+    dd = derived_dir(league_id)
+    cache = dd.parent
+    perf = root / "performance" / str(season)
+    evidence = perf / "evidence" / "feature_evidence.json"
+    shadow = perf / "shadow" / "production_shadow.json"
+    extended = cache / "feature-evidence" / "extended-core"
+    common = ["--league-root", str(root), "--derived-dir", str(dd), "--cache-dir", str(cache), "--seasons", f"2016-{season - 1}"]
+    if name == "feature_evidence":
+        return [sys.executable, "research/fie_feature_evidence_hardening.py", *common, "--output-dir", str(perf / "evidence")]
+    if name == "production_shadow":
+        return [sys.executable, "research/fie_production_shadow.py", "--league-id", league_id, "--report-season", str(season), *common,
+                "--current-cache", str(ROOT / ".cache/fie-current/leagues" / league_id), "--current-snapshot", str(current_path(league_id)),
+                "--evidence-bundle", str(evidence), "--output-dir", str(perf / "shadow")]
+    if name == "controlled_runtime":
+        return [sys.executable, "research/build_v96_runtime_bundle.py", "--league-id", league_id, "--report-season", str(season),
+                "--league-root", str(root), "--league-profile", str(root / "profile.json"), "--derived-dir", str(dd), "--cache-dir", str(cache),
+                "--extended-derived-dir", str(extended / "derived"), "--extended-m1-bundle", str(extended / "milestone1_extended.json"),
+                "--current-snapshot", str(current_path(league_id)), "--evidence-bundle", str(evidence), "--shadow-bundle", str(shadow),
+                "--output-dir", str(perf / "runtime"), "--seasons", f"2016-{season - 1}"]
+    raise StageFailure(f"no dedicated producer for {name}")
+
+
+def ensure_typed_research_stage(name: str, league_id: str, season: int, *, force: bool = False) -> tuple[str, str, list[Path]]:
+    """Produce (only when forced), then validate a canonical research artifact."""
+    contract = research_stage_contract(name)
+    primary = research_stage_primary_output(league_id, season, name)
+    if force:
+        run(_research_stage_producer_command(name, league_id, season))
+    if not primary.is_file():
+        return "blocked_data", f"typed {contract['artifact_type']} missing; force {name} to invoke {contract['producer']}", []
+    for validator in contract["validator"]:
+        run([sys.executable, validator, str(primary)])
+    return "complete_research_only" if force else "reused_valid", f"validated {contract['artifact_type']} with exact dedicated validator contract", [primary]
+
+
 def derive_strategy_stage_statuses(league_id: str, season: int) -> dict[str, tuple[str, str]]:
     sdir = strategy_dir(league_id, season)
     v2 = load_json(sdir / "preseason_v2.json", {})
@@ -249,6 +288,14 @@ def orchestrate(a: argparse.Namespace) -> int:
     def record(name: str, status: str, reason: str, outputs: list[Path] | None = None, inputs: dict | None = None):
         idx = STAGES.index(name); st = stage_template(name); st["started_at"] = utc_now(); st["inputs"] = inputs or {}; _finish(st, status, reason=reason, outputs=_hash_outputs(outputs or [])); write_json(_stage_file(out, idx, name), st); manifest["stages"].append(st); return st
 
+    def record_typed(name: str, status: str, reason: str, outputs: list[Path]):
+        contract = research_stage_contract(name)
+        st = record(name, status, reason, outputs)
+        for field in ("artifact_type", "producer", "producer_dependencies", "validator", "schema"):
+            st[field] = contract[field]
+        write_json(_stage_file(out, STAGES.index(name), name), st)
+        return st
+
     record("profile", "complete", "canonical registry/profile validated", [league_root(a.league_id)/"profile.json"], {"format": fmt, "teams": team_count(profile), "profile_fingerprint": profile_fingerprint(row, profile), "scoring_signature": scoring_signature(row, profile), "roster_signature": roster_signature(profile), "resolved_adp_key": resolved_adp, "expected_adp_key": expected_adp})
 
     if a.mode == "report_only":
@@ -264,19 +311,24 @@ def orchestrate(a: argparse.Namespace) -> int:
 
         cstatus, creason = ensure_current(a.league_id,a.season,no_refresh=a.no_current_refresh)
         record("current",cstatus,creason,[current_path(a.league_id)])
-        # Controlled runtime is contextual only and is never forced by this preseason workflow.
-        try:
-            from current_snapshot_storage import load_current_snapshot
-            cur=load_current_snapshot(current_path(a.league_id)) if current_path(a.league_id).is_file() else {}
-        except Exception: cur=load_json(current_path(a.league_id),{})
-        v96=str((cur.get("v96_runtime") or {}).get("status") or "not_present")
-        record("controlled_runtime","reused_valid" if cur else "blocked_data",f"existing V9.6 context: {v96}",[current_path(a.league_id)])
+
+        # Typed research stages reuse only their own validator-approved bundles.
+        # Expensive regeneration is explicit through --force-stage and never
+        # implies runtime activation or model promotion.
+        for typed_name in ("feature_evidence", "production_shadow", "controlled_runtime"):
+            typed_status, typed_reason, typed_outputs = ensure_typed_research_stage(
+                typed_name, a.league_id, a.season,
+                force=a.force_rebuild or typed_name in a.force_stage,
+            )
+            record_typed(typed_name, typed_status, typed_reason, typed_outputs)
 
         mkt_status,mkt_reason=capture_market(a.season,a.league_id,disabled=a.no_market_capture); record("market",mkt_status,mkt_reason)
         av_status,av_reason=capture_availability(); record("availability",av_status,av_reason)
 
         build_strategy(a.league_id,a.season,resolved_adp)
         for name,(status,reason) in derive_strategy_stage_statuses(a.league_id,a.season).items():
+            if name in {"feature_evidence", "production_shadow"}:
+                continue
             record(name,status,reason,[strategy_dir(a.league_id,a.season)/"strategy_stack.json"])
 
         build_v974(a.league_id,a.season)

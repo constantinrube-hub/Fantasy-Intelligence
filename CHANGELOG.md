@@ -158,7 +158,7 @@ V9.3.1 passed the deterministic source/release gates but the first real browser 
 - Added progressive league loading, request deduplication/caching, lazy League Intel history, stale-request protection and performance instrumentation.
 - Added V9.3 runtime smoke tests for LeagueContext, preferred-roster/K-DST/SF detection, scarcity and decision-UI initialization.
 - Centralized runtime release display on generated release metadata.
-- Added `docs/current/V9.3_DECISION_UX_RELIABILITY.md` as the implementation and QA handoff.
+- Added [`docs/archive/implementation/V9.3_DECISION_UX_RELIABILITY.md`](docs/archive/implementation/V9.3_DECISION_UX_RELIABILITY.md) as the implementation and QA handoff.
 
 ## 9.2.1 Current Snapshot Storage, 2026-08-26
 

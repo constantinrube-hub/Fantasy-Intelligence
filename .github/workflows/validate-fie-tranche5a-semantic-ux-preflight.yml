@@ -1,0 +1,76 @@
+name: FIE Controlled Implementation — Tranche 5A Semantic UX Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche5a-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  characterize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+      - name: Verify completed unified-research provenance ancestry
+        run: git merge-base --is-ancestor e7ec67c0cb0d7fd791201d3b2cb49b5600d7ba47 HEAD
+      - name: Preserve completed runtime and research contracts
+        run: |
+          node research/integrity_tranche2a_six_format_contract.js
+          node research/integrity_tranche3a_replacement_ownership.js --mode target
+          node research/integrity_tranche3b_data_client_scope.js --mode target
+          node research/integrity_tranche3c_player_identity.js --mode target
+          node research/integrity_tranche3d_evidence_semantics.js
+          python research/integrity_tranche3e_research_producer_typing.py
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+      - name: Reproduce semantic UX gap
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tranche5a
+          python research/integrity_tranche5a_semantic_ux_rank_identity.py --mode baseline | tee artifacts/tranche5a/semantic-ux-baseline.log
+          grep -F "KNOWN_GAP_REPRODUCED rank terminology and Research/Lab entry points lack one semantic UX contract" artifacts/tranche5a/semantic-ux-baseline.log
+      - name: Canonical deterministic release build
+        run: python tools/release_build.py --mode personal
+      - name: Require deployable source and no generated drift
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          data=json.load(open('config/release-gate.json'))
+          assert data.get('status') == 'DEPLOYABLE_SOURCE', data.get('status')
+          lines=subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines()
+          changed=[]
+          for line in lines:
+              path=line[3:].strip().split(' -> ')[-1]
+              if not (path == 'artifacts' or path.startswith('artifacts/')): changed.append(path)
+          if changed: raise SystemExit('Unexpected preflight drift:\n- '+'\n- '.join(changed))
+          print('PASS Tranche 5A preflight made no runtime/generated changes')
+          PY
+      - name: Upload Tranche 5A characterization evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche5a-preflight-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            artifacts/tranche5a/
+            config/release-gate.json
+            config/build-manifest.json

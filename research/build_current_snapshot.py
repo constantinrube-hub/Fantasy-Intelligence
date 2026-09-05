@@ -369,6 +369,16 @@ def archive_sleeper_projection(rows: List[dict], season: int, week: int, identit
         "season": season, "week": week, "captured_at": captured,
         "pregame_eligible": bool(pregame_eligible), "rows": n,
         "first_write_policy": True, "source": "Sleeper projection endpoint",
+        "point_in_time_metadata": {
+            "schema": "fie-point-in-time-source-metadata-v1",
+            "capture_intent": "prospective_weekly_market_benchmark",
+            "source_endpoint": f"https://api.sleeper.com/projections/nfl/{season}/{week}?season_type=regular",
+            "source_release_identifier": None,
+            "source_revision_identifier": None,
+            "revision_metadata_status": "NOT_EXPOSED_BY_PROVIDER",
+            "as_of_semantics": "provider response observed and immutably first-written at captured_at; never reconstructed later",
+            "release_cadence": "verified pregame scheduled capture",
+        },
         **(capture_context or {}),
     }
     return register(out, meta, written=True)

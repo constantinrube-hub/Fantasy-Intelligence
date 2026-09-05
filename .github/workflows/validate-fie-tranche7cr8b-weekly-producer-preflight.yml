@@ -1,0 +1,26 @@
+name: FIE Controlled Implementation — Tranche 7C-R8B Weekly Producer Preflight
+on:
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r research/requirements.txt
+      - name: Validate governed frozen weekly producer
+        run: |
+          mkdir -p artifacts/tranche7cr8b
+          python -m py_compile research/m10_prospective_weekly_producer.py research/m10_prospective_operational_capture.py research/m10_prospective_source_bundle.py research/integrity_m10_prospective_weekly_producer_test.py
+          python research/integrity_m10_prospective_activation_guard_test.py
+          python research/integrity_m10_prospective_weekly_producer_test.py | tee artifacts/tranche7cr8b/weekly-producer-validation.txt
+          python research/integrity_tranche7cr8b_weekly_producer.py | tee artifacts/tranche7cr8b/preflight-validation.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fie-controlled-tranche7cr8b-preflight-${{ github.sha }}
+          path: artifacts/tranche7cr8b/
+          if-no-files-found: error

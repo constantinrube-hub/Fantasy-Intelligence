@@ -1,0 +1,75 @@
+name: FIE Controlled Implementation — Tranche 7B Prospective Capture Contract
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche7b-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install locked research dependencies
+        run: pip install -r research/requirements.txt
+      - name: Verify deterministic 7B fixture contract
+        run: |
+          python -m py_compile research/m10_prospective_capture_contract.py research/build_m10_prospective_capture.py research/validate_m10_prospective_capture.py research/integrity_m10_prospective_capture_test.py
+          python research/integrity_m10_prospective_capture_test.py
+          python research/build_m10_prospective_capture.py --fixture --fixture-outcomes --output-root artifacts/tranche7b/prospective-fixture
+          python research/validate_m10_prospective_capture.py --root artifacts/tranche7b/prospective-fixture --require-outcome
+      - name: Preserve closed research and governance contracts
+        run: |
+          python research/integrity_tranche7b_prospective_capture_contract.py --mode target
+          python research/integrity_tranche6e_cross_model_decision_review.py --mode closure
+          python research/integrity_tranche6d_m10_offline_challenger.py --mode closure
+          python research/integrity_tranche6c_point_in_time_evidence.py --mode closure
+          python research/integrity_tranche6b_research_completeness_inventory.py
+          python research/integrity_fie_position_model_gate_test.py
+      - name: Canonical deterministic release build
+        run: python tools/release_build.py --mode personal
+      - name: Require deployable source
+        run: python -c "import json; assert json.load(open('config/release-gate.json'))['status'] == 'DEPLOYABLE_SOURCE'"
+      - name: Capture deterministic generated synchronization
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib, shutil, subprocess
+          lines=subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines()
+          changed=[]
+          for line in lines:
+              path=line[3:].strip().split(' -> ')[-1]
+              if not (path == 'artifacts' or path.startswith('artifacts/')):
+                  changed.append(path)
+          allowed={'config/build-manifest.json','config/release-gate.json','dist/config/build-manifest.json'}
+          unexpected=sorted(set(changed)-allowed)
+          if unexpected:
+              raise SystemExit('Unexpected source/generated drift:\n- '+'\n- '.join(unexpected))
+          out=pathlib.Path('artifacts/tranche7b/generated-sync');out.mkdir(parents=True,exist_ok=True)
+          for path in sorted(set(changed)&allowed):
+              src=pathlib.Path(path)
+              if src.exists():
+                  dst=out/path;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+          PY
+      - name: Upload Tranche 7B fixture and deterministic sync
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche7b-target-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: artifacts/tranche7b/

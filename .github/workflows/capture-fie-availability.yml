@@ -30,11 +30,13 @@ jobs:
       - name: Capture immutable availability evidence
         run: |
           python research/capture_fie_availability.py --output-root data/research/availability/sleeper
+          python research/build_fie_point_in_time_evidence_report.py
+          python research/validate_fie_point_in_time_evidence_report.py --verify-deterministic
       - name: Commit first-write evidence
         run: |
           git config user.name "FIE Availability Evidence Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/research/availability/sleeper || true
+          git add data/research/availability/sleeper data/research/portfolio/2026/point-in-time-evidence-report.json || true
           if git diff --cached --quiet; then echo "Today's immutable availability snapshot already exists"; exit 0; fi
           git commit -m "Capture FIE daily availability evidence"
           git fetch origin main

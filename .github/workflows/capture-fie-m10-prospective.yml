@@ -1,0 +1,62 @@
+name: Capture FIE M10 Prospective Research Evidence
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "Optional verified NFL season"
+        required: false
+        type: string
+      week:
+        description: "Optional verified NFL regular-season week"
+        required: false
+        type: string
+  schedule:
+    - cron: "0 */3 * 1,9,10,11,12 *"
+permissions: {contents: write}
+concurrency:
+  group: fie-m10-prospective-weekly
+  cancel-in-progress: false
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r research/requirements.txt
+      - name: Verify no-network capture contract
+        run: python research/integrity_m10_prospective_r8c_workflow_test.py
+      - name: Capture public-core source envelope and immutable evidence
+        env:
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+        shell: bash
+        run: |
+          args=()
+          [[ -z "$INPUT_SEASON" ]] || args+=(--season "$INPUT_SEASON")
+          [[ -z "$INPUT_WEEK" ]] || args+=(--week "$INPUT_WEEK")
+          python research/capture_m10_prospective_weekly_raw.py --output-dir /tmp/fie-m10-raw "${args[@]}"
+          [[ ! -f /tmp/fie-m10-raw/raw-envelope.json ]] && { echo "No regular-season capture eligible"; exit 0; }
+          python research/run_m10_prospective_weekly_capture.py --raw-envelope /tmp/fie-m10-raw/raw-envelope.json
+          python research/validate_m10_prospective_write_plan.py --github-ref "$GITHUB_REF"
+      - name: Commit immutable research-only evidence
+        shell: bash
+        run: |
+          git config user.name "FIE M10 Research Evidence Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/prospective/m10
+          if git diff --cached --quiet; then echo "No prospective evidence write"; exit 0; fi
+          python research/validate_m10_prospective_write_plan.py --github-ref "$GITHUB_REF"
+          git commit -m "Capture FIE M10 prospective research evidence"
+          git fetch origin main
+          git rebase origin/main
+          python research/validate_m10_prospective_write_plan.py --github-ref "$GITHUB_REF" --base origin/main
+          if git push origin HEAD:main; then exit 0; fi
+          git fetch origin main
+          git rebase origin/main
+          python research/validate_m10_prospective_write_plan.py --github-ref "$GITHUB_REF" --base origin/main
+          if git diff --quiet origin/main...HEAD; then echo "An identical first-write winner is already present"; exit 0; fi
+          git push origin HEAD:main

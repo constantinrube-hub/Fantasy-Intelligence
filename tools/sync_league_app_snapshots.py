@@ -17,7 +17,8 @@ def inject_script(dist:Path,src:str,tag:str):
     if html in text:return
     marker='</body>'
     if marker not in text:raise SystemExit(f'dist index.html missing </body> for {src} injection')
-    idx.write_text(text.replace(marker,html+'\n'+marker,1),encoding='utf-8')
+    with idx.open('w',encoding='utf-8',newline='\n') as handle:
+        handle.write(text.replace(marker,html+'\n'+marker,1))
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--dist',default='dist');a=ap.parse_args();dist=ROOT/a.dist
     if not dist.exists():raise SystemExit(f'dist tree missing: {dist}')

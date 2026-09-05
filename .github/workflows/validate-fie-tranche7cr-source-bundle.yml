@@ -1,0 +1,50 @@
+name: FIE Controlled Implementation — Tranche 7C-R2 Source Bundle
+on:
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install locked research dependencies
+        run: pip install -r research/requirements.txt
+      - name: Verify no-network source bundle
+        run: |
+          python -m py_compile research/m10_prospective_source_bundle.py research/integrity_m10_prospective_source_bundle_test.py research/integrity_tranche7cr_source_bundle.py
+          python research/integrity_m10_prospective_source_bundle_test.py
+          python research/integrity_tranche7cr_source_bundle.py
+          python research/integrity_tranche7cr_season_lock.py --mode closure
+          python research/integrity_tranche7c_operational_prospective_collection.py --mode closure
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Canonical deterministic release build
+        run: python tools/release_build.py --mode personal
+      - name: Require deployable source
+        run: python -c "import json; assert json.load(open('config/release-gate.json'))['status'] == 'DEPLOYABLE_SOURCE'"
+      - name: Capture deterministic generated synchronization
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib, shutil, subprocess
+          changed=[]
+          for line in subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines():
+              path=line[3:].strip().split(' -> ')[-1]
+              if not (path == 'artifacts' or path.startswith('artifacts/')): changed.append(path)
+          allowed={'config/build-manifest.json','config/release-gate.json','dist/config/build-manifest.json'}
+          unexpected=sorted(set(changed)-allowed)
+          if unexpected: raise SystemExit('Unexpected source/generated drift:\n- '+'\n- '.join(unexpected))
+          out=pathlib.Path('artifacts/tranche7cr2/generated-sync');out.mkdir(parents=True,exist_ok=True)
+          for path in sorted(set(changed)&allowed):
+              src=pathlib.Path(path); dst=out/path; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
+          PY
+      - name: Upload target evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche7cr2-target-${{ github.sha }}
+          path: artifacts/tranche7cr2/
+          if-no-files-found: error

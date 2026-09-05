@@ -1,0 +1,147 @@
+name: FIE Controlled Implementation — Tranche 3C Player Identity
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche3c-target-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout implementation branch with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Verify validated Tranche 3C preflight ancestry
+        run: git merge-base --is-ancestor 23063ab350ee82ce04272933060ce1ac4551fbe9 HEAD
+
+      - name: Preserve Tranche 2A, 2B and 2C contracts
+        run: |
+          node research/integrity_tranche2a_six_format_contract.js
+          node research/integrity_tranche1_six_format_runtime_characterization.js --mode target
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+          python research/integrity_tranche2b_responsive_primary_actions.py
+          python research/integrity_tranche2c_production_authority.py
+          node research/integrity_decision_service_test.js
+
+      - name: Preserve Tranche 3A economics
+        run: |
+          node research/integrity_tranche3a_replacement_ownership.js --mode target
+          node research/integrity_tranche1_replacement_parity_characterization.js --mode target
+          node research/integrity_v93_scarcity_runtime_test.js
+          node research/integrity_tranche3a_all_league_replacement_profiles.js
+          python research/integrity_v932_build_determinism_test.py
+
+      - name: Preserve Tranche 3B data access
+        run: |
+          node research/integrity_tranche3b_data_client_scope.js --mode target
+          node research/integrity_tranche1_data_client_scope_characterization.js --mode target
+          node research/integrity_tranche3b_research_report_transport.js
+          python research/integrity_tranche1_direct_fetch_allowlist.py --mode target
+          node research/integrity_v931_persistent_cache_test.js
+          node research/integrity_league_fast_switch_runtime_test.js
+
+      - name: Require Tranche 3C canonical identity target
+        run: |
+          node research/integrity_tranche3c_player_identity.js --mode target
+          node research/integrity_tranche3c_identity_fixtures.js
+          node research/integrity_tranche3c_current_feature_identity.js
+          node research/integrity_tranche3c_current_snapshot_identity.js
+          node research/integrity_tranche3c_value_finder_identity.js
+          python research/integrity_tranche3c_storage_identity.py
+          python research/integrity_value_finder_test.py
+          node research/integrity_value_finder_runtime_test.js
+          python research/integrity_dst_test.py
+          python research/integrity_kicker_test.py
+
+      - name: Keep later research-stage provenance gap frozen
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tranche3c
+          python research/integrity_tranche1_research_stage_identity.py --mode baseline | tee artifacts/tranche3c/research-stage-identity-baseline.log
+          grep -F "KNOWN_GAP_REPRODUCED unified research stages are status-labelled but not typed to exact dedicated producers" artifacts/tranche3c/research-stage-identity-baseline.log
+
+      - name: Require source and dist runtime mirrors match before build
+        run: |
+          cmp app/core/core-services.js dist/app/core/core-services.js
+          cmp app/current-player-features.js dist/app/current-player-features.js
+          cmp app/current-snapshot-store.js dist/app/current-snapshot-store.js
+          cmp app/value-finder.js dist/app/value-finder.js
+          cmp app/dst-intelligence.js dist/app/dst-intelligence.js
+          cmp app/kicker-intelligence.js dist/app/kicker-intelligence.js
+
+      - name: Canonical deterministic release build
+        run: python tools/release_build.py --mode personal
+
+      - name: Require deployable source
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('config/release-gate.json').read_text())
+          print('STATUS:',d.get('status'))
+          if d.get('status')!='DEPLOYABLE_SOURCE':
+              raise SystemExit(1)
+          PY
+
+      - name: Capture only deterministic Tranche 3C generated synchronization
+        run: |
+          python - <<'PY'
+          import pathlib, shutil, subprocess
+          lines=subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines()
+          changed=[]
+          for line in lines:
+              p=line[3:].strip()
+              if ' -> ' in p:p=p.split(' -> ',1)[1]
+              if p=='artifacts' or p.startswith('artifacts/'):continue
+              changed.append(p)
+          allowed={'config/build-manifest.json','dist/config/build-manifest.json','config/release-gate.json'}
+          unexpected=sorted(set(changed)-allowed)
+          if unexpected:
+              print('Unexpected source/generated drift:')
+              for p in unexpected:print(' -',p)
+              raise SystemExit(1)
+          out=pathlib.Path('artifacts/tranche3c/generated-sync');out.mkdir(parents=True,exist_ok=True)
+          for p in sorted(set(changed)&allowed):
+              src=pathlib.Path(p);dst=out/p;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+          if changed:
+              print('TRANCHE3C_SYNC_REQUIRED:',', '.join(sorted(changed)))
+          else:
+              print('PASS Tranche 3C generated tree fully synchronized')
+          PY
+
+      - name: Upload Tranche 3C target evidence and deterministic sync
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche3c-target-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            artifacts/tranche3c/
+            config/release-gate.json
+            config/build-manifest.json

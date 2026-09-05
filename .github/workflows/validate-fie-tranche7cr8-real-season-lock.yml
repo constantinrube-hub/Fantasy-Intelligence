@@ -1,0 +1,27 @@
+name: FIE Controlled Implementation — Tranche 7C-R8A Real Corrected Season Lock
+on:
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r research/requirements.txt
+      - name: Build corrected real historical input and v2 lock candidate
+        run: |
+          mkdir -p artifacts/tranche7cr8
+          python research/integrity_tranche7cr8_corrected_lock.py --mode target
+          python research/integrity_m10_prospective_target_domains_test.py
+          python research/build_m10_prospective_historical_input_v2.py --output artifacts/tranche7cr8/historical-input-v2.json
+          python research/build_m10_prospective_season_lock_v2.py --input artifacts/tranche7cr8/historical-input-v2.json --output artifacts/tranche7cr8/season-lock-v2.json
+          python research/validate_m10_prospective_season_lock_v2.py artifacts/tranche7cr8/season-lock-v2.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fie-controlled-tranche7cr8-target-${{ github.sha }}
+          path: artifacts/tranche7cr8/
+          if-no-files-found: error

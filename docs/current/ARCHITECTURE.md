@@ -72,14 +72,30 @@ python research/generate_runtime_contracts.py
 
 `app/core/data-client.js` is the browser data gateway. New feature code should not call `fetch()` directly.
 
-### Decision source
+### Decision source and promotion boundaries
 
-`app/core/decision-service.js` chooses the production valuation source.
+`app/core/decision-service.js` / `FIEDecisionService` is the **production decision authority**.
 
-- promoted V9 if governance explicitly allows it;
-- governed V8.9 fallback otherwise.
+Current production behavior is:
 
-Value Finder and Monte Carlo consume this gateway rather than choosing an independent model.
+- the canonical V9 decision geometry is available through `FIEModelV9.buildDiagnosticRows()`;
+- `FIEDecisionService` overlays the canonical DraftBase rank/value fields before consumers use the rows;
+- candidate decision coefficients remain fail-closed under `config/model-config.json` (`production.promoted=false`);
+- governed current-feature activation is a **separate league-scoped M6/lineage gate** and is not implied by candidate-model promotion;
+- `FIE_DRAFT_V71` is a compatibility fallback only when canonical V9 rows are unavailable. It is not the normal unpromoted production authority.
+
+Value Finder, Draft Assistant and Monte Carlo must consume the canonical decision/value services rather than inventing an independent production model.
+
+### Release identity
+
+`config/release.json` is the machine-owned release identity. Generated mirrors are:
+
+- `app/generated/release.js`
+- `functions/release.js`
+
+`config/model-config.json` owns model/promotion semantics and generates `app/generated/model-config.js`.
+
+The release descriptor must identify the active runtime generation and research generation without implying that a research candidate has been promoted.
 
 ## League state
 
@@ -106,8 +122,8 @@ data/research/leagues/<league_id>/
   profile.json
   milestone1.json
   ...
-  milestone6.json
-  current/milestone5_current.json   # lightweight league manifest
+  milestone9 / unified research artifacts
+  current/milestone5_current.json
   governance/active_release.json
 
 data/research/shared/current/

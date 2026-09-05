@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "tranche": "3A",
+  "change_package": "C10-004",
+  "phase": "validation_compatibility",
+  "implementation_head": "62c99d394d2d4d8197426a40a6cb32947b243ea5",
+  "runtime_rollback": false,
+  "football_economics_change": false,
+  "failure_classification": {
+    "tranche3a_run": "legacy Tranche 2A absolute DraftBase fixture incompatible with intentional C10-004 scarcity correction",
+    "v934cde_run": "smoke harness used Diagnostics-only fake FIECore after D began requiring canonical ReplacementService"
+  },
+  "changes": [
+    "Forward 2A test freezes six-format semantics/relationships instead of obsolete absolute DraftBase values.",
+    "Historical 2A workflow becomes manual-only and pinned to validated commit 7533ce190a8732b4447d2e14c489153db05b8746.",
+    "V9.3.4C-E smoke loads real runtime contracts and FIECore.",
+    "Canonical release gate permanently runs the forward six-format invariant."
+  ]
+}

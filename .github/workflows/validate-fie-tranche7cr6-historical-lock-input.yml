@@ -1,0 +1,14 @@
+name: FIE Controlled Implementation — Tranche 7C-R6 Historical Lock Input
+on:
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m py_compile research/build_m10_prospective_historical_input.py
+      - run: python research/integrity_m10_prospective_historical_input_test.py
+      - run: python research/integrity_tranche5c_documentation_lifecycle.py --mode target

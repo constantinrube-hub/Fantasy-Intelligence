@@ -1,0 +1,62 @@
+name: FIE Controlled Implementation — Tranche 5E Regression Closure Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche5e-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  characterize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify Tranche 5D closure ancestry
+        run: git merge-base --is-ancestor 582ea395be026807e4333136fd950fbea8a2d670 HEAD
+      - name: Characterize bounded regression closure preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tranche5e
+          python research/integrity_tranche5e_regression_closure.py --mode preflight | tee artifacts/tranche5e/preflight.log
+          grep -F "KNOWN_GAP_REPRODUCED one lifecycle-contract manifest entry is stale after prior closure synchronization" artifacts/tranche5e/preflight.log
+      - name: Preserve completed audit contracts
+        run: |
+          python research/integrity_tranche5d_documentation_cleanup.py --mode target
+          python research/integrity_tranche5c_documentation_lifecycle.py --mode target
+          node research/integrity_tranche5b_research_lab_freshness.js
+          python research/integrity_tranche5b_research_lab_freshness.py --mode target
+          node research/integrity_tranche5a_semantic_ux.js
+          python research/integrity_tranche5a_semantic_ux_rank_identity.py --mode target
+          node research/integrity_tranche2a_six_format_contract.js
+          node research/integrity_tranche3a_replacement_ownership.js --mode target
+          node research/integrity_tranche3b_data_client_scope.js --mode target
+          node research/integrity_tranche3c_player_identity.js --mode target
+          node research/integrity_tranche3d_evidence_semantics.js
+          python research/integrity_tranche3e_research_producer_typing.py
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+          node research/integrity_tranche3a_all_league_replacement_profiles.js
+      - name: Require a clean preflight worktree
+        shell: bash
+        run: test -z "$(git status --porcelain --untracked-files=all -- ':!artifacts/**')"
+      - name: Upload Tranche 5E preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche5e-preflight-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: artifacts/tranche5e/

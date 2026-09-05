@@ -75,7 +75,7 @@ for txt in (dst,kick):
 # Current browser QA services.
 assert 'Player</th><th>Asset Rank' in ui or "label:'Asset Rank'" in ui
 assert 'Best pick' in ui and 'Alternative' in ui and 'Value play' in ui
-assert 'Board → Decision' in ui
+assert 'League → Decision Rank' in ui
 assert 'Low-data' in ui
 assert 'Canonical FIE player quality excludes market price' in ui
 

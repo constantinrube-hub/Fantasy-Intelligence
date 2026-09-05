@@ -1,0 +1,68 @@
+name: FIE Controlled Implementation — Tranche 2A Six-Format
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-historical-tranche2a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout validated Tranche 2A target
+        uses: actions/checkout@v4
+        with:
+          ref: 7533ce190a8732b4447d2e14c489153db05b8746
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Reproduce validated Tranche 2A target
+        run: |
+          python research/generate_runtime_contracts.py
+          node research/integrity_tranche2a_six_format_contract.js
+          node research/integrity_tranche1_six_format_runtime_characterization.js --mode target
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+
+      - name: Reproduce then-frozen unrelated findings
+        run: |
+          node research/integrity_tranche1_replacement_parity_characterization.js --mode baseline
+          node research/integrity_tranche1_data_client_scope_characterization.js --mode baseline
+          python research/integrity_tranche1_direct_fetch_allowlist.py --mode baseline
+          python research/integrity_tranche1_research_stage_identity.py --mode baseline
+          python research/integrity_tranche1_responsive_decision_visibility.py --mode baseline
+
+      - name: Canonical historical release build
+        run: python tools/release_build.py --mode personal
+
+      - name: Require historical deployable source and synchronized dist
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("config/release-gate.json").read_text())
+          print("STATUS:",d.get("status"))
+          if d.get("status")!="DEPLOYABLE_SOURCE":
+              raise SystemExit(1)
+          PY
+          if [ -n "$(git status --porcelain -- dist)" ]; then
+            echo "::error::Validated Tranche 2A historical dist is not synchronized."
+            git status --short -- dist
+            exit 1
+          fi

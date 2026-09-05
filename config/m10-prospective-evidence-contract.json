@@ -1,0 +1,144 @@
+{
+  "schema": "fie-m10-prospective-evidence-contract-v1",
+  "design_tranche": "7A",
+  "review_model": "GPT-5.6 Sol High",
+  "research_only": true,
+  "production_model": "M9",
+  "production_activation": false,
+  "app_integration": false,
+  "shadow_integration": false,
+  "automatic_promotion": false,
+  "positions": ["QB", "RB", "WR", "TE"],
+  "models": ["M9", "M10_LINEAR", "M10_HGB"],
+  "research_lead": {"position": "QB", "model": "M10_HGB"},
+  "selection_policy": "All declared models and positions are captured prospectively on identical eligible rows; the QB lead does not exclude negative controls or permit in-season selection.",
+  "season_lock": {
+    "parameter_training_cutoff": "end_of_previous_completed_regular_season",
+    "in_season_parameter_tuning": false,
+    "time_safe_feature_updates": "prior completed weeks may update lagged features, but model parameters and candidate definitions remain locked for the season",
+    "required_hashes": [
+      "training_input_manifest_sha256",
+      "model_contract_sha256",
+      "model_parameter_sha256",
+      "feature_bundle_sha256"
+    ]
+  },
+  "weekly_freeze": {
+    "unit": "one complete NFL week slate",
+    "primary_cutoff": "single immutable capture inside the existing verified 18-hour window before the week's first kickoff",
+    "required_timing_fields": [
+      "captured_at",
+      "first_kickoff_at",
+      "hours_before_first_kickoff",
+      "schedule_snapshot_sha256"
+    ],
+    "missed_capture_policy": "record a typed missed-capture manifest; never reconstruct a forecast from a later endpoint or model run",
+    "overwrite_policy": "first_write_immutable"
+  },
+  "namespaces": {
+    "forecast": "data/research/prospective/m10/forecasts/{season}/week_{week}",
+    "scoring_replay": "data/research/prospective/m10/scoring-replay/{season}/week_{week}",
+    "decision_trace": "data/research/prospective/m10/decision-traces/{season}/week_{week}",
+    "outcome_revision": "data/research/prospective/m10/outcomes/{season}/week_{week}/revision_{revision}"
+  },
+  "forecast_row_required_fields": [
+    "forecast_id",
+    "season",
+    "week",
+    "captured_at",
+    "first_kickoff_at",
+    "canonical_player_id",
+    "position_model",
+    "team",
+    "opponent_team",
+    "player_kickoff_at",
+    "model",
+    "predicted_raw_components",
+    "predicted_fantasy_points_default",
+    "prediction_quantiles",
+    "event_probabilities",
+    "source_bundle_sha256",
+    "model_parameter_sha256"
+  ],
+  "subgroups": {
+    "required_at_forecast_time": [
+      "position",
+      "week_range",
+      "team_change",
+      "rookie_young_player",
+      "prior_participation_band"
+    ],
+    "time_safe_only": true,
+    "unknown_policy": "retain UNKNOWN as an explicit subgroup value; never fill it from later information"
+  },
+  "probability_policy": {
+    "required_quantiles": [0.1, 0.25, 0.5, 0.75, 0.9],
+    "event_probability_allowed_only_when_defined_by_locked_model": true,
+    "availability_probability": "BLOCKED_INSUFFICIENT_HISTORY",
+    "missing_probability_policy": "null with a typed blocker; never synthesize confidence"
+  },
+  "scoring_replay": {
+    "raw_football_forecast_written_once": true,
+    "profiles": "every enabled league profile captured at forecast time across all six supported formats",
+    "deduplicate_by": ["profile_scoring_signature", "profile_fingerprint"],
+    "required_fields": [
+      "forecast_id",
+      "canonical_player_id",
+      "model",
+      "league_id",
+      "league_format",
+      "profile_scoring_signature",
+      "profile_fingerprint",
+      "scored_fantasy_points",
+      "scoring_registry_version_sha256"
+    ],
+    "profile_mismatch_policy": "fail_closed"
+  },
+  "decision_utility": {
+    "primary_domains": ["start_sit", "best_ball", "chopped"],
+    "conditional_domains": ["waiver"],
+    "unsupported_domains": ["draft", "trade", "dynasty_multi_season"],
+    "policy": "Record research-only counterfactual selections from the same point-in-time roster, player pool, lineup, and scoring contract. Never alter or label an app recommendation.",
+    "minimum_contract": "research/decision_validation_contract.json"
+  },
+  "outcomes": {
+    "separate_from_forecast_namespace": true,
+    "append_only_revisions": true,
+    "required_fields": [
+      "outcome_id",
+      "forecast_id",
+      "canonical_player_id",
+      "season",
+      "week",
+      "source",
+      "source_release_or_commit",
+      "observed_at",
+      "revision",
+      "raw_outcomes",
+      "source_payload_sha256"
+    ],
+    "evaluation_policy": "Every report names one locked outcome revision and excludes unresolved identity or missing-result rows from all models symmetrically."
+  },
+  "evidence_checkpoints": {
+    "operational_health": "after every scheduled capture",
+    "interim_research": "descriptive only after at least 8 completed weeks; no selection or approval",
+    "season_close": "Sol review after a completed season and locked outcome revision",
+    "promotion_gate": "The Tranche 6A four-completed-outer-season gate remains unchanged; prospective weeks or one season do not replace it."
+  },
+  "implementation_sequence": [
+    "7B Terra: schema, fixture, deterministic validators, and missed-capture behavior",
+    "7C Terra: operational forecast, scoring-replay, decision-trace, and outcome workflows after 7B closure",
+    "7D Operations: accrue evidence without model selection or app changes",
+    "7E Sol: review only after a declared evidence checkpoint"
+  ],
+  "forbidden": [
+    "historical forecast reconstruction",
+    "current endpoint backfill",
+    "in-season candidate selection",
+    "ensemble creation",
+    "automatic promotion",
+    "production or app writes",
+    "rank or recommendation changes",
+    "weakening the Tranche 6A promotion gate"
+  ]
+}

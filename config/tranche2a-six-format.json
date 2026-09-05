@@ -1,0 +1,40 @@
+{
+  "schema": "fie-controlled-implementation-tranche2a-v1",
+  "status": "TARGET_VALIDATION",
+  "change_package": "C10-001 FORMAT_CORRECTNESS",
+  "implementation_branch": "audit-implementation-2026-09",
+  "preflight_head": "25f89bdf3d53b2a976eb15d138835582ccb1e0a3",
+  "tranche1_head": "309aebf047ee2f250d8a7612aedb0bf6ff5c4455",
+  "production_policy": {
+    "CHOPPED_BESTBALL": "explicit equal blend of existing production CHOPPED and REDRAFT_BESTBALL semantics",
+    "core_lineup_weights": {
+      "mean": 0.5,
+      "floor": 0.225,
+      "ceiling": 0.275
+    },
+    "dst_weights": {
+      "mean": 0.565,
+      "floor": 0.21,
+      "ceiling": 0.225
+    },
+    "draft_base_weights": {
+      "mean": 19,
+      "floor": 15,
+      "season": 21,
+      "vor": 15,
+      "ceiling": 11,
+      "spike": 7,
+      "scarcity": 8,
+      "health": 4
+    },
+    "research_candidate_promoted": false,
+    "adp_in_football_model": false
+  },
+  "preserved": {
+    "other_five_format_numeric_semantics": true,
+    "fail_closed_research_governance": true,
+    "replacement_vor_ownership_unchanged": true,
+    "data_client_scope_behavior_unchanged": true,
+    "responsive_behavior_unchanged": true
+  }
+}

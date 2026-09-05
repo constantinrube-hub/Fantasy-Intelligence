@@ -34,7 +34,8 @@ def write_json(path: str | Path, obj: Any, *, compact: bool = False) -> None:
         text = json.dumps(obj, separators=(",", ":"), allow_nan=False)
     else:
         text = json.dumps(obj, indent=2, allow_nan=False)
-    p.write_text(text + "\n", encoding="utf-8")
+    with p.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text + "\n")
 
 
 def stable_bytes(obj: Any) -> bytes:
@@ -46,13 +47,28 @@ def content_hash(obj: Any, length: int = 16) -> str:
 
 
 def player_id(row: dict) -> str:
+    """Governed current-snapshot identity mirror of FIECore.PlayerIdentity.
+
+    Sleeper remains the preferred browser-compatible ID. Explicit governed
+    crosswalk identifiers are namespace-prefixed; display names and synthetic
+    name/position keys are never accepted as storage identity.
+    """
     sid = row.get("sleeper_id")
-    if sid is not None and str(sid):
-        return str(sid)
-    cid = row.get("canonical_player_id")
-    if cid is not None and str(cid):
-        return f"canonical:{cid}"
-    raise ValueError("Current snapshot row lacks sleeper_id/canonical_player_id")
+    if sid is not None and str(sid).strip():
+        return str(sid).strip()
+    for field, prefix in (
+        ("canonical_player_id", "canonical"),
+        ("internal_id", "canonical"),
+        ("gsis_id", "gsis"),
+        ("pfr_id", "pfr"),
+        ("fantasypros_id", "fantasypros"),
+    ):
+        value = row.get(field)
+        if value is not None and str(value).strip():
+            return f"{prefix}:{str(value).strip()}"
+    raise ValueError(
+        "Current snapshot row lacks governed Sleeper/canonical crosswalk identity"
+    )
 
 
 def base_row(row: dict) -> dict:

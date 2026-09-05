@@ -1,0 +1,64 @@
+name: FIE Controlled Implementation — Tranche 5D Documentation Cleanup Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-controlled-tranche5d-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  characterize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify completed Tranche 5C ancestry
+        run: git merge-base --is-ancestor 5a45ad0ab985f8549cc6512684e7d7ab6a838d8d HEAD
+      - name: Preserve documentation lifecycle contract
+        run: python research/integrity_tranche5c_documentation_lifecycle.py --mode target
+      - name: Preserve completed behavioral contracts
+        run: |
+          node research/integrity_tranche5b_research_lab_freshness.js
+          python research/integrity_tranche5b_research_lab_freshness.py --mode target
+          node research/integrity_tranche5a_semantic_ux.js
+          python research/integrity_tranche5a_semantic_ux_rank_identity.py --mode target
+          node research/integrity_tranche2a_six_format_contract.js
+          node research/integrity_tranche3a_replacement_ownership.js --mode target
+          node research/integrity_tranche3b_data_client_scope.js --mode target
+          node research/integrity_tranche3c_player_identity.js --mode target
+          node research/integrity_tranche3d_evidence_semantics.js
+          python research/integrity_tranche3e_research_producer_typing.py
+          node research/integrity_tranche1_all_league_runtime_profiles.js --mode target
+          node research/integrity_tranche3a_all_league_replacement_profiles.js
+      - name: Confirm cleanup evidence and zero inbound references
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tranche5d
+          python research/integrity_tranche5d_documentation_cleanup.py | tee artifacts/tranche5d/cleanup-preflight.log
+          grep -F "CLEANUP_EVIDENCE_CONFIRMED historical documents are safe to evaluate for archival relocation" artifacts/tranche5d/cleanup-preflight.log
+      - name: Require a clean preflight worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain --untracked-files=all -- ':!artifacts/**')"
+      - name: Upload Tranche 5D preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-controlled-tranche5d-preflight-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: artifacts/tranche5d/

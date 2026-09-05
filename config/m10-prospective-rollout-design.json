@@ -1,0 +1,103 @@
+{
+  "schema": "fie-m10-prospective-rollout-design-v1",
+  "phase": "7C-R",
+  "review_model": "GPT-5.6 Sol High",
+  "source_closure": "cd3d5f76c5c2032d23c68b9119cca042ff59aa1b",
+  "authorized_branch": "audit-implementation-2026-09",
+  "activation_branch": "main",
+  "activation_event": "merge_validated_rollout_to_default_branch",
+  "research_only": true,
+  "production_model": "M9",
+  "production_activation": false,
+  "app_integration": false,
+  "runtime_integration": false,
+  "shadow_integration": false,
+  "automatic_promotion": false,
+  "season_lock": {
+    "season": 2026,
+    "training_target_seasons": [2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    "lag_context_seasons": [2016, 2017, 2018],
+    "forbidden_outcome_seasons": [2026],
+    "first_write_immutable": true,
+    "scheduled_refit": false,
+    "portable_model_format": "canonical_json_only",
+    "hgb_tree_schema": "fie-hgb-tree-v1",
+    "maximum_export_inference_error": 1e-10
+  },
+  "models": {
+    "M9": {"algorithm": "median-imputed standardized Ridge", "alpha": 10.0, "role": "champion_research_comparator"},
+    "M10_LINEAR": {"algorithm": "median-imputed standardized Ridge", "alpha": 6.0, "role": "transparent_baseline"},
+    "M10_HGB": {
+      "algorithm": "HistGradientBoostingRegressor",
+      "random_state": 106,
+      "selection_train_end": 2024,
+      "selection_test_season": 2025,
+      "final_fit_end": 2025,
+      "search_space_source": "config/m10-offline-experiment.json"
+    }
+  },
+  "target_domain_policy": {
+    "count_targets": ["attempts", "completions", "passing_tds", "interceptions", "carries", "rushing_tds", "targets", "receptions", "receiving_tds"],
+    "continuous_targets": ["passing_yards", "rushing_yards", "receiving_yards"],
+    "count_observations": "finite_non_negative_only",
+    "continuous_observations": "finite_negative_values_preserved",
+    "missing_observations": "remain_null_and_excluded_per_target",
+    "prediction_floor_scope": "post_inference_only_never_training_labels"
+  },
+  "feature_policy": {
+    "raw_public_core_only": true,
+    "rolling_completed_games": 4,
+    "minimum_rolling_observations": 2,
+    "cross_season_completed_history": true,
+    "team_scoped_features_reset_on_team_change": true,
+    "team_or_opponent_identifier_predictors": false,
+    "target_week_realized_inputs": false
+  },
+  "weekly_capture": {
+    "window_hours": 18,
+    "models": ["M9", "M10_LINEAR", "M10_HGB"],
+    "positions": ["QB", "RB", "WR", "TE"],
+    "same_eligible_rows": true,
+    "all_enabled_profiles_required": true,
+    "expected_enabled_leagues_at_design": 22,
+    "expected_formats": ["REDRAFT", "DYNASTY", "CHOPPED", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED_BESTBALL"],
+    "before_window": "NO_WRITE_SUCCESS",
+    "inside_window_input_failure": "RETRYABLE_FAILURE",
+    "after_kickoff_without_capture": "FIRST_WRITE_TYPED_MISS",
+    "historical_reconstruction": false
+  },
+  "decision_domains": {
+    "start_sit": "mean_scored_legal_lineup",
+    "best_ball": "pregame_mean_scored_legal_lineup",
+    "chopped": "p10_scored_legal_lineup",
+    "waiver": "conditional_on_complete_cutoff_ownership_and_forward_horizon",
+    "unsupported": ["draft", "trade", "dynasty_multi_season"]
+  },
+  "outcomes": {
+    "separate_namespace": true,
+    "model_independent_rows": true,
+    "append_only_revisions": true,
+    "correction_requires_parent_hash_and_source_diff": true
+  },
+  "workflow": {
+    "schedule_cadence": "every_three_hours_during_regular_season_months",
+    "scheduled_write_branch": "main",
+    "cancel_in_progress": false,
+    "no_op_commit": false,
+    "research_path_allowlist_only": true
+  },
+  "forbidden_inputs": [
+    "ADP",
+    "market_price",
+    "Sleeper_fantasy_projection",
+    "draft_behavior",
+    "roster_demand",
+    "replacement_economics",
+    "current_app_rank",
+    "production_recommendation",
+    "post_cutoff_status",
+    "current_endpoint_historical_backfill"
+  ],
+  "implementation_model": "GPT-5.6 Terra High",
+  "review_checkpoint_model": "GPT-5.6 Sol High"
+}

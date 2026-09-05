@@ -1,11 +1,17 @@
 {
-  "schema_version": 1,
-  "model_version": "9.1-decision-candidate",
+  "schema_version": 2,
+  "model_version": "9.1-diagnostic-architecture",
   "production": {
+    "authority": "FIEDecisionService",
+    "authority_version": "9.3.2",
+    "architecture": "V9 canonical diagnostic decision geometry + DraftBase canonical overlay",
     "promoted": false,
+    "promotion_scope": "candidate_decision_coefficients",
     "decision_domain": "draft",
-    "reason": "Canonical V9.3.2 decision architecture is production-visible, while empirical research-feature influence remains fail-closed until the governed decision-validation artifact clears promotion.",
-    "fallback": "V9.3.2 canonical base + Sleeper/current validated baselines; unpromoted empirical research signals do not affect decisions"
+    "current_feature_governance": "league_scoped_m6",
+    "current_feature_activation_independent_of_candidate_promotion": true,
+    "reason": "Production decisions route through FIEDecisionService and the canonical V9 decision geometry. Candidate decision coefficients remain fail-closed; governed current-feature activation is evaluated independently per league through lineage and M6 runtime governance.",
+    "fallback": "FIE_DRAFT_V71 is compatibility-only when canonical V9 decision rows are unavailable; it is not the normal unpromoted production authority."
   },
   "candidate": {
     "draft_decision_weights": {

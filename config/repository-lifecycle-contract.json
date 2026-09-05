@@ -1,0 +1,57 @@
+{
+  "schema": "fie-repository-lifecycle-v1",
+  "owner": "repository-audit",
+  "canonical_documents": [
+    {"path": "README.md", "role": "repository entry point"},
+    {"path": "CHANGELOG.md", "role": "versioned change history"},
+    {"path": "docs/current/ARCHITECTURE.md", "role": "current architecture"},
+    {"path": "docs/current/DATA_CONTRACTS.md", "role": "current data contracts"},
+    {"path": "docs/current/DEPLOYMENT.md", "role": "current deployment guide"},
+    {"path": "docs/current/MODEL_GOVERNANCE.md", "role": "current model governance"},
+    {"path": "docs/current/TESTING.md", "role": "current validation guide"},
+    {"path": "docs/current/SECURITY.md", "role": "current security guide"},
+    {"path": "docs/current/RELEASE_CHECKLIST.md", "role": "current release checklist"}
+  ],
+  "canonical_index": "docs/current/README.md",
+  "historical_document_patterns": [
+    "APPLY_*.md",
+    "APPLY_*.txt",
+    "PATCH*.md",
+    "PATCH*.txt",
+    "*_RELEASE_NOTES.md",
+    "RELEASE_NOTES_*.md",
+    "*-UPLOAD-AND-VALIDATION.md"
+  ],
+  "historical_document_policy": "archived as historical evidence under docs/archive except records whose preserved historical manifests require their original paths; never treated as current operational guidance",
+  "versioned_docs_in_current_policy": "canonical topic guides own current guidance; a versioned document remains in docs/current only when a preserved historical manifest requires that exact path",
+  "documentation_cleanup_contract": "config/tranche5d-documentation-cleanup-preflight.json",
+  "workflow_classification_rules": [
+    {"pattern": "_*.yml", "class": "reusable_component", "lifecycle": "retained_for_provenance"},
+    {"pattern": "validate-fie-tranche*.yml", "class": "controlled_audit", "lifecycle": "manual_historical_validation"},
+    {"pattern": "validate-*.yml", "class": "release_validation", "lifecycle": "active_validation"},
+    {"pattern": "build-fie-current.yml", "class": "current_season_refresh", "lifecycle": "active_operational"},
+    {"pattern": "build-*.yml", "class": "research_or_runtime_build", "lifecycle": "active_operational"},
+    {"pattern": "rebuild-*.yml", "class": "release_rebuild", "lifecycle": "active_operational"},
+    {"pattern": "capture-*.yml", "class": "data_capture", "lifecycle": "active_operational"},
+    {"pattern": "bulk-*.yml", "class": "portfolio_operation", "lifecycle": "active_operational"},
+    {"pattern": "migrate-*.yml", "class": "migration", "lifecycle": "active_operational"},
+    {"pattern": "publish-*.yml", "class": "publication", "lifecycle": "active_operational"},
+    {"pattern": "repair-*.yml", "class": "repair", "lifecycle": "active_operational"},
+    {"pattern": "apply-*.yml", "class": "historical_application", "lifecycle": "retained_for_provenance"}
+  ],
+  "controlled_audit_trigger_policy": "completed and in-progress controlled-tranche validators are workflow_dispatch-only except the new tranche preflight/target while it is being introduced",
+  "active_controlled_workflows": [],
+  "scheduled_workflows": [
+    "build-fie-current.yml",
+    "capture-fie-availability.yml",
+    "capture-fie-m10-prospective.yml",
+    "capture-fie-market.yml",
+    "capture-fie-season-market.yml"
+  ],
+  "tranche4_disposition": {
+    "standalone_package": false,
+    "validated_boundary_head": "e7ec67c0cb0d7fd791201d3b2cb49b5600d7ba47",
+    "evidence": "config/tranche5a-semantic-ux-preflight.json records the final Tranche 3E generated synchronization as validated_tranche4_head",
+    "meaning": "administrative closure boundary for the completed 3-series runtime and research-contract work; no separate implementation was omitted"
+  }
+}
