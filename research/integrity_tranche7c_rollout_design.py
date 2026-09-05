@@ -23,6 +23,11 @@ def main() -> int:
     assert lock["season"] == 2026 and max(lock["training_target_seasons"]) == 2025
     assert lock["forbidden_outcome_seasons"] == [2026] and lock["scheduled_refit"] is False
     assert lock["portable_model_format"] == "canonical_json_only"
+    domains = value["target_domain_policy"]
+    assert "rushing_yards" in domains["continuous_targets"] and "carries" in domains["count_targets"]
+    assert domains["continuous_observations"] == "finite_negative_values_preserved"
+    assert domains["missing_observations"] == "remain_null_and_excluded_per_target"
+    assert domains["prediction_floor_scope"] == "post_inference_only_never_training_labels"
     weekly = value["weekly_capture"]
     assert weekly["window_hours"] == 18 and weekly["same_eligible_rows"] is True
     assert weekly["all_enabled_profiles_required"] is True and weekly["expected_enabled_leagues_at_design"] == 22
@@ -33,7 +38,7 @@ def main() -> int:
     forbidden = set(value["forbidden_inputs"])
     assert {"ADP", "market_price", "Sleeper_fantasy_projection", "replacement_economics", "production_recommendation"} <= forbidden
     text = DOC.read_text(encoding="utf-8")
-    for phrase in ("first-write immutable", "maximum absolute error", "No market projection", "merge of the validated rollout to `main`", "four-completed-outer-season"):
+    for phrase in ("first-write immutable", "maximum absolute error", "No market projection", "merge of the validated rollout to `main`", "four-completed-outer-season", "continuous yardage labels"):
         assert phrase in text, phrase
     print("PASS Tranche 7C-R Sol design: default-branch evidence rollout is bounded, immutable, and non-production")
     return 0

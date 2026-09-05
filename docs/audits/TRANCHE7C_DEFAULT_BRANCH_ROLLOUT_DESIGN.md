@@ -53,6 +53,8 @@ Every position uses the same eligible training rows and raw targets.
 - `M10_LINEAR` uses the same prospective feature matrix and targets with median imputation, standardization, Ridge alpha 6, and a zero prediction floor.
 - `M10_HGB` uses the locked 6D two-member search space. The final inner comparison trains through 2024 and evaluates 2025; the selected specification is then refit on 2019–2025. Count targets use Poisson only when the eligible training target has positive total, otherwise squared error. Continuous targets use squared error. Random state remains 106.
 
+Target-domain clarification from the first real-source build: count labels must be finite and non-negative, while continuous yardage labels must be finite and preserve legitimate negative observations. Missing labels remain missing rather than becoming zero. The zero prediction floor applies only after inference and never clamps training or evaluation labels. See `TRANCHE7CR7_TARGET_DOMAIN_DECISION.md`.
+
 An ensemble is prohibited. The QB HGB research lead receives no preferential rows, inputs, schedule, or decision treatment.
 
 ### Portable parameters
