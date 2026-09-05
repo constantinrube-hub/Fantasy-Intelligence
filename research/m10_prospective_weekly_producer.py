@@ -200,7 +200,7 @@ def _point_rows(lock: dict[str, Any], history: pd.DataFrame, target: pd.DataFram
             for name, variants in lock["models"][position].items():
                 spec = variants[model]
                 vector[name] = (hgb_predict if spec["schema"] == HGB_SCHEMA else ridge_predict)(spec, values)
-            predicted.append({"season": int(item["season"]), "week": int(item["week"]), "team": str(item["team"]), "position_model": position, "prediction": vector, "source": item})
+            predicted.append({"season": int(item["season"]), "week": int(item["week"]), "team": str(item["team"]), "position_model": position, "features": feature_record(pd.Series(item)), "prediction": vector, "source": item})
         for item in _reconcile(predicted, all_targets):
             source, point = item["source"], item["prediction"]
             rows.append({
