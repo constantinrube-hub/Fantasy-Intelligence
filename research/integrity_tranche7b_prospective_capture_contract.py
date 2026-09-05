@@ -27,6 +27,10 @@ def sha256(path: str) -> str:
     return hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
 
 
+def git_blob_sha256(revision: str, path: str) -> str:
+    return hashlib.sha256(subprocess.check_output(["git", "show", f"{revision}:{path}"], cwd=ROOT)).hexdigest()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("target", "closure"), default="target")
@@ -46,7 +50,14 @@ def main(argv: list[str] | None = None) -> int:
         assert set(lifecycle.get("active_controlled_workflows") or []) == {WORKFLOW}, lifecycle
         assert flags(workflow) == {"push": True, "schedule": False, "dispatch": True}
     else:
-        assert not lifecycle.get("active_controlled_workflows"), lifecycle
+        closure_lifecycle = json.loads(subprocess.check_output(
+            ["git", "show", "daa68b8356dca7d1ed10d0480b184114789a9af7:config/repository-lifecycle-contract.json"], cwd=ROOT, text=True
+        ))
+        assert not closure_lifecycle.get("active_controlled_workflows"), closure_lifecycle
+        for active in lifecycle.get("active_controlled_workflows") or []:
+            active_path = ROOT / ".github/workflows" / str(active)
+            assert active_path.is_file(), active_path
+            assert flags(active_path) == {"push": True, "schedule": False, "dispatch": True}, active
         assert flags(workflow) == {"push": False, "schedule": False, "dispatch": True}
         target = json.loads(TARGET.read_text(encoding="utf-8"))
         assert target.get("tranche") == "7B" and target.get("decision") == "CLOSE_DETERMINISTIC_CAPTURE_CONTRACT", target
@@ -55,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         assert target.get("production_model") == "M9"
         assert not any(target.get(key) for key in ("production_behavior_change", "app_integration", "shadow_integration", "scheduled_collection", "live_network_collection")), target
         for path, expected in (target.get("authorized_generated_synchronization") or {}).items():
-            assert sha256(path) == expected, path
+            assert git_blob_sha256("daa68b8356dca7d1ed10d0480b184114789a9af7", path) == expected, path
     builder = (ROOT / "research/build_m10_prospective_capture.py").read_text(encoding="utf-8")
     assert "if not args.fixture:" in builder and "Tranche 7C" in builder
     forbidden = subprocess.run(["git", "grep", "-l", "m10_prospective_capture", "--", "app", "functions", "dist/app"], cwd=ROOT, text=True, capture_output=True, check=False).stdout.strip()
