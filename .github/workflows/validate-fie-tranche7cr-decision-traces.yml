@@ -5,6 +5,7 @@ on:
     paths:
       - 'research/m10_prospective_decision_traces.py'
       - 'research/integrity_m10_prospective_decision_traces_test.py'
+      - 'config/repository-lifecycle-contract.json'
       - '.github/workflows/validate-fie-tranche7cr-decision-traces.yml'
   workflow_dispatch:
 permissions: {contents: read}
@@ -20,3 +21,22 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - run: python tools/release_build.py --mode personal
+      - run: python -c "import json; assert json.load(open('config/release-gate.json'))['status'] == 'DEPLOYABLE_SOURCE'"
+      - name: Capture generated synchronization
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib, shutil, subprocess
+          changed=[line[3:].strip().split(' -> ')[-1] for line in subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines() if not line[3:].strip().startswith('artifacts/')]
+          allowed={'config/build-manifest.json','config/release-gate.json','dist/config/build-manifest.json'}; bad=sorted(set(changed)-allowed)
+          if bad: raise SystemExit('Unexpected source/generated drift: '+', '.join(bad))
+          out=pathlib.Path('artifacts/tranche7cr4/generated-sync');out.mkdir(parents=True,exist_ok=True)
+          for path in sorted(set(changed)&allowed):
+              src=pathlib.Path(path);dst=out/path;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fie-controlled-tranche7cr4-target-${{ github.sha }}
+          path: artifacts/tranche7cr4/
+          if-no-files-found: error
