@@ -158,3 +158,9 @@ If activation misses the first valid 2026 window, Week 1 is recorded as missed. 
 ## Review boundary
 
 Tranche 7D is operations, not model review. It accumulates immutable evidence and monitors health. After at least eight completed weeks, a descriptive interim report may be designed, but it cannot select a model or authorize shadow use. Tranche 7E returns to Sol at a declared checkpoint. The four-completed-outer-season promotion gate remains unchanged.
+
+## R8 corrective checkpoint
+
+Post-R7 Sol review found that the green v1 artifact proves portable point-model construction but does not satisfy this document's activation contract: the historical builder does not share a feature owner with prospective inference, its team budget can follow a player across a team change, and the lock has neither the required residual distribution nor complete provenance bindings. The artifact remains immutable validation evidence and must not be installed at the canonical lock path.
+
+`TRANCHE7CR8_OPERATIONAL_RUNNER_DESIGN.md` and `config/m10-prospective-operational-runner-design.json` are the additive, controlling clarification for implementation. Terra must first build and validate the corrected v2 lock under R8A. The weekly producer and default-branch workflow remain R8B and R8C follow-ons; none of these changes alter the research-only boundary or M9 champion status.
