@@ -25,12 +25,13 @@ def main() -> int:
     assert target["activation_guard"] == {"v1": "reject", "v2": "accept_when_non_fixture_and_valid"}
     active = set(lifecycle["active_controlled_workflows"])
     if args.mode == "target":
-        assert active == {WORKFLOW}
-        assert re.search(r"(?m)^  push:", workflow) and re.search(r"(?m)^  workflow_dispatch:", workflow)
+        assert active == {"validate-fie-tranche7cr8-real-season-lock.yml"}
+        assert not re.search(r"(?m)^  push:", workflow) and re.search(r"(?m)^  workflow_dispatch:", workflow)
     else:
         assert target["lifecycle"] == "closed_manual_validation"
         assert WORKFLOW not in active
         assert not re.search(r"(?m)^  push:", workflow)
+        assert target["validated_preflight"]["status"] == "DEPLOYABLE_SOURCE"
     assert not re.search(r"(?m)^  schedule:", workflow)
     for path in ("research/m10_prospective_features.py", "research/m10_prospective_season_lock_v2.py", "research/build_m10_prospective_historical_input_v2.py", "research/m10_prospective_activation_guard.py"):
         assert (ROOT / path).is_file(), path
