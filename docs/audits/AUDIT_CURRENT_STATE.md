@@ -25,7 +25,8 @@
 - R8A closure: `7d0356a` — the independently verified v2 lock was first-written exactly at the canonical research-only 2026 path. R8A validators are manual-only.
 - Last validated target head: `cfff9e0` — Tranche 7C-R8B weekly-producer preflight green; it validates frozen v2 inference, exact per-profile residual replay, symmetric candidate universe, typed incomplete-roster blockers, timing, and first-write behavior without provider access.
 - Last validated target head: `9e1ce95` — Tranche 7C-R8B controlled fixture target green; it produced an immutable no-network capture with all three frozen candidates, 22-profile exact residual replay, and separate typed decision blockers.
-- Current authorized boundary: R8C default-branch operational-workflow preflight is active. It may validate a main-only, research-path-bounded workflow using no-network fixtures; it may not accrue real evidence on this audit branch. The installed lock remains research-only with M9 champion; app/runtime/rankings, 6F, shadow use, and production activation remain forbidden.
+- Last validated target head: `d7bd020` — Tranche 7C-R8C workflow preflight green; it validates main-only writes, non-cancelling concurrency, no-force-push and one-retry controls, strict research path allowlist, and no-network fixture operation.
+- Current authorized boundary: R8C's controlled no-network workflow target is active. It may dry-run the operational capture path only; it may not accrue real evidence on this audit branch. The installed lock remains research-only with M9 champion; app/runtime/rankings, 6F, shadow use, and production activation remain forbidden.
 
 ## Completed validated tranches
 

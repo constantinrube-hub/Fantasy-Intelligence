@@ -1,0 +1,30 @@
+name: FIE Controlled Implementation — Tranche 7C-R8C Workflow Target
+on:
+  push:
+    branches: [audit-implementation-2026-09]
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r research/requirements.txt
+      - name: Run controlled no-network operational workflow target
+        run: |
+          mkdir -p artifacts/tranche7cr8c
+          python research/integrity_tranche7cr8c_workflow.py --mode closure
+          python research/capture_m10_prospective_weekly_raw.py --fixture --output-dir artifacts/tranche7cr8c/raw
+          python research/run_m10_prospective_weekly_capture.py --raw-envelope artifacts/tranche7cr8c/raw/raw/raw-envelope.json --output-root artifacts/tranche7cr8c/capture
+          python research/validate_m10_operational_prospective_capture.py --root artifacts/tranche7cr8c/capture --season 2026 --week 5
+          python research/integrity_m10_prospective_r8c_workflow_test.py
+          python research/integrity_tranche7cr8c_workflow_target.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fie-controlled-tranche7cr8c-target-${{ github.sha }}
+          path: artifacts/tranche7cr8c/
+          if-no-files-found: error
