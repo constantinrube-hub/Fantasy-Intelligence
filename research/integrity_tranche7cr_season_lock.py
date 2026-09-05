@@ -23,7 +23,15 @@ def main() -> int:
     assert not any(target[key] for key in ("production_activation", "app_integration", "runtime_integration", "shadow_integration", "scheduled_collection"))
     assert target["training_target_seasons"] == list(range(2019, 2026)) and target["forbidden_outcome_seasons"] == [2026]
     lifecycle = json.loads((ROOT / "config/repository-lifecycle-contract.json").read_text(encoding="utf-8"))
-    assert set(lifecycle["active_controlled_workflows"]) == ({WORKFLOW} if args.mode == "target" else set())
+    active = set(lifecycle["active_controlled_workflows"])
+    if args.mode == "target":
+        assert active == {WORKFLOW}
+    else:
+        # A later controlled rollout increment may be active after this lock
+        # is closed, but it must remain a push/manual validator, never a schedule.
+        for name in active:
+            successor = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
+            assert re.search(r"(?m)^  push:", successor) and not re.search(r"(?m)^  schedule:", successor)
     workflow = (ROOT / ".github/workflows" / WORKFLOW).read_text(encoding="utf-8")
     assert bool(re.search(r"(?m)^  push:", workflow)) is (args.mode == "target")
     assert re.search(r"(?m)^  workflow_dispatch:", workflow)
