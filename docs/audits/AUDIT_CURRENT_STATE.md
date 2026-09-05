@@ -9,7 +9,7 @@
 - Last validated target head: `d365e22e44af4c4d621083900c4b7d20c43636fc` — Tranche 6B target green
 - Last validated target head: `7b80acc95603f81794c7ef1ffd8d2caaf9f6e3a4` — Tranche 6C target green
 - Last validated target head: `24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2` — Tranche 6D target green
-- Current authorized boundary: Tranche 6E cross-model and decision review of the offline M10 evidence under the completed Tranche 6A design; it requires Sol High and does not authorize production activation
+- Current authorized boundary: Tranche 6E cross-model and decision review target under Sol High; the bounded decision is to retain M9, preserve QB M10-HGB only as a research lead, and approve no 6F shadow integration
 
 ## Completed validated tranches
 
@@ -42,6 +42,12 @@
 - Replacement/scarcity/VOR, PlayerIdentity, DataClient, freshness ownership, and source/dist generation retain their established canonical owners.
 - D/ST, Kicker, Value Finder, current-snapshot, fast-switch, and strategy-stack behavior are preserved unless their dedicated contract fails.
 
+## Active Tranche 6E decision
+
+- The deterministic 6D fixture supports a QB M10-HGB point-forecast research signal: four of four MAE fold wins, 4.41% mean fold lift, and a positive exhaustive outer-season bootstrap interval.
+- The evidence remains synthetic and lacks row-level disagreement, material subgroups, all-profile scoring replay, and downstream decision traces.
+- M9 remains champion. Promotion and 6F shadow approval remain blocked for every position.
+
 ## Closed 5C scope
 
 - Add machine-readable documentation and workflow lifecycle ownership.
@@ -63,4 +69,4 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 
 ## Known-safe stopping point
 
-Tranches 5D, 5E, 6B, 6C, and 6D are closed. Tranche 6A records the required Sol-only research-completeness and M10 architecture decision. The next implementation boundary is Tranche 6E cross-model and decision review under Sol High. M9 remains champion; no app integration, automatic promotion, or production behavior change is authorized.
+Tranches 5D, 5E, 6B, 6C, and 6D are closed. The active 6E target records a fail-closed Sol cross-model decision: retain M9 and do not authorize 6F shadow integration. No app integration, automatic promotion, or production behavior change is authorized.
