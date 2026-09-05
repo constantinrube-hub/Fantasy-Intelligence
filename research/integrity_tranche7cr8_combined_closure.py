@@ -30,6 +30,8 @@ def main(argv: list[str] | None = None) -> int:
         assert not re.search(r"(?m)^  push:", workflow)
     assert re.search(r"(?m)^  workflow_dispatch:", workflow) and not re.search(r"(?m)^  schedule:", workflow)
     assert "permissions: {contents: read}" in workflow and "tools/release_build.py --mode personal" in workflow
+    for path in ("config/tranche7cr8-combined-closure-target.json", "config/repository-lifecycle-contract.json", ".github/workflows/validate-fie-tranche7cr8-combined-closure.yml"):
+        assert f"- '{path}'" in workflow, path
     for path in ("research/integrity_tranche7cr8_corrected_lock.py", "research/integrity_tranche7cr8b_weekly_producer.py", "research/integrity_tranche7cr8c_workflow.py", "research/integrity_m10_prospective_r8c_workflow_test.py"):
         assert (ROOT / path).is_file(), path
     forbidden = subprocess.run(["git", "grep", "-l", "tranche7cr8-combined-closure", "--", "app", "functions", "dist/app"], cwd=ROOT, text=True, capture_output=True, check=False).stdout.strip()
