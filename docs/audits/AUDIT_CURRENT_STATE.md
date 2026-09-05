@@ -12,6 +12,7 @@
 - Last validated target head: `b248c7387f5ae3c9aa7b7c64ee0076f85cc96924` — Tranche 6E target green
 - Last validated target head: `0b120fd652a142372a221240381acfa47c40a238` — Tranche 7B target green
 - Last validated target head: `81bd41a72695db391febb0e32edee0b596277020` — Tranche 7C target green
+- Last synchronized closure head: `90ca7f8ae468f86e7e0918de41a98546fcecee53` — Tranche 7C audit-branch operational capture closure
 - Current authorized boundary: no active implementation target; Tranche 7C is closed after audit-branch validation. Any schedule/default-branch rollout and later Tranche 7D evidence accrual require a separately authorized operational decision; 6F remains unauthorized
 
 ## Completed validated tranches

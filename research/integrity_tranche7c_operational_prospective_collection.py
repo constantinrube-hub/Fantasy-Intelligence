@@ -16,6 +16,7 @@ WORKFLOW = "validate-fie-tranche7c-operational-prospective-collection.yml"
 PREFLIGHT = ROOT / "config/tranche7c-operational-prospective-collection-preflight.json"
 TARGET = ROOT / "config/tranche7c-operational-prospective-collection-target.json"
 SOURCE = "f955ff4"
+CLOSURE = "90ca7f8ae468f86e7e0918de41a98546fcecee53"
 
 
 def flags(path: Path) -> dict[str, bool]:
@@ -25,6 +26,10 @@ def flags(path: Path) -> dict[str, bool]:
 
 def sha256(path: str) -> str:
     return hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+
+
+def git_blob_sha256(revision: str, path: str) -> str:
+    return hashlib.sha256(subprocess.check_output(["git", "show", f"{revision}:{path}"], cwd=ROOT)).hexdigest()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -41,7 +46,14 @@ def main(argv: list[str] | None = None) -> int:
         assert set(lifecycle.get("active_controlled_workflows") or []) == {WORKFLOW}, lifecycle
         assert flags(workflow) == {"push": True, "schedule": False, "dispatch": True}
     else:
-        assert not lifecycle.get("active_controlled_workflows"), lifecycle
+        closure_lifecycle = json.loads(subprocess.check_output(
+            ["git", "show", f"{CLOSURE}:config/repository-lifecycle-contract.json"], cwd=ROOT, text=True
+        ))
+        assert not closure_lifecycle.get("active_controlled_workflows"), closure_lifecycle
+        for active in lifecycle.get("active_controlled_workflows") or []:
+            active_path = ROOT / ".github/workflows" / str(active)
+            assert active_path.is_file(), active_path
+            assert flags(active_path) == {"push": True, "schedule": False, "dispatch": True}, active
         assert flags(workflow) == {"push": False, "schedule": False, "dispatch": True}
         target = json.loads(TARGET.read_text(encoding="utf-8"))
         assert target.get("tranche") == "7C" and target.get("decision") == "CLOSE_AUDIT_BRANCH_OPERATIONAL_CAPTURE_ADAPTER", target
@@ -54,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         assert target.get("release_artifact", {}).get("sha256") == "35313391341dabc4c79082aae67cc3c534faeae67b15f69afc618abc58e65a6f", target
         assert not any(target.get(key) for key in ("production_behavior_change", "app_integration", "shadow_integration", "scheduled_collection", "live_provider_request")), target
         for path, expected in (target.get("authorized_generated_synchronization") or {}).items():
-            assert sha256(path) == expected, path
+            assert git_blob_sha256(CLOSURE, path) == expected, path
     adapter = (ROOT / "research/m10_prospective_operational_capture.py").read_text(encoding="utf-8")
     assert "live_provider_request" in adapter and "historical_reconstruction" in adapter and "canonical_score" in adapter
     assert "enabled-league coverage changed" in adapter and "require_fixture=False" in (ROOT / "research/validate_m10_operational_prospective_capture.py").read_text(encoding="utf-8")
