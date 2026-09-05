@@ -17,6 +17,10 @@ def sha256(path: str) -> str:
     return hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
 
 
+def git_blob_sha256(revision: str, path: str) -> str:
+    return hashlib.sha256(subprocess.check_output(["git", "show", f"{revision}:{path}"], cwd=ROOT)).hexdigest()
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("target", "release"), default="target")
@@ -34,8 +38,11 @@ def main(argv: list[str] | None = None) -> None:
     assert target.get("tranche") == "6B" and len(commit) == 40 and str(validated.get("github_actions_run") or "").isdigit(), target
     subprocess.run(["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=ROOT, check=True)
     assert validated.get("status") == "DEPLOYABLE_SOURCE", validated
+    # The 6B generated synchronization is frozen at its own closure.  Later
+    # release-gated tranches legitimately replace these generated descriptors,
+    # and verify their own exact artifact bytes separately.
     for path, expected in (target.get("authorized_generated_synchronization") or {}).items():
-        assert sha256(path) == expected, path
+        assert git_blob_sha256("966e961", path) == expected, path
     lifecycle = json.loads((ROOT / "config/repository-lifecycle-contract.json").read_text(encoding="utf-8"))
     # 6B closed with no active controlled validator.  Later tranches may register
     # one temporary push-triggered target under the lifecycle policy, so preserve

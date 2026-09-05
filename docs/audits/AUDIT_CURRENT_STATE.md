@@ -7,7 +7,8 @@
 - Last validated target head: `398a82d772641fc5d40fdc9b7473e0921906fdc6` — Tranche 5E target green
 - Last synchronized closure head: `b4c4ef5` — Tranche 5E exact generated-state closure
 - Last validated target head: `d365e22e44af4c4d621083900c4b7d20c43636fc` — Tranche 6B target green
-- Current authorized boundary: Tranche 6C point-in-time evidence hardening under the completed Tranche 6A design; it must not backfill historical forecasts from current endpoints
+- Last validated target head: `7b80acc95603f81794c7ef1ffd8d2caaf9f6e3a4` — Tranche 6C target green
+- Current authorized boundary: Tranche 6D offline M10 QB/RB/WR/TE challenger under the completed Tranche 6A design; it remains research-only and preserves M9 as champion
 
 ## Completed validated tranches
 
@@ -29,6 +30,7 @@
 - 5E regression and closure target — `398a82d772641fc5d40fdc9b7473e0921906fdc6`, GitHub Actions run `33908811493`, success in 57 seconds, `DEPLOYABLE_SOURCE` across 52 checks; its release artifact SHA-256 is `44f9f4fb1c12ced64b99066ce2a821e85ac19613047fccee73154b943dd54a5f`
 - 6A research-completeness and M10 football-model architecture — Sol design only; `docs/audits/TRANCHE6A_RESEARCH_COMPLETENESS_MODEL_DESIGN.md` is the implementation boundary and does not authorize training, promotion, or runtime integration
 - 6B machine-readable research-completeness inventory — `d365e22e44af4c4d621083900c4b7d20c43636fc`, GitHub Actions run `33925069372`, success in 50 seconds, `DEPLOYABLE_SOURCE`; release artifact SHA-256 `1cd361bac926e4b8f3964eea14e4d935fb425aff4f9c8d344c22915e73e62095`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
+- 6C point-in-time evidence hardening — `7b80acc95603f81794c7ef1ffd8d2caaf9f6e3a4`, GitHub Actions run `33932408549`, success in 54 seconds, `DEPLOYABLE_SOURCE`; release artifact SHA-256 `b0914c05338f0201bbc72c754f3b968efb9b163dce9fc611a52aac7d48083a44`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
 
 ## Permanent invariants
 
@@ -59,4 +61,4 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 
 ## Known-safe stopping point
 
-Tranches 5D, 5E, and 6B are closed. Tranche 6A records the required Sol-only research-completeness and M10 architecture decision. The next implementation boundary is Tranche 6C, point-in-time evidence hardening under Terra. It must extend prospective evidence capture and coverage-age reporting without reconstructing historical forecasts from current endpoints.
+Tranches 5D, 5E, 6B, and 6C are closed. Tranche 6A records the required Sol-only research-completeness and M10 architecture decision. The next implementation boundary is Tranche 6D, the Terra research-only offline M10 challenger for QB/RB/WR/TE. M9 remains champion; no app integration, automatic promotion, or production behavior change is authorized.

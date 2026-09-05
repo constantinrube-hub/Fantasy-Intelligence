@@ -22,3 +22,9 @@ The scheduled season-market, availability, and pregame-market workflows now rebu
 ## Fail-closed coverage policy
 
 Existing 2026 captures are prospective evidence only. They are not completed historical seasons, and the report explicitly keeps `completed_historical_seasons` empty. No present-day endpoint, date label, depth-chart order, or later result may create an earlier forecast, injury state, market value, or release revision. Missing history remains an `INSUFFICIENT_HISTORY` blocker for research and promotion.
+
+## Controlled validation lifecycle
+
+The target validated successfully at `7b80acc95603f81794c7ef1ffd8d2caaf9f6e3a4` in GitHub Actions run `33932408549` (54 seconds, `DEPLOYABLE_SOURCE`). Its release artifact SHA-256 is `b0914c05338f0201bbc72c754f3b968efb9b163dce9fc611a52aac7d48083a44`. The verified generated synchronization is limited to `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`.
+
+The validator has returned to the repository-wide manual-only historical-validation policy. Scheduled market and availability evidence capture remain active operational workflows.
