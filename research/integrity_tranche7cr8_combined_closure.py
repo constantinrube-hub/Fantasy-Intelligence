@@ -27,11 +27,18 @@ def main(argv: list[str] | None = None) -> int:
         assert re.search(r"(?m)^  push:", workflow)
     else:
         assert target["lifecycle"] == "closed_manual_validation" and WORKFLOW not in lifecycle["active_controlled_workflows"]
+        assert target["validated_target"] == {"commit": "1d7d4e4", "status": "DEPLOYABLE_SOURCE"}
+        assert target["release_artifact"] == {
+            "sha256": "02c5d59ec2cb7bd856a5453446f66b7e26170b83f9e22d72dd69d1c24937d16a",
+            "release_gate_sha256": "e7e056442cb5e075cc57e8a1c12d9af65cc5a0a26bd8f1226a6ce10ae7353972",
+            "build_manifest_sha256": "e3162b8790db46d387a7cd562d0ef2a6eb0296eb0cfe9b5998e4dbe521bb461f",
+        }
         assert not re.search(r"(?m)^  push:", workflow)
     assert re.search(r"(?m)^  workflow_dispatch:", workflow) and not re.search(r"(?m)^  schedule:", workflow)
     assert "permissions: {contents: read}" in workflow and "tools/release_build.py --mode personal" in workflow
-    for path in ("config/tranche7cr8-combined-closure-target.json", "config/repository-lifecycle-contract.json", ".github/workflows/validate-fie-tranche7cr8-combined-closure.yml"):
-        assert f"- '{path}'" in workflow, path
+    if args.mode == "target":
+        for path in ("config/tranche7cr8-combined-closure-target.json", "config/repository-lifecycle-contract.json", ".github/workflows/validate-fie-tranche7cr8-combined-closure.yml"):
+            assert f"- '{path}'" in workflow, path
     for path in ("research/integrity_tranche7cr8_corrected_lock.py", "research/integrity_tranche7cr8b_weekly_producer.py", "research/integrity_tranche7cr8c_workflow.py", "research/integrity_m10_prospective_r8c_workflow_test.py"):
         assert (ROOT / path).is_file(), path
     forbidden = subprocess.run(["git", "grep", "-l", "tranche7cr8-combined-closure", "--", "app", "functions", "dist/app"], cwd=ROOT, text=True, capture_output=True, check=False).stdout.strip()
