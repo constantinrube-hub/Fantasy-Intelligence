@@ -21,3 +21,9 @@ M10 predicts raw position-appropriate outcomes from lagged public-core evidence.
 Availability remains an external governed input because adequate prospective history does not exist. No current endpoint reconstructs prior states. ADP, market price, draft behavior, roster demand, and replacement economics are forbidden football-model inputs.
 
 Tranche 6D does not issue a promotion conclusion. Every artifact is marked `NOT_REVIEWED_TRANCHE_6E_REQUIRED`; cross-model, calibration, subgroup, and decision review belongs exclusively to Sol-governed Tranche 6E.
+
+## Controlled validation lifecycle
+
+The target validated successfully at `24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2` in GitHub Actions run `33935011577` (2m 38s, `DEPLOYABLE_SOURCE`). It evaluated all sixteen locked position-season folds. Its release artifact SHA-256 is `f13d6b8770be7bfd94181ca33edfd0f884d2611aa0a59b453b4ce9cf02bc1d9b`; the verified generated synchronization is limited to `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`.
+
+The validator has returned to the repository-wide manual-only historical-validation policy. M9 remains the champion and the M10 artifact remains offline research only.

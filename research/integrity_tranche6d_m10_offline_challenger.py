@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -12,11 +13,16 @@ from fie_research_pipeline_contract import ROOT
 
 
 WORKFLOW = "validate-fie-tranche6d-m10-offline-challenger.yml"
+TARGET = ROOT / "config/tranche6d-m10-offline-challenger-target.json"
 
 
 def flags(path: Path) -> dict[str, bool]:
     text = path.read_text(encoding="utf-8")
     return {"push": bool(re.search(r"(?m)^  push:", text)), "schedule": bool(re.search(r"(?m)^  schedule:", text)), "dispatch": bool(re.search(r"(?m)^  workflow_dispatch:", text))}
+
+
+def sha256(path: str) -> str:
+    return hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
 
 
 def main(argv=None) -> None:
@@ -41,6 +47,17 @@ def main(argv=None) -> None:
     else:
         assert not lifecycle.get("active_controlled_workflows")
         assert flags(workflow) == {"push": False, "schedule": False, "dispatch": True}
+        target = json.loads(TARGET.read_text(encoding="utf-8"))
+        assert target.get("tranche") == "6D", target
+        assert target.get("validated_target") == {
+            "commit": "24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2",
+            "github_actions_run": "33935011577",
+            "status": "DEPLOYABLE_SOURCE",
+        }, target
+        assert target.get("production_behavior_change") is False and target.get("production_model") == "M9", target
+        assert target.get("release_artifact", {}).get("sha256") == "f13d6b8770be7bfd94181ca33edfd0f884d2611aa0a59b453b4ce9cf02bc1d9b", target
+        for path, expected in (target.get("authorized_generated_synchronization") or {}).items():
+            assert sha256(path) == expected, path
     forbidden = subprocess.run(
         ["git", "grep", "-l", "m10-offline-challenger", "--", "app", "functions", "dist/app"],
         cwd=ROOT, text=True, capture_output=True, check=False,
@@ -50,7 +67,7 @@ def main(argv=None) -> None:
     assert 'float(observed.sum()) > 0 else "squared_error"' in builder
     assert "panel = panel.merge(m9" not in builder
     assert 'test = z[z.season.eq(fold["test_season"])].copy().merge(' in builder
-    subprocess.run(["git", "merge-base", "--is-ancestor", "dcc41be", "HEAD"], cwd=ROOT, check=True)
+    subprocess.run(["git", "merge-base", "--is-ancestor", "24a0d5a", "HEAD"], cwd=ROOT, check=True)
     print(f"PASS Tranche 6D {a.mode}: offline research only; M9 champion and production surfaces unchanged")
 
 
