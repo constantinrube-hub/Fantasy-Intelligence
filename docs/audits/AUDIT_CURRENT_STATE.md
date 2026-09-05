@@ -24,7 +24,8 @@
 - Last validated target head: `0a615877d86145d1a7bd77076390a7550e342fc6` — Tranche 7C-R8A real corrected v2 lock green, GitHub Actions run `33994847360`; externally verified artifact SHA-256 `2224aecfa50c1e9cdf53d0edab65d4585d0ea7ec727018df3cc69888f6442641`; first-written lock SHA-256 `2f8ce6e90c5badefc1aeda5d2d696bb95b7d1ed2d51b3255423fb8712b8bf1b2`.
 - R8A closure: `7d0356a` — the independently verified v2 lock was first-written exactly at the canonical research-only 2026 path. R8A validators are manual-only.
 - Last validated target head: `cfff9e0` — Tranche 7C-R8B weekly-producer preflight green; it validates frozen v2 inference, exact per-profile residual replay, symmetric candidate universe, typed incomplete-roster blockers, timing, and first-write behavior without provider access.
-- Current authorized boundary: R8B's controlled no-network fixture target is active. R8C workflow work remains ordered after R8B's target closes. The installed lock remains research-only with M9 champion; app/runtime/rankings, 6F, shadow use, and production activation remain forbidden.
+- Last validated target head: `9e1ce95` — Tranche 7C-R8B controlled fixture target green; it produced an immutable no-network capture with all three frozen candidates, 22-profile exact residual replay, and separate typed decision blockers.
+- Current authorized boundary: R8B is closed. Terra High may begin the separate R8C default-branch operational-workflow preflight. The installed lock remains research-only with M9 champion; app/runtime/rankings, 6F, shadow use, and production activation remain forbidden.
 
 ## Completed validated tranches
 
