@@ -1,0 +1,34 @@
+{
+  "schema": "fie-m10-offline-experiment-v1",
+  "research_only": true,
+  "production_model": "M9",
+  "production_activation": false,
+  "app_integration": false,
+  "positions": ["QB", "RB", "WR", "TE"],
+  "outer_folds": [
+    {"train_seasons": [2019, 2020, 2021], "test_season": 2022},
+    {"train_seasons": [2019, 2020, 2021, 2022], "test_season": 2023},
+    {"train_seasons": [2019, 2020, 2021, 2022, 2023], "test_season": 2024},
+    {"train_seasons": [2019, 2020, 2021, 2022, 2023, 2024], "test_season": 2025}
+  ],
+  "candidate_ladder": [
+    {"name": "M9", "role": "champion_comparator"},
+    {"name": "M10_LINEAR", "role": "transparent_regularized_baseline", "algorithm": "median-imputed standardized Ridge", "alpha": 6.0},
+    {"name": "M10_HGB", "role": "nonlinear_challenger", "algorithm": "HistGradientBoostingRegressor", "selection": "training-window-only inner final-season holdout", "search_space": [
+      {"learning_rate": 0.05, "max_depth": 2, "max_iter": 120, "l2_regularization": 1.0},
+      {"learning_rate": 0.05, "max_depth": 3, "max_iter": 120, "l2_regularization": 2.0}
+    ]}
+  ],
+  "quantiles": [0.1, 0.25, 0.5, 0.75, 0.9],
+  "ensemble_policy": "PROHIBITED_IN_TRANCHE_6D",
+  "availability_policy": "EXTERNAL_GOVERNED_INPUT_UNTIL_PROSPECTIVE_HISTORY_IS_SUFFICIENT",
+  "source_policy": "PREGAME_LAGGED_PUBLIC_CORE_ONLY",
+  "forbidden_inputs": ["ADP", "market_price", "draft_behavior", "roster_demand", "replacement_economics", "current_endpoint_historical_backfill"],
+  "targets": {
+    "QB": ["attempts", "completions", "passing_yards", "passing_tds", "interceptions", "carries", "rushing_yards", "rushing_tds"],
+    "RB": ["carries", "rushing_yards", "rushing_tds", "targets", "receptions", "receiving_yards", "receiving_tds"],
+    "WR": ["targets", "receptions", "receiving_yards", "receiving_tds", "carries", "rushing_yards", "rushing_tds"],
+    "TE": ["targets", "receptions", "receiving_yards", "receiving_tds", "carries", "rushing_yards", "rushing_tds"]
+  },
+  "component_graph": ["team_opportunity", "player_participation_role", "per_opportunity_efficiency", "event_conversion", "joint_reconciliation", "exact_league_scoring"]
+}
