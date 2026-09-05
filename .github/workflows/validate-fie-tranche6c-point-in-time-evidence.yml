@@ -32,14 +32,18 @@ jobs:
         run: |
           python research/validate_fie_point_in_time_evidence_report.py --verify-deterministic
           python research/integrity_tranche6c_point_in_time_evidence.py --mode preflight
-      - name: Preserve governing research contracts
+      - name: Preserve Tranche 6B completeness closure
         run: |
           python research/validate_fie_research_completeness_inventory.py --verify-deterministic
           python research/integrity_tranche6b_research_completeness_inventory.py
-          python research/integrity_fie_research_pipeline_test.py
-          python research/integrity_fie_position_model_gate_test.py
-          python research/integrity_tranche5e_regression_closure.py --mode target
-          python research/integrity_tranche5c_documentation_lifecycle.py --mode target
+      - name: Preserve unified research pipeline contract
+        run: python research/integrity_fie_research_pipeline_test.py
+      - name: Preserve position-model gate
+        run: python research/integrity_fie_position_model_gate_test.py
+      - name: Preserve Tranche 5E closure
+        run: python research/integrity_tranche5e_regression_closure.py --mode target
+      - name: Preserve Tranche 5C lifecycle closure
+        run: python research/integrity_tranche5c_documentation_lifecycle.py --mode target
       - name: Canonical deterministic release build
         run: python tools/release_build.py --mode personal
       - name: Require deployable source
