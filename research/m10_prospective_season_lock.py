@@ -105,7 +105,7 @@ def export_hgb(x: np.ndarray, y: np.ndarray, features: list[str], target: str, c
         iterations.append({"nodes": nodes})
     spec = {"schema": HGB_SCHEMA, "target": target, "features": features, "imputer_medians": [float(v) for v in imp.statistics_],
             "baseline_prediction": float(np.ravel(model._baseline_prediction)[0]), "iterations": iterations,
-            "loss": loss_for(target, y), "learning_rate": float(candidate["learning_rate"]), "candidate": candidate, "n_train": int(len(y)), "prediction_floor": 0.0}
+            "loss": loss_for(target, y), "inverse_link": "exp" if loss_for(target, y) == "poisson" else "identity", "learning_rate": float(candidate["learning_rate"]), "candidate": candidate, "n_train": int(len(y)), "prediction_floor": 0.0}
     spec["sklearn_export_probes"] = [{"features": [float(v) for v in row], "prediction": float(max(0.0, value))} for row, value in zip(x[:3], model.predict(imp.transform(x[:3])))]
     return spec
 
@@ -119,6 +119,10 @@ def hgb_predict(spec: dict[str, Any], values: list[float]) -> float:
             node, value = nodes[index], z[nodes[index]["feature_idx"]]
             index = node["left"] if (not np.isfinite(value) and node["missing_go_to_left"]) or (np.isfinite(value) and value <= node["num_threshold"]) else node["right"]
         result += nodes[index]["value"]
+    # HistGradientBoostingRegressor stores Poisson trees on the log-mean scale.
+    # sklearn applies this inverse link after summing the baseline and trees.
+    if spec.get("inverse_link") == "exp":
+        result = float(np.exp(result))
     return max(float(spec["prediction_floor"]), result)
 
 
