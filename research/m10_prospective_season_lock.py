@@ -26,6 +26,7 @@ INPUT_SCHEMA = "fie-m10-prospective-training-input-v1"
 HGB_SCHEMA = "fie-hgb-tree-v1"
 SEASONS = tuple(range(2019, 2026))
 COUNT_TARGETS = {"attempts", "completions", "passing_tds", "interceptions", "carries", "rushing_tds", "targets", "receptions", "receiving_tds"}
+CONTINUOUS_TARGETS = {"passing_yards", "rushing_yards", "receiving_yards"}
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -59,14 +60,18 @@ def assert_input(value: dict[str, Any]) -> None:
         assert row["position_model"] in POSITIONS and row["canonical_player_id"]
         assert set(row["features"]) == set(value["feature_names"])
         assert not any(token in key.lower() for key in list(row["features"]) + list(row["targets"]) for token in forbidden)
+        assert set(row["targets"]) <= COUNT_TARGETS | CONTINUOUS_TARGETS
 
 
 def matrix(rows: list[dict[str, Any]], features: list[str], target: str, minimum: int = 40) -> tuple[np.ndarray, np.ndarray]:
+    assert target in COUNT_TARGETS | CONTINUOUS_TARGETS
     selected = [row for row in rows if target in row["targets"] and row["targets"][target] is not None]
     assert len(selected) >= minimum, f"insufficient eligible rows for {target}"
     x = np.asarray([[row["features"][name] for name in features] for row in selected], dtype=float)
     y = np.asarray([row["targets"][target] for row in selected], dtype=float)
-    assert np.isfinite(y).all() and (y >= 0).all()
+    assert np.isfinite(y).all()
+    if target in COUNT_TARGETS:
+        assert (y >= 0).all(), f"negative count label for {target}"
     return x, y
 
 

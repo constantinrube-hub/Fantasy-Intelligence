@@ -19,6 +19,7 @@ TARGETS = {
     "TE": ["targets", "receptions", "receiving_yards", "receiving_tds", "carries", "rushing_yards", "rushing_tds"],
 }
 FEATURES = ["player_prior4_volume", "player_prior4_efficiency", "team_prior4_budget"]
+RAW_TARGETS = sorted({target for values in TARGETS.values() for target in values})
 
 
 def source_record(path: Path) -> dict:
@@ -27,20 +28,22 @@ def source_record(path: Path) -> dict:
 
 def make_rows(primary: pd.DataFrame) -> list[dict]:
     frame = primary[primary["position_model"].isin(POSITIONS)].copy()
-    for column in ("attempts", "carries", "targets", "passing_yards", "rushing_yards", "receiving_yards"):
-        frame[column] = pd.to_numeric(frame.get(column, 0), errors="coerce").fillna(0.0)
-    frame["_volume"] = frame["attempts"] + frame["carries"] + frame["targets"]
-    frame["_yards"] = frame["passing_yards"] + frame["rushing_yards"] + frame["receiving_yards"]
+    for column in RAW_TARGETS:
+        if column not in frame:
+            frame[column] = float("nan")
+        frame[column] = pd.to_numeric(frame[column], errors="coerce")
+    frame["_volume"] = frame[["attempts", "carries", "targets"]].sum(axis=1, min_count=1)
+    frame["_yards"] = frame[["passing_yards", "rushing_yards", "receiving_yards"]].sum(axis=1, min_count=1)
     frame["_efficiency"] = frame["_yards"] / frame["_volume"].where(frame["_volume"] > 0)
-    frame["_team_budget"] = frame.groupby(["season", "week", "team"])["_volume"].transform("sum")
+    frame["_team_budget"] = frame.groupby(["season", "week", "team"])["_volume"].transform(lambda values: values.sum(min_count=1))
     frame = add_pregame_features(frame, ["_volume", "_efficiency", "_team_budget"])
     result=[]
     for _, row in frame.iterrows():
         position=str(row["position_model"])
-        targets={name: float(row.get(name, 0.0) or 0.0) for name in TARGETS[position]}
         def optional(name: str):
             value=row.get(name)
             return None if pd.isna(value) else float(value)
+        targets={name: optional(name) for name in TARGETS[position]}
         features={"player_prior4_volume": optional("_volume_prior4"), "player_prior4_efficiency": optional("_efficiency_prior4"), "team_prior4_budget": optional("_team_budget_prior4")}
         result.append({"season":int(row["season"]), "week":int(row["week"]), "position_model":position, "canonical_player_id":str(row["canonical_player_id"]), "features":features, "targets":targets})
     return result

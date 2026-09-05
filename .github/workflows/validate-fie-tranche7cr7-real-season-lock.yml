@@ -5,6 +5,7 @@ on:
     paths:
       - 'research/build_m10_prospective_historical_input.py'
       - 'research/m10_prospective_season_lock.py'
+      - 'research/integrity_m10_prospective_target_domains_test.py'
       - 'research/build_m10_prospective_season_lock.py'
       - '.github/workflows/validate-fie-tranche7cr7-real-season-lock.yml'
       - 'config/repository-lifecycle-contract.json'
@@ -22,6 +23,7 @@ jobs:
       - name: Build hash-recorded historical input and immutable lock candidate
         run: |
           mkdir -p artifacts/tranche7cr7
+          python research/integrity_m10_prospective_target_domains_test.py
           python research/build_m10_prospective_historical_input.py --output artifacts/tranche7cr7/historical-input.json
           python research/build_m10_prospective_season_lock.py --input artifacts/tranche7cr7/historical-input.json --output artifacts/tranche7cr7/season-lock.json
           python research/validate_m10_prospective_season_lock.py artifacts/tranche7cr7/season-lock.json
