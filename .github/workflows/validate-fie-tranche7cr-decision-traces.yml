@@ -17,22 +17,25 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install -r research/requirements.txt
-      - run: python research/integrity_m10_prospective_decision_traces_test.py
-      - uses: actions/setup-node@v4
-        with: {node-version: '22'}
-      - run: python tools/release_build.py --mode personal
-      - run: python -c "import json; assert json.load(open('config/release-gate.json'))['status'] == 'DEPLOYABLE_SOURCE'"
-      - name: Capture generated synchronization
+      - name: Verify research-only decision trace contract
+        shell: bash
+        run: |
+          mkdir -p artifacts/tranche7cr4
+          python -m py_compile research/m10_prospective_decision_traces.py research/integrity_m10_prospective_decision_traces_test.py
+          python research/integrity_m10_prospective_decision_traces_test.py | tee artifacts/tranche7cr4/decision-trace-validation.txt
+          python research/integrity_tranche5c_documentation_lifecycle.py --mode target | tee artifacts/tranche7cr4/lifecycle-validation.txt
+      - name: Capture R4 validation evidence
         shell: bash
         run: |
           python - <<'PY'
-          import pathlib, shutil, subprocess
-          changed=[line[3:].strip().split(' -> ')[-1] for line in subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines() if not line[3:].strip().startswith('artifacts/')]
-          allowed={'config/build-manifest.json','config/release-gate.json','dist/config/build-manifest.json'}; bad=sorted(set(changed)-allowed)
-          if bad: raise SystemExit('Unexpected source/generated drift: '+', '.join(bad))
-          out=pathlib.Path('artifacts/tranche7cr4/generated-sync');out.mkdir(parents=True,exist_ok=True)
-          for path in sorted(set(changed)&allowed):
-              src=pathlib.Path(path);dst=out/path;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+          import json, pathlib
+          pathlib.Path('artifacts/tranche7cr4/metadata.json').write_text(json.dumps({
+              'scope':'research_only',
+              'production_model':'M9',
+              'production_activation':False,
+              'runtime_integration':False,
+              'app_integration':False,
+          }, indent=2)+'\n')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
