@@ -26,7 +26,8 @@
 - Last validated target head: `cfff9e0` — Tranche 7C-R8B weekly-producer preflight green; it validates frozen v2 inference, exact per-profile residual replay, symmetric candidate universe, typed incomplete-roster blockers, timing, and first-write behavior without provider access.
 - Last validated target head: `9e1ce95` — Tranche 7C-R8B controlled fixture target green; it produced an immutable no-network capture with all three frozen candidates, 22-profile exact residual replay, and separate typed decision blockers.
 - Last validated target head: `d7bd020` — Tranche 7C-R8C workflow preflight green; it validates main-only writes, non-cancelling concurrency, no-force-push and one-retry controls, strict research path allowlist, and no-network fixture operation.
-- Current authorized boundary: R8C's controlled no-network workflow target is active. It may dry-run the operational capture path only; it may not accrue real evidence on this audit branch. The installed lock remains research-only with M9 champion; app/runtime/rankings, 6F, shadow use, and production activation remain forbidden.
+- Last validated target head: `9d9e613` — Tranche 7C-R8C controlled no-network workflow target green. It validates the fixture raw envelope, immutable capture, and fixture-specific validation without enabling any audit-branch write or production behavior.
+- Current authorized boundary: the combined R8 controlled closure gate is active. It may run the one deterministic release build and R8 contract suite on this audit branch; it may not accrue real evidence, activate M10, or change app/runtime/rankings, 6F, shadow use, or production behavior.
 
 ## Completed validated tranches
 
@@ -96,4 +97,4 @@ Tranches 5D, 5E, 6B, 6C, 6D, 6E, 7B, and 7C are closed. The 7C adapter remains a
 
 The user explicitly authorized the separate operational rollout after 7C closure. Sol resolved the missing producer boundary in `TRANCHE7C_DEFAULT_BRANCH_ROLLOUT_DESIGN.md` and `config/m10-prospective-rollout-design.json`. Terra may now implement the immutable 2026 season lock, weekly time-safe input producer, operational missed-capture behavior, outcome revisions, and default-branch workflow under that contract. Audit-branch validation cannot write real evidence; merge of a green, closed rollout to `main` is the activation event. M9 remains champion, and this authorization does not create 6F or any app/runtime/model-promotion path.
 
-The later Sol R8 corrective review in `TRANCHE7CR8_OPERATIONAL_RUNNER_DESIGN.md` narrows that authority into ordered R8A/R8B/R8C targets. R8A is the only current Terra implementation authority. The R7 v1 artifact is preserved but cannot be installed or loaded operationally; activation requires a separately validated v2 lock.
+The later Sol R8 corrective review in `TRANCHE7CR8_OPERATIONAL_RUNNER_DESIGN.md` narrows that authority into ordered R8A/R8B/R8C targets. R8A, R8B, and R8C are closed; the combined R8 closure gate is the only current Terra authority. The R7 v1 artifact is preserved but cannot be installed or loaded operationally; activation requires the separately validated v2 lock and the green combined closure.
