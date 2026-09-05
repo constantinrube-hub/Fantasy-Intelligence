@@ -32,3 +32,9 @@ Only position and outer season are available as subgroups. Week range, team chan
 Further M10 consideration requires real point-in-time paired row-level predictions, row-level model-disagreement analysis, material-subgroup and probability-band calibration, all-applicable scoring-profile replay, and downstream decision-utility traces. Prospective evidence collection must continue without historical reconstruction from current endpoints.
 
 No ensemble is authorized. No 6F shadow namespace may be created from this result. M9 remains the production authority.
+
+## Controlled validation lifecycle
+
+The target validated successfully at `b248c7387f5ae3c9aa7b7c64ee0076f85cc96924` in GitHub Actions run `33951332941` (1m 37s, `DEPLOYABLE_SOURCE`). Its release artifact SHA-256 is `ce9f3c819fc7144768c0b6a2b4930f1ef06d899170e2a2495ab3fa837a819b56`; the verified generated synchronization is limited to `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`.
+
+The reviewer has returned to the repository-wide manual-only historical-validation policy. No new controlled audit target is authorized unless material new prospective evidence changes the 6E blockers.

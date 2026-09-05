@@ -9,7 +9,8 @@
 - Last validated target head: `d365e22e44af4c4d621083900c4b7d20c43636fc` — Tranche 6B target green
 - Last validated target head: `7b80acc95603f81794c7ef1ffd8d2caaf9f6e3a4` — Tranche 6C target green
 - Last validated target head: `24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2` — Tranche 6D target green
-- Current authorized boundary: Tranche 6E cross-model and decision review target under Sol High; the bounded decision is to retain M9, preserve QB M10-HGB only as a research lead, and approve no 6F shadow integration
+- Last validated target head: `b248c7387f5ae3c9aa7b7c64ee0076f85cc96924` — Tranche 6E target green
+- Current authorized boundary: no new controlled implementation target; 6E retains M9, preserves QB M10-HGB only as a research lead, and authorizes no 6F shadow integration
 
 ## Completed validated tranches
 
@@ -33,6 +34,7 @@
 - 6B machine-readable research-completeness inventory — `d365e22e44af4c4d621083900c4b7d20c43636fc`, GitHub Actions run `33925069372`, success in 50 seconds, `DEPLOYABLE_SOURCE`; release artifact SHA-256 `1cd361bac926e4b8f3964eea14e4d935fb425aff4f9c8d344c22915e73e62095`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
 - 6C point-in-time evidence hardening — `7b80acc95603f81794c7ef1ffd8d2caaf9f6e3a4`, GitHub Actions run `33932408549`, success in 54 seconds, `DEPLOYABLE_SOURCE`; release artifact SHA-256 `b0914c05338f0201bbc72c754f3b968efb9b163dce9fc611a52aac7d48083a44`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
 - 6D offline M10 challenger — `24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2`, GitHub Actions run `33935011577`, success in 2m 38s, `DEPLOYABLE_SOURCE`; M9 remains champion and M10 remains offline research-only; release artifact SHA-256 `f13d6b8770be7bfd94181ca33edfd0f884d2611aa0a59b453b4ce9cf02bc1d9b`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
+- 6E cross-model and decision review — `b248c7387f5ae3c9aa7b7c64ee0076f85cc96924`, GitHub Actions run `33951332941`, success in 1m 37s, `DEPLOYABLE_SOURCE`; retains M9, preserves QB M10-HGB as a research lead only, and authorizes no 6F shadow integration; release artifact SHA-256 `ce9f3c819fc7144768c0b6a2b4930f1ef06d899170e2a2495ab3fa837a819b56`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
 
 ## Permanent invariants
 
@@ -42,7 +44,7 @@
 - Replacement/scarcity/VOR, PlayerIdentity, DataClient, freshness ownership, and source/dist generation retain their established canonical owners.
 - D/ST, Kicker, Value Finder, current-snapshot, fast-switch, and strategy-stack behavior are preserved unless their dedicated contract fails.
 
-## Active Tranche 6E decision
+## Closed Tranche 6E decision
 
 - The deterministic 6D fixture supports a QB M10-HGB point-forecast research signal: four of four MAE fold wins, 4.41% mean fold lift, and a positive exhaustive outer-season bootstrap interval.
 - The evidence remains synthetic and lacks row-level disagreement, material subgroups, all-profile scoring replay, and downstream decision traces.
@@ -69,4 +71,4 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 
 ## Known-safe stopping point
 
-Tranches 5D, 5E, 6B, 6C, and 6D are closed. The active 6E target records a fail-closed Sol cross-model decision: retain M9 and do not authorize 6F shadow integration. No app integration, automatic promotion, or production behavior change is authorized.
+Tranches 5D, 5E, 6B, 6C, 6D, and 6E are closed. The 6E Sol decision retains M9 and does not authorize 6F shadow integration. The safe next action is continued prospective point-in-time evidence collection; no app integration, automatic promotion, or production behavior change is authorized.
