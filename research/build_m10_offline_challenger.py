@@ -139,12 +139,17 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     panel = lagged_panel(df[df.position_model.isin(contract["positions"])].copy())
     _, _, _, m9_oos, _ = final_model_validation(df, scoring)
     m9 = m9_oos.rename(columns={"fie_projection": "M9"})[["season", "week", "canonical_player_id", "position_model", "M9"]]
-    panel = panel.merge(m9, on=["season", "week", "canonical_player_id", "position_model"], how="inner")
     folds = []
     for fold in contract["outer_folds"]:
         for pos in contract["positions"]:
             z = panel[panel.position_model.eq(pos)].copy(); features = features_for(z)
-            train = z[z.season.isin(fold["train_seasons"])]; test = z[z.season.eq(fold["test_season"])].copy()
+            train = z[z.season.isin(fold["train_seasons"])]
+            test = z[z.season.eq(fold["test_season"])].copy().merge(
+                m9,
+                on=["season", "week", "canonical_player_id", "position_model"],
+                how="inner",
+                validate="one_to_one",
+            )
             targets = [t for t in contract["targets"][pos] if t in z]
             if len(train) < 80 or len(test) < 12 or not features or not targets: continue
             predictions: dict[str, pd.DataFrame] = {}

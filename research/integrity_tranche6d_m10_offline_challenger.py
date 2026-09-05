@@ -48,6 +48,8 @@ def main(argv=None) -> None:
     assert not forbidden, forbidden
     builder = (ROOT / "research/build_m10_offline_challenger.py").read_text(encoding="utf-8")
     assert 'float(observed.sum()) > 0 else "squared_error"' in builder
+    assert "panel = panel.merge(m9" not in builder
+    assert 'test = z[z.season.eq(fold["test_season"])].copy().merge(' in builder
     subprocess.run(["git", "merge-base", "--is-ancestor", "dcc41be", "HEAD"], cwd=ROOT, check=True)
     print(f"PASS Tranche 6D {a.mode}: offline research only; M9 champion and production surfaces unchanged")
 
