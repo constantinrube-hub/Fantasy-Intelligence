@@ -11,7 +11,7 @@ from m10_prospective_capture_contract import (
     fixture_decision_rows, fixture_forecasts, fixture_outcome_rows, sha256_file,
     validate_capture, write_json, write_jsonl_gzip,
 )
-from m10_prospective_operational_capture import append_outcomes, canonical_score, create_operational_capture, validate_input_bundle
+from m10_prospective_operational_capture import append_outcome_revision, append_outcomes, canonical_score, create_operational_capture, create_operational_missed_capture, validate_input_bundle
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -52,6 +52,12 @@ def main(argv: list[str] | None = None) -> None:
         write_json(outcome_manifest, {"schema": "fie-m10-prospective-operational-outcome-input-v1", "fixture": True, "season": 2026, "week": 1, "revision": 1, "historical_reconstruction": False, "point_in_time_outcome_source": True, "source_release_or_commit": "fixture-r1", "source_payload_sha256": "c" * 64, "rows_path": outcome_path.relative_to(bundle).as_posix(), "rows_sha256": sha256_file(outcome_path)})
         assert append_outcomes(outcome_manifest, output)["status"] == "CREATED"
         assert validate_capture(output, 2026, 1, require_outcome=True)["outcome_present"] is True
+        revised = [{**row, "revision": 2, "outcome_id": row["outcome_id"].replace("r1", "r2")} for row in fixture_outcome_rows(forecasts, 2026, 1)]
+        revised_path = bundle / "outcomes-r2.jsonl.gz"; write_jsonl_gzip(revised_path, revised)
+        parent = output / "outcomes" / "2026" / "week_01" / "revision_1" / "outcome-manifest.json"
+        revision_manifest = bundle / "outcomes-r2.json"; write_json(revision_manifest, {"schema": "fie-m10-prospective-operational-outcome-input-v1", "fixture": True, "season": 2026, "week": 1, "revision": 2, "historical_reconstruction": False, "parent_revision_sha256": sha256_file(parent), "source_diff_manifest_sha256": "d" * 64, "source_payload_sha256": "e" * 64, "rows_path": revised_path.relative_to(bundle).as_posix(), "rows_sha256": sha256_file(revised_path)})
+        assert append_outcome_revision(revision_manifest, output)["status"] == "CREATED"
+        missed_root = root / "missed"; assert create_operational_missed_capture(missed_root, season=2026, week=2, observed_at="2026-09-11T00:00:00+00:00", first_kickoff_at=kickoff, reason="WINDOW_MISSED")["status"] == "CREATED"
         bad = root / "bad-input.json"
         bad_value = __import__("json").loads(manifest.read_text(encoding="utf-8"))
         bad_value["capture"]["hours_before_first_kickoff"] = 19.0
