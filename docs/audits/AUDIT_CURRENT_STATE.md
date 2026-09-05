@@ -5,12 +5,12 @@
 - Frozen PRE-audit reference: `45cbcff99ba10f4e88130f2441553817fc0d1ccc`
 - Authorized branch: `audit-implementation-2026-09`
 - Last validated target head: `398a82d772641fc5d40fdc9b7473e0921906fdc6` — Tranche 5E target green
-- Last synchronized closure head: `b4c4ef5` — Tranche 5E exact generated-state closure
+- Last synchronized closure head: `02b1143f6a319c72af854ad655649ccf0ce85497` — Tranche 6E exact decision-review closure
 - Last validated target head: `d365e22e44af4c4d621083900c4b7d20c43636fc` — Tranche 6B target green
 - Last validated target head: `7b80acc95603f81794c7ef1ffd8d2caaf9f6e3a4` — Tranche 6C target green
 - Last validated target head: `24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2` — Tranche 6D target green
 - Last validated target head: `b248c7387f5ae3c9aa7b7c64ee0076f85cc96924` — Tranche 6E target green
-- Current authorized boundary: no new controlled implementation target; 6E retains M9, preserves QB M10-HGB only as a research lead, and authorizes no 6F shadow integration
+- Current authorized boundary: Tranche 7B deterministic prospective-capture contract, under the completed 7A Sol design; 6F remains unauthorized
 
 ## Completed validated tranches
 
@@ -35,6 +35,7 @@
 - 6C point-in-time evidence hardening — `7b80acc95603f81794c7ef1ffd8d2caaf9f6e3a4`, GitHub Actions run `33932408549`, success in 54 seconds, `DEPLOYABLE_SOURCE`; release artifact SHA-256 `b0914c05338f0201bbc72c754f3b968efb9b163dce9fc611a52aac7d48083a44`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
 - 6D offline M10 challenger — `24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2`, GitHub Actions run `33935011577`, success in 2m 38s, `DEPLOYABLE_SOURCE`; M9 remains champion and M10 remains offline research-only; release artifact SHA-256 `f13d6b8770be7bfd94181ca33edfd0f884d2611aa0a59b453b4ce9cf02bc1d9b`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
 - 6E cross-model and decision review — `b248c7387f5ae3c9aa7b7c64ee0076f85cc96924`, GitHub Actions run `33951332941`, success in 1m 37s, `DEPLOYABLE_SOURCE`; retains M9, preserves QB M10-HGB as a research lead only, and authorizes no 6F shadow integration; release artifact SHA-256 `ce9f3c819fc7144768c0b6a2b4930f1ef06d899170e2a2495ab3fa837a819b56`; exact generated synchronization is `config/build-manifest.json`, `config/release-gate.json`, and `dist/config/build-manifest.json`
+- 7A prospective M10 evidence design — completed Sol design; `docs/audits/TRANCHE7A_PROSPECTIVE_M10_EVIDENCE_DESIGN.md` and `config/m10-prospective-evidence-contract.json` define a separate evidence-accrual path and authorize only the bounded Terra 7B implementation; they do not authorize 6F, training changes, scheduled rollout, shadow integration, or production behavior
 
 ## Permanent invariants
 
@@ -69,6 +70,6 @@ The completed tranche ownership boundaries listed above, generated `dist/`, leag
 - Preserve relevant 5B, 5A, 2A, 3A–3E, all-league profile, and all-league replacement contracts.
 - Closure: deterministic personal release build, `DEPLOYABLE_SOURCE`, and source/dist parity with only authorized generated synchronization.
 
-## Known-safe stopping point
+## Active Tranche 7B boundary
 
-Tranches 5D, 5E, 6B, 6C, 6D, and 6E are closed. The 6E Sol decision retains M9 and does not authorize 6F shadow integration. The safe next action is continued prospective point-in-time evidence collection; no app integration, automatic promotion, or production behavior change is authorized.
+Tranches 5D, 5E, 6B, 6C, 6D, and 6E are closed. The 7A Sol design authorizes Terra to implement only the deterministic 7B evidence-capture contract after the design commit. Tranche 7B must begin with schemas, no-network fixtures, first-write and missed-window behavior, validators, and preservation tests; it must not schedule collection or write app/runtime artifacts. Tranche 6F remains unauthorized.
