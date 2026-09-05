@@ -19,7 +19,7 @@ jobs:
           python research/integrity_tranche7cr8c_workflow.py --mode closure
           python research/capture_m10_prospective_weekly_raw.py --fixture --output-dir artifacts/tranche7cr8c/raw
           python research/run_m10_prospective_weekly_capture.py --raw-envelope artifacts/tranche7cr8c/raw/raw/raw-envelope.json --output-root artifacts/tranche7cr8c/capture
-          python research/validate_m10_operational_prospective_capture.py --root artifacts/tranche7cr8c/capture --season 2026 --week 5
+          python research/validate_m10_operational_prospective_capture.py --root artifacts/tranche7cr8c/capture --season 2026 --week 5 --fixture
           python research/integrity_m10_prospective_r8c_workflow_test.py
           python research/integrity_tranche7cr8c_workflow_target.py
       - uses: actions/upload-artifact@v4
