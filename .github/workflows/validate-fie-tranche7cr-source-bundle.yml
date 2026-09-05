@@ -20,6 +20,8 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
+      - name: Install locked research dependencies
+        run: pip install -r research/requirements.txt
       - name: Verify no-network source bundle
         run: |
           python -m py_compile research/m10_prospective_source_bundle.py research/integrity_m10_prospective_source_bundle_test.py research/integrity_tranche7cr_source_bundle.py
