@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 from m10_prospective_capture_contract import read_json, sha256_file, write_json
-from m10_prospective_operational_capture import create_operational_capture, validate_input_bundle
+from m10_prospective_operational_capture import create_operational_capture, create_operational_missed_capture, validate_input_bundle
 from m10_prospective_source_bundle import create_bundle
 from m10_prospective_weekly_producer import build_weekly_input, fixture_raw_envelope
 
@@ -46,6 +46,11 @@ def main() -> None:
         assert create_operational_capture(Path(prepared["manifest"]), blocked)["status"] == "CREATED"
         rows = __import__("gzip").open(blocked / "decision-traces" / "2026" / "week_05" / "decision-traces.jsonl.gz", "rt", encoding="utf-8").read().splitlines()
         assert sum("BLOCKED_INCOMPLETE_LEGAL_ROSTER" in row for row in rows) == 3
+        early = fixture_raw_envelope(root / "early", "2026-09-08T00:00:00+00:00")
+        assert create_bundle(early, root / "early-evidence")["status"] == "WINDOW_NOT_REACHED"
+        late = fixture_raw_envelope(root / "late", "2026-09-10T02:00:00+00:00")
+        assert build_weekly_input(late, root / "late-prepared", source_bundle=Path(bundle["manifest"]))["status"] == "POST_KICKOFF"
+        assert create_operational_missed_capture(root / "missed", season=2026, week=5, observed_at="2026-09-10T02:00:00+00:00", first_kickoff_at="2026-09-10T00:00:00+00:00", reason="INPUTS_UNAVAILABLE")["status"] == "CREATED"
     finally:
         shutil.rmtree(root)
     print("PASS R8B frozen v2 inference, exact profile residual replay, and typed legal-roster blockers")
