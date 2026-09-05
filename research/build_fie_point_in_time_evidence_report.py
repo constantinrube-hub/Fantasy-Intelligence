@@ -86,6 +86,18 @@ def snapshot_path_for(meta_path: Path) -> Path:
     return meta_path.with_name(meta_path.name[: -len(suffix)])
 
 
+def input_content_sha256(path: Path) -> str | None:
+    """Use semantic JSON identity while retaining exact binary evidence hashes.
+
+    Git normalizes text line endings differently on Windows and Linux runners.
+    Sidecars are JSON contracts, so their canonical content is the portable input
+    identity. Compressed immutable snapshots remain byte-addressed.
+    """
+    if path.suffix.lower() == ".json":
+        return sha256_bytes(canonical_bytes(load_json(path, {})))
+    return sha256_file(path)
+
+
 def metadata_view(raw: dict[str, Any], expected_role: str) -> dict[str, Any]:
     pit = raw.get("point_in_time_metadata")
     if not isinstance(pit, dict):
@@ -185,7 +197,7 @@ def build_report() -> dict[str, Any]:
         "schema_version": 1,
         "season": SEASON,
         "deterministic_input_sha256": sha256_bytes(canonical_bytes([
-            {"path": path, "sha256": sha256_file(ROOT / path)} for path in sorted(inputs)
+            {"path": path, "sha256": input_content_sha256(ROOT / path)} for path in sorted(inputs)
         ])),
         "governance": {
             "research_only": True,
