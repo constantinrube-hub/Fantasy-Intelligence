@@ -1,0 +1,98 @@
+name: Build FIE Window 2A Trench Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: prospective, history, or both
+        required: false
+        default: prospective
+        type: choice
+        options:
+          - prospective
+          - history
+          - both
+      season:
+        description: Prospective NFL season
+        required: false
+        default: '2026'
+        type: string
+      target_week:
+        description: Optional target week. Blank resolves from Sleeper NFL state.
+        required: false
+        type: string
+      history_seasons:
+        description: Historical seasons/range for the Window 2B evidence matrix
+        required: false
+        default: '2019-2025'
+        type: string
+  schedule:
+    - cron: '43 5 * 9-12 3'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-window2a-trench-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Window 2A contract
+        run: |
+          python -m py_compile research/window2a_trench_evidence.py
+          python research/integrity_window2a_trench_evidence_test.py
+          python -m json.tool config/window2a-trench-evidence-feature-owner.json > /dev/null
+
+      - name: Build trench evidence
+        shell: bash
+        env:
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.target_week }}
+          INPUT_HISTORY: ${{ inputs.history_seasons }}
+        run: |
+          set -euo pipefail
+          MODE="${INPUT_MODE:-prospective}"
+          SEASON="${INPUT_SEASON:-2026}"
+          HISTORY="${INPUT_HISTORY:-2019-2025}"
+          if [ "$MODE" = "prospective" ] || [ "$MODE" = "both" ]; then
+            args=(prospective --season "$SEASON")
+            if [ -n "${INPUT_WEEK:-}" ]; then args+=(--target-week "$INPUT_WEEK"); fi
+            python research/window2a_trench_evidence.py "${args[@]}"
+          fi
+          if [ "$MODE" = "history" ] || [ "$MODE" = "both" ]; then
+            python research/window2a_trench_evidence.py history --seasons "$HISTORY"
+          fi
+
+      - name: Commit only Window 2A research outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Trench Evidence Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/trench
+          if git diff --cached --quiet; then
+            echo "No Window 2A trench evidence change"
+            exit 0
+          fi
+          git commit -m "Build FIE Window 2A trench evidence"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
