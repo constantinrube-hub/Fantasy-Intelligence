@@ -1,0 +1,95 @@
+name: Build FIE Window 1D Optimal Waiver
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id:
+        description: Optional single Sleeper League ID. Leave blank for every enabled league.
+        required: false
+        type: string
+      season:
+        description: Season
+        required: false
+        default: '2026'
+        type: string
+      week:
+        description: Optional NFL week. Blank resolves from Sleeper NFL state.
+        required: false
+        type: string
+      max_history_seasons:
+        description: Same-league history chain depth
+        required: false
+        default: '2'
+        type: string
+      max_current_age_hours:
+        description: Fail-closed current-snapshot freshness limit
+        required: false
+        default: '36'
+        type: string
+  schedule:
+    - cron: '17 18 * 9-12 2'
+    - cron: '17 6 * 9-12 3'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-window1d-optimal-waiver-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Window 1D contract
+        run: |
+          python -m py_compile research/window1d_optimal_waiver.py
+          python research/integrity_window1d_optimal_waiver_test.py
+
+      - name: Build optimal waiver portfolio
+        shell: bash
+        env:
+          INPUT_LEAGUE_ID: ${{ inputs.league_id }}
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+          INPUT_HISTORY: ${{ inputs.max_history_seasons }}
+          INPUT_AGE: ${{ inputs.max_current_age_hours }}
+        run: |
+          set -euo pipefail
+          SEASON="${INPUT_SEASON:-2026}"
+          HISTORY="${INPUT_HISTORY:-2}"
+          AGE="${INPUT_AGE:-36}"
+          args=(portfolio --season "$SEASON" --max-history-seasons "$HISTORY" --max-current-age-hours "$AGE")
+          if [ -n "${INPUT_LEAGUE_ID:-}" ]; then args+=(--league-id "$INPUT_LEAGUE_ID"); fi
+          if [ -n "${INPUT_WEEK:-}" ]; then args+=(--week "$INPUT_WEEK"); fi
+          python research/window1d_optimal_waiver.py "${args[@]}"
+
+      - name: Commit only Window 1D research outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Waiver Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/evaluation/2026
+          if git diff --cached --quiet; then
+            echo "No Window 1D evaluation change"
+            exit 0
+          fi
+          git commit -m "Build FIE Window 1D optimal waiver evidence"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
