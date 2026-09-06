@@ -1,0 +1,82 @@
+name: Build FIE Window 2B Trench Research
+
+on:
+  workflow_dispatch:
+    inputs:
+      seasons:
+        description: Historical seasons/range
+        required: false
+        default: '2019-2025'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-window2b-trench-research-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install research dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy pandas scikit-learn
+
+      - name: Validate Window 2A and 2B contracts
+        run: |
+          python -m py_compile research/window2a_trench_evidence.py
+          python research/integrity_window2a_trench_evidence_test.py
+          python -m py_compile research/window2b_trench_research.py
+          python research/integrity_window2b_trench_research_test.py
+          python -m json.tool config/window2b-trench-research-thin-integration.json > /dev/null
+
+      - name: Build leakage-safe Window 2A history
+        shell: bash
+        env:
+          INPUT_SEASONS: ${{ inputs.seasons }}
+        run: |
+          set -euo pipefail
+          SEASONS="${INPUT_SEASONS:-2019-2025}"
+          python research/window2a_trench_evidence.py history --seasons "$SEASONS"
+
+      - name: Run Window 2B chronological research
+        shell: bash
+        env:
+          INPUT_SEASONS: ${{ inputs.seasons }}
+        run: |
+          set -euo pipefail
+          SEASONS="${INPUT_SEASONS:-2019-2025}"
+          python research/window2b_trench_research.py --seasons "$SEASONS"
+
+      - name: Commit only trench research evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Trench Research Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/trench/historical data/research/evaluation/2026/trench
+          if git diff --cached --quiet; then
+            echo "No Window 2B trench research change"
+            exit 0
+          fi
+          git commit -m "Build FIE Window 2B trench research evidence"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
