@@ -1,0 +1,109 @@
+name: Build FIE Window 1C Weekly Actions
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: Season
+        required: true
+        default: '2026'
+        type: string
+      week:
+        description: Optional target week; blank infers the modal current-snapshot week
+        required: false
+        type: string
+      league_id:
+        description: Optional single enabled league; blank builds the full portfolio
+        required: false
+        type: string
+      as_of_utc:
+        description: Optional deterministic ISO-8601 as-of time; blank uses workflow time
+        required: false
+        type: string
+      minimum_lineup_delta:
+        description: Minimum positive submitted-lineup projection delta in points
+        required: true
+        default: '0.25'
+        type: string
+  schedule:
+    - cron: '7 6 * * 2'
+    - cron: '47 12 * * 2'
+    - cron: '7 6 * * 3'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-window1c-weekly-actions-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  weekly-actions:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Window 1C and inherited contracts
+        run: |
+          python research/integrity_window1c_weekly_actions_test.py
+          python research/integrity_window1b_evaluation_test.py
+          python research/integrity_15point_completion_test.py
+
+      - name: Build weekly action portfolio
+        shell: bash
+        env:
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+          INPUT_LEAGUE_ID: ${{ inputs.league_id }}
+          INPUT_AS_OF: ${{ inputs.as_of_utc }}
+          INPUT_DELTA: ${{ inputs.minimum_lineup_delta }}
+        run: |
+          set -euo pipefail
+          SEASON="${INPUT_SEASON:-2026}"
+          DELTA="${INPUT_DELTA:-0.25}"
+          args=(portfolio --season "$SEASON" --minimum-lineup-delta "$DELTA")
+          if [ -n "${INPUT_WEEK:-}" ]; then args+=(--week "$INPUT_WEEK"); fi
+          if [ -n "${INPUT_LEAGUE_ID:-}" ]; then args+=(--league-id "$INPUT_LEAGUE_ID"); fi
+          if [ -n "${INPUT_AS_OF:-}" ]; then args+=(--as-of-utc "$INPUT_AS_OF"); fi
+          python research/window1c_weekly_actions.py "${args[@]}"
+
+      - name: Add latest operational report to workflow summary
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          from pathlib import Path
+          rows=list(Path('data/research/evaluation/2026/weeks').glob('week-*/weekly-actions-portfolio-v1.md'))
+          if not rows:
+              print('# FIE Window 1C\n\nNo weekly action report was generated.')
+          else:
+              latest=max(rows,key=lambda p:p.stat().st_mtime)
+              print(latest.read_text(encoding='utf-8'))
+          PY
+
+      - name: Commit only Window 1C evaluation outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Weekly Actions Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/evaluation/2026
+          if git diff --cached --quiet; then
+            echo "No Window 1C weekly-action change"
+            exit 0
+          fi
+          git commit -m "Build FIE Window 1C weekly actions"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
