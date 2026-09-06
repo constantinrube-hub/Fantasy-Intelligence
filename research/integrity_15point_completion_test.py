@@ -75,12 +75,14 @@ checks = {
         or "tr.onclick=()=>window.openDrawer?." in ui
     ),
 
+    # Decision separation is a semantic contract, not a dependency on obsolete
+    # presentation markup. The current UI states both halves explicitly:
+    # the permanent board is roster-neutral, while the live decision rank adds
+    # roster marginal/timing context.
     10: (
-        "<b>Decision separation:</b>" in ui
-        and (
-            "Draft Board remains independent of selected roster" in ui
-            or "Draft Board is independent of your owned roster" in ui
-        )
+        "Draft Board remains independent of the selected roster" in ui
+        and "League Rank is the roster-neutral Draft Board order" in ui
+        and "Decision Rank adds exact roster marginal and current-pick timing" in ui
     ),
 
     11: (
