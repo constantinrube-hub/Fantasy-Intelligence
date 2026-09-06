@@ -1,0 +1,120 @@
+name: Build FIE Window 1B Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Evaluation action
+        required: true
+        default: season-preview
+        type: choice
+        options:
+          - season-preview
+          - weekly-snapshot
+          - weekly-evaluate
+      league_id:
+        description: League ID for weekly-snapshot
+        required: false
+        type: string
+      week:
+        description: NFL week for weekly paths
+        required: false
+        default: '1'
+        type: string
+      cutoff_utc:
+        description: Exact kickoff cutoff ISO-8601 for weekly-snapshot
+        required: false
+        type: string
+      prediction_source:
+        description: Repo-relative explicit prediction rows JSON when weekly predictions are eligible
+        required: false
+        type: string
+      outcomes_path:
+        description: Repo-relative outcomes JSON/CSV for weekly-evaluate
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-window1b-evaluation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Window 1B contracts
+        run: |
+          python research/integrity_window1b_evaluation_test.py
+          python research/integrity_15point_completion_test.py
+
+      - name: Build requested evaluation artifact
+        shell: bash
+        env:
+          MODE: ${{ inputs.mode }}
+          LEAGUE_ID: ${{ inputs.league_id }}
+          WEEK: ${{ inputs.week }}
+          CUTOFF_UTC: ${{ inputs.cutoff_utc }}
+          PREDICTION_SOURCE: ${{ inputs.prediction_source }}
+          OUTCOMES_PATH: ${{ inputs.outcomes_path }}
+        run: |
+          set -euo pipefail
+          case "$MODE" in
+            season-preview)
+              python research/window1b_evaluation.py season-preview
+              ;;
+            weekly-snapshot)
+              test -n "$LEAGUE_ID" || { echo "league_id is required" >&2; exit 2; }
+              test -n "$WEEK" || { echo "week is required" >&2; exit 2; }
+              test -n "$CUTOFF_UTC" || { echo "cutoff_utc is required" >&2; exit 2; }
+              current="data/research/leagues/${LEAGUE_ID}/current/milestone5_current.json"
+              output="data/research/evaluation/2026/weeks/week-${WEEK}/league-${LEAGUE_ID}/prediction-snapshot-v1.json"
+              args=(weekly-snapshot --current-snapshot "$current" --cutoff-utc "$CUTOFF_UTC" --output "$output")
+              if [ -n "$PREDICTION_SOURCE" ]; then args+=(--prediction-source "$PREDICTION_SOURCE"); fi
+              python research/window1b_evaluation.py "${args[@]}"
+              ;;
+            weekly-evaluate)
+              test -n "$LEAGUE_ID" || { echo "league_id is required" >&2; exit 2; }
+              test -n "$WEEK" || { echo "week is required" >&2; exit 2; }
+              snapshot="data/research/evaluation/2026/weeks/week-${WEEK}/league-${LEAGUE_ID}/prediction-snapshot-v1.json"
+              output="data/research/evaluation/2026/weeks/week-${WEEK}/league-${LEAGUE_ID}/evaluation-v1.json"
+              args=(weekly-evaluate --snapshot "$snapshot" --output "$output")
+              if [ -n "$OUTCOMES_PATH" ]; then args+=(--outcomes "$OUTCOMES_PATH"); fi
+              python research/window1b_evaluation.py "${args[@]}"
+              ;;
+            *)
+              echo "Unsupported mode: $MODE" >&2
+              exit 2
+              ;;
+          esac
+
+      - name: Commit only Window 1B research outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Evaluation Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/evaluation/2026
+          if git diff --cached --quiet; then
+            echo "No Window 1B evaluation change"
+            exit 0
+          fi
+          git commit -m "Build FIE Window 1B evaluation"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
