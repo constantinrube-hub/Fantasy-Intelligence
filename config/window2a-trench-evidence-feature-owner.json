@@ -1,0 +1,54 @@
+{
+  "window": "2A",
+  "name": "Trench Evidence + Feature Owner",
+  "status": "IMPLEMENTED_RESEARCH_ONLY",
+  "production_model": "M9",
+  "research_only": true,
+  "canonical_rankings_changed": false,
+  "runtime_changed": false,
+  "adp_used_as_football_feature": false,
+  "feature_owner": {
+    "schema": "fie-trench-feature-owner-v1",
+    "module": "research/window2a_trench_evidence.py",
+    "source": "nflverse/nflfastR play-by-play",
+    "source_template": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv",
+    "input_grain": "play",
+    "output_grain": "NFL team x target week",
+    "target_week_policy": "only regular-season plays with week < target_week",
+    "missing_value_policy": "never zero-impute unavailable measurements",
+    "minimum_team_count": 28,
+    "offensive_line_proxy": {
+      "core": [
+        "sack_rate_allowed",
+        "rush_epa_per_attempt",
+        "rush_success_rate",
+        "stuff_rate_allowed"
+      ],
+      "optional": ["qb_hit_rate_allowed"],
+      "direction": "higher proxy is better"
+    },
+    "defensive_front_proxy": {
+      "core": [
+        "sack_rate_generated",
+        "rush_epa_allowed_per_attempt",
+        "rush_success_rate_allowed",
+        "stuff_rate_forced"
+      ],
+      "optional": ["qb_hit_rate_generated"],
+      "direction": "higher proxy is better"
+    },
+    "standardization": "cross-team population z-score on cumulative prior-week rates",
+    "combination": "equal mean of direction-adjusted z-scores after all core components exist",
+    "production_validated": false,
+    "next_validation_window": "2B"
+  },
+  "governance": {
+    "prospective_ready_snapshots": "immutable first write",
+    "blocked_status": "mutable until evidence becomes available",
+    "historical_builder": "chronological target-week snapshots from completed seasons",
+    "market_or_adp": "excluded from football feature owner",
+    "promotion": "not authorized",
+    "model_reweighting": "not authorized",
+    "app_publication": "not authorized"
+  }
+}
