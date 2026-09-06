@@ -1,0 +1,65 @@
+{
+  "schema_version": "fie-window1b-season-preview-weekly-evaluation-contract-v1",
+  "window": "1B",
+  "season": 2026,
+  "status": "IMPLEMENTED_RESEARCH_ONLY",
+  "baseline": {
+    "path": "data/research/baselines/2026/baseline-v1.json",
+    "required_eligibility": "PRESEASON_ELIGIBLE",
+    "required_source_bindings": [
+      "profile",
+      "current_snapshot",
+      "app_manifest",
+      "rankings"
+    ],
+    "verify_sha256_before_use": true,
+    "app_core_must_match_frozen_app_manifest": true
+  },
+  "season_preview": {
+    "producer": "research/window1b_evaluation.py",
+    "json_output": "data/research/evaluation/2026/preseason/season-preview-v1.json",
+    "markdown_output": "data/research/evaluation/2026/preseason/season-preview-v1.md",
+    "managed_lineup_primary_metric": "season_scope_starter_projection_sum",
+    "best_ball_primary_metric": "season_scope_roster_projection_sum",
+    "best_ball_formats": [
+      "REDRAFT_BESTBALL",
+      "DYNASTY_BESTBALL",
+      "CHOPPED_BESTBALL"
+    ],
+    "presentation_rank_only": true,
+    "calibrated_win_probability": false,
+    "new_model_weighting": false,
+    "zero_impute_missing_players": false
+  },
+  "weekly_evaluation": {
+    "prediction_snapshot_schema": "fie-window1b-weekly-prediction-snapshot-v1",
+    "evaluation_schema": "fie-window1b-weekly-evaluation-v1",
+    "pregame_only": true,
+    "target_week_realised_stats_must_be_excluded": true,
+    "immutable_prediction_snapshot": true,
+    "missing_prediction_behavior": "TYPED_BLOCKER",
+    "missing_outcome_behavior": "PENDING_OUTCOME",
+    "metrics": [
+      "mae",
+      "rmse",
+      "mean_bias_projected_minus_actual",
+      "coverage_rate"
+    ],
+    "tunes_or_retrains_model": false
+  },
+  "governance": {
+    "research_only": true,
+    "production_model": "M9",
+    "m10_activation_changed": false,
+    "app_runtime_changed": false,
+    "canonical_rankings_changed": false,
+    "adp_used_as_football_feature": false,
+    "promotion_authorized": false,
+    "optimization_authorized": false,
+    "window_1c_authorized_by_this_contract": false
+  },
+  "validation": [
+    "python research/integrity_window1b_evaluation_test.py",
+    "python research/integrity_15point_completion_test.py"
+  ]
+}
