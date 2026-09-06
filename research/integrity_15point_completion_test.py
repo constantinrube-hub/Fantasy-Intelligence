@@ -77,8 +77,10 @@ checks = {
 
     10: (
         "<b>Decision separation:</b>" in ui
-        and "Draft Board is independent of your owned roster"
-        in ui
+        and (
+            "Draft Board remains independent of selected roster" in ui
+            or "Draft Board is independent of your owned roster" in ui
+        )
     ),
 
     11: (
