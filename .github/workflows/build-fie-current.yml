@@ -37,6 +37,8 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -138,9 +140,7 @@ jobs:
               continue
             fi
 
-            if ! python research/validate_m4_bundle.py "$ROOT/milestone4.json" \
-              || ! python research/validate_m5_bundle.py "$ROOT/milestone5.json" \
-              || ! python research/validate_m6_bundle.py "$ROOT/milestone6.json"; then
+            if ! python research/validate_m4_bundle.py "$ROOT/milestone4.json"               || ! python research/validate_m5_bundle.py "$ROOT/milestone5.json"               || ! python research/validate_m6_bundle.py "$ROOT/milestone6.json"; then
               echo "Skipping $LID: historical bundles invalid/incomplete" >&2
               continue
             fi
@@ -165,9 +165,7 @@ jobs:
 
       - name: Apply V9.6 controlled runtime where approved
         run: |
-          python research/fie_runtime_v96.py apply-portfolio \
-            --built-ids /tmp/fie_built_current_ids.txt \
-            --leagues-root data/research/leagues
+          python research/fie_runtime_v96.py apply-portfolio             --built-ids /tmp/fie_built_current_ids.txt             --leagues-root data/research/leagues
 
       - name: Deduplicate current snapshot storage
         run: python research/deduplicate_current_snapshots.py
@@ -205,9 +203,7 @@ jobs:
             fi
 
             if [ "$THIS_MODE" = "AUTO" ] || [ "$THIS_MODE" = "CONTROL" ]; then
-              python research/fie_governance.py $GOV \
-                --mode "$THIS_MODE" \
-                --persist-mode
+              python research/fie_governance.py $GOV                 --mode "$THIS_MODE"                 --persist-mode
             else
               python research/fie_governance.py $GOV
             fi
@@ -226,13 +222,9 @@ jobs:
 
       - name: Refresh specialist scoring inventories
         run: |
-          python research/fie_dst.py inventory \
-            --registry data/research/leagues/registry.json \
-            --output data/research/dst/scoring_inventory.json
+          python research/fie_dst.py inventory             --registry data/research/leagues/registry.json             --output data/research/dst/scoring_inventory.json
 
-          python research/fie_kicker.py inventory \
-            --registry data/research/leagues/registry.json \
-            --output data/research/kicker/scoring_inventory.json
+          python research/fie_kicker.py inventory             --registry data/research/leagues/registry.json             --output data/research/kicker/scoring_inventory.json
 
       - name: Audit production readiness
         run: python research/production_readiness.py
@@ -242,8 +234,7 @@ jobs:
 
       - name: Verify fast-switch artifacts reached Cloudflare dist
         run: |
-          python research/integrity_fast_switch_artifacts_test.py \
-            --require-dist
+          python research/integrity_fast_switch_artifacts_test.py             --require-dist
 
       - name: Commit current intelligence and synchronized deploy tree
         run: |
@@ -265,8 +256,7 @@ jobs:
             dist
           )
 
-          if git diff --quiet -- "${TRACKED[@]}" \
-            && [ -z "$(git status --porcelain -- "${TRACKED[@]}")" ]; then
+          if git diff --quiet -- "${TRACKED[@]}"             && [ -z "$(git status --porcelain -- "${TRACKED[@]}")" ]; then
             echo "Current-season and deploy artifacts unchanged."
             exit 0
           fi
@@ -276,8 +266,7 @@ jobs:
 
           git add -A -- "${TRACKED[@]}"
 
-          git commit \
-            -m "Refresh FIE current intelligence and deploy dist"
+          git commit             -m "Refresh FIE current intelligence and deploy dist"
 
           git fetch origin main
           git rebase origin/main
