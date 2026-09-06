@@ -1,0 +1,88 @@
+{
+  "schema_version": "fie-window1c-weekly-actions-operational-ux-contract-v1",
+  "window": "1C",
+  "season": 2026,
+  "status": "IMPLEMENTED_DECISION_SUPPORT_ONLY",
+  "purpose": "Turn existing governed current-week evidence into a concise per-league and portfolio action queue without changing the football model or executing transactions.",
+  "inputs": {
+    "league_registry": "data/research/leagues/registry.json",
+    "portfolio_config": "config/league-portfolio.json",
+    "managed_username_field": "sleeper_username",
+    "league_profile": "data/research/leagues/<league_id>/profile.json",
+    "app_manifest": "data/research/leagues/<league_id>/app/manifest.json",
+    "app_core": "resolved and SHA-256 verified through app manifest",
+    "player_catalog": "resolved through app core shared.player_catalog",
+    "current_snapshot": "data/research/leagues/<league_id>/current/milestone5_current.json",
+    "prior_week_window1b_evaluation": "optional"
+  },
+  "fail_closed_guards": {
+    "target_week_realised_stats_excluded_must_be_true": true,
+    "current_profile_match_must_not_be_false": true,
+    "profile_registry_current_app_fingerprints_must_match": true,
+    "app_core_sha256_must_match_manifest": true,
+    "current_snapshot_freshness_uses_snapshot_max_age_hours": true,
+    "season_and_week_must_match_requested_target": true,
+    "missing_projection_zero_imputation": false,
+    "managed_roster_must_resolve_uniquely": true
+  },
+  "actions": {
+    "injury_status_checks": {
+      "source": "shared Sleeper player catalog",
+      "starter_urgency_preserved": true
+    },
+    "lineup_alerts": {
+      "managed_lineup_formats_only": true,
+      "best_ball_status": "NOT_APPLICABLE_BEST_BALL",
+      "basis": "existing decision_weekly_projection",
+      "method": "positive-delta alert against currently submitted eligible starter slot",
+      "production_browser_optimizer_remains_authoritative": true,
+      "default_minimum_delta_points": 0.25,
+      "after_first_kickoff_behavior": "REVIEW_ONLY_AFTER_KICKOFF"
+    },
+    "available_player_watchlist": {
+      "primary_when_available": "existing M5 waiver_next3_projection with waiver_activation_eligible=true",
+      "fallback": "WATCH_ONLY ordered by existing decision_weekly_projection",
+      "optimized_add_drop_pair": false,
+      "faab_bid_sizing": false,
+      "claim_pass_decision": false,
+      "window_1d_reserved": true
+    }
+  },
+  "projection_source_labels": [
+    "FIE_GOVERNED",
+    "SLEEPER_FALLBACK",
+    "EXISTING_DECISION_PROJECTION",
+    "UNAVAILABLE"
+  ],
+  "outputs": {
+    "portfolio_json": "data/research/evaluation/2026/weeks/week-<week>/weekly-actions-portfolio-v1.json",
+    "portfolio_markdown": "data/research/evaluation/2026/weeks/week-<week>/weekly-actions-portfolio-v1.md",
+    "markdown_offline_readable": true,
+    "app_ready_action_schema": true,
+    "production_app_runtime_wired": false
+  },
+  "schedule": {
+    "workflow": ".github/workflows/build-fie-window1c-weekly-actions.yml",
+    "tuesday_utc": ["06:07", "12:47"],
+    "wednesday_utc": ["06:07"],
+    "reason": "Run after the existing current-season refresh cadence; the second Tuesday pass catches delayed weekly public data before Wednesday waivers.",
+    "manual_dispatch_supported": true
+  },
+  "governance": {
+    "production_model": "M9",
+    "production_model_changed": false,
+    "m10_activation_changed": false,
+    "canonical_rankings_changed": false,
+    "app_runtime_changed": false,
+    "adp_used_as_football_feature": false,
+    "transaction_execution": false,
+    "faab_optimization": false,
+    "add_drop_optimization": false,
+    "window_1d_authorized_by_this_contract": false
+  },
+  "validation": [
+    "python research/integrity_window1c_weekly_actions_test.py",
+    "python research/integrity_window1b_evaluation_test.py",
+    "python research/integrity_15point_completion_test.py"
+  ]
+}
