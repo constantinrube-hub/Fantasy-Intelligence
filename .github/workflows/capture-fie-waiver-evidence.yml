@@ -1,0 +1,14 @@
+name: Capture FIE Waiver Evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */2 * 9-12 2,3,4"
+
+jobs:
+  capture:
+    uses: ./.github/workflows/_fie-evidence-capture-reusable.yml
+    with:
+      capture_kind: waiver
+    permissions:
+      contents: write

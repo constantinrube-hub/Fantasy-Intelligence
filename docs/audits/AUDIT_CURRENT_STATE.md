@@ -29,6 +29,7 @@
 - Last validated target head: `9d9e613` — Tranche 7C-R8C controlled no-network workflow target green. It validates the fixture raw envelope, immutable capture, and fixture-specific validation without enabling any audit-branch write or production behavior.
 - R8 combined closure: `1d7d4e4` target green and artifact-verified. The one deterministic personal release gate returned `DEPLOYABLE_SOURCE`; artifact SHA-256 `02c5d59ec2cb7bd856a5453446f66b7e26170b83f9e22d72dd69d1c24937d16a`, release-gate SHA-256 `e7e056442cb5e075cc57e8a1c12d9af65cc5a0a26bd8f1226a6ce10ae7353972`, and build-manifest SHA-256 `e3162b8790db46d387a7cd562d0ef2a6eb0296eb0cfe9b5998e4dbe521bb461f` are synchronized exactly. R8 validators are manual-only.
 - Current authorized boundary: R8 is closed. The main-only research-capture workflow remains the separately authorized activation path; M9 remains champion, and app/runtime/rankings, 6F, shadow use, and production activation remain forbidden.
+- Window 1A implementation boundary: the research-only prospective evidence backbone and truthful 2026 baseline freeze are complete on `audit-implementation-2026-09`; see `WINDOW1A_EVIDENCE_BACKBONE.md` and `config/window1a-evidence-backbone.json`. M9/app/runtime/rankings remain unchanged, and Window 1B or any waiver optimization/predictive integration remains unauthorized by this closure.
 
 ## Completed validated tranches
 

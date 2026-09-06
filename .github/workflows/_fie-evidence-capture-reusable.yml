@@ -1,0 +1,64 @@
+name: FIE Evidence Capture Reusable
+
+on:
+  workflow_call:
+    inputs:
+      capture_kind:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-evidence-capture-${{ inputs.capture_kind }}
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify focused first-write contract
+        shell: bash
+        run: |
+          python research/integrity_window1a_evidence_backbone.py
+          case "${{ inputs.capture_kind }}" in
+            waiver) python research/capture_fie_waivers.py --fixture --output-root /tmp/fie-waiver-fixture ;;
+            weather) python research/capture_fie_weather.py --fixture --output-root /tmp/fie-weather-fixture ;;
+            *) echo "Unsupported capture kind" >&2; exit 2 ;;
+          esac
+      - name: Capture immutable evidence
+        shell: bash
+        run: |
+          case "${{ inputs.capture_kind }}" in
+            waiver)
+              python research/capture_fie_waivers.py
+              python research/validate_window1a_evidence.py --kind waiver
+              ;;
+            weather)
+              python research/capture_fie_weather.py
+              python research/validate_window1a_evidence.py --kind weather
+              ;;
+          esac
+      - name: Commit only authorized research evidence
+        shell: bash
+        run: |
+          git config user.name "FIE Evidence Bot"
+          git config user.email "actions@users.noreply.github.com"
+          case "${{ inputs.capture_kind }}" in
+            waiver) git add data/research/waivers/sleeper ;;
+            weather) git add data/research/context/weather ;;
+          esac
+          if git diff --cached --quiet; then echo "No new immutable evidence"; exit 0; fi
+          git commit -m "Capture FIE ${{ inputs.capture_kind }} evidence"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main

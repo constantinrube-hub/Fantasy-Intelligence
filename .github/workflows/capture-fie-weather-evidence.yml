@@ -1,0 +1,14 @@
+name: Capture FIE Pregame Weather Evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "43 */6 * 1,9-12 0,1,3,4,5,6"
+
+jobs:
+  capture:
+    uses: ./.github/workflows/_fie-evidence-capture-reusable.yml
+    with:
+      capture_kind: weather
+    permissions:
+      contents: write
