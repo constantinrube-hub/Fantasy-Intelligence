@@ -6,6 +6,7 @@ import argparse
 import csv
 import io
 import json
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -28,19 +29,31 @@ from point_in_time_capture import (
 GAMES_URL = "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
 STATE_URL = "https://api.sleeper.app/v1/state/nfl"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
-UA = "Fantasy-Intelligence-Weather-Evidence/1.0"
+UA = "Fantasy-Intelligence-Weather-Evidence/1.1"
 CONTEXT_SCHEMA = "fie-context-evidence-v1"
 
 
-def fetch_bytes(url: str) -> tuple[bytes, dict[str, str | None]]:
-    request = Request(url, headers={"User-Agent": UA, "Accept": "application/json,text/csv,*/*"})
-    with urlopen(request, timeout=35) as response:
-        if response.status != 200:
-            raise RuntimeError(f"HTTP {response.status}: {url}")
-        return response.read(), {
-            "etag": response.headers.get("ETag"),
-            "last_modified": response.headers.get("Last-Modified"),
-        }
+def fetch_bytes(
+    url: str, *, attempts: int = 3, timeout: int = 35
+) -> tuple[bytes, dict[str, str | None]]:
+    """Fetch with bounded retries so transient TLS/network failures do not fail immediately."""
+    last_error: Exception | None = None
+    attempts = max(1, int(attempts))
+    for attempt in range(1, attempts + 1):
+        request = Request(url, headers={"User-Agent": UA, "Accept": "application/json,text/csv,*/*"})
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                if response.status != 200:
+                    raise RuntimeError(f"HTTP {response.status}: {url}")
+                return response.read(), {
+                    "etag": response.headers.get("ETag"),
+                    "last_modified": response.headers.get("Last-Modified"),
+                }
+        except Exception as exc:  # network/TLS/provider errors are retried uniformly
+            last_error = exc
+            if attempt < attempts:
+                time.sleep(min(2 ** (attempt - 1), 4))
+    raise RuntimeError(f"request failed after {attempts} attempts: {url}") from last_error
 
 
 def kickoff_utc(row: dict[str, str]) -> str:
@@ -104,6 +117,22 @@ def hourly_at_kickoff(payload: dict[str, Any], kickoff: str) -> dict[str, Any]:
     }
 
 
+def unavailable_environment(game: dict[str, Any], *, status: str, error_type: str | None = None) -> dict[str, Any]:
+    """Represent unavailable weather explicitly; missing context is never converted to a numeric default."""
+    return {
+        "forecast_observed_at": None,
+        "forecast_run_at": None,
+        "forecast_run_metadata_status": status,
+        "forecast_error_type": error_type,
+        "temperature_f": None,
+        "precipitation_probability": None,
+        "wind_mph": None,
+        "gust_mph": None,
+        "roof": game.get("roof"),
+        "surface": game.get("surface"),
+    }
+
+
 def build_context(
     *, season: int, week: int, observed_at: str, games: list[dict[str, Any]], sources: list[dict[str, Any]]
 ) -> dict[str, Any]:
@@ -163,6 +192,7 @@ def capture(*, output_root: Path, season: int, week: int, fixture: bool = False)
         first_write_json(capture_dir / "context-evidence.json", context)
         return capture_dir / "context-evidence.json"
 
+    # Schedule identity is essential to the context contract, so it remains fail-closed.
     schedule_bytes, schedule_headers = fetch_bytes(GAMES_URL)
     schedule = schedule_rows(schedule_bytes, season, week)
     if not schedule:
@@ -183,17 +213,46 @@ def capture(*, output_root: Path, season: int, week: int, fixture: bool = False)
             continue
         venue = venues.get(game["home_team"])
         if not venue:
-            context_games.append({**game, "environment": {
-                "forecast_observed_at": None, "forecast_run_at": None,
-                "forecast_run_metadata_status": "UNAVAILABLE_VENUE_COORDINATES",
-                "temperature_f": None, "precipitation_probability": None, "wind_mph": None, "gust_mph": None,
-                "roof": game.get("roof"), "surface": game.get("surface"),
-            }, "coaching": {}, "team_context": {}})
+            context_games.append({
+                **game,
+                "environment": unavailable_environment(game, status="UNAVAILABLE_VENUE_COORDINATES"),
+                "coaching": {},
+                "team_context": {},
+            })
             continue
+
         url = forecast_url(float(venue["latitude"]), float(venue["longitude"]))
-        raw, headers = fetch_bytes(url)
-        payload = json.loads(raw.decode("utf-8"))
-        selected = hourly_at_kickoff(payload, game["kickoff"])
+        try:
+            raw, headers = fetch_bytes(url)
+            payload = json.loads(raw.decode("utf-8"))
+            selected = hourly_at_kickoff(payload, game["kickoff"])
+        except Exception as exc:
+            # Weather is optional descriptive context in Window 2D. A failed provider
+            # request is preserved as explicit missing evidence rather than aborting the
+            # entire combined availability/context build or inventing replacement data.
+            error_type = type(exc.__cause__ or exc).__name__
+            source_refs.append({
+                "source_id": f"open-meteo:{game['game_id']}:{stamp}:unavailable",
+                "source_type": "PROVIDER_UNAVAILABLE",
+                "endpoint": url,
+                "observed_at": observed_at,
+                "effective_at": game["kickoff"],
+                "release_identifier": None,
+                "revision_identifier": None,
+                "payload_sha256": None,
+                "as_of_semantics": "Forecast request attempted before kickoff but no usable provider response was obtained; weather remains missing.",
+                "error_type": error_type,
+            })
+            context_games.append({
+                **game,
+                "environment": unavailable_environment(
+                    game, status="UNAVAILABLE_PROVIDER_ERROR", error_type=error_type
+                ),
+                "coaching": {},
+                "team_context": {},
+            })
+            continue
+
         envelope = build_envelope(
             capture_id=f"open-meteo-{game['game_id']}-{stamp}", capture_intent="WEATHER_FORECAST",
             provider="Open-Meteo", endpoint=url, observed_at=observed_at, effective_at=game["kickoff"],
