@@ -1,0 +1,150 @@
+name: Build FIE Window 2C+2D Foundation
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: NFL season
+        required: false
+        default: '2026'
+        type: string
+      week:
+        description: Regular-season week
+        required: false
+        default: '1'
+        type: string
+      capture_fresh_evidence:
+        description: Refresh prospective Sleeper availability and weather evidence first
+        required: false
+        default: true
+        type: boolean
+      opportunity_baseline:
+        description: Optional repo-relative fie-opportunity-baseline-v1 JSON path; leave blank to fail closed on quantified redistribution
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-window2c2d-foundation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Window 2C and 2D contracts
+        run: |
+          set -euo pipefail
+          python -m py_compile research/window2c_availability_v2.py
+          python research/integrity_window2c_availability_v2_test.py
+          python -m py_compile research/window2d_context_foundation.py
+          python research/integrity_window2d_context_foundation_test.py
+          python -m json.tool config/window2c-availability-v2-redistribution.json > /dev/null
+          python -m json.tool config/window2d-context-foundation.json > /dev/null
+          python -m py_compile research/capture_fie_availability.py
+          python -m py_compile research/capture_fie_weather.py
+          python -m py_compile research/point_in_time_capture.py
+
+      - name: Resolve target and combined as-of
+        shell: bash
+        env:
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+        run: |
+          set -euo pipefail
+          SEASON="${INPUT_SEASON:-2026}"
+          WEEK="${INPUT_WEEK:-1}"
+          [[ "$SEASON" =~ ^[0-9]{4}$ ]] || { echo "Invalid season: $SEASON"; exit 1; }
+          [[ "$WEEK" =~ ^[0-9]+$ ]] || { echo "Invalid week: $WEEK"; exit 1; }
+          if (( WEEK < 1 || WEEK > 18 )); then echo "Week must be 1-18"; exit 1; fi
+          echo "FIE_SEASON=$SEASON" >> "$GITHUB_ENV"
+          echo "FIE_WEEK=$WEEK" >> "$GITHUB_ENV"
+
+      - name: Refresh prospective evidence
+        if: ${{ inputs.capture_fresh_evidence }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/capture_fie_availability.py
+          python research/capture_fie_weather.py --season "$FIE_SEASON" --week "$FIE_WEEK"
+
+      - name: Freeze combined build as-of
+        shell: bash
+        run: |
+          set -euo pipefail
+          AS_OF="$(python - <<'PY'
+          from datetime import datetime, timezone
+          print(datetime.now(timezone.utc).isoformat())
+          PY
+          )"
+          echo "FIE_AS_OF=$AS_OF" >> "$GITHUB_ENV"
+          echo "Combined as-of: $AS_OF"
+
+      - name: Build Window 2C Availability v2 + Redistribution
+        shell: bash
+        env:
+          OPPORTUNITY_BASELINE: ${{ inputs.opportunity_baseline }}
+        run: |
+          set -euo pipefail
+          CMD=(python research/window2c_availability_v2.py --season "$FIE_SEASON" --week "$FIE_WEEK" --as-of "$FIE_AS_OF")
+          if [[ -n "${OPPORTUNITY_BASELINE:-}" ]]; then
+            CMD+=(--opportunity-baseline "$OPPORTUNITY_BASELINE")
+          fi
+          "${CMD[@]}"
+
+      - name: Build Window 2D Context Foundation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/window2d_context_foundation.py \
+            --season "$FIE_SEASON" \
+            --week "$FIE_WEEK" \
+            --as-of "$FIE_AS_OF"
+
+      - name: Guard production surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHANGED="$(git status --porcelain | awk '{print $2}')"
+          if echo "$CHANGED" | grep -E '^(app/|index\.html$|data/research/leagues/.*/(app|current|performance)/|data/strategy/|data/market/|data/adp/)' ; then
+            echo "Window 2C+2D modified a prohibited production/ranking/market surface"
+            git status --short
+            exit 1
+          fi
+
+      - name: Commit only Window 2C+2D research evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Context Foundation Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add \
+            data/research/availability/sleeper \
+            data/research/context/weather \
+            data/research/availability/v2 \
+            data/research/context/foundation
+          if git diff --cached --quiet; then
+            echo "No Window 2C+2D research change"
+            exit 0
+          fi
+          git commit -m "Build FIE Window 2C+2D research foundation"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
