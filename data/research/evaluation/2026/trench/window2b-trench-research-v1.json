@@ -1,0 +1,545 @@
+{
+  "adp_used_as_football_feature": false,
+  "automatic_promotion": false,
+  "baseline_features": [
+    "fp_prior1",
+    "fp_prior4_mean",
+    "fp_season_to_date_mean",
+    "prior_games"
+  ],
+  "canonical_rankings_changed": false,
+  "fixed_gates": {
+    "bootstrap_ci_level": 0.95,
+    "bootstrap_draws": 2000,
+    "max_single_fold_mae_deterioration": 0.05,
+    "min_fold_win_share": 0.6,
+    "min_relative_mae_improvement": 0.005,
+    "min_relative_rmse_improvement": 0.0,
+    "min_test_folds": 3,
+    "min_test_rows_per_fold": 25,
+    "min_total_eval_rows": 300,
+    "min_train_rows_per_fold": 100,
+    "minimum_prior_player_games": 2,
+    "ridge_alpha": 10.0
+  },
+  "generated_at": "2026-09-07T07:45:00.030301+00:00",
+  "joined_row_count": 40330,
+  "production_model": "M9",
+  "research_only": true,
+  "results": [
+    {
+      "baseline_mae": 6.222240696750682,
+      "baseline_rmse": 7.7661177863474355,
+      "bootstrap_ci95_high": 0.020551415550931915,
+      "bootstrap_ci95_low": -0.03498914707695736,
+      "challenger_mae": 6.229251760131677,
+      "challenger_rmse": 7.781564529287132,
+      "complete_case_rows": 3442,
+      "evaluation_rows": 2515,
+      "family": "PASS_PROTECTION_FRONT_CORE",
+      "features": [
+        "own_sack_rate_allowed",
+        "opp_sack_rate_generated"
+      ],
+      "fold_win_share": 0.4,
+      "folds": [
+        {
+          "baseline_mae": 6.340488535554228,
+          "baseline_rmse": 7.756016815443023,
+          "challenger_mae": 6.345008454548086,
+          "challenger_rmse": 7.783074198754708,
+          "relative_mae_improvement": -0.0007128660462853392,
+          "relative_rmse_improvement": -0.003488566870795162,
+          "test_rows": 507,
+          "test_season": 2021,
+          "train_rows": 927
+        },
+        {
+          "baseline_mae": 5.801042176379007,
+          "baseline_rmse": 7.2860913484142795,
+          "challenger_mae": 5.761082013492526,
+          "challenger_rmse": 7.219687873401689,
+          "relative_mae_improvement": 0.006888445501946682,
+          "relative_rmse_improvement": 0.009113730783383905,
+          "test_rows": 477,
+          "test_season": 2022,
+          "train_rows": 1434
+        },
+        {
+          "baseline_mae": 5.933343940632155,
+          "baseline_rmse": 7.439599296383706,
+          "challenger_mae": 6.016301096470778,
+          "challenger_rmse": 7.543662016270655,
+          "relative_mae_improvement": -0.013981518123452118,
+          "relative_rmse_improvement": -0.013987678064534012,
+          "test_rows": 508,
+          "test_season": 2023,
+          "train_rows": 1911
+        },
+        {
+          "baseline_mae": 6.2932296833902,
+          "baseline_rmse": 7.980234718050433,
+          "challenger_mae": 6.299275589281242,
+          "challenger_rmse": 7.992830017472264,
+          "relative_mae_improvement": -0.0009607000213260157,
+          "relative_rmse_improvement": -0.0015783119001928916,
+          "test_rows": 515,
+          "test_season": 2024,
+          "train_rows": 2419
+        },
+        {
+          "baseline_mae": 6.716650665122241,
+          "baseline_rmse": 8.29460841398928,
+          "challenger_mae": 6.69528520541803,
+          "challenger_rmse": 8.289221493847755,
+          "relative_mae_improvement": 0.0031809693207890174,
+          "relative_rmse_improvement": 0.0006494483973999294,
+          "test_rows": 508,
+          "test_season": 2025,
+          "train_rows": 2934
+        }
+      ],
+      "gate_checks": {
+        "bootstrap_ci_lower_above_zero": false,
+        "enough_total_eval_rows": true,
+        "fold_win_share": false,
+        "no_catastrophic_fold": true,
+        "positive_minimum_relative_mae_gain": false,
+        "rmse_not_worse": false
+      },
+      "mean_absolute_error_improvement_points": -0.007011063380995252,
+      "mean_incremental_mae_improvement": -0.001126774697844178,
+      "mean_incremental_rmse_improvement": -0.0019889915868712567,
+      "position": "QB",
+      "same_row_comparison": true,
+      "status": "BLOCKED_NOT_VALIDATED",
+      "test_fold_count": 5,
+      "test_seasons": [
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "worst_fold_mae_improvement": -0.013981518123452118
+    },
+    {
+      "baseline_mae": 4.7994498009910425,
+      "baseline_rmse": 6.46442491324633,
+      "bootstrap_ci95_high": 0.0017090003442966637,
+      "bootstrap_ci95_low": -0.026972031064554824,
+      "challenger_mae": 4.811949111616669,
+      "challenger_rmse": 6.463134403665836,
+      "complete_case_rows": 8552,
+      "evaluation_rows": 6219,
+      "family": "RUN_BLOCK_FRONT_CORE",
+      "features": [
+        "own_rush_epa_per_attempt",
+        "own_rush_success_rate",
+        "own_stuff_rate_allowed",
+        "opp_rush_epa_allowed_per_attempt",
+        "opp_rush_success_rate_allowed",
+        "opp_stuff_rate_forced"
+      ],
+      "fold_win_share": 0.6,
+      "folds": [
+        {
+          "baseline_mae": 5.18805274355748,
+          "baseline_rmse": 6.8583426805257535,
+          "challenger_mae": 5.255023792645785,
+          "challenger_rmse": 6.885765905424683,
+          "relative_mae_improvement": -0.012908706290904471,
+          "relative_rmse_improvement": -0.003998520659633651,
+          "test_rows": 1211,
+          "test_season": 2021,
+          "train_rows": 2333
+        },
+        {
+          "baseline_mae": 4.875535638432099,
+          "baseline_rmse": 6.562315622425108,
+          "challenger_mae": 4.872897668033535,
+          "challenger_rmse": 6.562467339487245,
+          "relative_mae_improvement": 0.0005410626840197816,
+          "relative_rmse_improvement": -2.3119439976187912e-05,
+          "test_rows": 1278,
+          "test_season": 2022,
+          "train_rows": 3544
+        },
+        {
+          "baseline_mae": 4.612749605748435,
+          "baseline_rmse": 6.132820638655995,
+          "challenger_mae": 4.607705586270723,
+          "challenger_rmse": 6.117275929391296,
+          "relative_mae_improvement": 0.0010934951837460929,
+          "relative_rmse_improvement": 0.0025346753444441604,
+          "test_rows": 1190,
+          "test_season": 2023,
+          "train_rows": 4822
+        },
+        {
+          "baseline_mae": 4.688142044390569,
+          "baseline_rmse": 6.197724605589135,
+          "challenger_mae": 4.708243750098584,
+          "challenger_rmse": 6.205616005096935,
+          "relative_mae_improvement": -0.0042877765898896025,
+          "relative_rmse_improvement": -0.0012732736625121334,
+          "test_rows": 1256,
+          "test_season": 2024,
+          "train_rows": 6012
+        },
+        {
+          "baseline_mae": 4.639122628819134,
+          "baseline_rmse": 6.5379424541136695,
+          "challenger_mae": 4.624136055075687,
+          "challenger_rmse": 6.510542564891535,
+          "relative_mae_improvement": 0.0032304758771297404,
+          "relative_rmse_improvement": 0.004190904006029314,
+          "test_rows": 1284,
+          "test_season": 2025,
+          "train_rows": 7268
+        }
+      ],
+      "gate_checks": {
+        "bootstrap_ci_lower_above_zero": false,
+        "enough_total_eval_rows": true,
+        "fold_win_share": true,
+        "no_catastrophic_fold": true,
+        "positive_minimum_relative_mae_gain": false,
+        "rmse_not_worse": true
+      },
+      "mean_absolute_error_improvement_points": -0.012499310625627187,
+      "mean_incremental_mae_improvement": -0.0026043215668274306,
+      "mean_incremental_rmse_improvement": 0.00019963254238592213,
+      "position": "RB",
+      "same_row_comparison": true,
+      "status": "BLOCKED_NOT_VALIDATED",
+      "test_fold_count": 5,
+      "test_seasons": [
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "worst_fold_mae_improvement": -0.012908706290904471
+    },
+    {
+      "baseline_mae": 4.7065176996657225,
+      "baseline_rmse": 6.334082564762739,
+      "bootstrap_ci95_high": 0.004531060936069658,
+      "bootstrap_ci95_low": -0.008659858715197317,
+      "challenger_mae": 4.708488961887396,
+      "challenger_rmse": 6.343672712432377,
+      "complete_case_rows": 13661,
+      "evaluation_rows": 9991,
+      "family": "PASS_PROTECTION_FRONT_CORE",
+      "features": [
+        "own_sack_rate_allowed",
+        "opp_sack_rate_generated"
+      ],
+      "fold_win_share": 0.6,
+      "folds": [
+        {
+          "baseline_mae": 4.848651763888727,
+          "baseline_rmse": 6.37851740161503,
+          "challenger_mae": 4.878321334359406,
+          "challenger_rmse": 6.405444792025963,
+          "relative_mae_improvement": -0.006119138250275827,
+          "relative_rmse_improvement": -0.004221575127178541,
+          "test_rows": 1996,
+          "test_season": 2021,
+          "train_rows": 3670
+        },
+        {
+          "baseline_mae": 4.876231643972121,
+          "baseline_rmse": 6.411729632273694,
+          "challenger_mae": 4.887183458290914,
+          "challenger_rmse": 6.424322120760528,
+          "relative_mae_improvement": -0.002245958584090562,
+          "relative_rmse_improvement": -0.001963976837614771,
+          "test_rows": 1928,
+          "test_season": 2022,
+          "train_rows": 5666
+        },
+        {
+          "baseline_mae": 4.615545111410697,
+          "baseline_rmse": 6.298591506830817,
+          "challenger_mae": 4.60102687293045,
+          "challenger_rmse": 6.30619237877728,
+          "relative_mae_improvement": 0.0031455089550212535,
+          "relative_rmse_improvement": -0.001206757405718326,
+          "test_rows": 2042,
+          "test_season": 2023,
+          "train_rows": 7594
+        },
+        {
+          "baseline_mae": 4.720398195080248,
+          "baseline_rmse": 6.563415995084431,
+          "challenger_mae": 4.708597086189205,
+          "challenger_rmse": 6.564854904913359,
+          "relative_mae_improvement": 0.0025000240241051103,
+          "relative_rmse_improvement": -0.00021923184969620618,
+          "test_rows": 1984,
+          "test_season": 2024,
+          "train_rows": 9636
+        },
+        {
+          "baseline_mae": 4.484723993395506,
+          "baseline_rmse": 6.0171950554986875,
+          "challenger_mae": 4.481009619660635,
+          "challenger_rmse": 6.016497430393793,
+          "relative_mae_improvement": 0.0008282279445381861,
+          "relative_rmse_improvement": 0.000115938589070197,
+          "test_rows": 2041,
+          "test_season": 2025,
+          "train_rows": 11620
+        }
+      ],
+      "gate_checks": {
+        "bootstrap_ci_lower_above_zero": false,
+        "enough_total_eval_rows": true,
+        "fold_win_share": true,
+        "no_catastrophic_fold": true,
+        "positive_minimum_relative_mae_gain": false,
+        "rmse_not_worse": false
+      },
+      "mean_absolute_error_improvement_points": -0.0019712622216740364,
+      "mean_incremental_mae_improvement": -0.00041883667447248374,
+      "mean_incremental_rmse_improvement": -0.001514054730354915,
+      "position": "WR",
+      "same_row_comparison": true,
+      "status": "BLOCKED_NOT_VALIDATED",
+      "test_fold_count": 5,
+      "test_seasons": [
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "worst_fold_mae_improvement": -0.006119138250275827
+    },
+    {
+      "baseline_mae": 3.847431208426279,
+      "baseline_rmse": 5.290532172641403,
+      "bootstrap_ci95_high": 0.018656740308585447,
+      "bootstrap_ci95_low": 0.004567343816191558,
+      "challenger_mae": 3.8357908963962295,
+      "challenger_rmse": 5.284389210098917,
+      "complete_case_rows": 6645,
+      "evaluation_rows": 4870,
+      "family": "PASS_PROTECTION_FRONT_CORE",
+      "features": [
+        "own_sack_rate_allowed",
+        "opp_sack_rate_generated"
+      ],
+      "fold_win_share": 0.8,
+      "folds": [
+        {
+          "baseline_mae": 3.9384935659481486,
+          "baseline_rmse": 5.381051432728823,
+          "challenger_mae": 3.9397813054803583,
+          "challenger_rmse": 5.374016560247376,
+          "relative_mae_improvement": -0.00032696245674828766,
+          "relative_rmse_improvement": 0.0013073416170414805,
+          "test_rows": 953,
+          "test_season": 2021,
+          "train_rows": 1775
+        },
+        {
+          "baseline_mae": 3.912962072706145,
+          "baseline_rmse": 5.364600422002781,
+          "challenger_mae": 3.9061241262372386,
+          "challenger_rmse": 5.356327667967339,
+          "relative_mae_improvement": 0.0017475115633250496,
+          "relative_rmse_improvement": 0.0015421006943056382,
+          "test_rows": 960,
+          "test_season": 2022,
+          "train_rows": 2728
+        },
+        {
+          "baseline_mae": 3.703750564692255,
+          "baseline_rmse": 5.076943533244713,
+          "challenger_mae": 3.686346447836448,
+          "challenger_rmse": 5.080578812024576,
+          "relative_mae_improvement": 0.004699052096466798,
+          "relative_rmse_improvement": -0.000716036874560042,
+          "test_rows": 955,
+          "test_season": 2023,
+          "train_rows": 3688
+        },
+        {
+          "baseline_mae": 3.859012568790596,
+          "baseline_rmse": 5.213646791023712,
+          "challenger_mae": 3.8313665418640377,
+          "challenger_rmse": 5.2000705997972645,
+          "relative_mae_improvement": 0.00716401577702618,
+          "relative_rmse_improvement": 0.0026039721850397695,
+          "test_rows": 978,
+          "test_season": 2024,
+          "train_rows": 4643
+        },
+        {
+          "baseline_mae": 3.8241854934874886,
+          "baseline_rmse": 5.402531346412073,
+          "challenger_mae": 3.8166734223752643,
+          "challenger_rmse": 5.397457843880564,
+          "relative_mae_improvement": 0.001964358456203864,
+          "relative_rmse_improvement": 0.0009390972872149256,
+          "test_rows": 1024,
+          "test_season": 2025,
+          "train_rows": 5621
+        }
+      ],
+      "gate_checks": {
+        "bootstrap_ci_lower_above_zero": true,
+        "enough_total_eval_rows": true,
+        "fold_win_share": true,
+        "no_catastrophic_fold": true,
+        "positive_minimum_relative_mae_gain": false,
+        "rmse_not_worse": true
+      },
+      "mean_absolute_error_improvement_points": 0.011640312030049697,
+      "mean_incremental_mae_improvement": 0.0030254763241916224,
+      "mean_incremental_rmse_improvement": 0.0011611237474847935,
+      "position": "TE",
+      "same_row_comparison": true,
+      "status": "BLOCKED_NOT_VALIDATED",
+      "test_fold_count": 5,
+      "test_seasons": [
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "worst_fold_mae_improvement": -0.00032696245674828766
+    },
+    {
+      "family": "TRENCH_MATCHUP_CONTEXT",
+      "features": [],
+      "position": "D/ST",
+      "reason": "nflverse player-week standard-PPR screening target is not a trustworthy D/ST fantasy target",
+      "same_row_comparison": true,
+      "status": "BLOCKED_TARGET_CONTRACT_NOT_BOUND"
+    }
+  ],
+  "runtime_changed": false,
+  "schema": "fie-window2b-trench-research-v1",
+  "schema_version": 1,
+  "screening_target": "standard_ppr_player_week",
+  "screening_target_scope": [
+    "QB",
+    "RB",
+    "WR",
+    "TE"
+  ],
+  "screening_target_warning": "research screening only; not a replacement for per-league scoring replay",
+  "seasons": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "source_bindings": {
+    "player_week": [
+      {
+        "bytes": 7767165,
+        "season": 2019,
+        "sha256": "a05558126b1209b80fe11a8f18938cb35816370bf9990975a87de49e9eed7376",
+        "status": "AVAILABLE_LIVE",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2019.csv"
+      },
+      {
+        "bytes": 7883270,
+        "season": 2020,
+        "sha256": "05b992676faccc8940efbf6242cb76358069372d31d7c2e02c1a4acdcd3cbe18",
+        "status": "AVAILABLE_LIVE",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2020.csv"
+      },
+      {
+        "bytes": 8477784,
+        "season": 2021,
+        "sha256": "41915fb49238902ad1f129ebf0405b11a1e710454ae0fe8f7b3e4f9145875f48",
+        "status": "AVAILABLE_LIVE",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2021.csv"
+      },
+      {
+        "bytes": 8408729,
+        "season": 2022,
+        "sha256": "ad426c3fe5bf1cc30c3f137fdfe96d054e19d400879ee4413129da49fa7b54be",
+        "status": "AVAILABLE_LIVE",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2022.csv"
+      },
+      {
+        "bytes": 8332874,
+        "season": 2023,
+        "sha256": "f19cb71a5de0dce7fd09376026237c9ee9d5a93fe13815a2ea3ec2d37204cb17",
+        "status": "AVAILABLE_LIVE",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2023.csv"
+      },
+      {
+        "bytes": 8470040,
+        "season": 2024,
+        "sha256": "3ddc45a84f759aa348ce465ae001752c530575455717657cdfe1f8abfcdb4759",
+        "status": "AVAILABLE_LIVE",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2024.csv"
+      },
+      {
+        "bytes": 8656387,
+        "season": 2025,
+        "sha256": "e5e0615b3d96a3eaebfaee91e55afb4a4e7fe0caf057454177bcd7d6ad4bcfc2",
+        "status": "AVAILABLE_LIVE",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2025.csv"
+      }
+    ],
+    "window2a_history": [
+      {
+        "path": "data/research/trench/historical/season_2019-v1.json",
+        "season": 2019,
+        "sha256": "0abae74b40b38cf857a36cd4ad508069e5a8e3c76d982dd953436e27e95e859b",
+        "status": "AVAILABLE"
+      },
+      {
+        "path": "data/research/trench/historical/season_2020-v1.json",
+        "season": 2020,
+        "sha256": "734760ea9f564cfcfff671e96493b03ebc43fad3f6ab23a3ebc4cdeed14c87a5",
+        "status": "AVAILABLE"
+      },
+      {
+        "path": "data/research/trench/historical/season_2021-v1.json",
+        "season": 2021,
+        "sha256": "55627ebd1bb07f99efe28f96c4d18e35e8dfa5ca0ea7ad7d2ac7bc3b17939bb7",
+        "status": "AVAILABLE"
+      },
+      {
+        "path": "data/research/trench/historical/season_2022-v1.json",
+        "season": 2022,
+        "sha256": "89d3a8b3015854916d320245658696ed177e7773e5b9d7d2f00599738d5e9785",
+        "status": "AVAILABLE"
+      },
+      {
+        "path": "data/research/trench/historical/season_2023-v1.json",
+        "season": 2023,
+        "sha256": "215c5c246b0e89f775fc716f51f440983a9beb3dcab2fd9d41d2d00b27b4609a",
+        "status": "AVAILABLE"
+      },
+      {
+        "path": "data/research/trench/historical/season_2024-v1.json",
+        "season": 2024,
+        "sha256": "6aed0b9ed51cc0154d9014f50e5e1e2240bc41e7758beb1c1f079bcd81eb123f",
+        "status": "AVAILABLE"
+      },
+      {
+        "path": "data/research/trench/historical/season_2025-v1.json",
+        "season": 2025,
+        "sha256": "de4ae3b9834163b7fdeb000d3cdc94a1c7eb567d8a2bd54fe7342cbeb7db16ce",
+        "status": "AVAILABLE"
+      }
+    ]
+  },
+  "waiver_values_changed": false
+}
