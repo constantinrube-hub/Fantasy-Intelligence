@@ -1,0 +1,236 @@
+{
+  "schema": "fie-general-season-preview-model-design-v1",
+  "review_model": "GPT-5.6 Sol High",
+  "status": "IMPLEMENTATION_READY_AWAITING_FIRST_BUILD",
+  "season": 2026,
+  "research_only": true,
+  "production_model": "M9",
+  "architecture_order": [
+    "PHASE_A_LEAGUE_NEUTRAL_RAW_FOOTBALL",
+    "PHASE_B_EXACT_LEAGUE_APPLICATION"
+  ],
+  "baseline_binding": {
+    "path": "data/research/baselines/2026/baseline-v1.json",
+    "required_eligibility": "PRESEASON_ELIGIBLE",
+    "source_cutoff": "2026-09-01T10:08:06.043444+00:00",
+    "training_outcomes_end_season": 2025,
+    "verify_every_recorded_sha256": true,
+    "later_endpoint_backfill": false
+  },
+  "phase_a": {
+    "league_neutral": true,
+    "prohibited_features": [
+      "fantasy_scoring_settings",
+      "fantasy_league_format",
+      "fantasy_roster_ownership",
+      "replacement_value",
+      "scarcity_value",
+      "ADP",
+      "market_projection"
+    ],
+    "population": "canonical NFL players and teams resolved only from cutoff-eligible evidence",
+    "horizons": [
+      "conditional_per_game",
+      "availability_adjusted_season_total"
+    ],
+    "quantiles": [0.1, 0.25, 0.5, 0.75, 0.9],
+    "statuses": [
+      "READY_RESEARCH_ONLY",
+      "BASELINE_ONLY",
+      "DIAGNOSTIC_ONLY",
+      "BLOCKED_MISSING_SOURCE",
+      "BLOCKED_IDENTITY",
+      "BLOCKED_INSUFFICIENT_HISTORY",
+      "NOT_MODELED_V1"
+    ],
+    "candidates": [
+      "SHRUNK_PRIOR_SEASON_BASELINE",
+      "REGULARIZED_LINEAR_COMPONENT_MODEL",
+      "SHALLOW_REGULARIZED_HGB_CHALLENGER"
+    ],
+    "ensemble_authorized": false,
+    "candidate_selection_scope": [
+      "entity_type",
+      "position",
+      "stat_family"
+    ],
+    "targets": {
+      "TEAM_OFFENSE": [
+        "plays",
+        "dropbacks",
+        "passing_attempts",
+        "completions",
+        "gross_passing_yards",
+        "passing_tds",
+        "interceptions_thrown",
+        "sacks_allowed",
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "points_scored"
+      ],
+      "TEAM_DEFENSE_DEF": [
+        "sacks",
+        "interceptions",
+        "forced_fumbles",
+        "fumble_recoveries",
+        "defensive_tds",
+        "special_teams_tds",
+        "points_allowed",
+        "yards_allowed"
+      ],
+      "TEAM_KICKING": [
+        "field_goal_attempts",
+        "field_goals_made_by_bucket",
+        "field_goals_missed_by_bucket",
+        "made_field_goal_yards",
+        "extra_point_attempts",
+        "extra_points_made",
+        "extra_points_missed"
+      ],
+      "QB": [
+        "passing_attempts",
+        "completions",
+        "passing_yards",
+        "passing_tds",
+        "interceptions",
+        "passing_2pt_conversions",
+        "passing_first_downs",
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "RB_WR_TE": [
+        "rushing_attempts",
+        "rushing_yards",
+        "rushing_tds",
+        "rushing_2pt_conversions",
+        "rushing_first_downs",
+        "targets",
+        "receptions",
+        "receiving_yards",
+        "receiving_tds",
+        "receiving_2pt_conversions",
+        "receiving_first_downs",
+        "fumbles",
+        "fumbles_lost"
+      ],
+      "K_PLAYER": "CONDITIONAL_ON_CUTOFF_SAFE_ROLE_IDENTITY",
+      "IDP": "DIAGNOSTIC_ONLY_OR_TYPED_BLOCKER_IN_V1"
+    },
+    "reconciliation": {
+      "per_joint_scenario": true,
+      "before_quantiles": true,
+      "before_scoring": true,
+      "nonnegative": true,
+      "structural_inequalities": [
+        "completions_lte_passing_attempts",
+        "receptions_lte_targets"
+      ],
+      "player_team_equalities": [
+        "qb_passing_attempts_to_team_passing_attempts",
+        "player_receptions_to_team_completions",
+        "player_targets_to_canonical_team_target_pool",
+        "player_rushing_attempts_to_team_rushing_attempts",
+        "compatible_player_yards_and_tds_to_team_gross_totals"
+      ],
+      "league_mirror_equalities": [
+        "points_scored_to_points_allowed",
+        "sacks_allowed_to_defensive_sacks",
+        "interceptions_thrown_to_defensive_interceptions"
+      ],
+      "unresolved_allocation_entity": "UNALLOCATED",
+      "silent_redistribution": false,
+      "maximum_unallocated_share": 0.05
+    },
+    "outer_folds": [
+      {"train": [2019, 2020, 2021], "test": 2022},
+      {"train": [2019, 2020, 2021, 2022], "test": 2023},
+      {"train": [2019, 2020, 2021, 2022, 2023], "test": 2024},
+      {"train": [2019, 2020, 2021, 2022, 2023, 2024], "test": 2025}
+    ],
+    "minimum_paired_rows": {
+      "team_per_test_season": 28,
+      "player_per_position_per_test_season": 40,
+      "kicker_per_test_season": 20
+    },
+    "metrics": {
+      "point": ["mae", "rmse", "mean_bias", "spearman", "top_k_overlap"],
+      "count": ["mean_poisson_deviance_when_applicable"],
+      "distribution": ["pinball_loss", "weighted_interval_score_or_crps", "p10_p90_coverage", "interval_width"],
+      "availability": ["expected_games_mae", "interval_coverage"],
+      "coherence": ["maximum_constraint_residual", "aggregate_constraint_residual", "unallocated_share"]
+    },
+    "challenger_publication_gate": {
+      "outer_folds": 4,
+      "minimum_nonnegative_mae_folds": 3,
+      "mean_paired_mae_improvement_gt": 0.0,
+      "temporal_block_bootstrap_ci95_low_gt": 0.0,
+      "distribution_score_noninferior": true,
+      "p10_p90_coverage_target": 0.8,
+      "p10_p90_coverage_absolute_tolerance": 0.05,
+      "no_material_subgroup_regression": true,
+      "coherence_required": true,
+      "deterministic_reproduction_required": true
+    },
+    "baseline_only_policy": "A transparent baseline may publish only after provenance, coverage, calibration, coherence, and deterministic reproduction pass; it must remain visibly BASELINE_ONLY.",
+    "artifacts": {
+      "root": "data/research/evaluation/2026/preseason/general-preview-v1",
+      "manifest": "manifest.json",
+      "players": "player-stat-projections.csv",
+      "teams": "team-stat-projections.csv",
+      "validation": "validation.json",
+      "report": "general-preview.md",
+      "overwrite_policy": "first_write_immutable"
+    }
+  },
+  "phase_b": {
+    "input": "exact Phase A manifest and reconciled joint scenarios",
+    "enabled_leagues": 22,
+    "verify_profile_fingerprint": true,
+    "verify_scoring_signature": true,
+    "score_joint_scenarios_not_marginal_quantiles": true,
+    "apply_after_scoring": [
+      "position_eligibility",
+      "roster_demand",
+      "replacement_and_scarcity",
+      "format_semantics"
+    ],
+    "missing_family_behavior": "TYPED_BLOCKER_NOT_ZERO",
+    "unsupported_scoring_behavior": "TYPED_BLOCKER_OR_EXPLICIT_EXTERNAL_FALLBACK",
+    "external_fallback_may_be_relabelled_general_forecast": false,
+    "namespace": "data/research/evaluation/2026/preseason/league-preview-v2",
+    "overwrites_season_preview_v1": false,
+    "adp_or_market_used_as_football_feature": false,
+    "win_playoff_championship_probabilities_authorized": false
+  },
+  "terra_implementation_sequence": [
+    "canonical deterministic team/player-season table and source manifest",
+    "Phase A baselines and candidate ladder with saved outer-fold predictions",
+    "joint reconciliation, quantiles, validation, and immutable general-preview bundle",
+    "Phase B exact-scoring adapter over all 22 frozen profiles",
+    "synthetic no-network integrity tests and final repository release gate"
+  ],
+  "implementation": {
+    "producer": "research/general_season_preview.py",
+    "phase_a_command": "python research/general_season_preview.py build-general",
+    "phase_b_command": "python research/general_season_preview.py apply-leagues",
+    "manual_workflow": ".github/workflows/build-fie-general-season-preview.yml",
+    "integrity_test": "python research/integrity_general_season_preview_test.py",
+    "first_real_build_completed": false
+  },
+  "governance": {
+    "m9_changed": false,
+    "m10_changed": false,
+    "app_runtime_changed": false,
+    "canonical_rankings_changed": false,
+    "automatic_promotion": false,
+    "scheduled_workflow_authorized": false,
+    "waiver_logic_authorized": false,
+    "historical_forecast_reconstruction": false
+  }
+}
