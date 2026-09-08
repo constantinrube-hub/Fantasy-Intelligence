@@ -15,7 +15,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from fie_research_pipeline_contract import derived_dir, load_json, load_profile, pipeline_dir, resolve_adp_key
+from fie_research_pipeline_contract import (
+    PILOT_LEAGUE_ID, derived_dir, load_json, load_profile, pipeline_dir, resolve_adp_key,
+)
 
 
 def run(cmd:list[str])->None:
@@ -31,6 +33,7 @@ def parse_identity(argv:list[str]):
     p.add_argument("--mode",default="full")
     p.add_argument("--output-root",default="")
     p.add_argument("--equivalence-file",default="")
+    p.add_argument("--force-rebuild",action="store_true")
     a,_=p.parse_known_args(argv)
     return a
 
@@ -52,9 +55,19 @@ def base_pipeline_args(argv:list[str])->list[str]:
     return result
 
 
+def resolve_equivalence_file(ident)->str:
+    """Keep the pilot guard correct even when an older caller omits the option."""
+    if ident.equivalence_file:
+        return ident.equivalence_file
+    if str(ident.league_id)==str(PILOT_LEAGUE_ID) and not ident.force_rebuild:
+        return "/tmp/fie-pilot-baseline.json"
+    return ""
+
+
 def main(argv=None)->int:
     args=list(argv if argv is not None else sys.argv[1:])
     ident=parse_identity(args)
+    equivalence_file=resolve_equivalence_file(ident)
 
     # Canonical unified pipeline remains the source of all production outputs.
     cp=subprocess.run([
@@ -68,12 +81,12 @@ def main(argv=None)->int:
     # The equivalence boundary starts after the canonical pipeline has completed
     # its normal refresh. It therefore detects only mutations introduced by the
     # additive M9.1c build/integration below, not legitimate base-research drift.
-    if ident.equivalence_file:
+    if equivalence_file:
         run([
             sys.executable,"research/fie_pilot_equivalence.py","capture",
             "--league-id",ident.league_id,
             "--season",str(ident.season),
-            "--file",ident.equivalence_file,
+            "--file",equivalence_file,
         ])
 
     profile=load_profile(ident.league_id)
@@ -139,12 +152,12 @@ def main(argv=None)->int:
     ):
         raise RuntimeError("M9.1c unified integration audit failed")
 
-    if ident.equivalence_file:
+    if equivalence_file:
         equivalence=subprocess.run([
             sys.executable,"research/fie_pilot_equivalence.py","validate",
             "--league-id",ident.league_id,
             "--season",str(ident.season),
-            "--file",ident.equivalence_file,
+            "--file",equivalence_file,
         ])
         if equivalence.returncode!=0:
             return equivalence.returncode

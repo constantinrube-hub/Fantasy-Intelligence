@@ -10,11 +10,16 @@ import pandas as pd
 from integrate_m91c_research_challenger import (
     CANONICAL_LOCKED_COLUMNS, challenger_map, enrich_board, stable_frame_hash,
 )
-from run_fie_league_research_pipeline_m91c import base_pipeline_args
+from run_fie_league_research_pipeline_m91c import (
+    base_pipeline_args, parse_identity, resolve_equivalence_file,
+)
 
 wrapper_args=["--league-id","pilot","--equivalence-file","/tmp/baseline.json","--season","2026"]
 assert base_pipeline_args(wrapper_args)==["--league-id","pilot","--season","2026"]
 assert base_pipeline_args(["--equivalence-file=/tmp/baseline.json","--season","2026"])==["--season","2026"]
+assert resolve_equivalence_file(parse_identity(["--league-id","1391803939736801280","--season","2026"]))=="/tmp/fie-pilot-baseline.json"
+assert resolve_equivalence_file(parse_identity(["--league-id","1391803939736801280","--season","2026","--force-rebuild"]))==""
+assert resolve_equivalence_file(parse_identity(["--league-id","other","--season","2026","--equivalence-file","custom.json"]))=="custom.json"
 
 wrapper_source=(Path(__file__).with_name("run_fie_league_research_pipeline_m91c.py")).read_text()
 base_index=wrapper_source.index('"research/run_fie_league_research_pipeline.py"')
@@ -22,10 +27,6 @@ capture_index=wrapper_source.index('"research/fie_pilot_equivalence.py","capture
 challenger_index=wrapper_source.index('"research/build_m91c_season_challenger.py"')
 validate_index=wrapper_source.index('"research/fie_pilot_equivalence.py","validate"')
 assert base_index < capture_index < challenger_index < validate_index
-
-workflow=(Path(__file__).parents[1]/".github/workflows/_fie-league-research-reusable.yml").read_text()
-assert "Capture pilot production equivalence baseline" not in workflow
-assert "ARGS+=(--equivalence-file /tmp/fie-pilot-baseline.json)" in workflow
 
 with tempfile.TemporaryDirectory() as td:
     p=Path(td)/"board.csv"
