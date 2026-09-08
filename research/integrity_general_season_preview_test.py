@@ -47,7 +47,7 @@ def history(cache: Path) -> None:
                     "targets": 7 if pos in {"RB", "WR", "TE"} else 0, "receptions": 5 if pos in {"RB", "WR", "TE"} else 0, "receiving_yards": 60 if pos in {"RB", "WR", "TE"} else 0, "receiving_tds": 1 if pos in {"WR", "TE"} else 0,
                     "fumbles": 0, "fumbles_lost": 0,
                 })
-            team_rows.append({"season": season, "week": 1, "season_type": "REG", "team": team, "opponent_team": opponent, "attempts": 30, "completions": 20, "passing_yards": 240, "passing_tds": 2, "passing_interceptions": 1, "sacks_suffered": 2, "carries": 20, "rushing_yards": 90, "rushing_tds": 1, "points": 24})
+            team_rows.append({"season": season, "week": 1, "season_type": "REG", "team": team, "opponent_team": opponent, "attempts": 30, "completions": 20, "passing_yards": 240, "passing_tds": 2, "passing_interceptions": 1, "sacks_suffered": 2, "carries": 20, "rushing_yards": 90, "rushing_tds": 1, "points": 24, "targets": 999})
         write_csv(cache / f"player_week_{season}.csv", [x for x in player_rows if x["season"] == season])
         write_csv(cache / f"team_week_{season}.csv", [x for x in team_rows if x["season"] == season])
 

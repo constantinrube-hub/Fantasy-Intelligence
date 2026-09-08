@@ -16,6 +16,7 @@ import io
 import json
 import math
 import statistics
+import subprocess
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -163,6 +164,55 @@ def _verify_source(root: Path, source: Mapping[str, Any], label: str) -> Path:
     return path
 
 
+def _read_frozen_json(root: Path, source: Mapping[str, Any], label: str) -> tuple[dict[str, Any], dict[str, str]]:
+    """Read the exact baseline-bound bytes, including from Git history after later rebuilds.
+
+    Ranking outputs are intentionally rebuilt by later research windows.  A full-history
+    checkout can still reproduce the frozen preseason input without rewriting the current
+    ranking surface or weakening its SHA-256 binding.
+    """
+    path_value = str(source.get("path") or "")
+    path = _repo_path(root, path_value)
+    expected = str(source.get("sha256") or "")
+    if len(expected) != 64:
+        raise PreviewError(f"MISSING_FROZEN_SOURCE:{label}")
+    if path.is_file():
+        payload = path.read_bytes()
+        if sha256_bytes(payload) == expected:
+            try:
+                data = json.loads(payload)
+            except Exception as exc:
+                raise PreviewError(f"INVALID_JSON:{path}:{exc}") from exc
+            if not isinstance(data, dict):
+                raise PreviewError(f"INVALID_OBJECT:{path}")
+            return data, {"resolution": "working_tree"}
+
+    try:
+        history = subprocess.run(
+            ["git", "-C", str(root), "rev-list", "--all", "--", path_value],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines()
+    except (OSError, subprocess.CalledProcessError):
+        history = []
+    for commit in history:
+        result = subprocess.run(
+            ["git", "-C", str(root), "show", f"{commit}:{path_value}"],
+            capture_output=True,
+        )
+        if result.returncode != 0 or sha256_bytes(result.stdout) != expected:
+            continue
+        try:
+            data = json.loads(result.stdout)
+        except Exception as exc:
+            raise PreviewError(f"INVALID_JSON:{commit}:{path_value}:{exc}") from exc
+        if not isinstance(data, dict):
+            raise PreviewError(f"INVALID_OBJECT:{commit}:{path_value}")
+        return data, {"resolution": "git_blob", "commit": commit}
+    raise PreviewError(f"FROZEN_SOURCE_DRIFT:{label}")
+
+
 def load_baseline(root: Path, path: Path) -> dict[str, Any]:
     baseline = _read_json(path)
     if baseline.get("eligibility") != "PRESEASON_ELIGIBLE":
@@ -192,9 +242,9 @@ def canonical_population(root: Path, baseline: Mapping[str, Any]) -> tuple[list[
         src = (league.get("sources") or {}).get("rankings")
         if not isinstance(src, dict):
             raise PreviewError(f"MISSING_RANKING_BINDING:{lid}")
-        ranking_path = _verify_source(root, src, f"rankings:{lid}")
-        source_hashes.append({"league_id": lid, "path": str(src["path"]), "sha256": str(src["sha256"])})
-        rows = _read_json(ranking_path).get("players")
+        ranking, resolution = _read_frozen_json(root, src, f"rankings:{lid}")
+        source_hashes.append({"league_id": lid, "path": str(src["path"]), "sha256": str(src["sha256"]), **resolution})
+        rows = ranking.get("players")
         if not isinstance(rows, list):
             raise PreviewError(f"INVALID_RANKING_PLAYERS:{lid}")
         for row in rows:
@@ -302,9 +352,9 @@ def _standard_team_week(frame: pd.DataFrame, player_week: pd.DataFrame) -> pd.Da
     df["dropbacks"] = df["passing_attempts"] + df["sacks_allowed"]
     df["plays"] = df["dropbacks"] + df["rushing_attempts"]
     # Player targets are the canonical target-pool definition, never assumed equal to attempts.
-    target_pool = player_week.groupby(["season", "week", "team"], as_index=False)["targets"].sum()
+    target_pool = player_week.groupby(["season", "week", "team"], as_index=False)["targets"].sum().rename(columns={"targets": "player_targets"})
     df = df.merge(target_pool, on=["season", "week", "team"], how="left")
-    df["targets"] = pd.to_numeric(df["targets"], errors="coerce").fillna(0.0)
+    df["targets"] = pd.to_numeric(df["player_targets"], errors="coerce").fillna(0.0)
     return df[["season", "week", "team", "opponent_team", *TEAM_TARGETS]]
 
 
@@ -365,7 +415,7 @@ def _feature_cols(trans: pd.DataFrame, targets: Iterable[str]) -> list[str]:
     cols = ["prev_games"]
     for target in targets:
         col = f"prev_{target}"
-        if col in trans:
+        if col in trans and pd.to_numeric(trans[col], errors="coerce").notna().any():
             cols.append(col)
     return cols
 
@@ -465,7 +515,11 @@ def _predict_row(specs: Mapping[str, Any], values: Mapping[str, Any], targets: I
 
 def _cohort(seasons: pd.DataFrame, targets: Iterable[str]) -> dict[str, float]:
     games = pd.to_numeric(seasons.get("games"), errors="coerce").clip(lower=1)
-    return {target: float(np.nanmedian(pd.to_numeric(seasons.get(target), errors="coerce") / games)) * 8.0 for target in targets}
+    out: dict[str, float] = {}
+    for target in targets:
+        values = pd.to_numeric(seasons.get(target), errors="coerce") / games
+        out[target] = float(values.median(skipna=True)) * 8.0 if values.notna().any() else 0.0
+    return out
 
 
 def _current_player_inputs(population: list[dict[str, Any]], seasons: pd.DataFrame) -> list[dict[str, Any]]:
@@ -499,7 +553,7 @@ def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[st
     for team, rows in grouped.items():
         budgets = team_stats.get(team, {})
         for team_target, (target, position) in mappings.items():
-            relevant = [r for r in rows if position is None or r["position_model"] == position]
+            relevant = [r for r in rows if (position is None or r["position_model"] == position) and target in r["raw_stats"]]
             total = sum(_number(r["raw_stats"].get(target)) for r in relevant)
             budget = max(0.0, _number(budgets.get(team_target)))
             if total > budget and total > 0:
