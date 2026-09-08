@@ -1,11 +1,19 @@
 {
-  "finished_at": "2026-09-01T08:16:15.872087+00:00",
+  "artifact_type": "feature_evidence_bundle",
+  "finished_at": "2026-09-08T13:00:59.229662+00:00",
   "inputs": {},
   "name": "feature_evidence",
-  "outputs": {
-    "data/research/leagues/1387526015705690112/performance/2026/strategy/strategy_stack.json": "24344033392e4362486a45ea9441dd436750c8ed26e0b409b61d2b05b05d29a1"
-  },
-  "reason": "existing strategy stack component evidence",
-  "started_at": "2026-09-01T08:16:15.871685+00:00",
-  "status": "complete_research_only"
+  "outputs": {},
+  "producer": "research/fie_feature_evidence_hardening.py",
+  "producer_dependencies": [
+    "research/fie_feature_evidence.py"
+  ],
+  "reason": "typed feature_evidence_bundle missing; force feature_evidence to invoke research/fie_feature_evidence_hardening.py",
+  "schema": "fie-feature-evidence-v1",
+  "started_at": "2026-09-08T13:00:59.229654+00:00",
+  "status": "blocked_data",
+  "validator": [
+    "research/validate_feature_evidence_bundle.py",
+    "research/validate_feature_evidence_hardening.py"
+  ]
 }

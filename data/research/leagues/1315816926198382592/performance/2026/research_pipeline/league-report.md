@@ -208,8 +208,8 @@ League replacement: **175.2**
 
 | ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
 |---|---|---|---|---|---|---|---|---|---|
-| 184.2 | Geno Smith | NYJ | 11 | 33 | 22 | 266.5 | 41 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
-| 115.4 | Malik Willis | MIA | 5 | 26 | 21 | 304.1 | 78.6 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 184.2 | Geno Smith | NYJ | 11 | 33 | 22 | 266.5 | 41 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
+| 115.4 | Malik Willis | MIA | 5 | 26 | 21 | 304.1 | 78.6 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 | 206.6 | J.J. McCarthy | MIN | 23 | 37 | 14 | 225.5 | 0 | 64 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 | 120.3 | Daniel Jones | IND | 17 | 27 | 10 | 244.5 | 19 | 65 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 
@@ -223,9 +223,9 @@ League replacement: **175.2**
 | ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
 |---|---|---|---|---|---|---|---|---|---|
 | 127.1 | Courtland Sutton | DEN | 17 | 49 | 32 | 202 | 25.8 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
-| 106.9 | Mike Evans | SF | 12 | 40 | 28 | 222.2 | 46 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 106.9 | Mike Evans | SF | 12 | 40 | 28 | 222.2 | 46 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 | 148.1 | Jakobi Meyers | JAX | 32 | 56 | 24 | 176.2 | 0 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
-| 116.1 | Quentin Johnston | LAC | 28 | 44 | 16 | 179.3 | 3.1 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 116.1 | Quentin Johnston | LAC | 28 | 44 | 16 | 179.3 | 3.1 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 | 103.8 | DK Metcalf | PIT | 25 | 39 | 14 | 183.4 | 7.2 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 
 ### TE
@@ -235,10 +235,10 @@ League replacement: **175.2**
 | 251.4 | Theo Johnson | NYG | 16 | 38 | 22 | 205.2 | 30 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 | 195.1 | Dalton Schultz | HOU | 9 | 27 | 18 | 243.1 | 67.9 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 | 244.1 | Jake Tonges | SF | 24 | 37 | 13 | 178.1 | 2.9 | 92 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
-| 114.5 | George Kittle | SF | 2 | 14 | 12 | 297.1 | 121.9 | 92 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 114.5 | George Kittle | SF | 2 | 14 | 12 | 297.1 | 121.9 | 92 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 | 159 | Juwan Johnson | NO | 11 | 22 | 11 | 230.9 | 55.7 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
-| 181.1 | Hunter Henry | NE | 15 | 26 | 11 | 216.3 | 41.1 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
-| 152.9 | Dallas Goedert | PHI | 12 | 20 | 8 | 229 | 53.8 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 181.1 | Hunter Henry | NE | 15 | 26 | 11 | 216.3 | 41.1 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
+| 152.9 | Dallas Goedert | PHI | 12 | 20 | 8 | 229 | 53.8 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 | 214.1 | Cade Otton | TB | 21 | 29 | 8 | 189.2 | 14 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 
 ## Governance
@@ -256,28 +256,28 @@ M9 remains the governed production preseason model. M9.1c is research-only and c
 
 | Player | Pos | Team | M9.1c Δ vs Sleeper | Signal z | Reliability | Cohort |
 |---|---|---|---:|---:|---:|---|
-| Christian McCaffrey | RB | SF | 29.6 | 1.67 | 0.41 | CLEAR_STARTER |
-| Jaxon Smith-Njigba | WR | SEA | 24.3 | 0.88 | 0.44 | CLEAR_STARTER |
-| Trey McBride | TE | ARI | 22.5 | 2.61 | 0.24 | CLEAR_STARTER |
-| Keenan Allen | WR | IND | 20.1 | 1.63 | 0.57 | COMMITTEE_FRINGE |
-| Jakobi Meyers | WR | JAX | 19.1 | 1.37 | 0.36 | COMMITTEE_FRINGE |
-| Jauan Jennings | WR | MIN | 19 | 1.56 | 0.57 | COMMITTEE_FRINGE |
-| Mack Hollins | WR | NE | 17.6 | 1.73 | 0.62 | DEPTH |
-| Deebo Samuel | WR | SF | 16.4 | 1.54 | 0.51 | STARTER |
-| Marquise Brown | WR | PHI | 16.3 | 1.38 | 0.54 | DEPTH |
-| Quentin Johnston | WR | LAC | 16 | 1.78 | 0.5 | STARTER |
+| Josh Allen | QB | BUF | 31.4 | 1.16 | 0.62 | CLEAR_STARTER |
+| Christian McCaffrey | RB | SF | 29.6 | 2.16 | 0.41 | CLEAR_STARTER |
+| Jaxon Smith-Njigba | WR | SEA | 24.3 | 0.91 | 0.44 | CLEAR_STARTER |
+| Trey McBride | TE | ARI | 22.5 | 2.86 | 0.24 | CLEAR_STARTER |
+| Jakobi Meyers | WR | JAX | 19.9 | 1.59 | 0.35 | COMMITTEE_FRINGE |
+| Keenan Allen | WR | IND | 19.7 | 2.68 | 0.57 | COMMITTEE_FRINGE |
+| Jauan Jennings | WR | MIN | 18.6 | 2.67 | 0.58 | COMMITTEE_FRINGE |
+| Matthew Stafford | QB | LAR | 18.5 | 4.77 | 0.65 | CLEAR_STARTER |
+| Deebo Samuel | WR | SF | 16.6 | 5.52 | 0.51 | STARTER |
+| Drake Maye | QB | NE | 16.6 | 1.9 | 0.8 | CLEAR_STARTER |
 
 ### Largest negative M9.1c adjustments
 
 | Player | Pos | Team | M9.1c Δ vs Sleeper | Signal z | Reliability | Cohort |
 |---|---|---|---:|---:|---:|---|
-| Malik Willis | QB | MIA | -23.7 | -2.65 | 0.46 | CLEAR_STARTER |
-| Greg Dortch | WR | DET | -19.6 | -1.1 | 0.53 | COMMITTEE_FRINGE |
-| Bryce Young | QB | CAR | -17.9 | -0.67 | 0.61 | CLEAR_STARTER |
-| Nick Westbrook-Ikhine | WR | IND | -16.7 | -3.94 | 0.44 | COMMITTEE_FRINGE |
-| Marquez Valdes-Scantling | WR | DAL | -16.1 | -2.76 | 0.43 | COMMITTEE_FRINGE |
-| Jack Bech | WR | LV | -16.1 | -1.18 | 0.57 | DEPTH |
-| Durham Smythe | TE | BAL | -15.4 | -2.94 | 0.57 | COMMITTEE_FRINGE |
-| Sam Darnold | QB | SEA | -15.1 | -0.73 | 0.77 | CLEAR_STARTER |
-| Blake Corum | RB | LAR | -14 | -0.69 | 0.57 | STARTER |
-| Austin Hooper | TE | ATL | -12.9 | -0.21 | 0.4 | STARTER |
+| Cam Ward | QB | TEN | -26.5 | -5.63 | 0.6 | CLEAR_STARTER |
+| Malik Willis | QB | MIA | -22.4 | -12.31 | 0.46 | CLEAR_STARTER |
+| Mike Gesicki | TE | CIN | -17.6 | -1.06 | 0.42 | CLEAR_STARTER |
+| Nick Westbrook-Ikhine | WR | IND | -17.2 | -3.99 | 0.44 | COMMITTEE_FRINGE |
+| Jalen Tolbert | WR | MIA | -17.1 | -1 | 0.46 | COMMITTEE_FRINGE |
+| Sam Darnold | QB | SEA | -15.8 | -0.78 | 0.73 | CLEAR_STARTER |
+| Jordan Love | QB | GB | -13.6 | -0.73 | 0.82 | CLEAR_STARTER |
+| Quinshon Judkins | RB | CLE | -13.5 | -0.71 | 0.65 | CLEAR_STARTER |
+| Kenneth Walker | RB | KC | -12.3 | -2.57 | 0.53 | CLEAR_STARTER |
+| Isaiah Bond | WR | CLE | -12 | -0.81 | 0.6 | DEPTH |

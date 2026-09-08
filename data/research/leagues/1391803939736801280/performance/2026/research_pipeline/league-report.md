@@ -155,15 +155,15 @@ League replacement: **—**
 | Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | JAX D/ST | JAX | 9.3 | 2.7 | 17.4 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 2 | TEN D/ST | TEN | 9.2 | 2.6 | 17.2 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 2 | TEN D/ST | TEN | 9 | 2.4 | 17.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 3 | LAC D/ST | LAC | 8.9 | 2.3 | 17 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 4 | SEA D/ST | SEA | 8.7 | 2.1 | 16.8 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 5 | LAR D/ST | LAR | 8.5 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 6 | PIT D/ST | PIT | 8.3 | 1.7 | 16.4 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 6 | PIT D/ST | PIT | 8.2 | 1.6 | 16.3 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 7 | LV D/ST | LV | 8.2 | 1.6 | 16.3 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 8 | DET D/ST | DET | 8.1 | 1.5 | 16.2 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 8 | NYJ D/ST | NYJ | 8.1 | 1.5 | 16.2 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 9 | KC D/ST | KC | 8 | 1.4 | 16.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 10 | NYJ D/ST | NYJ | 7.9 | 1.3 | 16 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 10 | DET D/ST | DET | 8 | 1.4 | 16.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 
 ### K
 
@@ -178,11 +178,11 @@ League replacement: **—**
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | Cameron Dicker | LAC | 9.4 | 4.2 | 15.9 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 2 | Brandon Aubrey | DAL | 9.1 | 3.9 | 15.7 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 3 | Jake Bates | DET | 8.6 | 3.3 | 15.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 3 | Jake Bates | DET | 8.6 | 3.4 | 15.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 4 | Will Reichard | MIN | 8.5 | 3.3 | 15.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 5 | Cam Little | JAX | 8.4 | 3.2 | 14.9 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 6 | Harrison Butker | KC | 8.4 | 3.2 | 14.9 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 7 | Evan McPherson | CIN | 8.4 | 3.1 | 14.9 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 5 | Evan McPherson | CIN | 8.4 | 3.2 | 15 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 6 | Cam Little | JAX | 8.4 | 3.2 | 14.9 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 7 | Harrison Butker | KC | 8.4 | 3.2 | 14.9 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 8 | Jason Myers | SEA | 8.3 | 3.1 | 14.8 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 9 | Ka'imi Fairbairn | HOU | 8.3 | 3 | 14.8 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 10 | Tyler Loop | BAL | 8.2 | 2.9 | 14.7 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
@@ -248,7 +248,7 @@ League replacement: **—**
 
 | ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
 |---|---|---|---|---|---|---|---|---|---|
-| 113.9 | Quentin Johnston | LAC | 28 | 46 | 18 | 179.3 | 8.4 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 113.9 | Quentin Johnston | LAC | 28 | 46 | 18 | 179.3 | 8.4 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
 | 115.5 | Jakobi Meyers | JAX | 32 | 47 | 15 | 176.2 | 5.3 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
 | 101.7 | Alec Pierce | IND | 33 | 41 | 8 | 172.5 | 1.6 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
 
@@ -276,26 +276,26 @@ M9 remains the governed production preseason model. M9.1c is research-only and c
 |---|---|---|---:|---:|---:|---|
 | Christian McCaffrey | RB | SF | 29.6 | 2.16 | 0.41 | CLEAR_STARTER |
 | Jaxon Smith-Njigba | WR | SEA | 24.3 | 0.91 | 0.44 | CLEAR_STARTER |
-| Keenan Allen | WR | IND | 20.4 | 2.29 | 0.55 | COMMITTEE_FRINGE |
-| Jakobi Meyers | WR | JAX | 19.9 | 2.02 | 0.35 | COMMITTEE_FRINGE |
-| Jauan Jennings | WR | MIN | 19.3 | 2.28 | 0.56 | COMMITTEE_FRINGE |
-| Mack Hollins | WR | NE | 17.6 | 1.75 | 0.62 | DEPTH |
-| Deebo Samuel | WR | SF | 16.4 | 2.54 | 0.51 | STARTER |
-| Marquise Brown | WR | PHI | 16.3 | 1.56 | 0.54 | DEPTH |
+| Jakobi Meyers | WR | JAX | 19.9 | 1.59 | 0.35 | COMMITTEE_FRINGE |
+| Keenan Allen | WR | IND | 19.7 | 2.68 | 0.57 | COMMITTEE_FRINGE |
+| Jauan Jennings | WR | MIN | 18.6 | 2.67 | 0.58 | COMMITTEE_FRINGE |
+| Deebo Samuel | WR | SF | 16.7 | 5.49 | 0.51 | STARTER |
+| Troy Franklin | WR | DEN | 16.4 | 2.13 | 0.59 | DEPTH |
 | Trey McBride | TE | ARI | 16.3 | 2.64 | 0.25 | CLEAR_STARTER |
-| Quentin Johnston | WR | LAC | 16 | 3.17 | 0.5 | STARTER |
+| Marquise Brown | WR | PHI | 16.2 | 1.21 | 0.56 | DEPTH |
+| Quentin Johnston | WR | LAC | 16.2 | 6.76 | 0.5 | STARTER |
 
 ### Largest negative M9.1c adjustments
 
 | Player | Pos | Team | M9.1c Δ vs Sleeper | Signal z | Reliability | Cohort |
 |---|---|---|---:|---:|---:|---|
 | Sam Darnold | QB | SEA | -17.5 | -1.51 | 0.72 | CLEAR_STARTER |
-| Nick Westbrook-Ikhine | WR | IND | -16.7 | -6.03 | 0.47 | COMMITTEE_FRINGE |
-| Jack Bech | WR | LV | -16.1 | -1.06 | 0.57 | DEPTH |
-| Blake Corum | RB | LAR | -14 | -0.93 | 0.57 | STARTER |
+| Nick Westbrook-Ikhine | WR | IND | -17.3 | -4 | 0.44 | COMMITTEE_FRINGE |
+| Jalen Tolbert | WR | MIA | -17.2 | -1.01 | 0.46 | COMMITTEE_FRINGE |
 | Quinshon Judkins | RB | CLE | -13.5 | -0.71 | 0.65 | CLEAR_STARTER |
-| Jahan Dotson | WR | ATL | -12.3 | -4.28 | 0.51 | STARTER |
-| Kenneth Walker | RB | KC | -12.3 | -3.13 | 0.53 | CLEAR_STARTER |
+| Kenneth Walker | RB | KC | -12.3 | -2.56 | 0.53 | CLEAR_STARTER |
+| Isaiah Bond | WR | CLE | -12 | -0.81 | 0.6 | DEPTH |
 | Derrick Henry | RB | BAL | -11.8 | -1.26 | 0.6 | CLEAR_STARTER |
 | Saquon Barkley | RB | PHI | -11.8 | -1.16 | 0.6 | CLEAR_STARTER |
-| Marquez Valdes-Scantling | WR | DAL | -11.6 | -0.67 | 0.48 | COMMITTEE_FRINGE |
+| Gunnar Helm | TE | TEN | -11 | -1.03 | 0.54 | CLEAR_STARTER |
+| Chris Rodriguez | RB | JAX | -10.9 | -0.96 | 0.53 | STARTER |

@@ -156,14 +156,14 @@ League replacement: **—**
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | JAX D/ST | JAX | 9.4 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 2 | PIT D/ST | PIT | 8.8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 3 | LAC D/ST | LAC | 8.6 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 3 | LAC D/ST | LAC | 8.7 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 4 | LAR D/ST | LAR | 8.5 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 5 | LV D/ST | LV | 8.3 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 6 | TEN D/ST | TEN | 8.3 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 6 | TEN D/ST | TEN | 8.2 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 7 | SEA D/ST | SEA | 8.1 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 8 | PHI D/ST | PHI | 8.1 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 9 | BAL D/ST | BAL | 7.9 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 10 | DET D/ST | DET | 7.8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 8 | PHI D/ST | PHI | 8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 9 | DET D/ST | DET | 7.9 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 10 | BAL D/ST | BAL | 7.9 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 
 ### K
 
@@ -176,9 +176,9 @@ League replacement: **—**
 
 | Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Cameron Dicker | LAC | 7.7 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 1 | Cameron Dicker | LAC | 7.8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 2 | Harrison Mevis | LAR | 7.7 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 3 | Jake Bates | DET | 7.5 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 3 | Jake Bates | DET | 7.6 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 4 | Tyler Loop | BAL | 7.3 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 5 | Brandon Aubrey | DAL | 7.3 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 | 6 | Jason Myers | SEA | 7.3 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
@@ -234,7 +234,7 @@ League replacement: **—**
 |---|---|---|---|---|---|---|---|---|---|
 | 208.4 | Malik Willis | MIA | 5 | 25 | 20 | 261.1 | 45.7 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
 | 161.6 | Kyler Murray | MIN | 3 | 19 | 16 | 273.1 | 57.6 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
-| 187.3 | Tyler Shough | NO | 12 | 22 | 10 | 215.4 | 0 | 64 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 187.3 | Tyler Shough | NO | 12 | 22 | 10 | 215.4 | 0 | 64 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
 | 123.3 | Brock Purdy | SF | 6 | 15 | 9 | 257.2 | 41.7 | 64 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
 
 ### RB
@@ -246,7 +246,7 @@ League replacement: **—**
 
 | ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
 |---|---|---|---|---|---|---|---|---|---|
-| 114.8 | Quentin Johnston | LAC | 28 | 46 | 18 | 179.3 | 8.4 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
+| 114.8 | Quentin Johnston | LAC | 28 | 46 | 18 | 179.3 | 8.4 | 93 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, ADP has improved over the last 7 days |
 | 122.8 | Jakobi Meyers | JAX | 32 | 49 | 17 | 176.2 | 5.3 | 94 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value |
 
 ### TE
@@ -271,28 +271,28 @@ M9 remains the governed production preseason model. M9.1c is research-only and c
 
 | Player | Pos | Team | M9.1c Δ vs Sleeper | Signal z | Reliability | Cohort |
 |---|---|---|---:|---:|---:|---|
-| Christian McCaffrey | RB | SF | 29.6 | 1.69 | 0.41 | CLEAR_STARTER |
-| Jaxon Smith-Njigba | WR | SEA | 24.3 | 0.88 | 0.44 | CLEAR_STARTER |
-| Keenan Allen | WR | IND | 20.4 | 1.7 | 0.55 | COMMITTEE_FRINGE |
-| Jakobi Meyers | WR | JAX | 19.9 | 1.84 | 0.35 | COMMITTEE_FRINGE |
-| Jauan Jennings | WR | MIN | 19.3 | 1.63 | 0.56 | COMMITTEE_FRINGE |
-| Mack Hollins | WR | NE | 17.6 | 1.73 | 0.62 | DEPTH |
-| Deebo Samuel | WR | SF | 16.4 | 1.54 | 0.51 | STARTER |
-| Marquise Brown | WR | PHI | 16.3 | 1.39 | 0.54 | DEPTH |
-| Trey McBride | TE | ARI | 16.3 | 2.37 | 0.25 | CLEAR_STARTER |
-| Quentin Johnston | WR | LAC | 16 | 1.77 | 0.5 | STARTER |
+| Christian McCaffrey | RB | SF | 29.6 | 2.16 | 0.41 | CLEAR_STARTER |
+| Jaxon Smith-Njigba | WR | SEA | 24.3 | 0.91 | 0.44 | CLEAR_STARTER |
+| Jakobi Meyers | WR | JAX | 19.9 | 1.59 | 0.35 | COMMITTEE_FRINGE |
+| Keenan Allen | WR | IND | 19.7 | 2.67 | 0.57 | COMMITTEE_FRINGE |
+| Jauan Jennings | WR | MIN | 18.6 | 2.66 | 0.58 | COMMITTEE_FRINGE |
+| Deebo Samuel | WR | SF | 16.7 | 5.49 | 0.51 | STARTER |
+| Troy Franklin | WR | DEN | 16.4 | 2.13 | 0.59 | DEPTH |
+| Trey McBride | TE | ARI | 16.3 | 2.64 | 0.25 | CLEAR_STARTER |
+| Marquise Brown | WR | PHI | 16.2 | 1.21 | 0.56 | DEPTH |
+| Quentin Johnston | WR | LAC | 16.2 | 6.76 | 0.5 | STARTER |
 
 ### Largest negative M9.1c adjustments
 
 | Player | Pos | Team | M9.1c Δ vs Sleeper | Signal z | Reliability | Cohort |
 |---|---|---|---:|---:|---:|---|
-| Nick Westbrook-Ikhine | WR | IND | -16.7 | -2.62 | 0.47 | COMMITTEE_FRINGE |
-| Jack Bech | WR | LV | -16.1 | -1.18 | 0.57 | DEPTH |
-| Blake Corum | RB | LAR | -14 | -0.7 | 0.57 | STARTER |
-| Jahan Dotson | WR | ATL | -12.3 | -4.91 | 0.51 | STARTER |
-| Kenneth Walker | RB | KC | -12.3 | -3.7 | 0.53 | CLEAR_STARTER |
-| Malik Willis | QB | MIA | -12 | -2.79 | 0.53 | CLEAR_STARTER |
-| Derrick Henry | RB | BAL | -11.8 | -0.9 | 0.6 | CLEAR_STARTER |
-| Saquon Barkley | RB | PHI | -11.8 | -1 | 0.6 | CLEAR_STARTER |
-| Marquez Valdes-Scantling | WR | DAL | -11.6 | -0.59 | 0.48 | COMMITTEE_FRINGE |
-| Gunnar Helm | TE | TEN | -11 | -1.58 | 0.54 | CLEAR_STARTER |
+| Nick Westbrook-Ikhine | WR | IND | -17.3 | -4 | 0.44 | COMMITTEE_FRINGE |
+| Jalen Tolbert | WR | MIA | -17.2 | -1.01 | 0.46 | COMMITTEE_FRINGE |
+| Quinshon Judkins | RB | CLE | -13.5 | -0.71 | 0.65 | CLEAR_STARTER |
+| Kenneth Walker | RB | KC | -12.3 | -2.56 | 0.53 | CLEAR_STARTER |
+| Malik Willis | QB | MIA | -12 | -4.13 | 0.53 | CLEAR_STARTER |
+| Isaiah Bond | WR | CLE | -12 | -0.81 | 0.6 | DEPTH |
+| Derrick Henry | RB | BAL | -11.8 | -1.26 | 0.6 | CLEAR_STARTER |
+| Saquon Barkley | RB | PHI | -11.8 | -1.17 | 0.6 | CLEAR_STARTER |
+| Gunnar Helm | TE | TEN | -11 | -1.03 | 0.54 | CLEAR_STARTER |
+| Chris Rodriguez | RB | JAX | -10.9 | -0.96 | 0.53 | STARTER |

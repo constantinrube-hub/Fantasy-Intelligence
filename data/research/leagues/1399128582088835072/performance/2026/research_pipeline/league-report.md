@@ -156,16 +156,16 @@ League replacement: **—**
 
 | Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | JAX D/ST | JAX | 9.3 | 2.7 | 17.4 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 2 | TEN D/ST | TEN | 9 | 2.4 | 17.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 3 | LAC D/ST | LAC | 8.9 | 2.3 | 17 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 4 | SEA D/ST | SEA | 8.7 | 2.1 | 16.8 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 5 | LAR D/ST | LAR | 8.5 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 6 | PIT D/ST | PIT | 8.2 | 1.6 | 16.3 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 7 | LV D/ST | LV | 8.2 | 1.6 | 16.3 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 8 | NYJ D/ST | NYJ | 8.1 | 1.5 | 16.2 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 9 | KC D/ST | KC | 8 | 1.4 | 16.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 10 | DET D/ST | DET | 8 | 1.4 | 16.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 1 | JAX D/ST | JAX | 9.4 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 2 | PIT D/ST | PIT | 8.8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 3 | LAC D/ST | LAC | 8.7 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 4 | LAR D/ST | LAR | 8.5 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 5 | LV D/ST | LV | 8.3 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 6 | TEN D/ST | TEN | 8.2 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 7 | SEA D/ST | SEA | 8.1 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 8 | PHI D/ST | PHI | 8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 9 | DET D/ST | DET | 7.9 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 10 | BAL D/ST | BAL | 7.9 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 
 ### K
 
@@ -178,16 +178,16 @@ League replacement: **—**
 
 | Rank | Player | Team | Projection | P10 | P90 | VORP | ADP | Market Pos Rank | Rank Edge | Value | Projection Basis |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Cameron Dicker | LAC | 9.4 | 4.2 | 16 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 2 | Brandon Aubrey | DAL | 9.2 | 3.9 | 15.7 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 3 | Jake Bates | DET | 8.6 | 3.4 | 15.2 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 4 | Will Reichard | MIN | 8.6 | 3.3 | 15.1 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 5 | Evan McPherson | CIN | 8.5 | 3.2 | 15 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 6 | Cam Little | JAX | 8.4 | 3.2 | 15 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 7 | Harrison Butker | KC | 8.4 | 3.2 | 15 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 8 | Jason Myers | SEA | 8.3 | 3.1 | 14.9 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 9 | Ka'imi Fairbairn | HOU | 8.3 | 3 | 14.8 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
-| 10 | Tyler Loop | BAL | 8.2 | 2.9 | 14.7 | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 1 | Cameron Dicker | LAC | 8.2 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 2 | Harrison Mevis | LAR | 8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 3 | Jake Bates | DET | 8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 4 | Tyler Loop | BAL | 7.8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 5 | Brandon Aubrey | DAL | 7.8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 6 | Jason Myers | SEA | 7.8 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 7 | Evan McPherson | CIN | 7.6 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 8 | Ka'imi Fairbairn | HOU | 7.6 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 9 | Will Reichard | MIN | 7.4 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
+| 10 | Cam Little | JAX | 7.3 | — | — | — | — | — | — | CURRENT_SPECIALIST | Weekly specialist |
 
 ## Top-100 ADP positive outliers
 

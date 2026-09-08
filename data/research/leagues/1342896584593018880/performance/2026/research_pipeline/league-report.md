@@ -203,32 +203,32 @@ League replacement: **165.2**
 
 | ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
 |---|---|---|---|---|---|---|---|---|---|
-| 115.4 | Malik Willis | MIA | 4 | 26 | 22 | 270.1 | 36.5 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 115.4 | Malik Willis | MIA | 4 | 26 | 22 | 270.1 | 36.5 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 
 ### RB
 
 | ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
 |---|---|---|---|---|---|---|---|---|---|
-| 134.7 | Tony Pollard | TEN | 26 | 39 | 13 | 167 | 0 | 66 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 134.7 | Tony Pollard | TEN | 26 | 39 | 13 | 167 | 0 | 66 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 
 ### WR
 
 | ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
 |---|---|---|---|---|---|---|---|---|---|
 | 127.1 | Courtland Sutton | DEN | 18 | 49 | 31 | 188 | 26.8 | 66 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
-| 106.9 | Mike Evans | SF | 10 | 40 | 30 | 222.2 | 61 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 106.9 | Mike Evans | SF | 10 | 40 | 30 | 222.2 | 61 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 | 123.8 | Michael Pittman | PIT | 27 | 47 | 20 | 170.9 | 9.7 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 | 148.1 | Jakobi Meyers | JAX | 35 | 55 | 20 | 162.2 | 1 | 66 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 | 141.5 | Romeo Doubs | NE | 36 | 52 | 16 | 161.2 | 0 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 | 107.1 | Wan'Dale Robinson | TEN | 28 | 41 | 13 | 170.7 | 9.5 | 55 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
-| 116.1 | Quentin Johnston | LAC | 33 | 44 | 11 | 165.3 | 4.1 | 65 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 116.1 | Quentin Johnston | LAC | 33 | 44 | 11 | 165.3 | 4.1 | 65 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 | 103.8 | DK Metcalf | PIT | 29 | 39 | 10 | 169.4 | 8.2 | 65 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
 
 ### TE
 
 | ADP | Player | Team | FIE Rank | Market Pos Rank | Edge | Projection | VORP | Confidence | Why |
 |---|---|---|---|---|---|---|---|---|---|
-| 114.5 | George Kittle | SF | 2 | 14 | 12 | 193.7 | 28.5 | 64 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included |
+| 114.5 | George Kittle | SF | 2 | 14 | 12 | 193.7 | 28.5 | 64 | Positive value over this league's replacement level, FIE positional rank is materially ahead of market, M9 remains the selected governed model, Matched to the current Sleeper player/team, League FLEX demand is included in replacement value, League Superflex/QB scarcity is included, ADP has improved over the last 7 days |
 
 ## Governance
 
