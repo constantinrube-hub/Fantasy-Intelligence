@@ -1,0 +1,91 @@
+name: Build FIE General Season Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Build the football-stat preview, apply it to the frozen leagues, or both
+        required: true
+        default: both
+        type: choice
+        options:
+          - phase-a
+          - phase-b
+          - both
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-general-season-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - run: pip install -r research/requirements.txt
+
+      - name: Validate general preview contract
+        run: |
+          set -euo pipefail
+          python -m py_compile research/general_season_preview.py
+          python research/integrity_general_season_preview_test.py
+          python -m json.tool config/general-season-preview-model-design.json > /dev/null
+          python research/integrity_window1b_evaluation_test.py
+
+      - name: Build league-neutral football preview
+        if: ${{ inputs.mode == 'phase-a' || inputs.mode == 'both' }}
+        run: |
+          set -euo pipefail
+          python research/general_season_preview.py build-general
+
+      - name: Apply frozen league profiles
+        if: ${{ inputs.mode == 'phase-b' || inputs.mode == 'both' }}
+        run: |
+          set -euo pipefail
+          test -f data/research/evaluation/2026/preseason/general-preview-v1/manifest.json
+          python research/general_season_preview.py apply-leagues
+
+      - name: Guard production and historical preview surfaces
+        run: |
+          set -euo pipefail
+          CHANGED="$(git status --porcelain | awk '{print $2}')"
+          if echo "$CHANGED" | grep -E '^(app/|index\.html$|dist/|data/research/leagues/|data/market/|data/adp/|data/strategy/|data/research/evaluation/2026/preseason/season-preview-v1\.)'; then
+            echo "General preview modified a prohibited production, canonical-rank, market, or existing Window 1B surface"
+            git status --short
+            exit 1
+          fi
+
+      - name: Commit only general-preview research artifacts
+        run: |
+          set -euo pipefail
+          git config user.name "FIE General Preview Bot"
+          git config user.email "actions@users.noreply.github.com"
+          for path in \
+            data/research/evaluation/2026/preseason/general-preview-v1 \
+            data/research/evaluation/2026/preseason/league-preview-v2; do
+            if [ -e "$path" ]; then git add "$path"; fi
+          done
+          if git diff --cached --quiet; then
+            echo "No general-preview artifact change"
+            exit 0
+          fi
+          git commit -m "Build FIE general season preview"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
