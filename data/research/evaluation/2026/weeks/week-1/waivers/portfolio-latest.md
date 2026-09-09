@@ -1,6 +1,6 @@
 # FIE Window 1D Waiver Plan · Week 1
 
-Generated: `2026-09-08T21:13:45.916882+00:00`
+Generated: `2026-09-09T11:22:00.983432+00:00`
 
 Research-only decision support. M9 production and canonical rankings are unchanged.
 
@@ -38,17 +38,17 @@ No bid recommendation produced. Reason: `BLOCKED_STALE_CURRENT`
 
 No bid recommendation produced. Reason: `BLOCKED_STALE_CURRENT`
 
-### Stoned Lack IDP Dynasty 39 · DYNASTY · BLOCKED_STALE_CURRENT
+### Stoned Lack IDP Dynasty 39 · DYNASTY · BLOCKED_PROFILE_DRIFT
 
-No bid recommendation produced. Reason: `BLOCKED_STALE_CURRENT`
+No bid recommendation produced. Reason: `BLOCKED_PROFILE_DRIFT`
 
 ### Stoned Lack Bestball Dynasty 4 · DYNASTY_BESTBALL · BLOCKED_STALE_CURRENT
 
 No bid recommendation produced. Reason: `BLOCKED_STALE_CURRENT`
 
-### Stoned Lack Dynasty 30 · DYNASTY · BLOCKED_STALE_CURRENT
+### Stoned Lack Dynasty 30 · DYNASTY · BLOCKED_PROFILE_DRIFT
 
-No bid recommendation produced. Reason: `BLOCKED_STALE_CURRENT`
+No bid recommendation produced. Reason: `BLOCKED_PROFILE_DRIFT`
 
 ### Stoned Lack Bestball Dynasty 3 · DYNASTY_BESTBALL · BLOCKED_PROFILE_DRIFT
 
@@ -74,9 +74,9 @@ No bid recommendation produced. Reason: `BLOCKED_STALE_CURRENT`
 
 No bid recommendation produced. Reason: `BLOCKED_PROFILE_DRIFT`
 
-### SLR2026 - Liga 38 · REDRAFT · BLOCKED_PROFILE_DRIFT
+### SLR2026 - Liga 38 · REDRAFT · BLOCKED_STALE_CURRENT
 
-No bid recommendation produced. Reason: `BLOCKED_PROFILE_DRIFT`
+No bid recommendation produced. Reason: `BLOCKED_STALE_CURRENT`
 
 ### The Final Cut · CHOPPED · BLOCKED_LIVE_SLEEPER_STATE
 
