@@ -11,6 +11,8 @@ from pathlib import Path
 from general_season_preview import (
     PreviewError,
     _first_write,
+    _reconcile_players,
+    _reconciliation_audit,
     build_general_preview,
     canonical_bytes,
     apply_leagues,
@@ -72,6 +74,19 @@ def league(root: Path, league_id: str) -> dict:
 
 
 def main() -> None:
+    # Independent scenario residuals can make an individual completion total exceed
+    # that QB's attempts.  The correction must preserve both the player cap and the
+    # team completion budget by moving volume to a teammate with remaining capacity.
+    adversarial = [
+        {"team": "AAA", "position_model": "QB", "raw_stats": {"passing_attempts": 5.0, "completions": 10.0}},
+        {"team": "AAA", "position_model": "QB", "raw_stats": {"passing_attempts": 25.0, "completions": 10.0}},
+    ]
+    adversarial_team = {"AAA": {"passing_attempts": 30.0, "completions": 20.0}}
+    reconciled, adversarial_unallocated = _reconcile_players(adversarial, adversarial_team)
+    assert all(row["raw_stats"]["completions"] <= row["raw_stats"]["passing_attempts"] for row in reconciled)
+    assert abs(sum(row["raw_stats"]["completions"] for row in reconciled) - 20.0) <= 1e-6
+    assert _reconciliation_audit(reconciled, adversarial_team, adversarial_unallocated)["maximum_absolute_residual"] <= 1e-6
+
     with tempfile.TemporaryDirectory(prefix="fie-general-preview-") as tmp:
         root = Path(tmp)
         l1, l2 = league(root, "100"), league(root, "200")
@@ -129,7 +144,7 @@ def main() -> None:
             assert "FROZEN_SOURCE_DRIFT" in str(exc)
         else:
             raise AssertionError("baseline source drift must fail closed")
-    print("PASS general season preview integrity (16/16)")
+    print("PASS general season preview integrity (19/19)")
 
 
 if __name__ == "__main__":
