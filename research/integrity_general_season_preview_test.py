@@ -103,7 +103,7 @@ def main() -> None:
         team_csv = (phase_a / "team-stat-projections.csv").read_text(encoding="utf-8")
         assert "TEAM_DEFENSE_DEF" in team_csv and "TEAM_KICKING" in team_csv
         players_csv = (phase_a / "player-stat-projections.csv").read_text(encoding="utf-8")
-        assert "UNALLOCATED" in players_csv, "unmodeled team share must remain explicit"
+        assert "UNALLOCATED" not in players_csv, "core team volume must be allocated to qualified active players"
         validation = json.loads((phase_a / "validation.json").read_text(encoding="utf-8"))
         reconciliation = validation["reconciliation"]
         assert reconciliation["relation_count"] == 24
