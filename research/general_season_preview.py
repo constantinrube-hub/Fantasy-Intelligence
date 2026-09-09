@@ -614,8 +614,11 @@ def _enforce_bounded_player_relations(grouped: Mapping[str, list[dict[str, Any]]
             relevant = [row for row in rows if row.get("position_model") in positions and target in row.get("raw_stats", {})]
             budget = max(0.0, _number((team_stats.get(team) or {}).get(budget_target)))
             unallocated_row = indexed.get((team, relation))
-            prior_unallocated = _number((unallocated_row or {}).get("raw_stats", {}).get(target))
-            desired = max(0.0, budget - prior_unallocated)
+            # Re-run this relation from the actual team budget.  A previous
+            # reconciliation pass may have recorded a provisional remainder;
+            # subtracting it here double-counts the gap after individual caps
+            # are applied.
+            desired = budget
             for row in relevant:
                 stats = row["raw_stats"]
                 stats[target] = min(_number(stats.get(target)), _number(stats.get(cap)))
@@ -633,17 +636,26 @@ def _enforce_bounded_player_relations(grouped: Mapping[str, list[dict[str, Any]]
                     row["raw_stats"][target] = _number(row["raw_stats"].get(target)) + add
                     distributed += add
                 remaining = max(0.0, remaining - distributed)
-            if remaining > 1e-9:
+            if unallocated_row is not None:
+                # Replace the provisional first-pass remainder even when the
+                # capped reallocation now fills the full team budget.
+                unallocated_row["raw_stats"][target] = remaining
+            elif remaining > 1e-9:
                 if unallocated_row is None:
                     budget_target, player_target, scope = mappings[relation]
                     unallocated_row = _unallocated_row(team, relation, budget_target, player_target, scope, 0.0)
                     unallocated.append(unallocated_row)
                     indexed[(team, relation)] = unallocated_row
-                unallocated_row["raw_stats"][target] = _number(unallocated_row["raw_stats"].get(target)) + remaining
+                # This is the authoritative post-cap remainder.
+                unallocated_row["raw_stats"][target] = remaining
 
 
 def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[str, Mapping[str, float]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Scale over-allocated known-player families and expose residual budgets explicitly."""
+    """Make one deterministic, auditable pass from player lines to team budgets.
+
+    Every relationship is normalized first, individual feasibility caps are then
+    applied, and the remaining budget is recorded once from the final state.
+    """
     grouped: dict[str, list[dict[str, Any]]] = {}
     for row in player_rows:
         team = canonical_team_code(row.get("team"))
@@ -655,7 +667,8 @@ def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[st
     empty_teams = sorted(team for team in team_stats if team not in grouped)
     if empty_teams:
         raise PreviewError(f"TEAM_BUDGET_WITHOUT_PLAYER_POPULATION:{'|'.join(empty_teams)}")
-    unallocated: list[dict[str, Any]] = []
+    # First normalize only over-allocation; do not create provisional remainder
+    # rows before caps, because those were the source of double accounting.
     for team, rows in grouped.items():
         budgets = team_stats.get(team, {})
         for relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
@@ -667,10 +680,30 @@ def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[st
                 for r in relevant:
                     r["raw_stats"][player_target] *= scale
                 total = budget
-            remainder = max(0.0, budget - total)
+    # Enforce physical constraints and reallocate to teammates that still have
+    # capacity.  Starting without provisional rows prevents double accounting.
+    unallocated: list[dict[str, Any]] = []
+    _enforce_bounded_player_relations(grouped, team_stats, unallocated)
+    # Defensive final normalization: bounded reallocation must never leave a
+    # relation above its team budget.
+    for team, rows in grouped.items():
+        for _relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
+            relevant = [row for row in rows if positions is None or row.get("position_model") in positions]
+            budget = max(0.0, _number((team_stats.get(team) or {}).get(budget_target)))
+            total = sum(_number((row.get("raw_stats") or {}).get(player_target)) for row in relevant)
+            if total > budget and total > 0:
+                for row in relevant:
+                    row["raw_stats"][player_target] = _number(row["raw_stats"].get(player_target)) * budget / total
+    # Publish one exact, final unallocated row per relation where needed.
+    unallocated = []
+    for team, rows in grouped.items():
+        budgets = team_stats.get(team, {})
+        for relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
+            budget = max(0.0, _number(budgets.get(budget_target)))
+            allocated = sum(_number((row.get("raw_stats") or {}).get(player_target)) for row in rows if positions is None or row.get("position_model") in positions)
+            remainder = max(0.0, budget - allocated)
             if remainder > 1e-9:
                 unallocated.append(_unallocated_row(team, relation, budget_target, player_target, positions, remainder))
-    _enforce_bounded_player_relations(grouped, team_stats, unallocated)
     return player_rows, unallocated
 
 
@@ -691,7 +724,10 @@ def _reconciliation_audit(player_rows: list[dict[str, Any]], team_stats: Mapping
         for relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
             allocated = sum(_number((row.get("raw_stats") or {}).get(player_target)) for row in rows if positions is None or row.get("position_model") in positions)
             budget = max(0.0, _number((team_stats.get(team) or {}).get(budget_target)))
-            remainder = unallocated_by_relation.get((team, relation), 0.0)
+            # Derive the published accounting remainder from the final player
+            # allocation.  This prevents stale diagnostic rows from influencing
+            # the accounting proof after a bounded reallocation.
+            remainder = max(0.0, budget - allocated)
             residual = budget - allocated - remainder
             record = {"team": team, "relation": relation, "budget_stat": budget_target, "player_stat": player_target, "budget": budget, "allocated": allocated, "unallocated": remainder, "unallocated_share": (remainder / budget) if budget else 0.0, "residual": residual}
             relations.append(record)
