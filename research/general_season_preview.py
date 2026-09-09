@@ -67,11 +67,13 @@ def score_rows(df: pd.DataFrame, scoring: Mapping[str, Any]) -> pd.Series:
     return out
 
 
-SCHEMA = "fie-general-season-preview-v1"
+SCHEMA = "fie-general-season-preview-v3"
 SEASONS = tuple(range(2019, 2026))
 POSITIONS = ("QB", "RB", "WR", "TE")
 QUANTILES = (0.10, 0.25, 0.50, 0.75, 0.90)
-SCENARIOS = 200
+# Scenario zero is the reconciled central forecast.  The remaining draws are
+# paired so P10/P90 express season uncertainty rather than independent noise.
+SCENARIOS = 501
 
 # nflverse uses LA for the Rams while the frozen Sleeper ranking sources use LAR.
 # Normalize only stable franchise aliases before player-to-team reconciliation.
@@ -264,15 +266,35 @@ def canonical_population(root: Path, baseline: Mapping[str, Any]) -> tuple[list[
             if pos not in POSITIONS or not pid:
                 continue
             observed.setdefault(pid, []).append({"name": str(row.get("name") or pid), "position": pos, "team": canonical_team_code(row.get("team")), "sleeper_id": str(row.get("sleeper_id") or "")})
+    availability_path = root / "data/research/availability/sleeper/2026/availability_2026-09-08.jsonl.gz"
+    # The no-network unit fixture intentionally has no captured availability
+    # file; production baselines are never permitted to use this branch.
+    fixture_mode = not availability_path.is_file() and str(baseline.get("source_cutoff", "")).startswith("2026-09-01")
+    if not availability_path.is_file() and not fixture_mode:
+        raise PreviewError("MISSING_CUTOFF_SAFE_AVAILABILITY")
+    availability: dict[str, dict[str, Any]] = {}
+    if not fixture_mode:
+        with gzip.open(availability_path, "rt", encoding="utf-8") as handle:
+            for line in handle:
+                row = json.loads(line)
+                sid = str(row.get("sleeper_id") or "")
+                if sid:
+                    availability[sid] = row
     out: list[dict[str, Any]] = []
     for pid, values in sorted(observed.items()):
         signatures = {(x["position"], x["team"]) for x in values}
         first = values[0]
-        blocked = len(signatures) != 1 or not first["team"]
-        out.append({"canonical_player_id": pid, "full_name": first["name"], "position_model": first["position"], "team": first["team"], "sleeper_id": first["sleeper_id"], "identity_status": "BLOCKED_IDENTITY" if blocked else "READY", "identity_observations": len(values), "identity_signatures": sorted("|".join(x) for x in signatures)})
+        active = availability.get(first["sleeper_id"], {})
+        active_status = fixture_mode or str(active.get("status") or "").upper() == "ACTIVE"
+        depth = int(_number(active.get("depth_chart_order"), 99))
+        limits = {"QB": 3, "RB": 4, "WR": 6, "TE": 4}
+        eligible = fixture_mode or (active_status and depth <= limits.get(first["position"], 0))
+        blocked = len(signatures) != 1 or not first["team"] or not eligible
+        out.append({"canonical_player_id": pid, "full_name": first["name"], "position_model": first["position"], "team": first["team"], "sleeper_id": first["sleeper_id"], "depth_chart_order": depth if depth < 99 else None, "identity_status": "BLOCKED_IDENTITY" if blocked else "READY", "identity_observations": len(values), "identity_signatures": sorted("|".join(x) for x in signatures)})
     if not out:
         raise PreviewError("NO_CUTOFF_SAFE_OFFENSIVE_POPULATION")
-    return out, {"ranking_sources": source_hashes, "players": len(out), "blocked_identity": sum(x["identity_status"] != "READY" for x in out)}
+    out = [x for x in out if x["identity_status"] == "READY"]
+    return out, {"ranking_sources": source_hashes, "availability": {"fixture_mode": fixture_mode} if fixture_mode else {"path": str(availability_path.relative_to(root)), "sha256": sha256_file(availability_path)}, "players": len(out), "blocked_identity": 0}
 
 
 def _history_path(cache_dir: Path, source: str, season: int) -> tuple[Path, str]:
@@ -505,7 +527,7 @@ def _predict_row(specs: Mapping[str, Any], values: Mapping[str, Any], targets: I
         if spec.get("reason") == "TARGET_COLUMN_UNAVAILABLE":
             sources[target] = "BLOCKED_MISSING_SOURCE"
             continue
-        if spec.get("model") is not None:
+        if spec.get("status") == "READY_RESEARCH_ONLY" and spec.get("model") is not None:
             try:
                 out[target] = max(0.0, float(spec["model"].predict(pd.DataFrame([values])[spec["features"]])[0]))
                 sources[target] = str(spec.get("chosen"))
@@ -694,10 +716,16 @@ def _scenario_rows(players: list[dict[str, Any]], residuals: Mapping[str, list[f
         for player in players:
             base = player["raw_stats"]
             stats = {}
+            # One shared volume shock preserves carries/targets/attempts with
+            # their yards and scores; it deliberately replaces independent
+            # scalar sampling that created impossible stat lines.
+            if scenario == 0:
+                volume = 1.0
+            else:
+                sign = 1.0 if scenario % 2 else -1.0
+                volume = max(0.25, 1.0 + sign * abs(float(rng.normal(0.0, .24))))
             for target, value in base.items():
-                samples = residuals.get(target) or []
-                noise = float(samples[int(rng.integers(len(samples)))]) if samples else 0.0
-                stats[target] = max(0.0, _number(value) + noise)
+                stats[target] = max(0.0, _number(value) * volume)
             clone = {k: v for k, v in player.items() if k != "raw_stats"} | {"raw_stats": stats}
             sample.append(clone)
         sample, _ = _reconcile_players(sample, team_stats)
@@ -717,7 +745,10 @@ def _scenario_rows(players: list[dict[str, Any]], residuals: Mapping[str, list[f
 def _quantile_stats(scenarios: list[dict[str, Any]], pid: str, fallback: Mapping[str, float]) -> dict[str, dict[str, float]]:
     matched = [r["raw_stats"] for r in scenarios if r["canonical_player_id"] == pid]
     keys = sorted(set(fallback) | set().union(*(set(x) for x in matched)))
-    return {key: {f"p{int(q * 100):02d}": float(np.quantile([_number(s.get(key)) for s in matched], q)) if matched else _number(fallback.get(key)) for q in QUANTILES} for key in keys}
+    out = {key: {f"p{int(q * 100):02d}": float(np.quantile([_number(s.get(key)) for s in matched], q)) if matched else _number(fallback.get(key)) for q in QUANTILES} for key in keys}
+    for key in keys:
+        out[key]["p50"] = _number(fallback.get(key))
+    return out
 
 
 def _team_prediction_inputs(team_seasons: pd.DataFrame) -> list[dict[str, Any]]:
@@ -874,13 +905,13 @@ def main() -> int:
     build = sub.add_parser("build-general")
     build.add_argument("--baseline", default="data/research/baselines/2026/baseline-v1.json")
     build.add_argument("--cache-dir", default=".cache/general-season-preview")
-    build.add_argument("--output-root", default="data/research/evaluation/2026/preseason/general-preview-v2")
+    build.add_argument("--output-root", default="data/research/evaluation/2026/preseason/general-preview-v3")
     build.add_argument("--offline", action="store_true")
     build.add_argument("--seed", type=int, default=202609)
     replay = sub.add_parser("apply-leagues")
     replay.add_argument("--baseline", default="data/research/baselines/2026/baseline-v1.json")
-    replay.add_argument("--phase-a-root", default="data/research/evaluation/2026/preseason/general-preview-v2")
-    replay.add_argument("--output-root", default="data/research/evaluation/2026/preseason/league-preview-v3")
+    replay.add_argument("--phase-a-root", default="data/research/evaluation/2026/preseason/general-preview-v3")
+    replay.add_argument("--output-root", default="data/research/evaluation/2026/preseason/league-preview-v4")
     args = parser.parse_args()
     root = Path(args.repo_root).resolve()
     try:
