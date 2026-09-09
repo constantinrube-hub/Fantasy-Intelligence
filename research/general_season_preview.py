@@ -73,6 +73,10 @@ POSITIONS = ("QB", "RB", "WR", "TE")
 QUANTILES = (0.10, 0.25, 0.50, 0.75, 0.90)
 SCENARIOS = 200
 
+# nflverse uses LA for the Rams while the frozen Sleeper ranking sources use LAR.
+# Normalize only stable franchise aliases before player-to-team reconciliation.
+TEAM_CODE_ALIASES = {"LAR": "LA", "STL": "LA", "OAK": "LV", "SD": "LAC", "JAC": "JAX", "WSH": "WAS"}
+
 PLAYER_TARGETS: dict[str, tuple[str, ...]] = {
     "QB": ("passing_attempts", "completions", "passing_yards", "passing_tds", "interceptions", "passing_2pt_conversions", "passing_first_downs", "rushing_attempts", "rushing_yards", "rushing_tds", "rushing_2pt_conversions", "rushing_first_downs", "fumbles", "fumbles_lost"),
     "RB": ("rushing_attempts", "rushing_yards", "rushing_tds", "rushing_2pt_conversions", "rushing_first_downs", "targets", "receptions", "receiving_yards", "receiving_tds", "receiving_2pt_conversions", "receiving_first_downs", "fumbles", "fumbles_lost"),
@@ -110,6 +114,11 @@ def _number(value: Any, default: float = 0.0) -> float:
         return x if math.isfinite(x) else default
     except (TypeError, ValueError):
         return default
+
+
+def canonical_team_code(value: Any) -> str:
+    team = str(value or "").strip().upper()
+    return TEAM_CODE_ALIASES.get(team, team)
 
 
 def _num(df: pd.DataFrame, names: Iterable[str], default: float = 0.0) -> pd.Series:
@@ -254,7 +263,7 @@ def canonical_population(root: Path, baseline: Mapping[str, Any]) -> tuple[list[
             pid = str(row.get("player_id") or "")
             if pos not in POSITIONS or not pid:
                 continue
-            observed.setdefault(pid, []).append({"name": str(row.get("name") or pid), "position": pos, "team": str(row.get("team") or ""), "sleeper_id": str(row.get("sleeper_id") or "")})
+            observed.setdefault(pid, []).append({"name": str(row.get("name") or pid), "position": pos, "team": canonical_team_code(row.get("team")), "sleeper_id": str(row.get("sleeper_id") or "")})
     out: list[dict[str, Any]] = []
     for pid, values in sorted(observed.items()):
         signatures = {(x["position"], x["team"]) for x in values}
@@ -540,36 +549,91 @@ def _current_player_inputs(population: list[dict[str, Any]], seasons: pd.DataFra
     return out
 
 
+RECONCILIATION_MAPPINGS = (
+    ("qb_passing_attempts", "passing_attempts", "passing_attempts", {"QB"}),
+    ("qb_completions", "completions", "completions", {"QB"}),
+    ("player_receptions", "completions", "receptions", {"RB", "WR", "TE"}),
+    ("player_targets", "targets", "targets", {"RB", "WR", "TE"}),
+    ("qb_passing_yards", "passing_yards", "passing_yards", {"QB"}),
+    ("player_receiving_yards", "passing_yards", "receiving_yards", {"RB", "WR", "TE"}),
+    ("qb_passing_tds", "passing_tds", "passing_tds", {"QB"}),
+    ("player_receiving_tds", "passing_tds", "receiving_tds", {"RB", "WR", "TE"}),
+    ("qb_interceptions", "interceptions", "interceptions", {"QB"}),
+    ("player_rushing_attempts", "rushing_attempts", "rushing_attempts", None),
+    ("player_rushing_yards", "rushing_yards", "rushing_yards", None),
+    ("player_rushing_tds", "rushing_tds", "rushing_tds", None),
+)
+
+
 def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[str, Mapping[str, float]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Scale only when known-player allocations exceed a team budget; fill remaining budget with UNALLOCATED."""
+    """Scale over-allocated known-player families and expose residual budgets explicitly."""
     grouped: dict[str, list[dict[str, Any]]] = {}
     for row in player_rows:
-        grouped.setdefault(str(row["team"]), []).append(row)
+        team = canonical_team_code(row.get("team"))
+        row["team"] = team
+        grouped.setdefault(team, []).append(row)
+    unknown_teams = sorted(team for team in grouped if team not in team_stats)
+    if unknown_teams:
+        raise PreviewError(f"PLAYER_TEAM_WITHOUT_TEAM_BUDGET:{'|'.join(unknown_teams)}")
+    empty_teams = sorted(team for team in team_stats if team not in grouped)
+    if empty_teams:
+        raise PreviewError(f"TEAM_BUDGET_WITHOUT_PLAYER_POPULATION:{'|'.join(empty_teams)}")
     unallocated: list[dict[str, Any]] = []
-    mappings = {
-        "passing_attempts": ("passing_attempts", "QB"), "completions": ("receptions", None), "targets": ("targets", None), "rushing_attempts": ("rushing_attempts", None),
-        "passing_yards": ("passing_yards", "QB"), "passing_tds": ("passing_tds", "QB"), "interceptions": ("interceptions", "QB"), "rushing_yards": ("rushing_yards", None), "rushing_tds": ("rushing_tds", None),
-    }
     for team, rows in grouped.items():
         budgets = team_stats.get(team, {})
-        for team_target, (target, position) in mappings.items():
-            relevant = [r for r in rows if (position is None or r["position_model"] == position) and target in r["raw_stats"]]
-            total = sum(_number(r["raw_stats"].get(target)) for r in relevant)
-            budget = max(0.0, _number(budgets.get(team_target)))
+        for relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
+            relevant = [r for r in rows if (positions is None or r["position_model"] in positions) and player_target in r["raw_stats"]]
+            total = sum(_number(r["raw_stats"].get(player_target)) for r in relevant)
+            budget = max(0.0, _number(budgets.get(budget_target)))
             if total > budget and total > 0:
                 scale = budget / total
                 for r in relevant:
-                    r["raw_stats"][target] *= scale
+                    r["raw_stats"][player_target] *= scale
                 total = budget
             remainder = max(0.0, budget - total)
             if remainder > 1e-9:
-                unallocated.append({"entity_type": "UNALLOCATED", "team": team, "position_model": "UNALLOCATED", "canonical_player_id": f"UNALLOCATED:{team}", "full_name": "Unallocated team share", "raw_stats": {target: remainder}, "identity_status": "UNALLOCATED", "status": "BASELINE_ONLY"})
+                scope = "ALL" if positions is None else "-".join(sorted(positions))
+                unallocated.append({"entity_type": "UNALLOCATED", "team": team, "position_model": "UNALLOCATED", "canonical_player_id": f"UNALLOCATED:{team}:{relation}", "full_name": "Unallocated team share", "raw_stats": {player_target: remainder}, "identity_status": "UNALLOCATED", "status": "BASELINE_ONLY", "reconciliation_relation": relation, "budget_stat": budget_target, "player_stat": player_target, "position_scope": scope})
     # Structural inequalities are applied after budgets, never by creating new player volume.
     for row in player_rows:
         stats = row["raw_stats"]
         stats["completions"] = min(_number(stats.get("completions")), _number(stats.get("passing_attempts")))
         stats["receptions"] = min(_number(stats.get("receptions")), _number(stats.get("targets")))
     return player_rows, unallocated
+
+
+def _reconciliation_audit(player_rows: list[dict[str, Any]], team_stats: Mapping[str, Mapping[str, float]], unallocated: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return exact p50 allocation accounting for every declared relationship."""
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for row in player_rows:
+        grouped.setdefault(str(row.get("team") or ""), []).append(row)
+    unallocated_by_relation: dict[tuple[str, str], float] = {}
+    for row in unallocated:
+        key = (str(row.get("team") or ""), str(row.get("reconciliation_relation") or ""))
+        value = sum(_number(v) for v in (row.get("raw_stats") or {}).values())
+        unallocated_by_relation[key] = unallocated_by_relation.get(key, 0.0) + value
+    relations: list[dict[str, Any]] = []
+    failures: list[str] = []
+    for team in sorted(team_stats):
+        rows = grouped.get(team, [])
+        for relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
+            allocated = sum(_number((row.get("raw_stats") or {}).get(player_target)) for row in rows if positions is None or row.get("position_model") in positions)
+            budget = max(0.0, _number((team_stats.get(team) or {}).get(budget_target)))
+            remainder = unallocated_by_relation.get((team, relation), 0.0)
+            residual = budget - allocated - remainder
+            record = {"team": team, "relation": relation, "budget_stat": budget_target, "player_stat": player_target, "budget": budget, "allocated": allocated, "unallocated": remainder, "unallocated_share": (remainder / budget) if budget else 0.0, "residual": residual}
+            relations.append(record)
+            if abs(residual) > 1e-6 or allocated - budget > 1e-6:
+                failures.append(f"{team}:{relation}")
+    if failures:
+        raise PreviewError(f"RECONCILIATION_ACCOUNTING_FAILURE:{'|'.join(failures)}")
+    by_relation: dict[str, dict[str, float]] = {}
+    for relation, _, _, _ in RECONCILIATION_MAPPINGS:
+        matching = [row for row in relations if row["relation"] == relation]
+        budget = sum(_number(row["budget"]) for row in matching)
+        unallocated_value = sum(_number(row["unallocated"]) for row in matching)
+        by_relation[relation] = {"budget": budget, "unallocated": unallocated_value, "unallocated_share": (unallocated_value / budget) if budget else 0.0}
+    return {"relations": relations, "by_relation": by_relation, "relation_count": len(relations), "maximum_absolute_residual": max((abs(_number(x["residual"])) for x in relations), default=0.0), "unallocated_rows": len(unallocated), "unallocated_share_limit": 0.05, "constraints": ["completions_lte_passing_attempts", "receptions_lte_targets"]}
 
 
 def _scenario_rows(players: list[dict[str, Any]], residuals: Mapping[str, list[float]], team_stats: Mapping[str, Mapping[str, float]], seed: int) -> list[dict[str, Any]]:
@@ -588,7 +652,10 @@ def _scenario_rows(players: list[dict[str, Any]], residuals: Mapping[str, list[f
             sample.append(clone)
         sample, scenario_unallocated = _reconcile_players(sample, team_stats)
         for player in [*sample, *scenario_unallocated]:
-            rows.append({"scenario_id": scenario, "canonical_player_id": player["canonical_player_id"], "team": player["team"], "position_model": player["position_model"], "raw_stats": player["raw_stats"]})
+            item = {"scenario_id": scenario, "canonical_player_id": player["canonical_player_id"], "team": player["team"], "position_model": player["position_model"], "raw_stats": player["raw_stats"]}
+            if player.get("reconciliation_relation"):
+                item["reconciliation_relation"] = player["reconciliation_relation"]
+            rows.append(item)
     return rows
 
 
@@ -653,6 +720,7 @@ def build_general_preview(root: Path, baseline_path: Path, cache_dir: Path, outp
     for team in sorted(team_stats):
         team_rows.append({"entity_type": "TEAM_KICKING", "team": team, "position_model": "K", "canonical_player_id": f"K:{team}", "full_name": f"{team} team kicking", "raw_stats": {}, "stat_sources": {}, "status": "BLOCKED_MISSING_SOURCE", "blockers": ["CANONICAL_PRESEASON_KICKER_ROLE_AND_PBP_EVENT_HISTORY_NOT_BOUND"]})
     player_rows, unallocated = _reconcile_players(player_rows, team_stats)
+    reconciliation = _reconciliation_audit(player_rows, team_stats, unallocated)
     scenarios = _scenario_rows(player_rows, player_residuals, team_stats, seed)
     output_players = []
     for row in [*player_rows, *unallocated]:
@@ -660,7 +728,7 @@ def build_general_preview(root: Path, baseline_path: Path, cache_dir: Path, outp
         conditional = {key: (_number(value) / expected_games if expected_games else None) for key, value in row["raw_stats"].items()}
         output_players.append({k: v for k, v in row.items() if k not in {"raw_stats"}} | {"expected_games_p50": expected_games, "expected_games_source": "SHRUNK_PRIOR_SEASON_GAMES_BASELINE" if expected_games else "NOT_APPLICABLE", "conditional_per_game_p50": conditional, "availability_adjusted_season_total_p50": row["raw_stats"], "raw_stat_p50": row["raw_stats"], "raw_stat_quantiles": _quantile_stats(scenarios, row["canonical_player_id"], row["raw_stats"])})
     output_teams = [{k: v for k, v in row.items() if k not in {"raw_stats"}} | {"raw_stat_p50": row["raw_stats"]} for row in team_rows]
-    validation = {"player": {pos: {target: {k: v for k, v in spec.items() if k != "model"} for target, spec in specs.items()} for pos, specs in player_specs.items()}, "team": {target: {k: v for k, v in spec.items() if k != "model"} for target, spec in team_specs.items()}, "reconciliation": {"unallocated_rows": len(unallocated), "unallocated_share_limit": 0.05, "constraints": ["completions_lte_passing_attempts", "receptions_lte_targets"]}}
+    validation = {"player": {pos: {target: {k: v for k, v in spec.items() if k != "model"} for target, spec in specs.items()} for pos, specs in player_specs.items()}, "team": {target: {k: v for k, v in spec.items() if k != "model"} for target, spec in team_specs.items()}, "reconciliation": reconciliation}
     manifest = {"schema": SCHEMA, "season": 2026, "status": "READY_RESEARCH_ONLY", "generated_at": baseline["source_cutoff"], "seed": seed, "baseline": {"path": str(baseline_path.relative_to(root)), "sha256": sha256_file(baseline_path), "source_cutoff": baseline["source_cutoff"]}, "population": pop_meta, "history_sources": history_sources, "governance": {"research_only": True, "production_model": "M9", "m9_changed": False, "m10_changed": False, "app_runtime_changed": False, "canonical_rankings_changed": False, "adp_used_as_football_feature": False}, "artifacts": {"players": "player-stat-projections.csv", "teams": "team-stat-projections.csv", "validation": "validation.json", "scenarios": "joint-scenarios.jsonl.gz", "report": "general-preview.md"}}
     output_root.mkdir(parents=True, exist_ok=True)
     _write_csv_immutable(output_root / "player-stat-projections.csv", output_players)
@@ -751,13 +819,13 @@ def main() -> int:
     build = sub.add_parser("build-general")
     build.add_argument("--baseline", default="data/research/baselines/2026/baseline-v1.json")
     build.add_argument("--cache-dir", default=".cache/general-season-preview")
-    build.add_argument("--output-root", default="data/research/evaluation/2026/preseason/general-preview-v1")
+    build.add_argument("--output-root", default="data/research/evaluation/2026/preseason/general-preview-v2")
     build.add_argument("--offline", action="store_true")
     build.add_argument("--seed", type=int, default=202609)
     replay = sub.add_parser("apply-leagues")
     replay.add_argument("--baseline", default="data/research/baselines/2026/baseline-v1.json")
-    replay.add_argument("--phase-a-root", default="data/research/evaluation/2026/preseason/general-preview-v1")
-    replay.add_argument("--output-root", default="data/research/evaluation/2026/preseason/league-preview-v2")
+    replay.add_argument("--phase-a-root", default="data/research/evaluation/2026/preseason/general-preview-v2")
+    replay.add_argument("--output-root", default="data/research/evaluation/2026/preseason/league-preview-v3")
     args = parser.parse_args()
     root = Path(args.repo_root).resolve()
     try:

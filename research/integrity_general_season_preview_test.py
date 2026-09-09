@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import gzip
 import json
 import tempfile
 from pathlib import Path
@@ -15,6 +16,7 @@ from general_season_preview import (
     apply_leagues,
     sha256_file,
 )
+from audit_general_preview_consistency import audit_rows
 
 
 def dump_json(path: Path, value: dict) -> None:
@@ -38,7 +40,7 @@ def history(cache: Path) -> None:
     team_rows = []
     positions = [("QB", "q"), ("RB", "r"), ("WR", "w"), ("TE", "t")]
     for season in range(2019, 2026):
-        for team, opponent in (("AAA", "BBB"), ("BBB", "AAA")):
+        for team, opponent in (("LA", "BBB"), ("BBB", "LA")):
             for pos, stem in positions:
                 player_rows.append({
                     "season": season, "week": 1, "season_type": "REG", "player_id": f"{stem}-{team}", "position": pos, "recent_team": team,
@@ -54,9 +56,9 @@ def history(cache: Path) -> None:
 
 def ranking_rows() -> list[dict]:
     rows = []
-    for team in ("AAA", "BBB"):
+    for reported_team, history_team in (("LAR", "LA"), ("BBB", "BBB")):
         for pos, stem in (("QB", "q"), ("RB", "r"), ("WR", "w"), ("TE", "t")):
-            rows.append({"player_id": f"{stem}-{team}", "sleeper_id": f"s-{stem}-{team}", "name": f"{team} {pos}", "position": pos, "team": team})
+            rows.append({"player_id": f"{stem}-{history_team}", "sleeper_id": f"s-{stem}-{history_team}", "name": f"{reported_team} {pos}", "position": pos, "team": reported_team})
     return rows
 
 
@@ -87,6 +89,23 @@ def main() -> None:
         assert "TEAM_DEFENSE_DEF" in team_csv and "TEAM_KICKING" in team_csv
         players_csv = (phase_a / "player-stat-projections.csv").read_text(encoding="utf-8")
         assert "UNALLOCATED" in players_csv, "unmodeled team share must remain explicit"
+        validation = json.loads((phase_a / "validation.json").read_text(encoding="utf-8"))
+        reconciliation = validation["reconciliation"]
+        assert reconciliation["relation_count"] == 24
+        assert reconciliation["maximum_absolute_residual"] <= 1e-6
+        assert all(abs(row["residual"]) <= 1e-6 for row in reconciliation["relations"])
+        phase_a_players = list(csv.DictReader((phase_a / "player-stat-projections.csv").open(encoding="utf-8")))
+        assert any(row["team"] == "LA" and row["position_model"] == "QB" for row in phase_a_players), "LAR ranking aliases must reconcile to LA team budgets"
+        phase_a_teams = {row["team"]: json.loads(row["raw_stat_p50"]) for row in csv.DictReader((phase_a / "team-stat-projections.csv").open(encoding="utf-8")) if row["entity_type"] == "TEAM_OFFENSE"}
+        _, raw_residual = audit_rows(phase_a_players, phase_a_teams)
+        assert raw_residual <= 1e-6
+        scenario_rows = []
+        with gzip.open(phase_a / "joint-scenarios.jsonl.gz", "rt", encoding="utf-8") as handle:
+            for line in handle:
+                if line.strip() and json.loads(line)["scenario_id"] == 0:
+                    scenario_rows.append(json.loads(line))
+        _, scenario_residual = audit_rows(scenario_rows, phase_a_teams, scenario=0)
+        assert scenario_residual <= 1e-6
         try:
             _first_write(phase_a / "manifest.json", b"different")
         except PreviewError as exc:
@@ -110,7 +129,7 @@ def main() -> None:
             assert "FROZEN_SOURCE_DRIFT" in str(exc)
         else:
             raise AssertionError("baseline source drift must fail closed")
-    print("PASS general season preview integrity (12/12)")
+    print("PASS general season preview integrity (16/16)")
 
 
 if __name__ == "__main__":
