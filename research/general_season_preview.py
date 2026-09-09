@@ -67,7 +67,7 @@ def score_rows(df: pd.DataFrame, scoring: Mapping[str, Any]) -> pd.Series:
     return out
 
 
-SCHEMA = "fie-general-season-preview-v3"
+SCHEMA = "fie-general-season-preview-v4"
 SEASONS = tuple(range(2019, 2026))
 POSITIONS = ("QB", "RB", "WR", "TE")
 QUANTILES = (0.10, 0.25, 0.50, 0.75, 0.90)
@@ -651,10 +651,11 @@ def _enforce_bounded_player_relations(grouped: Mapping[str, list[dict[str, Any]]
 
 
 def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[str, Mapping[str, float]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Make one deterministic, auditable pass from player lines to team budgets.
+    """Allocate every core team budget to the qualified active player pool.
 
-    Every relationship is normalized first, individual feasibility caps are then
-    applied, and the remaining budget is recorded once from the final state.
+    A core football forecast cannot leave passing, rushing or receiving volume
+    as an artificial player.  Existing modeled volume determines the share;
+    depth order supplies a deterministic fallback for a new/no-history player.
     """
     grouped: dict[str, list[dict[str, Any]]] = {}
     for row in player_rows:
@@ -667,43 +668,65 @@ def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[st
     empty_teams = sorted(team for team in team_stats if team not in grouped)
     if empty_teams:
         raise PreviewError(f"TEAM_BUDGET_WITHOUT_PLAYER_POPULATION:{'|'.join(empty_teams)}")
-    # First normalize only over-allocation; do not create provisional remainder
-    # rows before caps, because those were the source of double accounting.
+    by_relation = {name: (budget, stat, positions) for name, budget, stat, positions in RECONCILIATION_MAPPINGS}
+
+    def allocate(rows: list[dict[str, Any]], budget: float, stat: str, positions: set[str] | None, cap: str | None = None) -> None:
+        if budget <= 1e-9:
+            return
+        candidates = [r for r in rows if positions is None or r.get("position_model") in positions]
+        if not candidates:
+            return
+        weights = [_number(r.get("raw_stats", {}).get(stat)) for r in candidates]
+        if positions == {"QB"}:
+            # The available roster depth chart is an opportunity prior, not an
+            # instruction to divide a 17-game passing budget equally among a
+            # starter and contingency quarterbacks with cohort baselines.
+            role = {1: 1.0, 2: 0.03, 3: 0.005}
+            weights = [weight * role.get(int(_number(row.get("depth_chart_order"), 9)), 0.001) for row, weight in zip(candidates, weights)]
+        if sum(weights) <= 1e-9:
+            weights = [1.0 / max(1.0, _number(r.get("depth_chart_order"), 9.0)) for r in candidates]
+        if cap is None:
+            total = sum(weights)
+            for row, weight in zip(candidates, weights):
+                row["raw_stats"][stat] = budget * weight / total
+            return
+        # Allocate capped volume greedily by current modeled share, then by
+        # remaining capacity, guaranteeing completions <= attempts and
+        # receptions <= targets while retaining the full team budget.
+        remaining = budget
+        capacity = [max(0.0, _number(r["raw_stats"].get(cap))) for r in candidates]
+        if sum(capacity) + 1e-6 < budget:
+            raise PreviewError(f"CORE_CAPACITY_BELOW_BUDGET:{stat}:{cap}")
+        assigned = [0.0] * len(candidates)
+        while remaining > 1e-7:
+            eligible = [i for i, value in enumerate(capacity) if value - assigned[i] > 1e-9]
+            if not eligible:
+                raise PreviewError(f"CORE_ALLOCATION_EXHAUSTED:{stat}")
+            denom = sum(weights[i] for i in eligible) or float(len(eligible))
+            moved = 0.0
+            for i in eligible:
+                want = remaining * ((weights[i] / denom) if denom else 1.0 / len(eligible))
+                add = min(want, capacity[i] - assigned[i])
+                assigned[i] += add; moved += add
+            remaining -= moved
+        for row, value in zip(candidates, assigned): row["raw_stats"][stat] = value
+
+    # Dependency order matters: volume caps must exist before constrained stats.
+    order = ["qb_passing_attempts", "player_targets", "qb_passing_yards", "qb_passing_tds", "qb_interceptions", "player_receiving_yards", "player_receiving_tds", "player_rushing_attempts", "player_rushing_yards", "player_rushing_tds", "qb_completions", "player_receptions"]
     for team, rows in grouped.items():
-        budgets = team_stats.get(team, {})
-        for relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
-            relevant = [r for r in rows if (positions is None or r["position_model"] in positions) and player_target in r["raw_stats"]]
-            total = sum(_number(r["raw_stats"].get(player_target)) for r in relevant)
-            budget = max(0.0, _number(budgets.get(budget_target)))
-            if total > budget and total > 0:
-                scale = budget / total
-                for r in relevant:
-                    r["raw_stats"][player_target] *= scale
-                total = budget
-    # Enforce physical constraints and reallocate to teammates that still have
-    # capacity.  Starting without provisional rows prevents double accounting.
-    unallocated: list[dict[str, Any]] = []
-    _enforce_bounded_player_relations(grouped, team_stats, unallocated)
-    # Defensive final normalization: bounded reallocation must never leave a
-    # relation above its team budget.
-    for team, rows in grouped.items():
-        for _relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
-            relevant = [row for row in rows if positions is None or row.get("position_model") in positions]
-            budget = max(0.0, _number((team_stats.get(team) or {}).get(budget_target)))
-            total = sum(_number((row.get("raw_stats") or {}).get(player_target)) for row in relevant)
-            if total > budget and total > 0:
-                for row in relevant:
-                    row["raw_stats"][player_target] = _number(row["raw_stats"].get(player_target)) * budget / total
-    # Publish one exact, final unallocated row per relation where needed.
+        for relation in order:
+            budget_target, player_target, positions = by_relation[relation]
+            cap = "passing_attempts" if relation == "qb_completions" else ("targets" if relation == "player_receptions" else None)
+            allocate(rows, max(0.0, _number((team_stats.get(team) or {}).get(budget_target))), player_target, positions, cap)
+    # A no-candidate fixture/contract failure remains explicit.  In the real
+    # active roster build this must be empty; it is not used to hide volume.
     unallocated = []
     for team, rows in grouped.items():
-        budgets = team_stats.get(team, {})
-        for relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS:
-            budget = max(0.0, _number(budgets.get(budget_target)))
-            allocated = sum(_number((row.get("raw_stats") or {}).get(player_target)) for row in rows if positions is None or row.get("position_model") in positions)
-            remainder = max(0.0, budget - allocated)
-            if remainder > 1e-9:
-                unallocated.append(_unallocated_row(team, relation, budget_target, player_target, positions, remainder))
+        for relation, budget_target, stat, positions in RECONCILIATION_MAPPINGS:
+            budget = max(0.0, _number((team_stats.get(team) or {}).get(budget_target)))
+            relevant = [r for r in rows if positions is None or r.get("position_model") in positions]
+            if budget > 1e-9 and not relevant:
+                unallocated.append(_unallocated_row(team, relation, budget_target, stat, positions, budget))
     return player_rows, unallocated
 
 
@@ -941,13 +964,13 @@ def main() -> int:
     build = sub.add_parser("build-general")
     build.add_argument("--baseline", default="data/research/baselines/2026/baseline-v1.json")
     build.add_argument("--cache-dir", default=".cache/general-season-preview")
-    build.add_argument("--output-root", default="data/research/evaluation/2026/preseason/general-preview-v3")
+    build.add_argument("--output-root", default="data/research/evaluation/2026/preseason/general-preview-v4")
     build.add_argument("--offline", action="store_true")
     build.add_argument("--seed", type=int, default=202609)
     replay = sub.add_parser("apply-leagues")
     replay.add_argument("--baseline", default="data/research/baselines/2026/baseline-v1.json")
-    replay.add_argument("--phase-a-root", default="data/research/evaluation/2026/preseason/general-preview-v3")
-    replay.add_argument("--output-root", default="data/research/evaluation/2026/preseason/league-preview-v4")
+    replay.add_argument("--phase-a-root", default="data/research/evaluation/2026/preseason/general-preview-v4")
+    replay.add_argument("--output-root", default="data/research/evaluation/2026/preseason/league-preview-v5")
     args = parser.parse_args()
     root = Path(args.repo_root).resolve()
     try:
