@@ -143,11 +143,11 @@ If no challenger passes but the transparent baseline passes provenance, coverage
 
 Phase A writes a new immutable first-write bundle:
 
-- `data/research/evaluation/2026/preseason/general-preview-v1/manifest.json`
-- `data/research/evaluation/2026/preseason/general-preview-v1/player-stat-projections.csv`
-- `data/research/evaluation/2026/preseason/general-preview-v1/team-stat-projections.csv`
-- `data/research/evaluation/2026/preseason/general-preview-v1/validation.json`
-- `data/research/evaluation/2026/preseason/general-preview-v1/general-preview.md`
+- `data/research/evaluation/2026/preseason/general-preview-v2/manifest.json`
+- `data/research/evaluation/2026/preseason/general-preview-v2/player-stat-projections.csv`
+- `data/research/evaluation/2026/preseason/general-preview-v2/team-stat-projections.csv`
+- `data/research/evaluation/2026/preseason/general-preview-v2/validation.json`
+- `data/research/evaluation/2026/preseason/general-preview-v2/general-preview.md`
 
 The manifest binds the frozen baseline, sources, code, dependency lock, target contracts, models, seed, outputs, and validation hashes. CSV rows include status and blockers rather than omitting failed families. The Markdown report presents raw football leaders, team profiles, uncertainty, coverage, and limitations; it contains no fantasy rank.
 
@@ -165,7 +165,7 @@ For each of the 22 leagues it:
 
 A missing Phase A family is never zero-scored. Phase B may preserve the existing governed M9/market fallback for a league-specific presentation, but must identify it as an external fallback and may not blend it into or relabel it as the general forecast.
 
-New Phase B outputs use `league-preview-v2` namespaces; they do not overwrite `season-preview-v1`. Team-strength aggregation remains descriptive unless a separately validated game/season simulator is later authorized. V1 does not claim projected wins, playoff odds, or championship odds.
+New Phase B outputs use the `league-preview-v3` namespace; they do not overwrite `season-preview-v1`. Team-strength aggregation remains descriptive unless a separately validated game/season simulator is later authorized. V1 does not claim projected wins, playoff odds, or championship odds.
 
 ## Terra implementation boundary
 
@@ -190,7 +190,7 @@ Terra implemented the bounded producer in `research/general_season_preview.py` a
 - Team-defense totals supported by mirrored opponent offense are emitted as `BASELINE_ONLY`. Sparse D/ST event components, individual kicker allocation, and IDP stay explicitly blocked until their separate source/identity/calibration contracts exist; no score is silently set to zero.
 - `.github/workflows/build-fie-general-season-preview.yml` is manual-only and main-only. It validates the no-network fixture, runs Phase A and/or Phase B, guards production surfaces and the immutable Window 1B `season-preview-v1`, and commits only the two new research artifact namespaces.
 
-The first real historical build has not yet been run. A green workflow is required before treating any output as an available 2026 preview.
+The initial real historical build into `general-preview-v1` / `league-preview-v2` exposed a player-to-team reconciliation implementation defect: `LAR` player rows did not match the `LA` team budget, QB completions were not bound to team completions, and player receiving yards/TDs were not bound to compatible passing budgets. Those immutable artifacts remain preserved but are superseded and must not feed value or market work. The corrected implementation writes `general-preview-v2` / `league-preview-v3`, validates every declared p50 and scenario accounting relation, and requires a green workflow before any corrected output is treated as available.
 
 ## Primary references
 
