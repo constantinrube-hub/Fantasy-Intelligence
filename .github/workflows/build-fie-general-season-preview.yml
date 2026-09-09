@@ -40,6 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m py_compile research/general_season_preview.py
+          python -m py_compile research/audit_general_preview_consistency.py
           python research/integrity_general_season_preview_test.py
           python -m json.tool config/general-season-preview-model-design.json > /dev/null
           python research/integrity_window1b_evaluation_test.py
@@ -50,18 +51,24 @@ jobs:
           set -euo pipefail
           python research/general_season_preview.py build-general
 
+      - name: Audit player-to-team accounting in every scenario
+        if: ${{ inputs.mode == 'phase-a' || inputs.mode == 'phase-b' || inputs.mode == 'both' }}
+        run: |
+          set -euo pipefail
+          python research/audit_general_preview_consistency.py --phase-a-root data/research/evaluation/2026/preseason/general-preview-v2
+
       - name: Apply frozen league profiles
         if: ${{ inputs.mode == 'phase-b' || inputs.mode == 'both' }}
         run: |
           set -euo pipefail
-          test -f data/research/evaluation/2026/preseason/general-preview-v1/manifest.json
+          test -f data/research/evaluation/2026/preseason/general-preview-v2/manifest.json
           python research/general_season_preview.py apply-leagues
 
       - name: Guard production and historical preview surfaces
         run: |
           set -euo pipefail
           CHANGED="$(git status --porcelain | awk '{print $2}')"
-          if echo "$CHANGED" | grep -E '^(app/|index\.html$|dist/|data/research/leagues/|data/market/|data/adp/|data/strategy/|data/research/evaluation/2026/preseason/season-preview-v1\.)'; then
+          if echo "$CHANGED" | grep -E '^(app/|index\.html$|dist/|data/research/leagues/|data/market/|data/adp/|data/strategy/|data/research/evaluation/2026/preseason/(general-preview-v1|league-preview-v2|season-preview-v1\.))'; then
             echo "General preview modified a prohibited production, canonical-rank, market, or existing Window 1B surface"
             git status --short
             exit 1
@@ -73,8 +80,8 @@ jobs:
           git config user.name "FIE General Preview Bot"
           git config user.email "actions@users.noreply.github.com"
           for path in \
-            data/research/evaluation/2026/preseason/general-preview-v1 \
-            data/research/evaluation/2026/preseason/league-preview-v2; do
+            data/research/evaluation/2026/preseason/general-preview-v2 \
+            data/research/evaluation/2026/preseason/league-preview-v3; do
             if [ -e "$path" ]; then git add "$path"; fi
           done
           if git diff --cached --quiet; then
