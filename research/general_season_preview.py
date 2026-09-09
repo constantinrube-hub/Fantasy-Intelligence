@@ -565,6 +565,61 @@ RECONCILIATION_MAPPINGS = (
 )
 
 
+BOUNDED_PLAYER_RELATIONS = (
+    ("qb_completions", "completions", "passing_attempts", {"QB"}),
+    ("player_receptions", "receptions", "targets", {"RB", "WR", "TE"}),
+)
+
+
+def _unallocated_row(team: str, relation: str, budget_target: str, player_target: str, positions: set[str] | None, value: float) -> dict[str, Any]:
+    scope = "ALL" if positions is None else "-".join(sorted(positions))
+    return {"entity_type": "UNALLOCATED", "team": team, "position_model": "UNALLOCATED", "canonical_player_id": f"UNALLOCATED:{team}:{relation}", "full_name": "Unallocated team share", "raw_stats": {player_target: value}, "identity_status": "UNALLOCATED", "status": "BASELINE_ONLY", "reconciliation_relation": relation, "budget_stat": budget_target, "player_stat": player_target, "position_scope": scope}
+
+
+def _enforce_bounded_player_relations(grouped: Mapping[str, list[dict[str, Any]]], team_stats: Mapping[str, Mapping[str, float]], unallocated: list[dict[str, Any]]) -> None:
+    """Keep individual caps true without losing a reconciled team aggregate.
+
+    Scenario residuals are sampled independently.  A post-hoc ``min`` can therefore
+    reduce completions/receptions after their team budget has already been allocated.
+    Reallocate that volume to teammates with remaining capacity; if none exists,
+    record the shortfall as the explicit unallocated share for that relation.
+    """
+    mappings = {relation: (budget_target, player_target, positions) for relation, budget_target, player_target, positions in RECONCILIATION_MAPPINGS}
+    indexed = {(str(row.get("team") or ""), str(row.get("reconciliation_relation") or "")): row for row in unallocated}
+    for team, rows in grouped.items():
+        for relation, target, cap, positions in BOUNDED_PLAYER_RELATIONS:
+            budget_target, _, _ = mappings[relation]
+            relevant = [row for row in rows if row.get("position_model") in positions and target in row.get("raw_stats", {})]
+            budget = max(0.0, _number((team_stats.get(team) or {}).get(budget_target)))
+            unallocated_row = indexed.get((team, relation))
+            prior_unallocated = _number((unallocated_row or {}).get("raw_stats", {}).get(target))
+            desired = max(0.0, budget - prior_unallocated)
+            for row in relevant:
+                stats = row["raw_stats"]
+                stats[target] = min(_number(stats.get(target)), _number(stats.get(cap)))
+            allocated = sum(_number(row["raw_stats"].get(target)) for row in relevant)
+            remaining = max(0.0, desired - allocated)
+            while remaining > 1e-9:
+                slack_rows = [(row, max(0.0, _number(row["raw_stats"].get(cap)) - _number(row["raw_stats"].get(target)))) for row in relevant]
+                slack_rows = [(row, slack) for row, slack in slack_rows if slack > 1e-9]
+                total_slack = sum(slack for _, slack in slack_rows)
+                if total_slack <= 1e-9:
+                    break
+                distributed = 0.0
+                for index, (row, slack) in enumerate(slack_rows):
+                    add = min(slack, remaining if index == len(slack_rows) - 1 else remaining * (slack / total_slack))
+                    row["raw_stats"][target] = _number(row["raw_stats"].get(target)) + add
+                    distributed += add
+                remaining = max(0.0, remaining - distributed)
+            if remaining > 1e-9:
+                if unallocated_row is None:
+                    budget_target, player_target, scope = mappings[relation]
+                    unallocated_row = _unallocated_row(team, relation, budget_target, player_target, scope, 0.0)
+                    unallocated.append(unallocated_row)
+                    indexed[(team, relation)] = unallocated_row
+                unallocated_row["raw_stats"][target] = _number(unallocated_row["raw_stats"].get(target)) + remaining
+
+
 def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[str, Mapping[str, float]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Scale over-allocated known-player families and expose residual budgets explicitly."""
     grouped: dict[str, list[dict[str, Any]]] = {}
@@ -592,13 +647,8 @@ def _reconcile_players(player_rows: list[dict[str, Any]], team_stats: Mapping[st
                 total = budget
             remainder = max(0.0, budget - total)
             if remainder > 1e-9:
-                scope = "ALL" if positions is None else "-".join(sorted(positions))
-                unallocated.append({"entity_type": "UNALLOCATED", "team": team, "position_model": "UNALLOCATED", "canonical_player_id": f"UNALLOCATED:{team}:{relation}", "full_name": "Unallocated team share", "raw_stats": {player_target: remainder}, "identity_status": "UNALLOCATED", "status": "BASELINE_ONLY", "reconciliation_relation": relation, "budget_stat": budget_target, "player_stat": player_target, "position_scope": scope})
-    # Structural inequalities are applied after budgets, never by creating new player volume.
-    for row in player_rows:
-        stats = row["raw_stats"]
-        stats["completions"] = min(_number(stats.get("completions")), _number(stats.get("passing_attempts")))
-        stats["receptions"] = min(_number(stats.get("receptions")), _number(stats.get("targets")))
+                unallocated.append(_unallocated_row(team, relation, budget_target, player_target, positions, remainder))
+    _enforce_bounded_player_relations(grouped, team_stats, unallocated)
     return player_rows, unallocated
 
 
@@ -650,6 +700,11 @@ def _scenario_rows(players: list[dict[str, Any]], residuals: Mapping[str, list[f
                 stats[target] = max(0.0, _number(value) + noise)
             clone = {k: v for k, v in player.items() if k != "raw_stats"} | {"raw_stats": stats}
             sample.append(clone)
+        sample, _ = _reconcile_players(sample, team_stats)
+        # The bounded completion/reception allocation can move player volume after
+        # the first pass has normalized each independent stat family.  Reconcile
+        # once more from that bounded state so the emitted scenario is a fixed
+        # point for every declared player-to-team relationship.
         sample, scenario_unallocated = _reconcile_players(sample, team_stats)
         for player in [*sample, *scenario_unallocated]:
             item = {"scenario_id": scenario, "canonical_player_id": player["canonical_player_id"], "team": player["team"], "position_model": player["position_model"], "raw_stats": player["raw_stats"]}
