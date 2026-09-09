@@ -55,13 +55,13 @@ jobs:
         if: ${{ inputs.mode == 'phase-a' || inputs.mode == 'phase-b' || inputs.mode == 'both' }}
         run: |
           set -euo pipefail
-          python research/audit_general_preview_consistency.py --phase-a-root data/research/evaluation/2026/preseason/general-preview-v2
+          python research/audit_general_preview_consistency.py --phase-a-root data/research/evaluation/2026/preseason/general-preview-v3
 
       - name: Apply frozen league profiles
         if: ${{ inputs.mode == 'phase-b' || inputs.mode == 'both' }}
         run: |
           set -euo pipefail
-          test -f data/research/evaluation/2026/preseason/general-preview-v2/manifest.json
+          test -f data/research/evaluation/2026/preseason/general-preview-v3/manifest.json
           python research/general_season_preview.py apply-leagues
 
       - name: Guard production and historical preview surfaces
@@ -80,8 +80,8 @@ jobs:
           git config user.name "FIE General Preview Bot"
           git config user.email "actions@users.noreply.github.com"
           for path in \
-            data/research/evaluation/2026/preseason/general-preview-v2 \
-            data/research/evaluation/2026/preseason/league-preview-v3; do
+            data/research/evaluation/2026/preseason/general-preview-v3 \
+            data/research/evaluation/2026/preseason/league-preview-v4; do
             if [ -e "$path" ]; then git add "$path"; fi
           done
           if git diff --cached --quiet; then
