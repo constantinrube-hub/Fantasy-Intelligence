@@ -150,13 +150,18 @@ def exact_profile_scoring(rows: list[dict[str, Any]], profiles: list[dict[str, A
     scorer_hash = sha256_file(ROOT / "research/fie_research.py")
     output: list[dict[str, Any]] = []
     for row in rows:
-        samples = _residual_components(lock, row)
+        # Position-conditioned scoring rules (for example TE reception bonuses)
+        # are part of an exact profile replay.  The model vector intentionally
+        # contains only raw stat components, so add identity solely at scoring
+        # time rather than silently treating the positional rule as zero.
+        point = {**row["predicted_raw_components"], "position_model": row["position_model"]}
+        samples = [{**sample, "position_model": row["position_model"]} for sample in _residual_components(lock, row)]
         for profile in profiles:
             scoring = dict(profile["scoring_settings"])
             output.append({
                 "forecast_id": row["forecast_id"], "canonical_player_id": row["canonical_player_id"], "model": row["model"],
                 "league_id": profile["league_id"], "league_format": profile["league_format"], "profile_scoring_signature": profile["profile_scoring_signature"], "profile_fingerprint": profile["profile_fingerprint"],
-                "scored_fantasy_points": _score(row["predicted_raw_components"], scoring), "scored_prediction_quantiles": _quantiles(_score_many(samples, scoring)),
+                "scored_fantasy_points": _score(point, scoring), "scored_prediction_quantiles": _quantiles(_score_many(samples, scoring)),
                 "distribution_interpretation": "player_level_marginal_not_joint_simulation", "scoring_registry_version_sha256": scorer_hash, "research_only": True,
             })
     return output

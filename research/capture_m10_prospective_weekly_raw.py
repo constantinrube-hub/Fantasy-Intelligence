@@ -21,6 +21,7 @@ from build_current_snapshot import first_kickoff_utc, regular_schedule_slice
 from fie_research import SOURCE_TEMPLATES, build_identity, normalize_position
 from m10_prospective_capture_contract import ROOT, capture_hours, sha256_file, write_json
 from m10_prospective_weekly_producer import RAW_SCHEMA, fixture_raw_envelope
+from nfl_schedule_time import first_present, kickoff_iso
 
 
 UA = "Fantasy-Intelligence-M10-R8C/1.0"
@@ -104,7 +105,10 @@ def capture(output_dir: Path, *, season: int | None, week: int | None) -> Path |
     if slice_.empty or kickoff is None:
         raise ValueError("regular-season schedule or first kickoff is unverifiable")
     home = "home_team" if "home_team" in slice_ else "home"; away = "away_team" if "away_team" in slice_ else "away"
-    games = [{"home_team": str(row[home]), "away_team": str(row[away]), "kickoff_at": pd.to_datetime(str(row.get("gameday") or row.get("game_date")) + " " + str(row.get("gametime")), utc=True).isoformat()} for _, row in slice_.iterrows()]
+    games = [{
+        "home_team": str(row[home]), "away_team": str(row[away]),
+        "kickoff_at": kickoff_iso(first_present(row, "gameday", "game_date"), first_present(row, "gametime", "game_time")),
+    } for _, row in slice_.iterrows()]
     schedule_path = output_dir / "schedule.json"; write_json(schedule_path, {"season": resolved_season, "week": resolved_week, "season_type": "REG", "first_kickoff_at": kickoff.isoformat(), "games": games})
     completed_responses = _completed_game_responses(responses, season=resolved_season, week=resolved_week)
     players_response = _fetch(SOURCE_TEMPLATES["players"], responses / "players.csv")

@@ -213,14 +213,14 @@ def append_outcomes(outcome_manifest: Path, output_root: Path) -> dict[str, Any]
     return {"status": "CREATED", "manifest": meta}
 
 
-def create_operational_missed_capture(output_root: Path, *, season: int, week: int, observed_at: str, first_kickoff_at: str, reason: str) -> dict[str, Any]:
+def create_operational_missed_capture(output_root: Path, *, season: int, week: int, observed_at: str, first_kickoff_at: str, reason: str, fixture: bool = False) -> dict[str, Any]:
     """Write a permanent miss only after the verified kickoff has passed."""
     from m10_prospective_capture_contract import create_missed_capture, parse_time
     if reason == "WINDOW_NOT_REACHED":
         raise ValueError("WINDOW_NOT_REACHED is a successful no-write state, never a permanent miss")
     if parse_time(observed_at) < parse_time(first_kickoff_at):
         raise ValueError("operational missed capture may be recorded only after kickoff")
-    return create_missed_capture(output_root, season, week, observed_at, first_kickoff_at, reason)
+    return create_missed_capture(output_root, season, week, observed_at, first_kickoff_at, reason, fixture=fixture)
 
 
 def append_outcome_revision(outcome_manifest: Path, output_root: Path) -> dict[str, Any]:

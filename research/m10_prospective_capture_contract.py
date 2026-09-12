@@ -258,7 +258,7 @@ def create_fixture_outcomes(root: Path, season: int, week: int) -> dict[str, Any
     return {"status": "CREATED", "manifest": meta}
 
 
-def create_missed_capture(root: Path, season: int, week: int, captured_at: str, first_kickoff_at: str, reason: str) -> dict[str, Any]:
+def create_missed_capture(root: Path, season: int, week: int, captured_at: str, first_kickoff_at: str, reason: str, *, fixture: bool = True) -> dict[str, Any]:
     if reason not in MISSED_REASONS:
         raise ValueError(f"unknown missed-capture reason: {reason}")
     paths = capture_paths(root, season, week)
@@ -266,7 +266,7 @@ def create_missed_capture(root: Path, season: int, week: int, captured_at: str, 
         raise ValueError("cannot write a missed-capture manifest where a forecast exists")
     if paths["missed"].exists():
         return {"status": "EXISTS", "manifest": paths["missed"]}
-    write_json(paths["missed"], {"schema": MISSED_SCHEMA, "fixture": True, "season": season, "week": week, "captured_at": captured_at, "first_kickoff_at": first_kickoff_at, "hours_before_first_kickoff": capture_hours(captured_at, first_kickoff_at), "reason": reason, "capture_contract_sha256": contract_sha256(), "historical_reconstruction": False, "first_write_immutable": True, "governance": {"research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "shadow_integration": False}})
+    write_json(paths["missed"], {"schema": MISSED_SCHEMA, "fixture": bool(fixture), "season": season, "week": week, "captured_at": captured_at, "first_kickoff_at": first_kickoff_at, "hours_before_first_kickoff": capture_hours(captured_at, first_kickoff_at), "reason": reason, "capture_contract_sha256": contract_sha256(), "historical_reconstruction": False, "first_write_immutable": True, "governance": {"research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "shadow_integration": False}})
     return {"status": "CREATED", "manifest": paths["missed"]}
 
 

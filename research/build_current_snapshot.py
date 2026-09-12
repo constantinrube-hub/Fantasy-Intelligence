@@ -170,28 +170,14 @@ def dst_game_context_map(schedule: pd.DataFrame, season: int, week: int) -> Dict
 def first_kickoff_utc(schedule: pd.DataFrame, season: int, week: int) -> Optional[datetime]:
     s = regular_schedule_slice(schedule, season, week)
     if s.empty: return None
-    for c in ["gametime", "game_time", "kickoff"]:
-        if c not in s.columns: continue
-    # nflverse games commonly exposes a UTC datetime in gametime or a game date/time pair.
-    candidates = []
-    # Prefer explicit date + time combinations. Parsing a bare HH:MM string first can
-    # accidentally attach today's date and would corrupt the pregame eligibility audit.
-    if "game_date" in s.columns and "gametime" in s.columns:
-        candidates.append(pd.to_datetime(s["game_date"].astype(str) + " " + s["gametime"].astype(str), errors="coerce", utc=True))
-    if "gameday" in s.columns and "gametime" in s.columns:
-        candidates.append(pd.to_datetime(s["gameday"].astype(str) + " " + s["gametime"].astype(str), errors="coerce", utc=True))
-    if "game_date" in s.columns and "game_time" in s.columns:
-        candidates.append(pd.to_datetime(s["game_date"].astype(str) + " " + s["game_time"].astype(str), errors="coerce", utc=True))
-    # Only use a standalone gametime if it already parses as a full date-time.
-    if "gametime" in s.columns:
-        bare = pd.to_datetime(s["gametime"], errors="coerce", utc=True)
-        if bare.notna().any() and bare.dropna().dt.year.between(season - 1, season + 1).all():
-            candidates.append(bare)
-    for x in candidates:
-        x = x.dropna()
-        if len(x):
-            return x.min().to_pydatetime()
-    return None
+    from nfl_schedule_time import first_present, parse_nflverse_kickoff
+    values = []
+    for _, row in s.iterrows():
+        day = first_present(row, "gameday", "game_date")
+        clock = first_present(row, "gametime", "game_time", "kickoff")
+        try: values.append(parse_nflverse_kickoff(day, clock))
+        except ValueError: continue
+    return min(values) if values else None
 
 
 def market_capture_decision(season_type: str, kickoff: Optional[datetime], *, now: Optional[datetime] = None, window_hours: float = 18.0) -> dict:

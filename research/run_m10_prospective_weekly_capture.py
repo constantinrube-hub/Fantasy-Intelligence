@@ -22,7 +22,7 @@ def main(argv: list[str] | None = None) -> int:
     if hours > 18.0:
         print("NO_WRITE_WINDOW_NOT_REACHED"); return 0
     if hours < 0.0:
-        result = create_operational_missed_capture(root, season=int(capture["season"]), week=int(capture["week"]), observed_at=str(capture["observed_at"]), first_kickoff_at=str(capture["first_kickoff_at"]), reason="INPUTS_UNAVAILABLE")
+        result = create_operational_missed_capture(root, season=int(capture["season"]), week=int(capture["week"]), observed_at=str(capture["observed_at"]), first_kickoff_at=str(capture["first_kickoff_at"]), reason="INPUTS_UNAVAILABLE", fixture=bool(value.get("fixture") is True))
         print(f"PASS R8C typed miss {result['status']}"); return 0
     source = create_bundle(raw, root)
     assert source["status"] in {"CREATED", "EXISTS"}
