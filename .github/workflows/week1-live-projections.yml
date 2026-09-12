@@ -1,0 +1,42 @@
+name: Week 1 Live Game Projections
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: NFL season
+        required: true
+        default: "2026"
+      week:
+        description: NFL week
+        required: true
+        default: "1"
+
+permissions:
+  contents: read
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r research/requirements.txt
+
+      - name: Build live pregame report
+        run: >-
+          PYTHONPATH=research python research/week1_game_projections.py
+          --season "${{ inputs.season }}"
+          --week "${{ inputs.week }}"
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: week-${{ inputs.week }}-game-projections
+          path: data/research/evaluation/**/game-projections-v1/
+          if-no-files-found: error

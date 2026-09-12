@@ -1,0 +1,23 @@
+name: Week 1 Posthoc Raw Stat Comparison
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r research/requirements.txt
+      - run: PYTHONPATH=research python research/week1_posthoc_raw_stat_comparison.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: week-1-posthoc-raw-stat-comparison
+          path: data/research/evaluation/2026/week_01/posthoc-raw-stat-comparison-v1/
+          if-no-files-found: error
