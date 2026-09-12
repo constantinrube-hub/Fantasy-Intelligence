@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -55,24 +56,32 @@ def build(output_root: Path, *, observed_at: str | None = None) -> Path:
             continue
         game = team_game[player["team"]]
         opponent = game["away_team"] if player["team"] == game["home_team"] else game["home_team"]
-        target_rows.append({"season": 2026, "week": 1, "canonical_player_id": mapped[sid]["canonical_player_id"], "position_model": player["position_model"], "team": player["team"], "opponent_team": opponent, "player_kickoff_at": game["kickoff_at"], "sleeper_id": sid, "game_id": game["game_id"]})
+        target_rows.append({"season": 2026, "week": 1, "canonical_player_id": mapped[sid]["canonical_player_id"], "full_name": player.get("full_name"), "position_model": player["position_model"], "team": player["team"], "opponent_team": opponent, "player_kickoff_at": game["kickoff_at"], "sleeper_id": sid, "game_id": game["game_id"]})
     target = pd.DataFrame(target_rows)
     history = history_frame(pd.read_csv(pd.io.common.BytesIO(history_raw), low_memory=False), identity, 2026)
     lock = json.loads((ROOT / "data/research/prospective/m10/season-locks/2026/season-lock.json").read_text())
     capture = {"season": 2026, "week": 1, "observed_at": "2026-09-09T00:00:00+00:00", "first_kickoff_at": games[0]["kickoff_at"], "schedule_snapshot_sha256": "POSTHOC_RECONSTRUCTION"}
-    rows = [row for row in _point_rows(lock, history, target.drop(columns=["sleeper_id", "game_id"]), capture=capture, source_bundle_sha256="POSTHOC_RECONSTRUCTION") if row["model"] == "M9"]
+    rows = [row for row in _point_rows(lock, history, target.drop(columns=["sleeper_id", "game_id", "full_name"]), capture=capture, source_bundle_sha256="POSTHOC_RECONSTRUCTION") if row["model"] == "M9"]
     actual = raw_actuals(pd.read_csv(pd.io.common.BytesIO(actual_raw), low_memory=False), identity, 2026, set(team_game))
-    raw_names = ["attempts", "completions", "passing_yards", "passing_tds", "interceptions", "carries", "rushing_yards", "rushing_tds", "targets", "receptions", "receiving_yards", "receiving_tds"]
     actual_map = {str(row["canonical_player_id"]): row for row in actual.to_dict("records")}
     output = []
     extra = {row["canonical_player_id"]: row for row in target_rows}
     for row in rows:
         observed = actual_map.get(row["canonical_player_id"], {})
         meta = extra[row["canonical_player_id"]]
-        for stat in raw_names:
-            prediction = row["predicted_raw_components"].get(stat)
+        # Each position lock owns a different raw-component set.  Comparing a
+        # QB against receiving fields (or a WR against passing fields) creates
+        # None predictions and is not a meaningful model error.
+        for stat, prediction in sorted(row["predicted_raw_components"].items()):
             value = observed.get(stat)
-            output.append({"status": "POSTHOC_RECONSTRUCTION_NOT_ORIGINAL_CAPTURE", "game_id": meta["game_id"], "team": row["team"], "opponent_team": row["opponent_team"], "canonical_player_id": row["canonical_player_id"], "position_model": row["position_model"], "raw_stat": stat, "m9_predicted": prediction, "actual": value, "error_actual_minus_prediction": None if value is None else float(value) - float(prediction), "model": "M9_FROZEN_2026_LOCK"})
+            actual_value = None
+            try:
+                candidate = float(value)
+                actual_value = candidate if math.isfinite(candidate) else None
+            except (TypeError, ValueError):
+                pass
+            predicted_value = float(prediction)
+            output.append({"status": "POSTHOC_RECONSTRUCTION_NOT_ORIGINAL_CAPTURE", "game_id": meta["game_id"], "team": row["team"], "opponent_team": row["opponent_team"], "canonical_player_id": row["canonical_player_id"], "full_name": meta.get("full_name"), "position_model": row["position_model"], "raw_stat": stat, "m9_predicted": predicted_value, "actual": actual_value, "error_actual_minus_prediction": None if actual_value is None else actual_value - predicted_value, "model": "M9_FROZEN_2026_LOCK"})
     out = output_root / "2026" / "week_01" / "posthoc-raw-stat-comparison-v1"
     out.mkdir(parents=True, exist_ok=True)
     write_csv(out / "player-raw-stat-comparison.csv", output)
