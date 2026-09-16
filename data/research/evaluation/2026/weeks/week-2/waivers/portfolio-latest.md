@@ -1,6 +1,6 @@
 # FIE Window 1D Waiver Plan · Week 2
 
-Generated: `2026-09-15T21:25:27.322210+00:00`
+Generated: `2026-09-16T11:30:53.109248+00:00`
 
 Research-only decision support. M9 production and canonical rankings are unchanged.
 
