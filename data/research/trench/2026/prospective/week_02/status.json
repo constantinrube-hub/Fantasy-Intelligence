@@ -1,0 +1,58 @@
+{
+  "adp_used_as_football_feature": false,
+  "canonical_path": "data/research/trench/2026/prospective/week_02/trench-evidence-v1.json",
+  "canonical_rankings_changed": false,
+  "feature_owner": {
+    "confounding_warning": "team trench proxy; not an isolated offensive-line or defender grade",
+    "defense_core_components": [
+      "sack_rate_generated",
+      "rush_epa_allowed_per_attempt",
+      "rush_success_rate_allowed",
+      "stuff_rate_forced"
+    ],
+    "defense_optional_components": [
+      "qb_hit_rate_generated"
+    ],
+    "input_grain": "nflfastR play-by-play",
+    "offense_core_components": [
+      "sack_rate_allowed",
+      "rush_epa_per_attempt",
+      "rush_success_rate",
+      "stuff_rate_allowed"
+    ],
+    "offense_optional_components": [
+      "qb_hit_rate_allowed"
+    ],
+    "output_grain": "NFL team x target week",
+    "owner_module": "research/window2a_trench_evidence.py",
+    "production_validated": false,
+    "proxy_combination": "equal mean of direction-adjusted available z-scores after all core components exist",
+    "proxy_direction": "higher_is_better",
+    "schema": "fie-trench-feature-owner-v1",
+    "standardization": "cross-team population z-score on cumulative prior-week rates",
+    "validation_owner": "Window 2B"
+  },
+  "generated_at": "2026-09-16T10:18:21.118554+00:00",
+  "max_input_week": 1,
+  "minimum_team_count": 28,
+  "production_model": "M9",
+  "research_only": true,
+  "runtime_changed": false,
+  "schema": "fie-window2a-trench-evidence-v1",
+  "schema_version": 1,
+  "season": 2026,
+  "source": {
+    "bytes": 5537823,
+    "captured_at": "2026-09-16T10:18:20.981609+00:00",
+    "name": "nflverse_pbp",
+    "season": 2026,
+    "sha256": "68d54f7a238db568bd6ccb72ae7a3d9b3e8108252b6a9ce1584cffaa5b8c8f9d",
+    "status": "AVAILABLE_LIVE",
+    "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2026.csv"
+  },
+  "status": "READY_RESEARCH_ONLY",
+  "target_week": 2,
+  "target_week_realised_stats_excluded": true,
+  "team_count": 32,
+  "through_week": 1
+}
