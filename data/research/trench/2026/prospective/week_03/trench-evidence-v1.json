@@ -1,0 +1,2523 @@
+{
+  "adp_used_as_football_feature": false,
+  "canonical_rankings_changed": false,
+  "feature_owner": {
+    "confounding_warning": "team trench proxy; not an isolated offensive-line or defender grade",
+    "defense_core_components": [
+      "sack_rate_generated",
+      "rush_epa_allowed_per_attempt",
+      "rush_success_rate_allowed",
+      "stuff_rate_forced"
+    ],
+    "defense_optional_components": [
+      "qb_hit_rate_generated"
+    ],
+    "input_grain": "nflfastR play-by-play",
+    "offense_core_components": [
+      "sack_rate_allowed",
+      "rush_epa_per_attempt",
+      "rush_success_rate",
+      "stuff_rate_allowed"
+    ],
+    "offense_optional_components": [
+      "qb_hit_rate_allowed"
+    ],
+    "output_grain": "NFL team x target week",
+    "owner_module": "research/window2a_trench_evidence.py",
+    "production_validated": false,
+    "proxy_combination": "equal mean of direction-adjusted available z-scores after all core components exist",
+    "proxy_direction": "higher_is_better",
+    "schema": "fie-trench-feature-owner-v1",
+    "standardization": "cross-team population z-score on cumulative prior-week rates",
+    "validation_owner": "Window 2B"
+  },
+  "generated_at": "2026-09-23T10:17:25.708166+00:00",
+  "max_input_week": 2,
+  "minimum_team_count": 28,
+  "production_model": "M9",
+  "research_only": true,
+  "runtime_changed": false,
+  "schema": "fie-window2a-trench-evidence-v1",
+  "schema_version": 1,
+  "season": 2026,
+  "source": {
+    "bytes": 11003604,
+    "captured_at": "2026-09-23T10:17:25.559979+00:00",
+    "name": "nflverse_pbp",
+    "season": 2026,
+    "sha256": "96452de58a2a2baefe9cc090fa3177fb84083d3183c83914b9e9d93f2bf7d281",
+    "status": "AVAILABLE_LIVE",
+    "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2026.csv"
+  },
+  "status": "READY_RESEARCH_ONLY",
+  "target_week": 3,
+  "target_week_realised_stats_excluded": true,
+  "team_count": 32,
+  "teams": {
+    "ARI": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.8089403631914592,
+          "rush_epa_allowed_per_attempt": -0.712527814938609,
+          "rush_success_rate_allowed": 0.20699309261963614,
+          "sack_rate_generated": 0.0358240071622103,
+          "stuff_rate_forced": 0.4559629227926247
+        },
+        "designed_rushes": 56,
+        "pass_dropbacks": 57,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 57,
+        "qb_hit_rate_generated": 0.12280701754385964,
+        "qb_hits_generated": 7,
+        "research_proxy_v1": 0.03767625781646971,
+        "rush_epa_allowed_per_attempt": -0.23039495889211797,
+        "rush_epa_observed": 56,
+        "rush_success_observed": 56,
+        "rush_success_rate_allowed": 0.4107142857142857,
+        "rush_yards_observed": 56,
+        "sack_rate_generated": 0.07017543859649122,
+        "sacks_generated": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.21428571428571427
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.2919647582225199,
+          "rush_epa_per_attempt": -0.4271166942672433,
+          "rush_success_rate": -0.4261394617218154,
+          "sack_rate_allowed": -0.7717411885134507,
+          "stuff_rate_allowed": -0.12969596506540218
+        },
+        "designed_rushes": 46,
+        "pass_dropbacks": 68,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 68,
+        "qb_hit_rate_allowed": 0.17647058823529413,
+        "qb_hits_allowed": 12,
+        "research_proxy_v1": -0.04875675212654513,
+        "rush_epa_observed": 46,
+        "rush_epa_per_attempt": -0.1686585943651041,
+        "rush_success_observed": 46,
+        "rush_success_rate": 0.3695652173913043,
+        "rush_yards_observed": 46,
+        "sack_rate_allowed": 0.04411764705882353,
+        "sacks_allowed": 3,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.17391304347826086
+      },
+      "team": "ARI"
+    },
+    "ATL": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.31321614107655543,
+          "rush_epa_allowed_per_attempt": -0.640803027603932,
+          "rush_success_rate_allowed": -0.6345834000691726,
+          "sack_rate_generated": -0.6855778925378229,
+          "stuff_rate_forced": 0.7864938455961669
+        },
+        "designed_rushes": 38,
+        "pass_dropbacks": 81,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 81,
+        "qb_hit_rate_generated": 0.14814814814814814,
+        "qb_hits_generated": 12,
+        "research_proxy_v1": 0.21261724793097864,
+        "rush_epa_allowed_per_attempt": -0.21856376365452124,
+        "rush_epa_observed": 38,
+        "rush_success_observed": 38,
+        "rush_success_rate_allowed": 0.34210526315789475,
+        "rush_yards_observed": 38,
+        "sack_rate_generated": 0.04938271604938271,
+        "sacks_generated": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.23684210526315788
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.06263615471538932,
+          "rush_epa_per_attempt": -0.1753051677861457,
+          "rush_success_rate": 0.11126532120401368,
+          "sack_rate_allowed": 1.3483782778428945,
+          "stuff_rate_allowed": -0.7608789949432138
+        },
+        "designed_rushes": 59,
+        "pass_dropbacks": 61,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 61,
+        "qb_hit_rate_allowed": 0.16393442622950818,
+        "qb_hits_allowed": 10,
+        "research_proxy_v1": -0.1177805949532847,
+        "rush_epa_observed": 59,
+        "rush_epa_per_attempt": -0.13035934890044018,
+        "rush_success_observed": 59,
+        "rush_success_rate": 0.4067796610169492,
+        "rush_yards_observed": 59,
+        "sack_rate_allowed": 0.11475409836065574,
+        "sacks_allowed": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.13559322033898305
+      },
+      "team": "ATL"
+    },
+    "BAL": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.4216541618168573,
+          "rush_epa_allowed_per_attempt": 0.9025146463616095,
+          "rush_success_rate_allowed": 0.4658590872574145,
+          "sack_rate_generated": 0.07930135379591766,
+          "stuff_rate_forced": 0.9793035505649
+        },
+        "designed_rushes": 44,
+        "pass_dropbacks": 70,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 70,
+        "qb_hit_rate_generated": 0.18571428571428572,
+        "qb_hits_generated": 13,
+        "research_proxy_v1": 0.022377066511730197,
+        "rush_epa_allowed_per_attempt": 0.03601060864887566,
+        "rush_epa_observed": 44,
+        "rush_success_observed": 44,
+        "rush_success_rate_allowed": 0.4318181818181818,
+        "rush_yards_observed": 44,
+        "sack_rate_generated": 0.07142857142857142,
+        "sacks_generated": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.25
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.8643023646688874,
+          "rush_epa_per_attempt": 1.8419539209547557,
+          "rush_success_rate": 2.4889204286891484,
+          "sack_rate_allowed": 0.4476923658326555,
+          "stuff_rate_allowed": -1.3135357216533383
+        },
+        "designed_rushes": 49,
+        "pass_dropbacks": 59,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 59,
+        "qb_hit_rate_allowed": 0.13559322033898305,
+        "qb_hits_allowed": 8,
+        "research_proxy_v1": 1.2122040140266948,
+        "rush_epa_observed": 49,
+        "rush_epa_per_attempt": 0.17645544264291516,
+        "rush_success_observed": 49,
+        "rush_success_rate": 0.5714285714285714,
+        "rush_yards_observed": 49,
+        "sack_rate_allowed": 0.0847457627118644,
+        "sacks_allowed": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.10204081632653061
+      },
+      "team": "BAL"
+    },
+    "BUF": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 1.266761245256303,
+          "rush_epa_allowed_per_attempt": 0.3312927758774352,
+          "rush_success_rate_allowed": -0.07463035209618836,
+          "sack_rate_generated": 0.5271704064684452,
+          "stuff_rate_forced": 2.3997995402325043
+        },
+        "designed_rushes": 49,
+        "pass_dropbacks": 83,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 83,
+        "qb_hit_rate_generated": 0.2289156626506024,
+        "qb_hits_generated": 19,
+        "research_proxy_v1": 0.787413753635201,
+        "rush_epa_allowed_per_attempt": -0.05821396454014866,
+        "rush_epa_observed": 49,
+        "rush_success_observed": 49,
+        "rush_success_rate_allowed": 0.3877551020408163,
+        "rush_yards_observed": 49,
+        "sack_rate_generated": 0.08433734939759036,
+        "sacks_generated": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.3469387755102041
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.08717748542524247,
+          "rush_epa_per_attempt": 1.084681468924784,
+          "rush_success_rate": 0.9965624356931597,
+          "sack_rate_allowed": -0.2488637333558895,
+          "stuff_rate_allowed": -1.242014013217503
+        },
+        "designed_rushes": 47,
+        "pass_dropbacks": 65,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 65,
+        "qb_hit_rate_allowed": 0.16923076923076924,
+        "qb_hits_allowed": 11,
+        "research_proxy_v1": 0.6969888331532188,
+        "rush_epa_observed": 47,
+        "rush_epa_per_attempt": 0.06127817522699738,
+        "rush_success_observed": 47,
+        "rush_success_rate": 0.46808510638297873,
+        "rush_yards_observed": 47,
+        "sack_rate_allowed": 0.06153846153846154,
+        "sacks_allowed": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.10638297872340426
+      },
+      "team": "BUF"
+    },
+    "CAR": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.8401397897581313,
+          "rush_epa_allowed_per_attempt": 0.9934743803918221,
+          "rush_success_rate_allowed": 0.07556881841891849,
+          "sack_rate_generated": 0.22949582398508872,
+          "stuff_rate_forced": -1.4629527123723842
+        },
+        "designed_rushes": 60,
+        "pass_dropbacks": 66,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 66,
+        "qb_hit_rate_generated": 0.12121212121212122,
+        "qb_hits_generated": 8,
+        "research_proxy_v1": -0.6285279753912334,
+        "rush_epa_allowed_per_attempt": 0.05101465971771758,
+        "rush_epa_observed": 60,
+        "rush_success_observed": 60,
+        "rush_success_rate_allowed": 0.4,
+        "rush_yards_observed": 60,
+        "sack_rate_generated": 0.07575757575757576,
+        "sacks_generated": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.08333333333333333
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.7106395981808175,
+          "rush_epa_per_attempt": -0.3160582562500594,
+          "rush_success_rate": 0.5317480683422218,
+          "sack_rate_allowed": -0.5567050056564452,
+          "stuff_rate_allowed": -0.882571581078433
+        },
+        "designed_rushes": 39,
+        "pass_dropbacks": 78,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 78,
+        "qb_hit_rate_allowed": 0.14102564102564102,
+        "qb_hits_allowed": 11,
+        "research_proxy_v1": 0.4731211994015716,
+        "rush_epa_observed": 39,
+        "rush_epa_per_attempt": -0.1517671738730339,
+        "rush_success_observed": 39,
+        "rush_success_rate": 0.4358974358974359,
+        "rush_yards_observed": 39,
+        "sack_rate_allowed": 0.05128205128205128,
+        "sacks_allowed": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.1282051282051282
+      },
+      "team": "CAR"
+    },
+    "CHI": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.4167190006390079,
+          "rush_epa_allowed_per_attempt": -0.13862058363838622,
+          "rush_success_rate_allowed": -0.2977523082961654,
+          "sack_rate_generated": 0.3546578824760642,
+          "stuff_rate_forced": -0.45419469072437535
+        },
+        "designed_rushes": 46,
+        "pass_dropbacks": 63,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 63,
+        "qb_hit_rate_generated": 0.14285714285714285,
+        "qb_hits_generated": 9,
+        "research_proxy_v1": -0.015976583390553484,
+        "rush_epa_allowed_per_attempt": -0.1357274282642683,
+        "rush_epa_observed": 46,
+        "rush_success_observed": 46,
+        "rush_success_rate_allowed": 0.3695652173913043,
+        "rush_yards_observed": 46,
+        "sack_rate_generated": 0.07936507936507936,
+        "sacks_generated": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.15217391304347827
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.6295669651890458,
+          "rush_epa_per_attempt": 0.7513933926305549,
+          "rush_success_rate": -0.22731742817070785,
+          "sack_rate_allowed": 0.514047245823748,
+          "stuff_rate_allowed": -0.24905429443332178
+        },
+        "designed_rushes": 60,
+        "pass_dropbacks": 69,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 69,
+        "qb_hit_rate_allowed": 0.18840579710144928,
+        "qb_hits_allowed": 13,
+        "research_proxy_v1": -0.07409679042392496,
+        "rush_epa_observed": 60,
+        "rush_epa_per_attempt": 0.010586763190318808,
+        "rush_success_observed": 60,
+        "rush_success_rate": 0.38333333333333336,
+        "rush_yards_observed": 60,
+        "sack_rate_allowed": 0.08695652173913043,
+        "sacks_allowed": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.16666666666666666
+      },
+      "team": "CHI"
+    },
+    "CIN": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.3856681427702723,
+          "rush_epa_allowed_per_attempt": -1.5069661451940735,
+          "rush_success_rate_allowed": -1.9688087802589191,
+          "sack_rate_generated": 0.6850857168922404,
+          "stuff_rate_forced": 1.7119804294460852
+        },
+        "designed_rushes": 30,
+        "pass_dropbacks": 90,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 90,
+        "qb_hit_rate_generated": 0.14444444444444443,
+        "qb_hits_generated": 13,
+        "research_proxy_v1": 1.0974345858042092,
+        "rush_epa_allowed_per_attempt": -0.36143968329994536,
+        "rush_epa_observed": 30,
+        "rush_success_observed": 30,
+        "rush_success_rate_allowed": 0.23333333333333334,
+        "rush_yards_observed": 30,
+        "sack_rate_generated": 0.08888888888888889,
+        "sacks_generated": 8,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.3
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 1.1932420786063707,
+          "rush_epa_per_attempt": 0.18572516217862914,
+          "rush_success_rate": -0.2324382644211847,
+          "sack_rate_allowed": 0.40529897028279077,
+          "stuff_rate_allowed": -0.5411012705463163
+        },
+        "designed_rushes": 47,
+        "pass_dropbacks": 72,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 72,
+        "qb_hit_rate_allowed": 0.20833333333333334,
+        "qb_hits_allowed": 15,
+        "research_proxy_v1": -0.22083057611708012,
+        "rush_epa_observed": 47,
+        "rush_epa_per_attempt": -0.07544848194873426,
+        "rush_success_observed": 47,
+        "rush_success_rate": 0.3829787234042553,
+        "rush_yards_observed": 47,
+        "sack_rate_allowed": 0.08333333333333333,
+        "sacks_allowed": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.14893617021276595
+      },
+      "team": "CIN"
+    },
+    "CLE": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.6457827062280417,
+          "rush_epa_allowed_per_attempt": 0.5928622571733764,
+          "rush_success_rate_allowed": 1.1819378718210418,
+          "sack_rate_generated": -0.12383051162386235,
+          "stuff_rate_forced": 0.1891618184381316
+        },
+        "designed_rushes": 51,
+        "pass_dropbacks": 61,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 61,
+        "qb_hit_rate_generated": 0.13114754098360656,
+        "qb_hits_generated": 8,
+        "research_proxy_v1": -0.4710503056816381,
+        "rush_epa_allowed_per_attempt": -0.015067379985369493,
+        "rush_epa_observed": 51,
+        "rush_success_observed": 51,
+        "rush_success_rate_allowed": 0.49019607843137253,
+        "rush_yards_observed": 51,
+        "sack_rate_generated": 0.06557377049180328,
+        "sacks_generated": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.19607843137254902
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 1.053408961102227,
+          "rush_epa_per_attempt": -1.5415581917638956,
+          "rush_success_rate": -1.0794522604459351,
+          "sack_rate_allowed": 1.465133859029407,
+          "stuff_rate_allowed": 0.5670986063797497
+        },
+        "designed_rushes": 37,
+        "pass_dropbacks": 59,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 59,
+        "qb_hit_rate_allowed": 0.2033898305084746,
+        "qb_hits_allowed": 12,
+        "research_proxy_v1": -1.141330375744243,
+        "rush_epa_observed": 37,
+        "rush_epa_per_attempt": -0.33815944710639395,
+        "rush_success_observed": 37,
+        "rush_success_rate": 0.32432432432432434,
+        "rush_yards_observed": 37,
+        "sack_rate_allowed": 0.11864406779661017,
+        "sacks_allowed": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.21621621621621623
+      },
+      "team": "CLE"
+    },
+    "DAL": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.04904386739202812,
+          "rush_epa_allowed_per_attempt": 0.6712048039290409,
+          "rush_success_rate_allowed": 1.1945965566425762,
+          "sack_rate_generated": -1.3475461130012054,
+          "stuff_rate_forced": -1.39868281071614
+        },
+        "designed_rushes": 57,
+        "pass_dropbacks": 66,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 66,
+        "qb_hit_rate_generated": 0.16666666666666666,
+        "qb_hits_generated": 11,
+        "research_proxy_v1": -0.9125972833793868,
+        "rush_epa_allowed_per_attempt": -0.0021445676561833355,
+        "rush_epa_observed": 57,
+        "rush_success_observed": 57,
+        "rush_success_rate_allowed": 0.49122807017543857,
+        "rush_yards_observed": 57,
+        "sack_rate_generated": 0.030303030303030304,
+        "sacks_generated": 2,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.08771929824561403
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.9000805610452143,
+          "rush_epa_per_attempt": -0.13841784938836757,
+          "rush_success_rate": 0.18325314885278443,
+          "sack_rate_allowed": -1.199955425388949,
+          "stuff_rate_allowed": 1.3657936911326483
+        },
+        "designed_rushes": 34,
+        "pass_dropbacks": 67,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 67,
+        "qb_hit_rate_allowed": 0.13432835820895522,
+        "qb_hits_allowed": 9,
+        "research_proxy_v1": 0.1558155189531864,
+        "rush_epa_observed": 34,
+        "rush_epa_per_attempt": -0.12474897640640835,
+        "rush_success_observed": 34,
+        "rush_success_rate": 0.4117647058823529,
+        "rush_yards_observed": 34,
+        "sack_rate_allowed": 0.029850746268656716,
+        "sacks_allowed": 2,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.2647058823529412
+      },
+      "team": "DAL"
+    },
+    "DEN": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.701111882635479,
+          "rush_epa_allowed_per_attempt": 1.9135416509375658,
+          "rush_success_rate_allowed": 0.5216148399486279,
+          "sack_rate_generated": -0.0859125634121702,
+          "stuff_rate_forced": -1.0855131081002585
+        },
+        "designed_rushes": 55,
+        "pass_dropbacks": 60,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 60,
+        "qb_hit_rate_generated": 0.2,
+        "qb_hits_generated": 12,
+        "research_proxy_v1": -0.5810940559526288,
+        "rush_epa_allowed_per_attempt": 0.2027822133635213,
+        "rush_epa_observed": 55,
+        "rush_success_observed": 55,
+        "rush_success_rate_allowed": 0.43636363636363634,
+        "rush_yards_observed": 55,
+        "sack_rate_generated": 0.06666666666666667,
+        "sacks_generated": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.10909090909090909
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -1.1078212631795052,
+          "rush_epa_per_attempt": 0.22123301752695504,
+          "rush_success_rate": -0.06264211506328175,
+          "sack_rate_allowed": -0.19022730053673625,
+          "stuff_rate_allowed": -0.3935406931418559
+        },
+        "designed_rushes": 38,
+        "pass_dropbacks": 63,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 63,
+        "qb_hit_rate_allowed": 0.12698412698412698,
+        "qb_hits_allowed": 8,
+        "research_proxy_v1": 0.37003603186435413,
+        "rush_epa_observed": 38,
+        "rush_epa_per_attempt": -0.07004791873022966,
+        "rush_success_observed": 38,
+        "rush_success_rate": 0.39473684210526316,
+        "rush_yards_observed": 38,
+        "sack_rate_allowed": 0.06349206349206349,
+        "sacks_allowed": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.15789473684210525
+      },
+      "team": "DEN"
+    },
+    "DET": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.32651961855945427,
+          "rush_epa_allowed_per_attempt": 1.4149790352863372,
+          "rush_success_rate_allowed": 0.7009078486027274,
+          "sack_rate_generated": 0.18475704563086742,
+          "stuff_rate_forced": -0.9601352464735315
+        },
+        "designed_rushes": 51,
+        "pass_dropbacks": 94,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 94,
+        "qb_hit_rate_generated": 0.18085106382978725,
+        "qb_hits_generated": 17,
+        "research_proxy_v1": -0.5129490932344549,
+        "rush_epa_allowed_per_attempt": 0.1205429783217634,
+        "rush_epa_observed": 51,
+        "rush_success_observed": 51,
+        "rush_success_rate_allowed": 0.45098039215686275,
+        "rush_yards_observed": 51,
+        "sack_rate_generated": 0.07446808510638298,
+        "sacks_generated": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.11764705882352941
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 1.5094500690599915,
+          "rush_epa_per_attempt": 0.12142375815888073,
+          "rush_success_rate": 0.590992204655426,
+          "sack_rate_allowed": -0.26575746171384695,
+          "stuff_rate_allowed": 1.2882809878254817
+        },
+        "designed_rushes": 50,
+        "pass_dropbacks": 82,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 82,
+        "qb_hit_rate_allowed": 0.21951219512195122,
+        "qb_hits_allowed": 18,
+        "research_proxy_v1": -0.3639115264714639,
+        "rush_epa_observed": 50,
+        "rush_epa_per_attempt": -0.08522839667578999,
+        "rush_success_observed": 50,
+        "rush_success_rate": 0.44,
+        "rush_yards_observed": 50,
+        "sack_rate_allowed": 0.06097560975609756,
+        "sacks_allowed": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.26
+      },
+      "team": "DET"
+    },
+    "GB": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.32073887374346594,
+          "rush_epa_allowed_per_attempt": -1.1156813914079724,
+          "rush_success_rate_allowed": -1.4637272558796883,
+          "sack_rate_generated": 0.9742100720063942,
+          "stuff_rate_forced": 1.0511346171218787
+        },
+        "designed_rushes": 51,
+        "pass_dropbacks": 72,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 72,
+        "qb_hit_rate_generated": 0.18055555555555555,
+        "qb_hits_generated": 13,
+        "research_proxy_v1": 0.9850984420318799,
+        "rush_epa_allowed_per_attempt": -0.2968962180968054,
+        "rush_epa_observed": 51,
+        "rush_success_observed": 51,
+        "rush_success_rate_allowed": 0.27450980392156865,
+        "rush_yards_observed": 51,
+        "sack_rate_generated": 0.09722222222222222,
+        "sacks_generated": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.2549019607843137
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 1.8278693042021,
+          "rush_epa_per_attempt": -2.175781074029398,
+          "rush_success_rate": -0.9493553394878858,
+          "sack_rate_allowed": 0.5976997654706382,
+          "stuff_rate_allowed": 0.3844629922117895
+        },
+        "designed_rushes": 39,
+        "pass_dropbacks": 78,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 78,
+        "qb_hit_rate_allowed": 0.23076923076923078,
+        "qb_hits_allowed": 18,
+        "research_proxy_v1": -1.1870336950803622,
+        "rush_epa_observed": 39,
+        "rush_epa_per_attempt": -0.4346215042116968,
+        "rush_success_observed": 39,
+        "rush_success_rate": 0.3333333333333333,
+        "rush_yards_observed": 39,
+        "sack_rate_allowed": 0.08974358974358974,
+        "sacks_allowed": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.20512820512820512
+      },
+      "team": "GB"
+    },
+    "HOU": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.24082857775774924,
+          "rush_epa_allowed_per_attempt": -0.7615731495264187,
+          "rush_success_rate_allowed": -0.6424564845313463,
+          "sack_rate_generated": 1.172628747084735,
+          "stuff_rate_forced": -0.5396607105302402
+        },
+        "designed_rushes": 41,
+        "pass_dropbacks": 68,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 68,
+        "qb_hit_rate_generated": 0.17647058823529413,
+        "qb_hits_generated": 12,
+        "research_proxy_v1": 0.4555652496740018,
+        "rush_epa_allowed_per_attempt": -0.23848511782551496,
+        "rush_epa_observed": 41,
+        "rush_success_observed": 41,
+        "rush_success_rate_allowed": 0.34146341463414637,
+        "rush_yards_observed": 41,
+        "sack_rate_generated": 0.10294117647058823,
+        "sacks_generated": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.14634146341463414
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.12821114871633826,
+          "rush_epa_per_attempt": -0.8886462271457986,
+          "rush_success_rate": -1.3679280417007416,
+          "sack_rate_allowed": 0.026327707034000884,
+          "stuff_rate_allowed": 2.0187539635571494
+        },
+        "designed_rushes": 46,
+        "pass_dropbacks": 99,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 99,
+        "qb_hit_rate_allowed": 0.16161616161616163,
+        "qb_hits_allowed": 16,
+        "research_proxy_v1": -0.8346889581442705,
+        "rush_epa_observed": 46,
+        "rush_epa_per_attempt": -0.2388548761474408,
+        "rush_success_observed": 46,
+        "rush_success_rate": 0.30434782608695654,
+        "rush_yards_observed": 46,
+        "sack_rate_allowed": 0.0707070707070707,
+        "sacks_allowed": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.30434782608695654
+      },
+      "team": "HOU"
+    },
+    "IND": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -1.3855057661435626,
+          "rush_epa_allowed_per_attempt": 1.7195532727908869,
+          "rush_success_rate_allowed": 1.5136827154198802,
+          "sack_rate_generated": -0.5485115315948164,
+          "stuff_rate_forced": -1.4208448457700171
+        },
+        "designed_rushes": 58,
+        "pass_dropbacks": 75,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 75,
+        "qb_hit_rate_generated": 0.09333333333333334,
+        "qb_hits_generated": 7,
+        "research_proxy_v1": -1.3176196263438327,
+        "rush_epa_allowed_per_attempt": 0.1707833122727615,
+        "rush_epa_observed": 58,
+        "rush_success_observed": 58,
+        "rush_success_rate_allowed": 0.5172413793103449,
+        "rush_yards_observed": 58,
+        "sack_rate_generated": 0.05333333333333334,
+        "sacks_generated": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.08620689655172414
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 1.0459179012359332,
+          "rush_epa_per_attempt": 1.7303091896793197,
+          "rush_success_rate": 1.0153736708989918,
+          "sack_rate_allowed": -1.1579574906184678,
+          "stuff_rate_allowed": 1.3756805155340728
+        },
+        "designed_rushes": 49,
+        "pass_dropbacks": 64,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 64,
+        "qb_hit_rate_allowed": 0.203125,
+        "qb_hits_allowed": 13,
+        "research_proxy_v1": 0.29640838688535465,
+        "rush_epa_observed": 49,
+        "rush_epa_per_attempt": 0.15947484994444966,
+        "rush_success_observed": 49,
+        "rush_success_rate": 0.46938775510204084,
+        "rush_yards_observed": 49,
+        "sack_rate_allowed": 0.03125,
+        "sacks_allowed": 2,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.2653061224489796
+      },
+      "team": "IND"
+    },
+    "JAX": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.4987459468702698,
+          "rush_epa_allowed_per_attempt": 0.17034217181571204,
+          "rush_success_rate_allowed": 0.4658590872574145,
+          "sack_rate_generated": 0.5920342003037772,
+          "stuff_rate_forced": -0.019801284273079787
+        },
+        "designed_rushes": 44,
+        "pass_dropbacks": 58,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 58,
+        "qb_hit_rate_generated": 0.1896551724137931,
+        "qb_hits_generated": 11,
+        "research_proxy_v1": 0.08695552076556813,
+        "rush_epa_allowed_per_attempt": -0.08476319655638266,
+        "rush_epa_observed": 44,
+        "rush_success_observed": 44,
+        "rush_success_rate_allowed": 0.4318181818181818,
+        "rush_yards_observed": 44,
+        "sack_rate_generated": 0.08620689655172414,
+        "sacks_generated": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.18181818181818182
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.4432280847205086,
+          "rush_epa_per_attempt": 0.7314532587091674,
+          "rush_success_rate": 1.3212041300629864,
+          "sack_rate_allowed": -0.45875550992445024,
+          "stuff_rate_allowed": -0.1972572835755454
+        },
+        "designed_rushes": 53,
+        "pass_dropbacks": 55,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 55,
+        "qb_hit_rate_allowed": 0.18181818181818182,
+        "qb_hits_allowed": 10,
+        "research_proxy_v1": 0.45308841951032813,
+        "rush_epa_observed": 53,
+        "rush_epa_per_attempt": 0.007553970790679321,
+        "rush_success_observed": 53,
+        "rush_success_rate": 0.49056603773584906,
+        "rush_yards_observed": 53,
+        "sack_rate_allowed": 0.05454545454545454,
+        "sacks_allowed": 3,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.16981132075471697
+      },
+      "team": "JAX"
+    },
+    "KC": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.4167190006390079,
+          "rush_epa_allowed_per_attempt": 1.3060630680985934,
+          "rush_success_rate_allowed": 0.30377841082946777,
+          "sack_rate_generated": -0.1960551748842289,
+          "stuff_rate_forced": 0.382938649149982
+        },
+        "designed_rushes": 43,
+        "pass_dropbacks": 63,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 63,
+        "qb_hit_rate_generated": 0.14285714285714285,
+        "qb_hits_generated": 9,
+        "research_proxy_v1": -0.36793540106026323,
+        "rush_epa_allowed_per_attempt": 0.10257699863503279,
+        "rush_epa_observed": 43,
+        "rush_success_observed": 43,
+        "rush_success_rate_allowed": 0.4186046511627907,
+        "rush_yards_observed": 43,
+        "sack_rate_generated": 0.06349206349206349,
+        "sacks_generated": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.20930232558139536
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -1.435927856004508,
+          "rush_epa_per_attempt": 2.2228913572051265,
+          "rush_success_rate": 1.4574376982360386,
+          "sack_rate_allowed": -0.5567050056564452,
+          "stuff_rate_allowed": -1.2903528230568952
+        },
+        "designed_rushes": 58,
+        "pass_dropbacks": 78,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 78,
+        "qb_hit_rate_allowed": 0.11538461538461539,
+        "qb_hits_allowed": 9,
+        "research_proxy_v1": 1.3926629480318027,
+        "rush_epa_observed": 58,
+        "rush_epa_per_attempt": 0.23439407865975329,
+        "rush_success_observed": 58,
+        "rush_success_rate": 0.5,
+        "rush_yards_observed": 58,
+        "sack_rate_allowed": 0.05128205128205128,
+        "sacks_allowed": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.10344827586206896
+      },
+      "team": "KC"
+    },
+    "LAC": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.7578134491783878,
+          "rush_epa_allowed_per_attempt": -0.7257103962537156,
+          "rush_success_rate_allowed": -1.0395462354053568,
+          "sack_rate_generated": -0.890432508077642,
+          "stuff_rate_forced": 0.24662667168371494
+        },
+        "designed_rushes": 55,
+        "pass_dropbacks": 69,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 69,
+        "qb_hit_rate_generated": 0.2028985507246377,
+        "qb_hits_generated": 14,
+        "research_proxy_v1": 0.3758528488887066,
+        "rush_epa_allowed_per_attempt": -0.23256946088885122,
+        "rush_epa_observed": 55,
+        "rush_success_observed": 55,
+        "rush_success_rate_allowed": 0.3090909090909091,
+        "rush_yards_observed": 55,
+        "sack_rate_generated": 0.043478260869565216,
+        "sacks_generated": 3,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.2
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.9575233948136712,
+          "rush_epa_per_attempt": -2.2741451916385698,
+          "rush_success_rate": -0.8469386144783569,
+          "sack_rate_allowed": 0.9055410377711939,
+          "stuff_rate_allowed": 0.5102678434604642
+        },
+        "designed_rushes": 47,
+        "pass_dropbacks": 60,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 60,
+        "qb_hit_rate_allowed": 0.2,
+        "qb_hits_allowed": 12,
+        "research_proxy_v1": -1.0988832164324511,
+        "rush_epa_observed": 47,
+        "rush_epa_per_attempt": -0.4495821834858902,
+        "rush_success_observed": 47,
+        "rush_success_rate": 0.3404255319148936,
+        "rush_yards_observed": 47,
+        "sack_rate_allowed": 0.1,
+        "sacks_allowed": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.2127659574468085
+      },
+      "team": "LAC"
+    },
+    "LAR": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.33452555333941303,
+          "rush_epa_allowed_per_attempt": 0.43234646735334237,
+          "rush_success_rate_allowed": 0.1757015987623226,
+          "sack_rate_generated": -1.3784685039225053,
+          "stuff_rate_forced": -1.1888219073488115
+        },
+        "designed_rushes": 49,
+        "pass_dropbacks": 68,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 68,
+        "qb_hit_rate_generated": 0.14705882352941177,
+        "qb_hits_generated": 10,
+        "research_proxy_v1": -0.701972806145279,
+        "rush_epa_allowed_per_attempt": -0.04154488823110967,
+        "rush_epa_observed": 49,
+        "rush_success_observed": 49,
+        "rush_success_rate_allowed": 0.40816326530612246,
+        "rush_yards_observed": 49,
+        "sack_rate_generated": 0.029411764705882353,
+        "sacks_generated": 2,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.10204081632653061
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.09455329821666934,
+          "rush_epa_per_attempt": -0.1222812219822744,
+          "rush_success_rate": 1.599013759278622,
+          "sack_rate_allowed": -1.5871906205608473,
+          "stuff_rate_allowed": -1.7024174814426944
+        },
+        "designed_rushes": 51,
+        "pass_dropbacks": 59,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 59,
+        "qb_hit_rate_allowed": 0.1694915254237288,
+        "qb_hits_allowed": 10,
+        "research_proxy_v1": 0.9343574682166439,
+        "rush_epa_observed": 51,
+        "rush_epa_per_attempt": -0.12229467789738367,
+        "rush_success_observed": 51,
+        "rush_success_rate": 0.5098039215686274,
+        "rush_yards_observed": 51,
+        "sack_rate_allowed": 0.01694915254237288,
+        "sacks_allowed": 1,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.0784313725490196
+      },
+      "team": "LAR"
+    },
+    "LV": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 2.152489077854771,
+          "rush_epa_allowed_per_attempt": -2.0079079125619486,
+          "rush_success_rate_allowed": -1.2068134934789978,
+          "sack_rate_generated": 2.0778568038937557,
+          "stuff_rate_forced": 0.6462686056189066
+        },
+        "designed_rushes": 44,
+        "pass_dropbacks": 62,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 62,
+        "qb_hit_rate_generated": 0.27419354838709675,
+        "qb_hits_generated": 17,
+        "research_proxy_v1": 1.6182671786816758,
+        "rush_epa_allowed_per_attempt": -0.44407136577174117,
+        "rush_epa_observed": 44,
+        "rush_success_observed": 44,
+        "rush_success_rate_allowed": 0.29545454545454547,
+        "rush_yards_observed": 44,
+        "sack_rate_generated": 0.12903225806451613,
+        "sacks_generated": 8,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.22727272727272727
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.40107273143418387,
+          "rush_epa_per_attempt": -0.927283522748237,
+          "rush_success_rate": -1.032348202857676,
+          "sack_rate_allowed": -1.111828611444332,
+          "stuff_rate_allowed": 1.2655617472009675
+        },
+        "designed_rushes": 58,
+        "pass_dropbacks": 61,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 61,
+        "qb_hit_rate_allowed": 0.18032786885245902,
+        "qb_hits_allowed": 11,
+        "research_proxy_v1": -0.5028875185593464,
+        "rush_epa_observed": 58,
+        "rush_epa_per_attempt": -0.24473141122527273,
+        "rush_success_observed": 58,
+        "rush_success_rate": 0.3275862068965517,
+        "rush_yards_observed": 58,
+        "sack_rate_allowed": 0.03278688524590164,
+        "sacks_allowed": 2,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.25862068965517243
+      },
+      "team": "LV"
+    },
+    "MIA": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -1.706523865955723,
+          "rush_epa_allowed_per_attempt": -0.14670964052785707,
+          "rush_success_rate_allowed": -0.14745419234593657,
+          "sack_rate_generated": -2.3989074043254015,
+          "stuff_rate_forced": 0.24662667168371494
+        },
+        "designed_rushes": 55,
+        "pass_dropbacks": 52,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 52,
+        "qb_hit_rate_generated": 0.07692307692307693,
+        "qb_hits_generated": 4,
+        "research_proxy_v1": -0.7129281531447231,
+        "rush_epa_allowed_per_attempt": -0.13706173980291106,
+        "rush_epa_observed": 55,
+        "rush_success_observed": 55,
+        "rush_success_rate_allowed": 0.38181818181818183,
+        "rush_yards_observed": 55,
+        "sack_rate_generated": 0.0,
+        "sacks_generated": 0,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.2
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 1.532836792545005,
+          "rush_epa_per_attempt": -0.7053816417502198,
+          "rush_success_rate": -0.12752357050898436,
+          "sack_rate_allowed": 2.4825753522261587,
+          "stuff_rate_allowed": 1.023130825902796
+        },
+        "designed_rushes": 41,
+        "pass_dropbacks": 59,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 59,
+        "qb_hit_rate_allowed": 0.22033898305084745,
+        "qb_hits_allowed": 13,
+        "research_proxy_v1": -1.1742896365866327,
+        "rush_epa_observed": 41,
+        "rush_epa_per_attempt": -0.2109812698867202,
+        "rush_success_observed": 41,
+        "rush_success_rate": 0.3902439024390244,
+        "rush_yards_observed": 41,
+        "sack_rate_allowed": 0.15254237288135594,
+        "sacks_allowed": 9,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.24390243902439024
+      },
+      "team": "MIA"
+    },
+    "MIN": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 2.6107396415627266,
+          "rush_epa_allowed_per_attempt": -1.368797472977918,
+          "rush_success_rate_allowed": -0.8256262046717207,
+          "sack_rate_generated": 0.9053709398363574,
+          "stuff_rate_forced": 0.6054888164418464
+        },
+        "designed_rushes": 49,
+        "pass_dropbacks": 84,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 84,
+        "qb_hit_rate_generated": 0.2976190476190476,
+        "qb_hits_generated": 25,
+        "research_proxy_v1": 1.2632046150981138,
+        "rush_epa_allowed_per_attempt": -0.33864839178894895,
+        "rush_epa_observed": 49,
+        "rush_success_observed": 49,
+        "rush_success_rate_allowed": 0.32653061224489793,
+        "rush_yards_observed": 49,
+        "sack_rate_generated": 0.09523809523809523,
+        "sacks_generated": 8,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.22448979591836735
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.2919647582225199,
+          "rush_epa_per_attempt": -0.2240186961083775,
+          "rush_success_rate": -1.2994343267931836,
+          "sack_rate_allowed": 1.4352091092295025,
+          "stuff_rate_allowed": 0.2999940206591083
+        },
+        "designed_rushes": 55,
+        "pass_dropbacks": 51,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 51,
+        "qb_hit_rate_allowed": 0.17647058823529413,
+        "qb_hits_allowed": 9,
+        "research_proxy_v1": -0.7101241822025384,
+        "rush_epa_observed": 55,
+        "rush_epa_per_attempt": -0.1377684274471407,
+        "rush_success_observed": 55,
+        "rush_success_rate": 0.3090909090909091,
+        "rush_yards_observed": 55,
+        "sack_rate_allowed": 0.11764705882352941,
+        "sacks_allowed": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.2
+      },
+      "team": "MIN"
+    },
+    "NE": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.4216541618168573,
+          "rush_epa_allowed_per_attempt": 0.009310661165583992,
+          "rush_success_rate_allowed": -1.2408109036565675,
+          "sack_rate_generated": 0.5749431054201817,
+          "stuff_rate_forced": -1.2544674216338354
+        },
+        "designed_rushes": 41,
+        "pass_dropbacks": 70,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 70,
+        "qb_hit_rate_generated": 0.18571428571428572,
+        "qb_hits_generated": 13,
+        "research_proxy_v1": 0.1947260176188374,
+        "rush_epa_allowed_per_attempt": -0.11132577433046408,
+        "rush_epa_observed": 41,
+        "rush_success_observed": 41,
+        "rush_success_rate_allowed": 0.2926829268292683,
+        "rush_yards_observed": 41,
+        "sack_rate_generated": 0.08571428571428572,
+        "sacks_generated": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.0975609756097561
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.40107273143418387,
+          "rush_epa_per_attempt": -0.6797132415498904,
+          "rush_success_rate": -1.3423011415652608,
+          "sack_rate_allowed": 0.856336899985449,
+          "stuff_rate_allowed": 1.3756805155340728
+        },
+        "designed_rushes": 49,
+        "pass_dropbacks": 61,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 61,
+        "qb_hit_rate_allowed": 0.18032786885245902,
+        "qb_hits_allowed": 11,
+        "research_proxy_v1": -0.9310209060137714,
+        "rush_epa_observed": 49,
+        "rush_epa_per_attempt": -0.20707723747924645,
+        "rush_success_observed": 49,
+        "rush_success_rate": 0.30612244897959184,
+        "rush_yards_observed": 49,
+        "sack_rate_allowed": 0.09836065573770492,
+        "sacks_allowed": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.2653061224489796
+      },
+      "team": "NE"
+    },
+    "NO": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.2723548315164974,
+          "rush_epa_allowed_per_attempt": 0.9524083416730984,
+          "rush_success_rate_allowed": 2.5288219368323226,
+          "sack_rate_generated": -0.497815754259732,
+          "stuff_rate_forced": -0.6325855829737074
+        },
+        "designed_rushes": 50,
+        "pass_dropbacks": 73,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 73,
+        "qb_hit_rate_generated": 0.1780821917808219,
+        "qb_hits_generated": 13,
+        "research_proxy_v1": -0.8678553568444727,
+        "rush_epa_allowed_per_attempt": 0.04424070694949476,
+        "rush_epa_observed": 50,
+        "rush_success_observed": 50,
+        "rush_success_rate_allowed": 0.6,
+        "rush_yards_observed": 50,
+        "sack_rate_generated": 0.0547945205479452,
+        "sacks_generated": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.14
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.9474684170620223,
+          "rush_epa_per_attempt": 0.36056602515507735,
+          "rush_success_rate": -0.6485062097723947,
+          "sack_rate_allowed": 0.3542538613554027,
+          "stuff_rate_allowed": 0.43725609943221566
+        },
+        "designed_rushes": 48,
+        "pass_dropbacks": 98,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 98,
+        "qb_hit_rate_allowed": 0.1326530612244898,
+        "qb_hits_allowed": 13,
+        "research_proxy_v1": -0.026396345668582677,
+        "rush_epa_observed": 48,
+        "rush_epa_per_attempt": -0.048856080790754215,
+        "rush_success_observed": 48,
+        "rush_success_rate": 0.3541666666666667,
+        "rush_yards_observed": 48,
+        "sack_rate_allowed": 0.08163265306122448,
+        "sacks_allowed": 8,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.20833333333333334
+      },
+      "team": "NO"
+    },
+    "NYG": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -1.706523865955723,
+          "rush_epa_allowed_per_attempt": 0.46356685371364376,
+          "rush_success_rate_allowed": 1.3021953776256205,
+          "sack_rate_generated": -1.8651393641146559,
+          "stuff_rate_forced": -1.5850655255192485
+        },
+        "designed_rushes": 40,
+        "pass_dropbacks": 65,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 65,
+        "qb_hit_rate_generated": 0.07692307692307693,
+        "qb_hits_generated": 5,
+        "research_proxy_v1": -1.3844981973857782,
+        "rush_epa_allowed_per_attempt": -0.03639500211575068,
+        "rush_epa_observed": 40,
+        "rush_success_observed": 40,
+        "rush_success_rate_allowed": 0.5,
+        "rush_yards_observed": 40,
+        "sack_rate_generated": 0.015384615384615385,
+        "sacks_generated": 1,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.075
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.9575233948136712,
+          "rush_epa_per_attempt": 0.18122696024581644,
+          "rush_success_rate": -0.04113155166753641,
+          "sack_rate_allowed": -0.2488637333558895,
+          "stuff_rate_allowed": -1.4403855441621785
+        },
+        "designed_rushes": 53,
+        "pass_dropbacks": 65,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 65,
+        "qb_hit_rate_allowed": 0.2,
+        "qb_hits_allowed": 13,
+        "research_proxy_v1": 0.17436425825653534,
+        "rush_epa_observed": 53,
+        "rush_epa_per_attempt": -0.07613263545982205,
+        "rush_success_observed": 53,
+        "rush_success_rate": 0.39622641509433965,
+        "rush_yards_observed": 53,
+        "sack_rate_allowed": 0.06153846153846154,
+        "sacks_allowed": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.09433962264150944
+      },
+      "team": "NYG"
+    },
+    "NYJ": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.8755301840725657,
+          "rush_epa_allowed_per_attempt": -1.2429375751434837,
+          "rush_success_rate_allowed": -0.45012827838395414,
+          "sack_rate_generated": 0.7081005909311777,
+          "stuff_rate_forced": -1.1140589605242008
+        },
+        "designed_rushes": 28,
+        "pass_dropbacks": 67,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 67,
+        "qb_hit_rate_generated": 0.11940298507462686,
+        "qb_hits_generated": 8,
+        "research_proxy_v1": 0.0823154599723698,
+        "rush_epa_allowed_per_attempt": -0.31788746548720936,
+        "rush_epa_observed": 28,
+        "rush_success_observed": 28,
+        "rush_success_rate_allowed": 0.35714285714285715,
+        "rush_yards_observed": 28,
+        "sack_rate_generated": 0.08955223880597014,
+        "sacks_generated": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.10714285714285714
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.9559576853858892,
+          "rush_epa_per_attempt": -0.5474738005927464,
+          "rush_success_rate": -0.18931543283822552,
+          "sack_rate_allowed": -0.3303511289648602,
+          "stuff_rate_allowed": 0.7623504965264172
+        },
+        "designed_rushes": 57,
+        "pass_dropbacks": 68,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 68,
+        "qb_hit_rate_allowed": 0.1323529411764706,
+        "qb_hits_allowed": 9,
+        "research_proxy_v1": -0.04256618312132794,
+        "rush_epa_observed": 57,
+        "rush_epa_per_attempt": -0.18696429475536452,
+        "rush_success_observed": 57,
+        "rush_success_rate": 0.38596491228070173,
+        "rush_yards_observed": 57,
+        "sack_rate_allowed": 0.058823529411764705,
+        "sacks_allowed": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.22807017543859648
+      },
+      "team": "NYJ"
+    },
+    "PHI": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -1.5249134107818174,
+          "rush_epa_allowed_per_attempt": 0.8107673987405473,
+          "rush_success_rate_allowed": 0.8641144636232271,
+          "sack_rate_generated": -0.6043424415478944,
+          "stuff_rate_forced": -0.06737770497965027
+        },
+        "designed_rushes": 56,
+        "pass_dropbacks": 58,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 58,
+        "qb_hit_rate_generated": 0.08620689655172414,
+        "qb_hits_generated": 5,
+        "research_proxy_v1": -0.7743030839346272,
+        "rush_epa_allowed_per_attempt": 0.020876655109885907,
+        "rush_epa_observed": 56,
+        "rush_success_observed": 56,
+        "rush_success_rate_allowed": 0.4642857142857143,
+        "rush_yards_observed": 56,
+        "sack_rate_generated": 0.05172413793103448,
+        "sacks_generated": 3,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.17857142857142858
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.12400938964694982,
+          "rush_epa_per_attempt": -0.24070712847666453,
+          "rush_success_rate": -1.250204469203376,
+          "sack_rate_allowed": 0.5524289901323213,
+          "stuff_rate_allowed": 0.780411296364984
+        },
+        "designed_rushes": 48,
+        "pass_dropbacks": 68,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 68,
+        "qb_hit_rate_allowed": 0.16176470588235295,
+        "qb_hits_allowed": 11,
+        "research_proxy_v1": -0.5399484989060792,
+        "rush_epa_observed": 48,
+        "rush_epa_per_attempt": -0.14030665266909634,
+        "rush_success_observed": 48,
+        "rush_success_rate": 0.3125,
+        "rush_yards_observed": 48,
+        "sack_rate_allowed": 0.08823529411764706,
+        "sacks_allowed": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.22916666666666666
+      },
+      "team": "PHI"
+    },
+    "PIT": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 1.007967419220632,
+          "rush_epa_allowed_per_attempt": 0.39926591940415834,
+          "rush_success_rate_allowed": 0.29859182918377286,
+          "sack_rate_generated": 2.363140797554781,
+          "stuff_rate_forced": 0.779482583597304
+        },
+        "designed_rushes": 55,
+        "pass_dropbacks": 51,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 51,
+        "qb_hit_rate_generated": 0.21568627450980393,
+        "qb_hits_generated": 11,
+        "research_proxy_v1": 0.6905466103569571,
+        "rush_epa_allowed_per_attempt": -0.047001612968782795,
+        "rush_epa_observed": 55,
+        "rush_success_observed": 55,
+        "rush_success_rate_allowed": 0.41818181818181815,
+        "rush_yards_observed": 55,
+        "sack_rate_generated": 0.13725490196078433,
+        "sacks_generated": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.23636363636363636
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.47304516889374604,
+          "rush_epa_per_attempt": -0.3440584519073356,
+          "rush_success_rate": -1.689907043402939,
+          "sack_rate_allowed": -0.025944191345142507,
+          "stuff_rate_allowed": -0.46022672331502523
+        },
+        "designed_rushes": 39,
+        "pass_dropbacks": 87,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 87,
+        "qb_hit_rate_allowed": 0.14942528735632185,
+        "qb_hits_allowed": 13,
+        "research_proxy_v1": -0.2149498823512722,
+        "rush_epa_observed": 39,
+        "rush_epa_per_attempt": -0.1560258604451799,
+        "rush_success_observed": 39,
+        "rush_success_rate": 0.28205128205128205,
+        "rush_yards_observed": 39,
+        "sack_rate_allowed": 0.06896551724137931,
+        "sacks_allowed": 6,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.15384615384615385
+      },
+      "team": "PIT"
+    },
+    "SEA": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.34543841977541495,
+          "rush_epa_allowed_per_attempt": -1.7590124844462889,
+          "rush_success_rate_allowed": -1.5399881132191775,
+          "sack_rate_generated": 0.22949582398508872,
+          "stuff_rate_forced": 0.8899527116769506
+        },
+        "designed_rushes": 41,
+        "pass_dropbacks": 66,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 66,
+        "qb_hit_rate_generated": 0.18181818181818182,
+        "qb_hits_generated": 12,
+        "research_proxy_v1": 0.952777510620584,
+        "rush_epa_allowed_per_attempt": -0.40301540013964926,
+        "rush_epa_observed": 41,
+        "rush_success_observed": 41,
+        "rush_success_rate_allowed": 0.2682926829268293,
+        "rush_yards_observed": 41,
+        "sack_rate_generated": 0.07575757575757576,
+        "sacks_generated": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.24390243902439024
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": 0.10359910635709907,
+          "rush_epa_per_attempt": -0.4309027448601041,
+          "rush_success_rate": -0.22731742817070785,
+          "sack_rate_allowed": -0.39697604361370403,
+          "stuff_rate_allowed": 0.025469863112893034
+        },
+        "designed_rushes": 60,
+        "pass_dropbacks": 53,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 53,
+        "qb_hit_rate_allowed": 0.16981132075471697,
+        "qb_hits_allowed": 9,
+        "research_proxy_v1": -0.07806261977742,
+        "rush_epa_observed": 60,
+        "rush_epa_per_attempt": -0.16923443329918283,
+        "rush_success_observed": 60,
+        "rush_success_rate": 0.38333333333333336,
+        "rush_yards_observed": 60,
+        "sack_rate_allowed": 0.05660377358490566,
+        "sacks_allowed": 3,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.18333333333333332
+      },
+      "team": "SEA"
+    },
+    "SF": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 1.0567853454955425,
+          "rush_epa_allowed_per_attempt": -0.31863590226855154,
+          "rush_success_rate_allowed": 0.9676608614783381,
+          "sack_rate_generated": 0.12435969485266893,
+          "stuff_rate_forced": -0.019801284273079787
+        },
+        "designed_rushes": 55,
+        "pass_dropbacks": 55,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 55,
+        "qb_hit_rate_generated": 0.21818181818181817,
+        "qb_hits_generated": 12,
+        "research_proxy_v1": 0.10246375937306902,
+        "rush_epa_allowed_per_attempt": -0.16542143586771751,
+        "rush_epa_observed": 55,
+        "rush_success_observed": 55,
+        "rush_success_rate_allowed": 0.4727272727272727,
+        "rush_yards_observed": 55,
+        "sack_rate_generated": 0.07272727272727272,
+        "sacks_generated": 4,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.18181818181818182
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -2.679279155130835,
+          "rush_epa_per_attempt": 0.5710406738810508,
+          "rush_success_rate": 0.590992204655426,
+          "sack_rate_allowed": -2.0959113671592227,
+          "stuff_rate_allowed": -1.6765799136736388
+        },
+        "designed_rushes": 50,
+        "pass_dropbacks": 56,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 56,
+        "qb_hit_rate_allowed": 0.07142857142857142,
+        "qb_hits_allowed": 4,
+        "research_proxy_v1": 1.5227606629000348,
+        "rush_epa_observed": 50,
+        "rush_epa_per_attempt": -0.016843963044229707,
+        "rush_success_observed": 50,
+        "rush_success_rate": 0.44,
+        "rush_yards_observed": 50,
+        "sack_rate_allowed": 0.0,
+        "sacks_allowed": 0,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.08
+      },
+      "team": "SF"
+    },
+    "TB": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -0.33452555333941303,
+          "rush_epa_allowed_per_attempt": -0.5855097042357111,
+          "rush_success_rate_allowed": -0.8372695512232786,
+          "sack_rate_generated": -0.8682490537210571,
+          "stuff_rate_forced": 0.382938649149982
+        },
+        "designed_rushes": 43,
+        "pass_dropbacks": 68,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 68,
+        "qb_hit_rate_generated": 0.14705882352941177,
+        "qb_hits_generated": 10,
+        "research_proxy_v1": 0.12058865950970032,
+        "rush_epa_allowed_per_attempt": -0.20944298228430291,
+        "rush_epa_observed": 43,
+        "rush_success_observed": 43,
+        "rush_success_rate_allowed": 0.32558139534883723,
+        "rush_yards_observed": 43,
+        "sack_rate_generated": 0.04411764705882353,
+        "sacks_generated": 3,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.20930232558139536
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.19032410887251805,
+          "rush_epa_per_attempt": 0.9329795835146993,
+          "rush_success_rate": 0.4817107910506644,
+          "sack_rate_allowed": 0.9490403479875767,
+          "stuff_rate_allowed": 0.1219242968453473
+        },
+        "designed_rushes": 37,
+        "pass_dropbacks": 69,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 69,
+        "qb_hit_rate_allowed": 0.15942028985507245,
+        "qb_hits_allowed": 11,
+        "research_proxy_v1": 0.10680996772099154,
+        "rush_epa_observed": 37,
+        "rush_epa_per_attempt": 0.03820509422881964,
+        "rush_success_observed": 37,
+        "rush_success_rate": 0.43243243243243246,
+        "rush_yards_observed": 37,
+        "sack_rate_allowed": 0.10144927536231885,
+        "sacks_allowed": 7,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.1891891891891892
+      },
+      "team": "TB"
+    },
+    "TEN": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": -1.0716980338076523,
+          "rush_epa_allowed_per_attempt": 0.31604357746443407,
+          "rush_success_rate_allowed": 0.34389337824538435,
+          "sack_rate_generated": -0.7725829068082857,
+          "stuff_rate_forced": 0.06345745196341847
+        },
+        "designed_rushes": 64,
+        "pass_dropbacks": 64,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 64,
+        "qb_hit_rate_generated": 0.109375,
+        "qb_hits_generated": 7,
+        "research_proxy_v1": -0.48815208887246764,
+        "rush_epa_allowed_per_attempt": -0.060729360546820974,
+        "rush_epa_observed": 64,
+        "rush_success_observed": 64,
+        "rush_success_rate_allowed": 0.421875,
+        "rush_yards_observed": 64,
+        "sack_rate_generated": 0.046875,
+        "sacks_generated": 3,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.1875
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -0.7297261312814411,
+          "rush_epa_per_attempt": 0.9583397654622435,
+          "rush_success_rate": 0.4817107910506644,
+          "sack_rate_allowed": 0.5369416196218442,
+          "stuff_rate_allowed": -0.7684243222234577
+        },
+        "designed_rushes": 37,
+        "pass_dropbacks": 57,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 57,
+        "qb_hit_rate_allowed": 0.14035087719298245,
+        "qb_hits_allowed": 8,
+        "research_proxy_v1": 0.48025187807919256,
+        "rush_epa_observed": 37,
+        "rush_epa_per_attempt": 0.042062248216210435,
+        "rush_success_observed": 37,
+        "rush_success_rate": 0.43243243243243246,
+        "rush_yards_observed": 37,
+        "sack_rate_allowed": 0.08771929824561403,
+        "sacks_allowed": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.13513513513513514
+      },
+      "team": "TEN"
+    },
+    "WAS": {
+      "defense": {
+        "component_z": {
+          "qb_hit_rate_generated": 0.31628485724590155,
+          "rush_epa_allowed_per_attempt": -0.3681440814523203,
+          "rush_success_rate_allowed": -0.742182221052217,
+          "sack_rate_generated": 0.44493871155152204,
+          "stuff_rate_forced": 1.3863462610544477
+        },
+        "designed_rushes": 36,
+        "pass_dropbacks": 61,
+        "proxy_components_used": [
+          "sack_rate_generated",
+          "rush_epa_allowed_per_attempt",
+          "rush_success_rate_allowed",
+          "stuff_rate_forced",
+          "qb_hit_rate_generated"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 61,
+        "qb_hit_rate_generated": 0.18032786885245902,
+        "qb_hits_generated": 11,
+        "research_proxy_v1": 0.6515792264712817,
+        "rush_epa_allowed_per_attempt": -0.17358794225341023,
+        "rush_epa_observed": 36,
+        "rush_success_observed": 36,
+        "rush_success_rate_allowed": 0.3333333333333333,
+        "rush_yards_observed": 36,
+        "sack_rate_generated": 0.08196721311475409,
+        "sacks_generated": 5,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_forced": 0.2777777777777778
+      },
+      "offense": {
+        "component_z": {
+          "qb_hit_rate_allowed": -1.5125428128168696,
+          "rush_epa_per_attempt": 0.2636315680182668,
+          "rush_success_rate": 1.1900162496000468,
+          "sack_rate_allowed": -1.6731715918169106,
+          "stuff_rate_allowed": -0.5540811361513382
+        },
+        "designed_rushes": 54,
+        "pass_dropbacks": 71,
+        "proxy_components_used": [
+          "sack_rate_allowed",
+          "rush_epa_per_attempt",
+          "rush_success_rate",
+          "stuff_rate_allowed",
+          "qb_hit_rate_allowed"
+        ],
+        "proxy_missing_core_components": [],
+        "proxy_status": "READY_RESEARCH_ONLY",
+        "qb_hit_observed_passes": 71,
+        "qb_hit_rate_allowed": 0.11267605633802817,
+        "qb_hits_allowed": 8,
+        "research_proxy_v1": 1.0386886716806862,
+        "rush_epa_observed": 54,
+        "rush_epa_per_attempt": -0.0635993160180953,
+        "rush_success_observed": 54,
+        "rush_success_rate": 0.48148148148148145,
+        "rush_yards_observed": 54,
+        "sack_rate_allowed": 0.014084507042253521,
+        "sacks_allowed": 1,
+        "sample_week_count": 2,
+        "sample_weeks": [
+          1,
+          2
+        ],
+        "stuff_rate_allowed": 0.14814814814814814
+      },
+      "team": "WAS"
+    }
+  },
+  "through_week": 2
+}
