@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 """Integrity checks for deduplicated league current-snapshot storage."""
 from __future__ import annotations
-import hashlib,json,sys
+import argparse,hashlib,json,sys
 from collections import defaultdict
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'research'))
 from current_snapshot_storage import STORAGE_FORMAT,load_current_snapshot,read_json  # noqa:E402
+
+parser=argparse.ArgumentParser()
+parser.add_argument(
+    '--storage-only',
+    action='store_true',
+    help='validate split storage without governance hashes; production CI omits this flag',
+)
+args=parser.parse_args()
 
 paths=sorted((ROOT/'data/research/leagues').glob('*/current/milestone5_current.json'))
 assert paths,'no league current snapshots found'
@@ -18,7 +26,7 @@ def sha(path):
         for c in iter(lambda:f.read(1024*1024),b''): h.update(c)
     return h.hexdigest()
 
-cache={};refs=set();by_sig=defaultdict(set);hydrated_bytes=0
+cache={};refs=set();by_sig=defaultdict(set);by_slice_base=defaultdict(set);hydrated_bytes=0
 for p in paths:
     raw=read_json(p,{}) or {};lid=p.parents[1].name
     assert (raw.get('storage') or {}).get('format')==STORAGE_FORMAT,f'legacy full current snapshot remains: {p.relative_to(ROOT)}'
@@ -36,20 +44,32 @@ for p in paths:
     assert snap.get('scoring_settings'),f'hydrated scoring settings missing: {lid}'
     assert str(snap.get('scoring_signature') or '')==str(raw.get('scoring_signature') or ''),f'hydrated scoring signature mismatch: {lid}'
     by_sig[str(raw.get('scoring_signature') or '')].add(st['scoring_overlay'])
-    gov=read_json(p.parents[1]/'governance/active_release.json',{}) or {}
-    assert (gov.get('checks') or {}).get('current_storage_integrity') is True,f'governance did not validate shared current storage: {lid}'
-    line=gov.get('model_lineage') or {}
-    assert (line.get('artifact_sha256') or {}).get('current_snapshot')==sha(p),f'governance current manifest hash mismatch: {lid}'
-    governed=line.get('shared_current_artifacts') or {}
-    for key in ('player_base','scoring_overlay'):
-        row=governed.get(key) or {}
-        assert row.get('path')==st[key],f'governance shared path mismatch: {lid} {key}'
-        assert row.get('sha256')==sha(ROOT/st[key]),f'governance shared hash mismatch: {lid} {key}'
+    slice_key=(raw.get('season'),raw.get('week'),str(raw.get('season_type') or ''))
+    by_slice_base[slice_key].add(st['player_base'])
+
+    overlay=read_json(ROOT/st['scoring_overlay'],{}) or {}
+    assert isinstance(overlay.get('player_overrides'),dict),f'player override map missing/invalid: {lid}'
+
+    if not args.storage_only:
+        gov=read_json(p.parents[1]/'governance/active_release.json',{}) or {}
+        assert (gov.get('checks') or {}).get('current_storage_integrity') is True,f'governance did not validate shared current storage: {lid}'
+        line=gov.get('model_lineage') or {}
+        assert (line.get('artifact_sha256') or {}).get('current_snapshot')==sha(p),f'governance current manifest hash mismatch: {lid}'
+        governed=line.get('shared_current_artifacts') or {}
+        for key in ('player_base','scoring_overlay'):
+            row=governed.get(key) or {}
+            assert row.get('path')==st[key],f'governance shared path mismatch: {lid} {key}'
+            assert row.get('sha256')==sha(ROOT/st[key]),f'governance shared hash mismatch: {lid} {key}'
 
 shared=list((ROOT/'data/research/shared/current').rglob('*.json'))
 assert shared,'shared current store missing'
 assert all(p.resolve() in refs for p in shared),f'unreferenced shared current artifacts exist: {[str(p.relative_to(ROOT)) for p in shared if p.resolve() not in refs][:5]}'
 assert sum(len(v) for v in by_sig.values())<=len(paths)
+
+assert all(len(v)==1 for v in by_slice_base.values()),(
+    'same-time current snapshots must share one player base: '
+    + repr({k:sorted(v) for k,v in by_slice_base.items() if len(v)!=1})
+)
 
 manifest_bytes=sum(p.stat().st_size for p in paths)
 shared_bytes=sum(p.stat().st_size for p in shared)
@@ -85,6 +105,7 @@ store=store_path.read_text(encoding='utf-8')
 assert 'FIECurrentSnapshotStore' in store
 assert "const FORMAT='fie-current-split-v1'" in store
 assert 'scoring_overlay' in store and 'included_player_ids' in store
+assert 'player_overrides' in store
 
 for src in ['app/kicker-intelligence.js','app/dst-intelligence.js']:
     txt=(ROOT/src).read_text(encoding='utf-8')

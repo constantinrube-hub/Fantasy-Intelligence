@@ -3,7 +3,9 @@
 
 The logical M5 current contract remains unchanged after hydration. On disk, a
 league snapshot may instead be a lightweight manifest referencing a shared
-player base plus a scoring-specific projection overlay.
+player base plus a scoring-specific overlay. The overlay may contain projection
+pairs and sparse per-player field overrides; hydration preserves the logical
+full-snapshot contract.
 """
 from __future__ import annotations
 
@@ -116,6 +118,9 @@ def load_current_snapshot(path: str | Path, *, root: Path = ROOT, cache: dict | 
     include = storage.get("included_player_ids")
     exclude = set(map(str, storage.get("excluded_player_ids") or []))
     projections = overlay.get("projections") or {}
+    player_overrides = overlay.get("player_overrides") or {}
+    if not isinstance(player_overrides, dict):
+        raise ValueError(f"Invalid player_overrides in {overlay_ref}")
     hydrated = []
     if isinstance(include, list):
         by_id = {player_id(b): b for b in rows}
@@ -129,6 +134,10 @@ def load_current_snapshot(path: str | Path, *, root: Path = ROOT, cache: dict | 
         if not isinstance(pair, list) or len(pair) < 2:
             raise ValueError(f"Invalid projection pair for {pid} in {overlay_ref}")
         r = dict(b)
+        override = player_overrides.get(pid) or {}
+        if not isinstance(override, dict):
+            raise ValueError(f"Invalid player override for {pid} in {overlay_ref}")
+        r.update(override)
         r[PROJECTION_FIELDS[0]] = pair[0]
         r[PROJECTION_FIELDS[1]] = pair[1]
         hydrated.append(r)
