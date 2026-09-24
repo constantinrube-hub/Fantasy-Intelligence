@@ -7,7 +7,14 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'research'))
-from current_snapshot_storage import STORAGE_FORMAT,load_current_snapshot,read_json  # noqa:E402
+from current_snapshot_storage import (  # noqa:E402
+    DEFAULT_REGISTRY,
+    STORAGE_FORMAT,
+    active_current_snapshot_paths,
+    load_current_snapshot,
+    read_json,
+    split_manifest_shared_refs,
+)
 
 parser=argparse.ArgumentParser()
 parser.add_argument(
@@ -15,10 +22,48 @@ parser.add_argument(
     action='store_true',
     help='validate split storage without governance hashes; production CI omits this flag',
 )
+parser.add_argument(
+    '--registry',
+    default=str(DEFAULT_REGISTRY),
+    help='generated active registry; retired namespaces are historical-only',
+)
 args=parser.parse_args()
 
-paths=sorted((ROOT/'data/research/leagues').glob('*/current/milestone5_current.json'))
-assert paths,'no league current snapshots found'
+leagues_root=ROOT/'data/research/leagues'
+
+paths=active_current_snapshot_paths(
+    args.registry,
+    root=ROOT,
+    leagues_root=leagues_root,
+)
+assert paths,'no active-registry current snapshots found'
+
+active_path_set={p.resolve() for p in paths}
+
+all_current=sorted(
+    leagues_root.glob('*/current/milestone5_current.json')
+)
+
+retired_current=[
+    p for p in all_current
+    if p.resolve() not in active_path_set
+]
+
+retired_refs=split_manifest_shared_refs(
+    retired_current,
+    root=ROOT,
+)
+
+missing_retired_refs=sorted(
+    str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(p)
+    for p in retired_refs
+    if not p.exists()
+)
+
+assert not missing_retired_refs,(
+    'retired current evidence has missing shared artifacts: '
+    +repr(missing_retired_refs[:5])
+)
 
 def sha(path):
     h=hashlib.sha256()
@@ -66,9 +111,24 @@ for p in paths:
             assert row.get('path')==st[key],f'governance shared path mismatch: {lid} {key}'
             assert row.get('sha256')==sha(ROOT/st[key]),f'governance shared hash mismatch: {lid} {key}'
 
-shared=list((ROOT/'data/research/shared/current').rglob('*.json'))
-assert shared,'shared current store missing'
-assert all(p.resolve() in refs for p in shared),f'unreferenced shared current artifacts exist: {[str(p.relative_to(ROOT)) for p in shared if p.resolve() not in refs][:5]}'
+all_shared=list(
+    (ROOT/'data/research/shared/current').rglob('*.json')
+)
+assert all_shared,'shared current store missing'
+
+owned_refs=refs|retired_refs
+
+assert all(
+    p.resolve() in owned_refs
+    for p in all_shared
+),f'unreferenced shared current artifacts exist: {[str(p.relative_to(ROOT)) for p in all_shared if p.resolve() not in owned_refs][:5]}'
+
+shared=[
+    p for p in all_shared
+    if p.resolve() in refs
+]
+
+assert shared,'active current snapshots reference no shared current artifacts'
 assert sum(len(v) for v in by_sig.values())<=len(paths)
 
 assert all(len(v)==1 for v in by_slice_base.values()),(
@@ -124,5 +184,8 @@ print(
     f'PASS integrity_current_storage_test leagues={len(paths)} '
     f'shared_files={len(shared)} manifest_bytes={manifest_bytes} '
     f'shared_bytes={shared_bytes} shared_budget={shared_budget_bytes} '
-    f'hydrated_bytes={hydrated_bytes} storage_ratio={stored_bytes/hydrated_bytes:.3f}'
+    f'hydrated_bytes={hydrated_bytes} '
+    f'storage_ratio={stored_bytes/hydrated_bytes:.3f} '
+    f'retired_manifests={len(retired_current)} '
+    f'retired_shared_refs={len(retired_refs)}'
 )

@@ -17,6 +17,8 @@ STORAGE_FORMAT = "fie-current-split-v1"
 BASE_FORMAT = "fie-current-player-base-v1"
 OVERLAY_FORMAT = "fie-current-scoring-overlay-v1"
 PROJECTION_FIELDS = ("decision_weekly_projection", "sleeper_weekly_projection")
+LEAGUES_ROOT = ROOT / "data" / "research" / "leagues"
+DEFAULT_REGISTRY = LEAGUES_ROOT / "registry.json"
 
 
 def read_json(path: str | Path, default: Any = None) -> Any:
@@ -94,6 +96,81 @@ def is_split_manifest(obj: Any) -> bool:
 def resolve_ref(ref: str, *, root: Path = ROOT) -> Path:
     p = Path(ref)
     return p if p.is_absolute() else root / p
+
+
+def active_league_ids(
+    registry_path: str | Path = DEFAULT_REGISTRY,
+    *,
+    root: Path = ROOT,
+) -> list[str]:
+    """Return enabled League IDs from the generated active registry.
+
+    Historical/retired league directories intentionally remain on disk, so
+    operational current-season code must not infer the active portfolio by
+    globbing namespace directories.
+    """
+    p = Path(registry_path)
+    if not p.is_absolute():
+        p = root / p
+
+    registry = read_json(p, {}) or {}
+    rows = registry.get("leagues") or {}
+
+    if not isinstance(rows, dict) or not rows:
+        raise ValueError(f"Active league registry is missing or empty: {p}")
+
+    enabled: list[str] = []
+    for lid, row in sorted(rows.items()):
+        if not isinstance(row, dict):
+            raise ValueError(f"Invalid active registry row for league {lid}")
+        if row.get("enabled", True):
+            enabled.append(str(lid))
+
+    if not enabled:
+        raise ValueError(f"Active league registry has no enabled leagues: {p}")
+
+    return enabled
+
+
+def active_current_snapshot_paths(
+    registry_path: str | Path = DEFAULT_REGISTRY,
+    *,
+    root: Path = ROOT,
+    leagues_root: str | Path = LEAGUES_ROOT,
+) -> list[Path]:
+    """Return existing current manifests for enabled active registry leagues."""
+    lr = Path(leagues_root)
+    if not lr.is_absolute():
+        lr = root / lr
+
+    paths = [
+        lr / lid / "current" / "milestone5_current.json"
+        for lid in active_league_ids(registry_path, root=root)
+    ]
+    return sorted(p for p in paths if p.is_file())
+
+
+def split_manifest_shared_refs(
+    paths: list[Path],
+    *,
+    root: Path = ROOT,
+) -> set[Path]:
+    """Collect shared artifacts referenced by split current manifests."""
+    refs: set[Path] = set()
+
+    for path in paths:
+        raw = read_json(path, {}) or {}
+        storage = raw.get("storage") or {}
+
+        if storage.get("format") != STORAGE_FORMAT:
+            continue
+
+        for key in ("player_base", "scoring_overlay"):
+            ref = str(storage.get(key) or "").strip()
+            if ref:
+                refs.add(resolve_ref(ref, root=root).resolve())
+
+    return refs
 
 
 def load_current_snapshot(path: str | Path, *, root: Path = ROOT, cache: dict | None = None) -> dict:

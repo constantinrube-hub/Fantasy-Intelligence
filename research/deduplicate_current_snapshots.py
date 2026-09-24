@@ -14,16 +14,19 @@ from pathlib import Path
 
 from current_snapshot_storage import (
     BASE_FORMAT,
+    DEFAULT_REGISTRY,
     OVERLAY_FORMAT,
+    PROJECTION_FIELDS,
     ROOT,
     STORAGE_FORMAT,
-    PROJECTION_FIELDS,
+    active_current_snapshot_paths,
     content_hash,
     load_current_snapshot,
     player_id,
     projection_is_default,
     projection_pair,
     read_json,
+    split_manifest_shared_refs,
     write_json,
 )
 
@@ -120,7 +123,14 @@ def shared_player_rows(
     return common, overrides
 
 
-def optimize(paths: list[Path], prune: bool = True) -> dict:
+def optimize(
+    paths: list[Path],
+    prune: bool = True,
+    protected_refs: set[Path] | None = None,
+) -> dict:
+    protected_refs = {
+        Path(p).resolve() for p in (protected_refs or set())
+    }
     cache: dict = {}
     loaded: list[tuple[Path, dict]] = []
     for p in paths:
@@ -238,8 +248,9 @@ def optimize(paths: list[Path], prune: bool = True) -> dict:
             manifests += 1
 
     if prune and SHARED.exists():
+        keep_refs = refs | protected_refs
         for p in SHARED.rglob("*.json"):
-            if p.resolve() not in refs:
+            if p.resolve() not in keep_refs:
                 p.unlink()
         for d in sorted((p for p in SHARED.rglob("*") if p.is_dir()), reverse=True):
             try: d.rmdir()
@@ -262,16 +273,57 @@ def optimize(paths: list[Path], prune: bool = True) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser(description="Deduplicate league-specific M5 current snapshots")
     ap.add_argument("--no-prune", action="store_true")
+    ap.add_argument(
+        "--registry",
+        default=str(DEFAULT_REGISTRY),
+        help="Generated active league registry; retired namespaces remain preserved on disk",
+    )
     args = ap.parse_args()
-    paths = sorted(LEAGUES.glob("*/current/milestone5_current.json"))
+
+    paths = active_current_snapshot_paths(
+        args.registry,
+        root=ROOT,
+        leagues_root=LEAGUES,
+    )
+
     if not paths:
-        raise SystemExit("No league current snapshots found")
-    result = optimize(paths, prune=not args.no_prune)
-    saved = result["previous_current_bytes"] - result["stored_bytes"]
+        raise SystemExit("No active-registry current snapshots found")
+
+    # Retired namespaces remain historical evidence. Exclude them from active
+    # normalization but protect shared files that their split manifests need.
+    all_current = sorted(
+        LEAGUES.glob("*/current/milestone5_current.json")
+    )
+    active = {p.resolve() for p in paths}
+    retired_current = [
+        p for p in all_current if p.resolve() not in active
+    ]
+    protected_refs = split_manifest_shared_refs(
+        retired_current,
+        root=ROOT,
+    )
+
+    result = optimize(
+        paths,
+        prune=not args.no_prune,
+        protected_refs=protected_refs,
+    )
+
+    saved = (
+        result["previous_current_bytes"]
+        - result["stored_bytes"]
+    )
+
     print(
         "Optimized current snapshots: "
-        f"leagues={result['snapshots']} bases={result['base_files_written']} overlays={result['overlay_files_written']} "
-        f"before={result['previous_current_bytes']} stored={result['stored_bytes']} saved={saved}"
+        f"leagues={result['snapshots']} "
+        f"bases={result['base_files_written']} "
+        f"overlays={result['overlay_files_written']} "
+        f"before={result['previous_current_bytes']} "
+        f"stored={result['stored_bytes']} "
+        f"saved={saved} "
+        f"retired_manifests_preserved={len(retired_current)} "
+        f"retired_shared_refs_protected={len(protected_refs)}"
     )
 
 
