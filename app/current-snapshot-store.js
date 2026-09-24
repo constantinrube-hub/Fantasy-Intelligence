@@ -44,14 +44,16 @@ async function load(path,{force=false,fetchResponse=null,sourceId='research-arti
   ]);
   if(String(overlay?.scoring_signature||'')!==String(raw?.scoring_signature||''))throw new Error('Current scoring overlay mismatch');
   const include=Array.isArray(st.included_player_ids)?st.included_player_ids.map(String):null;
-  const exclude=new Set((st.excluded_player_ids||[]).map(String));const proj=overlay?.projections||{};const players=[];
+  const exclude=new Set((st.excluded_player_ids||[]).map(String));const proj=overlay?.projections||{},overrides=overlay?.player_overrides||{};const players=[];
   const baseRows=base?.players||[],baseMap=include?new Map(baseRows.map(b=>[pid(b),b])):null,ordered=include?include.map(id=>[id,baseMap.get(id)]):baseRows.map(b=>[pid(b),b]);
   for(const [id,b] of ordered){
     if(!id||!b||exclude.has(id))continue;
     const pair=Array.isArray(proj[id])?proj[id]:null;
     const decision=pair&&pair.length>0?finite(pair[0]):null;
     const sleeper=pair&&pair.length>1?finite(pair[1]):null;
-    players.push({...b,decision_weekly_projection:decision,sleeper_weekly_projection:sleeper});
+    const override=overrides[id]||{};
+    if(!override||typeof override!=='object'||Array.isArray(override))throw new Error('Invalid current player override for '+id);
+    players.push({...b,...override,decision_weekly_projection:decision,sleeper_weekly_projection:sleeper});
   }
   sanitizeUncertainty(players);
   const expected=Number(st.player_count);if(Number.isFinite(expected)&&expected!==players.length)throw new Error(`Current snapshot hydration mismatch: expected ${expected}, got ${players.length}`);

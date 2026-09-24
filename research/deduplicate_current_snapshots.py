@@ -17,7 +17,7 @@ from current_snapshot_storage import (
     OVERLAY_FORMAT,
     ROOT,
     STORAGE_FORMAT,
-    base_row,
+    PROJECTION_FIELDS,
     content_hash,
     load_current_snapshot,
     player_id,
@@ -32,28 +32,92 @@ SHARED = ROOT / "data" / "research" / "shared" / "current"
 
 
 def compatible_partition(items: list[tuple[Path, dict]]) -> list[list[tuple[Path, dict]]]:
-    """Group same-week snapshots whose invariant rows have no conflicts."""
+    """Group all snapshots from the same logical time slice.
+
+    League-specific/scoring-specific row differences are represented later as
+    sparse player_overrides rather than forcing duplicate full player bases.
+    """
     buckets: dict[tuple, list[tuple[Path, dict]]] = defaultdict(list)
     for p, snap in items:
-        key = (snap.get("season"), snap.get("week"), str(snap.get("season_type") or ""))
+        key = (
+            snap.get("season"),
+            snap.get("week"),
+            str(snap.get("season_type") or ""),
+        )
         buckets[key].append((p, snap))
-    groups: list[list[tuple[Path, dict]]] = []
-    for bucket in buckets.values():
-        partitions: list[tuple[dict[str, dict], list[tuple[Path, dict]]]] = []
-        for item in bucket:
-            _, snap = item
-            candidate = {player_id(r): base_row(r) for r in snap.get("players") or []}
-            placed = False
-            for union, members in partitions:
-                if all(pid not in union or union[pid] == row for pid, row in candidate.items()):
-                    union.update(candidate)
-                    members.append(item)
-                    placed = True
-                    break
-            if not placed:
-                partitions.append((dict(candidate), [item]))
-        groups.extend(members for _, members in partitions)
-    return groups
+    return list(buckets.values())
+
+
+def shared_player_rows(
+    group: list[tuple[Path, dict]],
+) -> tuple[dict[str, dict], dict[Path, dict[str, dict]]]:
+    """Return common player rows plus exact sparse per-snapshot differences."""
+    appearances: dict[str, list[dict]] = defaultdict(list)
+    rows_by_path: dict[Path, dict[str, dict]] = {}
+
+    for path, snap in group:
+        rows: dict[str, dict] = {}
+        for row in snap.get("players") or []:
+            pid = player_id(row)
+            stripped = {
+                key: value
+                for key, value in row.items()
+                if key not in PROJECTION_FIELDS
+            }
+            if pid in rows:
+                raise ValueError(
+                    f"Duplicate governed player identity {pid} in {path}"
+                )
+            rows[pid] = stripped
+            appearances[pid].append(stripped)
+        rows_by_path[path] = rows
+
+    common: dict[str, dict] = {}
+
+    for pid, rows in appearances.items():
+        shared_keys = set(rows[0])
+        for row in rows[1:]:
+            shared_keys &= set(row)
+
+        shared = {}
+        for key in sorted(shared_keys):
+            value = rows[0][key]
+            if all(row[key] == value for row in rows[1:]):
+                shared[key] = value
+
+        # Identity is never allowed to become a league-specific override.
+        # If the governed ID fields disagree, fail closed.
+        try:
+            shared_pid = player_id(shared)
+        except Exception as exc:
+            raise ValueError(
+                f"Governed identity is not invariant for player {pid}"
+            ) from exc
+        if shared_pid != pid:
+            raise ValueError(
+                f"Governed identity conflict for player {pid}: {shared_pid}"
+            )
+
+        common[pid] = shared
+
+    overrides: dict[Path, dict[str, dict]] = {}
+
+    for path, rows in rows_by_path.items():
+        per_player: dict[str, dict] = {}
+
+        for pid, row in rows.items():
+            base = common[pid]
+            diff = {
+                key: value
+                for key, value in row.items()
+                if key not in base or base[key] != value
+            }
+            if diff:
+                per_player[pid] = diff
+
+        overrides[path] = per_player
+
+    return common, overrides
 
 
 def optimize(paths: list[Path], prune: bool = True) -> dict:
@@ -81,14 +145,8 @@ def optimize(paths: list[Path], prune: bool = True) -> dict:
     overlays = 0
 
     for group in groups:
-        union: dict[str, dict] = {}
-        for _, snap in group:
-            for r in snap.get("players") or []:
-                pid = player_id(r)
-                br = base_row(r)
-                if pid in union and union[pid] != br:
-                    raise ValueError(f"Invariant current-player conflict for {pid}")
-                union[pid] = br
+        union, overrides_for = shared_player_rows(group)
+
         # Preserve the canonical row order from the broadest snapshot. This keeps
         # hydration byte-for-byte equivalent at the logical JSON level for
         # subset leagues (for example, leagues without D/ST rows).
@@ -121,55 +179,48 @@ def optimize(paths: list[Path], prune: bool = True) -> dict:
         write_json(base_path, base_obj, compact=True)
         refs.add(base_path.resolve()); bases += 1
 
-        by_sig: dict[str, list[tuple[Path, dict]]] = defaultdict(list)
-        for item in group:
-            by_sig[str(item[1].get("scoring_signature") or "unknown")].append(item)
-
         overlay_ref_for: dict[Path, Path] = {}
-        for sig, sig_items in by_sig.items():
-            # A partial refresh can legitimately leave two leagues with the same
-            # scoring signature but different time-varying projections. Partition
-            # those into separate content-addressed overlays rather than failing.
-            partitions: list[dict] = []
-            for item in sig_items:
-                pth, snap = item
-                settings = snap.get("scoring_settings") or {}
-                proj = {}
-                for r in snap.get("players") or []:
-                    pair = projection_pair(r)
-                    if not projection_is_default(pair): proj[player_id(r)] = pair
-                target = None
-                for part in partitions:
-                    if part["settings"] != settings:
-                        continue
-                    if all(pid not in part["projections"] or part["projections"][pid] == pair for pid, pair in proj.items()):
-                        target = part; break
-                if target is None:
-                    target = {"settings": settings, "projections": {}, "items": []}
-                    partitions.append(target)
-                target["projections"].update(proj); target["items"].append(item)
 
-            for part in partitions:
-                projections = part["projections"]
-                overlay_obj = {
-                    "format": OVERLAY_FORMAT,
-                    "schema_version": 1,
-                    "season": group[0][1].get("season"),
-                    "week": group[0][1].get("week"),
-                    "scoring_signature": sig,
-                    "scoring_settings": part["settings"],
-                    "projection_fields": ["decision_weekly_projection", "sleeper_weekly_projection"],
-                    "default_projection": [0.0, 0.0],
-                    "nonzero_player_count": len(projections),
-                    "projections": projections,
-                }
-                oh = content_hash(overlay_obj)
-                overlay_rel = Path("data/research/shared/current/scoring") / f"{sig}.{oh}.json"
-                overlay_path = ROOT / overlay_rel
-                write_json(overlay_path, overlay_obj, compact=True)
-                refs.add(overlay_path.resolve()); overlays += 1
-                for pth, _ in part["items"]:
-                    overlay_ref_for[pth] = overlay_rel
+        for pth, snap in group:
+            sig = str(snap.get("scoring_signature") or "unknown")
+
+            projections = {}
+            for row in snap.get("players") or []:
+                pair = projection_pair(row)
+                if not projection_is_default(pair):
+                    projections[player_id(row)] = pair
+
+            player_overrides = overrides_for.get(pth) or {}
+
+            overlay_obj = {
+                "format": OVERLAY_FORMAT,
+                "schema_version": 1,
+                "season": snap.get("season"),
+                "week": snap.get("week"),
+                "scoring_signature": sig,
+                "scoring_settings": snap.get("scoring_settings") or {},
+                "projection_fields": [
+                    "decision_weekly_projection",
+                    "sleeper_weekly_projection",
+                ],
+                "default_projection": [0.0, 0.0],
+                "nonzero_player_count": len(projections),
+                "projections": projections,
+                "override_player_count": len(player_overrides),
+                "player_overrides": player_overrides,
+            }
+
+            oh = content_hash(overlay_obj)
+            overlay_rel = (
+                Path("data/research/shared/current/scoring")
+                / f"{sig}.{oh}.json"
+            )
+            overlay_path = ROOT / overlay_rel
+
+            write_json(overlay_path, overlay_obj, compact=True)
+            refs.add(overlay_path.resolve())
+            overlays += 1
+            overlay_ref_for[pth] = overlay_rel
 
         all_ids = set(union)
         for p, snap in group:
