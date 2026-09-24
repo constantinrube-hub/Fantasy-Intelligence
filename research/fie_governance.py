@@ -84,12 +84,28 @@ def build(args):
     fmts=[x.get('league_format') for x in (m4,m5,m6,cur) if x.get('league_format') is not None]
     paths=[args.m4_bundle,args.m5_bundle,args.m6_bundle,args.current_snapshot,args.operator_override,getattr(args,'output','')]
     current_storage_ok,current_shared=shared_current_artifacts(cur)
+
+    cur_research_fp=cur.get('profile_research_fingerprint')
+    live_research_fp=cur.get('live_research_fingerprint')
+    if cur_research_fp and live_research_fp:
+        current_profile_live_match=(
+            cur.get('profile_current_match') is True
+            and cur_research_fp==live_research_fp
+        )
+    else:
+        # Backward compatibility for snapshots produced before the stable
+        # research-fingerprint split.
+        current_profile_live_match=(
+            cur.get('profile_current_match') is True
+            and cur.get('live_profile_fingerprint')==profile_fp
+        )
+
     checks={
       'global_operator_auto':global_mode=='AUTO',
       'operator_auto':mode=='AUTO',
       'league_id_match':bool(league_id and profile and all(x==league_id for x in ids)),
       'profile_fingerprint_match':bool(profile_fp and all(x==profile_fp for x in fps)),
-      'current_profile_live_match':cur.get('profile_current_match') is True and cur.get('live_profile_fingerprint')==profile_fp,
+      'current_profile_live_match':current_profile_live_match,
       'format_match':bool(profile_fmt and (not fmts or all(x==profile_fmt for x in fmts))),
       'artifact_scope_match':bool(league_id and all(namespace_ok(x,league_id) for x in paths)),
       'current_storage_integrity':current_storage_ok,

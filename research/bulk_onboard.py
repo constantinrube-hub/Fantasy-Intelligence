@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List
 
-from league_profile import build_profile
+from league_profile import build_profile, research_fingerprint_from_profile
 from portfolio_rules import load_portfolio_config, qualifies_priority
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,13 +77,31 @@ def research_state(league_id: str, prospective: Dict[str, Any], research_root: P
     reasons: List[str] = []
     if not profile_path.exists():
         return "NEW", ["no existing League-ID research profile"]
-    if str(existing.get("profile_fingerprint") or "") != str(prospective.get("profile_fingerprint") or ""):
-        reasons.append("research-relevant profile fingerprint changed")
+    existing_full_fp = str(existing.get("profile_fingerprint") or "")
+    prospective_full_fp = str(prospective.get("profile_fingerprint") or "")
+
+    existing_research_fp = (
+        existing.get("research_fingerprint")
+        or research_fingerprint_from_profile(existing)
+    )
+    prospective_research_fp = (
+        prospective.get("research_fingerprint")
+        or research_fingerprint_from_profile(prospective)
+    )
+
+    operational_drift = (
+        existing_full_fp != prospective_full_fp
+        and existing_research_fp == prospective_research_fp
+    )
+
+    if existing_research_fp != prospective_research_fp:
+        reasons.append("research-relevant league contract changed")
         if str(existing.get("scoring_signature") or "") != str(prospective.get("scoring_signature") or ""):
             reasons.append("scoring signature changed")
         if existing.get("research_constraints") != prospective.get("research_constraints"):
             reasons.append("custom cohort/roster constraints changed")
         return "PROFILE_CHANGED", reasons
+
     missing = [name for name in REQUIRED if not (root / name).exists()]
     if missing:
         return "NEW", ["historical bundle incomplete: " + ", ".join(missing)]
@@ -93,7 +111,16 @@ def research_state(league_id: str, prospective: Dict[str, Any], research_root: P
     current = root / "current" / "milestone5_current.json"
     governance = root / "governance" / "active_release.json"
     if not current.exists() or not governance.exists():
-        return "REFRESH_ONLY", ["historical R4 research is current; current-season snapshot/governance missing"]
+        msg = "historical R4 research is current; current-season snapshot/governance missing"
+        if operational_drift:
+            msg += "; operational Sleeper settings changed but research contract did not"
+        return "REFRESH_ONLY", [msg]
+
+    if operational_drift:
+        return "CURRENT", [
+            "operational Sleeper settings changed; M1-M6 research contract unchanged"
+        ]
+
     return "CURRENT", ["profile and M1-M6 R4 research match the live league"]
 
 
@@ -105,6 +132,7 @@ def inspect_league(entry: Dict[str, Any], user_id: str, fetcher: Callable[[str],
         "priority": entry["priority"],
         "alias": entry.get("alias"),
         "research_constraints": entry.get("research_constraints") or [],
+        "replaces_league_id": entry.get("replaces_league_id"),
         "state": "ERROR",
         "reasons": [],
     }
