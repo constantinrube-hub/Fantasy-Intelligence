@@ -66,9 +66,22 @@ function researchNamespaceFollowsLoadedLeague() {
   assert.equal(context.window.FIE_RESEARCH_RUNTIME.token, 1);
 }
 
+function researchDeltaRenderingIsDefined() {
+  const source = read('index.html');
+  const start = source.indexOf('function m5Num(');
+  const end = source.indexOf('function m5PositionFor(', start);
+  const context = {};
+  vm.createContext(context);
+  vm.runInContext(source.slice(start, end) + '\nthis.deltaClass=m5DeltaClass;', context);
+  assert.equal(context.deltaClass(0.12), 'm1-positive');
+  assert.equal(context.deltaClass(-0.12), 'm1-negative');
+  assert.equal(context.deltaClass(null), 'm1-muted');
+}
+
 (async () => {
   await portfolioCardUsesControllerContext();
   choppedSimulationCompletes();
   researchNamespaceFollowsLoadedLeague();
-  console.log('PASS preview recovery: card context, Chopped paths, research namespace');
+  researchDeltaRenderingIsDefined();
+  console.log('PASS preview recovery: card context, Chopped paths, research namespace and M5 rendering');
 })().catch(error => {console.error(error); process.exitCode = 1;});

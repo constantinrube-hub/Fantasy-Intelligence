@@ -1747,6 +1747,7 @@ let m5CurrentBundle=null,m5CurrentLoaded=false,m5CurrentError=null,m5CurrentMap=
 
 function m5Num(v,d=2){return Number.isFinite(Number(v))?Number(v).toFixed(d):'—';}
 function m5Pct(v){return Number.isFinite(Number(v))?`${(Number(v)*100).toFixed(1)}%`:'—';}
+function m5DeltaClass(v){const n=Number(v);return v===null||v===undefined||v===''||!Number.isFinite(n)?'m1-muted':n>0?'m1-positive':n<0?'m1-negative':'m1-muted';}
 function m5StatusClass(s){return /validated|complete|active/i.test(String(s||''))?'m1-positive':/blocked|diagnostic|unavailable|awaiting/i.test(String(s||''))?'m1-negative':'m1-muted';}
 function m5PositionFor(p){const raw=String(p.rawPosition||p.depthPosition||p.position||'').toUpperCase(),role=String(p.roleProfile||'').toLowerCase();if(['QB','RB','WR','TE','LB','DEF'].includes(p.position))return p.position;if(p.position==='DL'){if(/\b(dt|di|nt)\b/.test(raw)||/interior/.test(role))return'IDL';if(/\b(de|edge|olb)\b/.test(raw)||/edge/.test(role))return'EDGE';return null;}if(p.position==='DB'){if(/\b(cb)\b/.test(raw)||/corner/.test(role))return'CB';if(/\b(s|ss|fs)\b/.test(raw)||/safety|box|deep/.test(role))return'S';return null;}return null;}
 function m5KeyName(s){return normName(s||'');}
