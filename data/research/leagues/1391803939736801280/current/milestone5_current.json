@@ -2,18 +2,20 @@
   "schema_version": 3,
   "m5_build": "V8.7-M5",
   "producer_build": "V8.8-M6",
-  "generated_at": "2026-09-01T10:06:59.472230+00:00",
+  "generated_at": "2026-09-25T14:49:55.294614+00:00",
   "status": "complete",
   "season": 2026,
-  "week": 1,
+  "week": 3,
   "season_type": "regular",
-  "sleeper_state_week": 1,
+  "sleeper_state_week": 3,
   "analysis_week_policy": "explicit --week when supplied; otherwise preseason maps to upcoming regular Week 1",
   "league_id": "1391803939736801280",
   "league_format": "REDRAFT",
   "profile_fingerprint": "475871bb61493e02a1de7ddcd46303097b00d4c57b6beb993823c001ad9a8bc8",
   "profile_scoring_signature": "2cc8ac7dccb0df61",
+  "profile_research_fingerprint": "f71bc54d7e032826a789c3e5443c315be74437e5b7539ea53e46d6f9d8567655",
   "live_profile_fingerprint": "475871bb61493e02a1de7ddcd46303097b00d4c57b6beb993823c001ad9a8bc8",
+  "live_research_fingerprint": "f71bc54d7e032826a789c3e5443c315be74437e5b7539ea53e46d6f9d8567655",
   "profile_current_match": true,
   "profile_diff": {},
   "scoring_signature": "2cc8ac7dccb0df61",
@@ -41,13 +43,15 @@
       ],
       "settings": {
         "best_ball": 0,
+        "last_report": 2,
         "waiver_budget": 100,
-        "disable_adds": 1,
+        "disable_adds": 0,
         "capacity_override": 1,
         "waiver_bid_min": 0,
         "taxi_deadline": 0,
         "draft_rounds": 3,
         "reserve_allow_na": 0,
+        "start_week": 1,
         "playoff_seed_type": 0,
         "playoff_teams": 6,
         "veto_votes_needed": 6,
@@ -56,6 +60,7 @@
         "playoff_type": 0,
         "taxi_slots": 0,
         "sub_start_time_eligibility": 1,
+        "last_scored_leg": 2,
         "daily_waivers_days": 13655,
         "sub_lock_if_starter_active": 0,
         "playoff_week_start": 15,
@@ -84,9 +89,10 @@
         "trade_review_days": 0,
         "bench_lock": 1,
         "offseason_adds": 0,
-        "leg": 1,
+        "leg": 3,
         "reserve_slots": 2,
-        "reserve_allow_cov": 1
+        "reserve_allow_cov": 1,
+        "daily_waivers_last_ran": 24
       },
       "total_rosters": 12,
       "season": "2026",
@@ -94,7 +100,7 @@
     }
   },
   "scoring_support_relevant": {
-    "contract_sha256": "b781cf1935b9302461d11c5ad92479969a83c31a03da28be003dcf9d4e0c2abb",
+    "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1",
     "rosterable_positions": [
       "DEF",
       "K",
@@ -106,33 +112,15 @@
     "nonzero_keys": 41,
     "relevant_nonzero_keys": 41,
     "supported_keys": [
-      "blk_kick",
-      "def_st_ff",
-      "def_st_fum_rec",
-      "def_st_td",
       "def_td",
       "ff",
-      "fgm_0_19",
-      "fgm_20_29",
-      "fgm_30_39",
-      "fgm_40_49",
-      "fgm_50p",
-      "fgmiss",
-      "fum",
       "fum_lost",
       "fum_rec",
-      "fum_rec_td",
       "int",
       "pass_2pt",
       "pass_int",
       "pass_td",
       "pass_yd",
-      "pts_allow_0",
-      "pts_allow_14_20",
-      "pts_allow_1_6",
-      "pts_allow_28_34",
-      "pts_allow_35p",
-      "pts_allow_7_13",
       "rec",
       "rec_2pt",
       "rec_td",
@@ -140,31 +128,329 @@
       "rush_2pt",
       "rush_td",
       "rush_yd",
-      "sack",
-      "safe",
-      "st_ff",
-      "st_fum_rec",
-      "st_td",
-      "xpm",
-      "xpmiss"
+      "sack"
     ],
-    "unsupported": [],
+    "unsupported": [
+      {
+        "key": "fgm_40_49",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "kicker",
+        "entity": "player",
+        "positions": [
+          "K"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "pts_allow_0",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "st_td",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "individual_return",
+        "entity": "player",
+        "positions": [
+          "DB",
+          "RB",
+          "TE",
+          "WR"
+        ],
+        "weekly_supported": "partial",
+        "season_supported": "partial",
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "fgm_30_39",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "kicker",
+        "entity": "player",
+        "positions": [
+          "K"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "xpmiss",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "kicker",
+        "entity": "player",
+        "positions": [
+          "K"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "st_fum_rec",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "individual_return",
+        "entity": "player",
+        "positions": [
+          "DB",
+          "RB",
+          "TE",
+          "WR"
+        ],
+        "weekly_supported": "partial",
+        "season_supported": "partial",
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "fgmiss",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "kicker",
+        "entity": "player",
+        "positions": [
+          "K"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "pts_allow_14_20",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "fgm_0_19",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "kicker",
+        "entity": "player",
+        "positions": [
+          "K"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "def_st_fum_rec",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "pts_allow_1_6",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "fgm_20_29",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "kicker",
+        "entity": "player",
+        "positions": [
+          "K"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "xpm",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "kicker",
+        "entity": "player",
+        "positions": [
+          "K"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "def_st_td",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "fgm_50p",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "kicker",
+        "entity": "player",
+        "positions": [
+          "K"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "safe",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_exact",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "blk_kick",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_exact",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": true,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "fum",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "offensive_fumble",
+        "entity": "player",
+        "positions": [
+          "QB",
+          "RB",
+          "TE",
+          "WR"
+        ],
+        "weekly_supported": "partial",
+        "season_supported": "partial",
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "pts_allow_28_34",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "pts_allow_35p",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "fum_rec_td",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "offensive_fumble",
+        "entity": "player",
+        "positions": [
+          "QB",
+          "RB",
+          "TE",
+          "WR"
+        ],
+        "weekly_supported": "partial",
+        "season_supported": "partial",
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "def_st_ff",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "pts_allow_7_13",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "team_dst_prefixed",
+        "entity": "team_defense",
+        "positions": [
+          "DEF"
+        ],
+        "weekly_supported": true,
+        "season_supported": false,
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      },
+      {
+        "key": "st_ff",
+        "reason": "no Milestone 1 raw-stat mapping",
+        "family": "individual_return",
+        "entity": "player",
+        "positions": [
+          "DB",
+          "RB",
+          "TE",
+          "WR"
+        ],
+        "weekly_supported": "partial",
+        "season_supported": "partial",
+        "contract_sha256": "2cf1a78a7a2af10aedf9e742a0e6bfe6397d738ab21bf8a3a9e29b0e54be5ec1"
+      }
+    ],
     "unknown_relevant": [],
     "ignored_irrelevant": [],
-    "coverage_rate": 1.0,
-    "exact_replay_eligible": true
+    "coverage_rate": 0.4146341463414634,
+    "exact_replay_eligible": false
   },
   "research_compatible": true,
   "snapshot_max_age_hours": 18,
   "target_week_realised_stats_excluded": true,
   "summary": {
-    "players": 9418,
-    "activation_eligible": 68,
-    "weekly_activation_eligible": 68,
-    "waiver_activation_eligible": 68,
-    "fie_projected": 186,
-    "sleeper_projected": 9418,
-    "current_features_available": 68,
+    "players": 10553,
+    "activation_eligible": 336,
+    "weekly_activation_eligible": 336,
+    "waiver_activation_eligible": 447,
+    "fie_projected": 1346,
+    "sleeper_projected": 9422,
+    "current_features_available": 1397,
     "dst": {
       "enabled": true,
       "starter_slots": 1,
@@ -176,98 +462,247 @@
     "kicker": {
       "enabled": true,
       "starter_slots": 1,
-      "entities": 154,
-      "weekly_active": 37,
-      "waiver_active": 37,
+      "entities": 183,
+      "weekly_active": 65,
+      "waiver_active": 65,
       "scoring_signature": "ca938778c811e6ac"
     }
   },
   "source_health": {
     "identity": {
-      "rows": 25064,
-      "gsis": 25064,
-      "pfr": 22591,
-      "pff": 11779,
-      "otc": 9953,
-      "espn": 16773,
-      "sleeper": 6114,
-      "tfg_join_key": 25064,
+      "rows": 24830,
+      "gsis": 24830,
+      "pfr": 22670,
+      "pff": 11618,
+      "otc": 9795,
+      "espn": 16567,
+      "sleeper": 6112,
+      "tfg_join_key": 24830,
       "name_fallback": 0,
       "duplicate_canonical_ids": 0
+    },
+    "scoring_support": {
+      "nonzero_keys": 41,
+      "supported_keys": [
+        "def_td",
+        "ff",
+        "fum_lost",
+        "fum_rec",
+        "int",
+        "pass_2pt",
+        "pass_int",
+        "pass_td",
+        "pass_yd",
+        "rec",
+        "rec_2pt",
+        "rec_td",
+        "rec_yd",
+        "rush_2pt",
+        "rush_td",
+        "rush_yd",
+        "sack"
+      ],
+      "unsupported": [
+        {
+          "key": "fgm_40_49",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_0",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "st_td",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgm_30_39",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "xpmiss",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "st_fum_rec",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgmiss",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_14_20",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgm_0_19",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "def_st_fum_rec",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_1_6",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgm_20_29",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "xpm",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "def_st_td",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fgm_50p",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "safe",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "blk_kick",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fum",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_28_34",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_35p",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "fum_rec_td",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "def_st_ff",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "pts_allow_7_13",
+          "reason": "no Milestone 1 raw-stat mapping"
+        },
+        {
+          "key": "st_ff",
+          "reason": "no Milestone 1 raw-stat mapping"
+        }
+      ],
+      "exact_replay_eligible": false,
+      "coverage_rate": 0.4146341463414634
     },
     "sources": [
       {
         "source": "players",
         "season": null,
-        "path": ".cache/fie-current/leagues/1391803939736801280/players.csv",
+        "path": ".cache\\fie-current\\leagues\\1391803939736801280\\players.csv",
         "url": "https://github.com/nflverse/nflverse-data/releases/download/players/players.csv",
         "ok": true,
-        "rows": 25064,
+        "rows": 24830,
         "error": null
       },
       {
         "source": "ff_playerids",
         "season": null,
-        "path": ".cache/fie-current/leagues/1391803939736801280/ff_playerids.csv",
+        "path": ".cache\\fie-current\\leagues\\1391803939736801280\\ff_playerids.csv",
         "url": "https://raw.githubusercontent.com/dynastyprocess/data/master/files/db_playerids.csv",
         "ok": true,
-        "rows": 12484,
+        "rows": 12508,
         "error": null
       },
       {
         "source": "player_week",
         "season": 2026,
-        "path": ".cache/fie-current/leagues/1391803939736801280/player_week_2026.csv",
+        "path": ".cache\\fie-current\\leagues\\1391803939736801280\\player_week_2026.csv",
         "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2026.csv",
-        "ok": false,
-        "rows": null,
-        "error": "404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2026.csv"
+        "ok": true,
+        "rows": 2294,
+        "error": null
       },
       {
         "source": "team_week",
         "season": 2026,
-        "path": ".cache/fie-current/leagues/1391803939736801280/team_week_2026.csv",
+        "path": ".cache\\fie-current\\leagues\\1391803939736801280\\team_week_2026.csv",
         "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2026.csv",
-        "ok": false,
-        "rows": null,
-        "error": "404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2026.csv"
+        "ok": true,
+        "rows": 66,
+        "error": null
       },
       {
         "source": "snaps",
         "season": 2026,
-        "path": ".cache/fie-current/leagues/1391803939736801280/snaps_2026.csv",
+        "path": ".cache\\fie-current\\leagues\\1391803939736801280\\snaps_2026.csv",
         "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2026.csv",
-        "ok": false,
-        "rows": null,
-        "error": "404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2026.csv"
+        "ok": true,
+        "rows": 3086,
+        "error": null
+      },
+      {
+        "source": "pbp",
+        "season": 2026,
+        "path": ".cache\\fie-current\\leagues\\1391803939736801280\\pbp_2026.csv",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2026.csv",
+        "ok": true,
+        "rows": 5662,
+        "error": null
       }
     ],
-    "reason": "current weekly nflverse stats not yet available"
+    "advanced_coverage": {
+      "pfr_passing_drop_pct": 0.03460674157303371,
+      "pfr_passing_bad_throw_pct": 0.03460674157303371,
+      "pfr_times_sacked": 0.03460674157303371,
+      "pfr_times_blitzed": 0.03460674157303371,
+      "pfr_times_hurried": 0.03460674157303371,
+      "pfr_times_hit": 0.03460674157303371,
+      "pfr_times_pressured": 0.03460674157303371,
+      "pfr_times_pressured_pct": 0.03460674157303371,
+      "pfr_receiving_drop": 0.22741573033707865,
+      "pfr_receiving_drop_pct": 0.22741573033707865,
+      "pfr_def_times_blitzed": 0.3986516853932584,
+      "pfr_def_times_hurried": 0.3986516853932584,
+      "pfr_def_times_hitqb": 0.3986516853932584
+    },
+    "completed_weeks": [
+      1,
+      2
+    ]
   },
   "sleeper_archive": {
     "written": false,
     "skipped": true,
     "season": 2026,
-    "week": 1,
+    "week": 3,
     "pregame_eligible": false,
     "capture_policy_version": 2,
     "season_type": "regular",
     "capture_window_hours": 18.0,
-    "first_kickoff_utc": "2026-09-09T20:20:00+00:00",
-    "hours_before_kickoff": 202.21678,
-    "reason": "before_capture_window"
+    "first_kickoff_utc": "2026-09-25T00:15:00+00:00",
+    "hours_before_kickoff": -14.582049,
+    "reason": "kickoff_already_started"
   },
   "kickoff": {
-    "first_kickoff_utc": "2026-09-09T20:20:00+00:00",
+    "first_kickoff_utc": "2026-09-25T00:15:00+00:00",
     "capture_pregame_eligible": false,
     "capture_policy": {
       "capture_policy_version": 2,
       "season_type": "regular",
       "capture_window_hours": 18.0,
-      "first_kickoff_utc": "2026-09-09T20:20:00+00:00",
-      "hours_before_kickoff": 202.21678,
+      "first_kickoff_utc": "2026-09-25T00:15:00+00:00",
+      "hours_before_kickoff": -14.582049,
       "pregame_eligible": false,
-      "reason": "before_capture_window"
+      "reason": "kickoff_already_started"
     }
   },
   "guardrails": [
@@ -278,39 +713,15 @@
     "Scoring signature must match the empirical M5 research profile.",
     "A player model may activate only when every non-zero scoring rule relevant to that player position is replay-supported; irrelevant K/DST rules do not gate offensive-only leagues.",
     "League ID and profile fingerprint must match M4/M5/M6 artifacts when a league profile is supplied.",
-    "Current Sleeper roster/settings fingerprint must still match the historical League-ID profile.",
+    "Current Sleeper research-relevant league contract must still match the historical League-ID profile; operational waiver scheduling may drift without invalidating M1-M6 research.",
     "Immutable Sleeper benchmarks are written only in regular season and within 18 hours before first kickoff.",
     "Sleeper preseason week numbers never masquerade as regular-season weekly decision weeks."
   ],
-  "v96_runtime": {
-    "runtime_build": "V9.6-CONTROLLED-RUNTIME-1",
-    "status": "blocked_current weekly nflverse stats not yet available",
-    "source_runtime_generated_at": "2026-08-30T09:28:50.579145+00:00",
-    "completed_weeks": [],
-    "weekly_main_projection_positions": [
-      "QB",
-      "RB"
-    ],
-    "weekly_main_projection_model": "HistGB residual",
-    "wr_te_histgb_enabled": false,
-    "rb_competitor_model_role": "diagnostic_alternate_only",
-    "component_outputs_replace_canonical": false,
-    "horizon_outputs_replace_canonical": false,
-    "next_season_enabled": false,
-    "prior_season_live_fallback": false,
-    "summary": {
-      "weekly_main_projections_modified": 0,
-      "component_outputs_attached": 0,
-      "horizon_outputs_attached": 0,
-      "players_with_v96_output": 0
-    },
-    "players": {}
-  },
   "storage": {
     "format": "fie-current-split-v1",
-    "player_base": "data/research/shared/current/player_base.24354124a087f2ce.json",
-    "scoring_overlay": "data/research/shared/current/scoring/2cc8ac7dccb0df61.4d7f24999aea253f.json",
-    "player_count": 9418,
+    "player_base": "data/research/shared/current/player_base.abd14a42003c0249.json",
+    "scoring_overlay": "data/research/shared/current/scoring/2cc8ac7dccb0df61.7f1129b8e829ff7f.json",
+    "player_count": 10553,
     "excluded_player_ids": []
   }
 }
