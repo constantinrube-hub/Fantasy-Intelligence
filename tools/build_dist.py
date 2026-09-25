@@ -138,9 +138,19 @@ def main():
  leagues=ROOT/'data/research/leagues';current_entries=[];cache={}
  for extra in ['registry.json','portfolio-status.json']:
   if (leagues/extra).exists(): copy(leagues/extra,DIST/'data/research/leagues'/extra)
- # Directory enumeration order is filesystem-dependent; canonicalize it.
- for d in sorted(leagues.iterdir(),key=lambda p:p.name):
-  if not d.is_dir() or not (d/'profile.json').exists(): continue
+
+ registry=json.loads((leagues/'registry.json').read_text(encoding='utf-8'))
+ active_ids=sorted(
+  str(lid) for lid,row in (registry.get('leagues') or {}).items()
+  if row.get('enabled',True) and row.get('current_refresh',True)
+ )
+ if not active_ids:
+  raise SystemExit('active league registry contains no deployable leagues')
+
+ for lid in active_ids:
+  d=leagues/lid
+  if not d.is_dir() or not (d/'profile.json').exists():
+   raise SystemExit(f'active league namespace incomplete: {lid}')
   profile=json.loads((d/'profile.json').read_text())
   for name in ['profile.json','milestone1.json','milestone2.json','milestone3.json','milestone4.json','milestone5.json','milestone6.json']:
    if (d/name).exists(): copy(d/name,DIST/'data/research/leagues'/d.name/name)

@@ -5,7 +5,7 @@ Research integration is additive: the browser receives only readiness/rankings/
 report-summary JSON, never historical prediction CSVs.
 """
 from __future__ import annotations
-import argparse, shutil
+import argparse, json, shutil
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -32,9 +32,20 @@ def main():
     if not catalog.exists():raise SystemExit('Shared player-catalog.json missing: cold-load fast path cannot be deployed')
     copy(catalog,dist/'data/research/app/player-catalog.json')
     count=0; research_count=0; leagues=ROOT/'data/research/leagues'
+    registry=leagues/'registry.json'
+    reg=json.loads(registry.read_text(encoding='utf-8'))
+    active_ids=sorted(
+        str(lid) for lid,row in (reg.get('leagues') or {}).items()
+        if row.get('enabled',True) and row.get('current_refresh',True)
+    )
+    if not active_ids:
+        raise SystemExit('active league registry contains no deployable leagues')
+
     if leagues.exists():
-        for d in sorted(leagues.iterdir()):
-            if not d.is_dir():continue
+        for lid in active_ids:
+            d=leagues/lid
+            if not d.is_dir():
+                raise SystemExit(f'active league namespace missing: {lid}')
             for name in ('app/core.json','app/manifest.json'):
                 src=d/name
                 if src.exists():copy(src,dist/'data/research/leagues'/d.name/name)
@@ -45,5 +56,7 @@ def main():
                     for name in ('readiness.json','rankings.json','report-summary.json'):
                         src=pdir/name
                         if src.exists():copy(src,dist/src.relative_to(ROOT));research_count+=1
+    if count != len(active_ids):
+        raise SystemExit(f'fast-switch sync incomplete: expected {len(active_ids)} active leagues, found {count}')
     print(f'Synced {count} league fast-switch snapshots + shared player catalog + {research_count} compact research files into {dist.relative_to(ROOT)}')
 if __name__=='__main__':main()

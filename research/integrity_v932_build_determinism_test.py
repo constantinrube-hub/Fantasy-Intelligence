@@ -23,7 +23,9 @@ assert 'datetime.now' not in src and 'timezone.utc' not in src,(
 
 # Dist current compaction must not depend on filesystem enumeration order.
 dist_src=(ROOT/'tools/build_dist.py').read_text()
-assert "for d in sorted(leagues.iterdir(),key=lambda p:p.name):" in dist_src
+assert "active_ids=sorted(" in dist_src
+assert "for lid in active_ids:" in dist_src
+assert "for d in sorted(leagues.iterdir(),key=lambda p:p.name):" not in dist_src
 assert "for e in sorted(entries,key=lambda x:str(x.get('lid',''))):" in dist_src
 
 spec=importlib.util.spec_from_file_location('fie_build_dist',ROOT/'tools/build_dist.py')
