@@ -1643,6 +1643,7 @@ function activeFiltered(){let xs=[...PLAYERS];if(state.activeTab==='targets'||st
 function resetFilters(){$('searchFilter').value='';for(const o of $('yearFilter').options)o.selected=false;$('posFilter').value='ALL';$('teamFilter').value='ALL';$('minScore').value=0;$('minScoreVal').textContent='0';$('availFilter').value=state.matched&&state.activeTab==='targets'?'FA':'ALL';render();};
 
 const FIE_RESEARCH_RUNTIME=window.FIE_RESEARCH_RUNTIME||{token:0,resetters:[],activeLeagueId(){const id=String(state.league?.league_id||'');return /^[0-9]{6,32}$/.test(id)?id:null;},base(){const id=this.activeLeagueId();return id?`data/research/leagues/${id}`:null;},path(rel){const b=this.base();return b?`${b}/${String(rel||'').replace(/^\/+/, '')}`:null;},registerReset(fn){if(typeof fn==='function'&&!this.resetters.includes(fn))this.resetters.push(fn);},resetAll(){this.token++;for(const fn of this.resetters){try{fn();}catch{}}window.FIE_M6_GOVERNANCE_ALLOW=false;window.FIE_M6_GOVERNANCE_STATE=null;window.FIE89_HASH_VERIFIED=false;window.FIE89_HASH_STATUS={ok:false,reason:'league research reset'};}};
+window.FIE_RESEARCH_RUNTIME=FIE_RESEARCH_RUNTIME;
 let m1ResearchBundle=null,m1ResearchLoaded=false,m1ResearchError=null;
 function m1Pct(v){return Number.isFinite(Number(v))?`${(Number(v)*100).toFixed(1)}%`:'—';}
 function m1Num(v,d=2){return Number.isFinite(Number(v))?Number(v).toFixed(d):'—';}
