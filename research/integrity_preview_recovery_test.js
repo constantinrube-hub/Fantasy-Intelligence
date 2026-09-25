@@ -36,10 +36,12 @@ function choppedSimulationCompletes() {
   const source = read('app/decision-engines.js');
   const body = source.slice(source.indexOf('function choppedBudgetMap()'), source.indexOf('\nasync function runLeagueSimulation('));
   const rosters = [1, 2, 3].map(roster_id => ({roster_id, settings: {waiver_budget_used: 100}}));
+  let modelsBuilt = 0;
   const context = {
     state: {rosters, league: {league_id: '123456789', settings: {waiver_budget: 100}}, leagueRules: {chopped: {eliminatedPerPeriod: 1}}},
     window: {}, rosterPoolFor: id => [{id, power: id}], playerDistribution: p => ({mu: p.power}),
-    teamModelFromPool: pool => ({mu: pool.reduce((n, p) => n + p.power, 0)}),
+    teamModelFromPool: pool => {modelsBuilt++; return {mu: pool.reduce((n, p) => n + p.power, 0)};},
+    playerId: p => String(p.id),
     sampleTeam: model => model.mu, rngFor: () => () => 0.5, finite: x => Number.isFinite(x) ? x : null,
     clampV: (x, min, max) => Math.max(min, Math.min(max, x))
   };
@@ -49,6 +51,7 @@ function choppedSimulationCompletes() {
   assert.equal(result.rows.length, 3);
   assert.equal(result.rows.reduce((sum, row) => sum + row.winner, 0), 1);
   assert.equal(result.rows.reduce((sum, row) => sum + row.survival[0], 0), 2);
+  assert.equal(modelsBuilt, 3, 'repeated Chopped paths must reuse identical roster models');
 }
 
 function researchNamespaceFollowsLoadedLeague() {

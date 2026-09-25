@@ -28,13 +28,15 @@ cfg = json.loads((ROOT / "config" / "league-portfolio.json").read_text())
 by_id = {str(x["league_id"]): x for x in cfg["leagues"]}
 expected = {
     "1399128582088835072": "REDRAFT",
-    "1399318410818519040": HYBRID,
-    "1396507356048658438": "CHOPPED",
+    "1402643913583398912": HYBRID,
+    "1400561646463672320": "CHOPPED",
 }
 for lid, fmt in expected.items():
     assert by_id[lid]["format"] == fmt, (lid, by_id[lid])
+for retired in ("1399318410818519040", "1396507356048658438"):
+    assert retired not in by_id, retired
 assert len(by_id) == len(cfg["leagues"])
-assert len(cfg["leagues"]) >= 22
+assert len(cfg["leagues"]) == 23
 
 m5 = (ROOT / "research" / "fie_m5.py").read_text()
 for token in ['"CHOPPED_BESTBALL": {', '"contract_revision": 5', 'set(chopped_positions) & set(bb_positions)']:
