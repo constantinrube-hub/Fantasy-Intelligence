@@ -496,7 +496,7 @@ function simulateChopped(iterations=450,initialPoolsOverride=null){
   const ids=(state.rosters||[]).map(r=>Number(r.roster_id)),elim=Math.max(1,Number(state.leagueRules?.chopped?.eliminatedPerPeriod)||1),counts=Object.fromEntries(ids.map(id=>[id,{survive:[],winner:0,elimPeriod:0}])),initialPools=initialPoolsOverride||Object.fromEntries(ids.map(id=>[id,rosterPoolFor(id)])),baseBudgets=choppedBudgetMap();
   const maxPeriods=Math.ceil((ids.length-1)/elim);
   for(let it=0;it<iterations;it++){
-    const rng=rngFor(`${state.league?.league_id}|chopped|${it}`),alive=[...ids],pools=Object.fromEntries(ids.map(id=>[id,initialPools[id].slice()])),budgets={...baseBudgets};let period=0;
+    const rng=rngFor(`${state.league?.league_id}|chopped|${it}`),pools=Object.fromEntries(ids.map(id=>[id,initialPools[id].slice()])),budgets={...baseBudgets};let alive=[...ids],period=0;
     while(alive.length>1&&period<maxPeriods+2){period++;const scores=alive.map(id=>({id,score:sampleTeam(teamModelFromPool(pools[id]),rng)})).sort((a,b)=>a.score-b.score),n=Math.min(elim,Math.max(1,alive.length-1)),cut=scores.slice(0,n).map(x=>x.id),survivors=alive.filter(id=>!cut.includes(id));for(const id of survivors)counts[id].survive[period]=(counts[id].survive[period]||0)+1;for(const id of cut)counts[id].elimPeriod+=period;const released=[];for(const id of cut)released.push(...topReleased(pools[id],3));addReleasedPlayers(survivors,pools,budgets,released,rng);alive=survivors;}
     if(alive[0])counts[alive[0]].winner++;
   }
