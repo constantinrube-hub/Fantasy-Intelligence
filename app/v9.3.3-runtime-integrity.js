@@ -208,7 +208,7 @@ function installLeagueSimGuard(){
   }catch(e){diag(e,{feature:'league-sim-guard'});return false;}
 }
 function clearLeagueSimulationForContext(target=leagueId()){
-  const eng=window.FIEDecisionEngines;if(!eng)return;try{eng.cancelDraftMonteCarlo?.('league/week context changed');eng.leagueSim=defaultSim(target,activeWeek());}catch(e){diag(e,{feature:'clear-league-sim'});}
+  const eng=window.FIEDecisionEngines;if(!eng)return;try{eng.cancelDraftMonteCarlo?.('league/week context changed');eng.cancelLeagueSimulation?.('league/week context changed');eng.leagueSim=defaultSim(target,activeWeek());}catch(e){diag(e,{feature:'clear-league-sim'});}
 }
 
 /* ----------------------- B · snapshot-first switching --------------------- */

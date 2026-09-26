@@ -40,6 +40,10 @@ def main():
     # Chopped is simulated as elimination.
     require(ENGINE,"eliminatedPerPeriod","chopped elimination count")
     require(ENGINE,"topReleased","released-player redistribution")
+    require(ENGINE,"bounded_chopped_bestball_v1","bounded combined-format simulation")
+    require(ENGINE,"simulateChoppedProgressive","cooperative simulation batches")
+    require(ENGINE,"cancelLeagueSimulation","league simulation cancellation")
+    require(ENGINE,"Engine.leagueSimJob?.id!==job.id","superseded simulation isolation")
 
     # Current modular UI owns the matchup surface rather than a literal old nav
     # declaration in index.html.
