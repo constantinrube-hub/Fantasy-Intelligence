@@ -143,7 +143,17 @@ assert all(len(v)==1 for v in by_slice_base.values()),(
 manifest_bytes=sum(p.stat().st_size for p in paths)
 shared_bytes=sum(p.stat().st_size for p in shared)
 stored_bytes=manifest_bytes+shared_bytes
-assert manifest_bytes<500_000,f'league manifests unexpectedly large: {manifest_bytes}'
+
+# Keep the original 500 KB guard at the historical 19-league portfolio size,
+# then allow 25 KB for each additional active league.  This remains a
+# secondary runaway-size guard: every manifest above is still required to omit
+# players/scoring_settings, and the stronger aggregate efficiency invariant
+# below prevents poor deduplication from passing as the portfolio grows.
+manifest_budget_bytes=25_000 + 25_000*len(paths)
+assert manifest_bytes<manifest_budget_bytes,(
+    f'league manifests unexpectedly large: manifests={manifest_bytes} '
+    f'budget={manifest_budget_bytes} leagues={len(paths)}'
+)
 assert hydrated_bytes>0,'unable to measure hydrated current-snapshot size'
 assert stored_bytes<hydrated_bytes*.35,(
     f'shared current storage insufficiently deduplicated: stored={stored_bytes} hydrated={hydrated_bytes} '
@@ -183,6 +193,7 @@ for src in ['app/kicker-intelligence.js','app/dst-intelligence.js']:
 print(
     f'PASS integrity_current_storage_test leagues={len(paths)} '
     f'shared_files={len(shared)} manifest_bytes={manifest_bytes} '
+    f'manifest_budget={manifest_budget_bytes} '
     f'shared_bytes={shared_bytes} shared_budget={shared_budget_bytes} '
     f'hydrated_bytes={hydrated_bytes} '
     f'storage_ratio={stored_bytes/hydrated_bytes:.3f} '
