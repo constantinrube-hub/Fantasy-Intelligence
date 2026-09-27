@@ -24,10 +24,14 @@ def write(path,obj):
 def sha256_file(path):
     p=Path(path)
     if not p.exists():return None
-    h=hashlib.sha256()
-    with p.open('rb') as f:
-        for c in iter(lambda:f.read(1024*1024),b''):h.update(c)
-    return h.hexdigest()
+    raw=p.read_bytes()
+    # Git and Cloudflare serve the repository's LF-normalized JSON blobs. A
+    # Windows checkout may expose the same tracked JSON as CRLF, so hashing raw
+    # working-tree bytes would publish a governance digest that can never match
+    # the deployed artifact. Normalize text JSON before hashing; binary inputs
+    # remain byte-exact.
+    if p.suffix.lower()=='.json':raw=raw.replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+    return hashlib.sha256(raw).hexdigest()
 def parse_time(v):
     if not v:return None
     try:return datetime.fromisoformat(str(v).replace('Z','+00:00')).astimezone(timezone.utc)
@@ -84,12 +88,28 @@ def build(args):
     fmts=[x.get('league_format') for x in (m4,m5,m6,cur) if x.get('league_format') is not None]
     paths=[args.m4_bundle,args.m5_bundle,args.m6_bundle,args.current_snapshot,args.operator_override,getattr(args,'output','')]
     current_storage_ok,current_shared=shared_current_artifacts(cur)
+
+    cur_research_fp=cur.get('profile_research_fingerprint')
+    live_research_fp=cur.get('live_research_fingerprint')
+    if cur_research_fp and live_research_fp:
+        current_profile_live_match=(
+            cur.get('profile_current_match') is True
+            and cur_research_fp==live_research_fp
+        )
+    else:
+        # Backward compatibility for snapshots produced before the stable
+        # research-fingerprint split.
+        current_profile_live_match=(
+            cur.get('profile_current_match') is True
+            and cur.get('live_profile_fingerprint')==profile_fp
+        )
+
     checks={
       'global_operator_auto':global_mode=='AUTO',
       'operator_auto':mode=='AUTO',
       'league_id_match':bool(league_id and profile and all(x==league_id for x in ids)),
       'profile_fingerprint_match':bool(profile_fp and all(x==profile_fp for x in fps)),
-      'current_profile_live_match':cur.get('profile_current_match') is True and cur.get('live_profile_fingerprint')==profile_fp,
+      'current_profile_live_match':current_profile_live_match,
       'format_match':bool(profile_fmt and (not fmts or all(x==profile_fmt for x in fmts))),
       'artifact_scope_match':bool(league_id and all(namespace_ok(x,league_id) for x in paths)),
       'current_storage_integrity':current_storage_ok,

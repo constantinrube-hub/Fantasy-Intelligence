@@ -51,10 +51,29 @@ def enabled_leagues(registry_path: Path) -> dict[str, dict[str, Any]]:
         for league_id, value in (raw.get("leagues") or {}).items()
         if value.get("enabled") is True
     }
-    if len(leagues) != 22:
-        raise ValueError(f"expected 22 enabled leagues, found {len(leagues)}")
-    if len({value.get("format") for value in leagues.values()}) != 6:
-        raise ValueError("all six league formats must remain represented")
+    if not leagues:
+        raise ValueError("registry contains no enabled leagues")
+
+    supported_formats = {
+        "REDRAFT",
+        "DYNASTY",
+        "CHOPPED",
+        "REDRAFT_BESTBALL",
+        "DYNASTY_BESTBALL",
+        "CHOPPED_BESTBALL",
+    }
+    observed_formats = {
+        str(value.get("format") or "")
+        for value in leagues.values()
+    }
+    unsupported = sorted(observed_formats - supported_formats)
+
+    if unsupported:
+        raise ValueError(
+            "unsupported enabled league format(s): "
+            + ", ".join(unsupported)
+        )
+
     return leagues
 
 

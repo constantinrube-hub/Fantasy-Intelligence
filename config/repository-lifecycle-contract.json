@@ -37,6 +37,7 @@
     {"pattern": "migrate-*.yml", "class": "migration", "lifecycle": "active_operational"},
     {"pattern": "publish-*.yml", "class": "publication", "lifecycle": "active_operational"},
     {"pattern": "repair-*.yml", "class": "repair", "lifecycle": "active_operational"},
+    {"pattern": "week1-*.yml", "class": "historical_week1_analysis", "lifecycle": "manual_historical_validation"},
     {"pattern": "apply-*.yml", "class": "historical_application", "lifecycle": "retained_for_provenance"}
   ],
   "controlled_audit_trigger_policy": "completed and in-progress controlled-tranche validators are workflow_dispatch-only except the new tranche preflight/target while it is being introduced",

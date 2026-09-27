@@ -85,6 +85,7 @@ def main() -> None:
             "priority": entry["priority"],
             "alias": entry.get("alias"),
             "research_constraints": entry.get("research_constraints") or [],
+            "replaces_league_id": entry.get("replaces_league_id"),
             "status": readiness,
             "historical_research": bool(complete),
             "research_contract_revision": research_rev,
@@ -111,6 +112,7 @@ def main() -> None:
                 "profile_path": f"data/research/leagues/{lid}/profile.json",
                 "research_contract_revision": research_rev,
                 "priority": entry["priority"],
+                "replaces_league_id": entry.get("replaces_league_id"),
                 "updated_at": now(),
             }
 

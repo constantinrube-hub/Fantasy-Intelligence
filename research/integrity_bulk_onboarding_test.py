@@ -11,7 +11,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def config_only():
     cfg=load_portfolio_config(ROOT/'config'/'league-portfolio.json')
-    assert len(cfg['leagues'])==22
+    assert cfg['leagues'], 'managed portfolio must not be empty'
     ids=[x['league_id'] for x in cfg['leagues']]
     assert len(ids)==len(set(ids))
     wf=(ROOT/'.github'/'workflows'/'bulk-onboard-fie-portfolio.yml').read_text(encoding='utf-8')
@@ -48,6 +48,36 @@ def full_fixture():
         (root/'profile.json').write_text(json.dumps(prof))
         state,_=research_state('111111111111',prof,t/'leagues')
         assert state=='NEW'
+
+        # Complete the historical bundle so research-state compatibility can
+        # distinguish operational drift from true research-structure changes.
+        for i in range(1,7):
+            payload={'status':'complete'}
+            if i==5:
+                payload['contract_revision']=4
+            (root/f'milestone{i}.json').write_text(json.dumps(payload))
+        (root/'current').mkdir()
+        (root/'governance').mkdir()
+        (root/'current'/'milestone5_current.json').write_text('{}')
+        (root/'governance'/'active_release.json').write_text('{}')
+
+        operational=dict(leagues['111111111111'])
+        operational['settings']={'daily_waivers':1,'daily_waivers_days':16127}
+        prospect=build_profile(
+            '111111111111','REDRAFT',
+            league_json=operational,
+        )
+        state,reasons=research_state('111111111111',prospect,t/'leagues')
+        assert state=='CURRENT',(state,reasons)
+
+        structural=dict(operational)
+        structural['roster_positions']=['QB','RB','BN']
+        prospect2=build_profile(
+            '111111111111','REDRAFT',
+            league_json=structural,
+        )
+        state,reasons=research_state('111111111111',prospect2,t/'leagues')
+        assert state=='PROFILE_CHANGED',(state,reasons)
     print('PASS: bulk plan is priority-aware, failure-isolated, and correctly detects new research')
 
 if __name__=='__main__':

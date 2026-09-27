@@ -3,7 +3,13 @@
 from pathlib import Path
 import json
 
-from league_profile import structural_contract, structural_settings, sha256_json
+from league_profile import (
+    research_contract,
+    research_fingerprint_from_profile,
+    structural_contract,
+    structural_settings,
+    sha256_json,
+)
 from current_snapshot_storage import load_current_snapshot
 
 R=Path(__file__).resolve().parents[1]
@@ -69,7 +75,7 @@ for lid in enabled:
     pf=((cur.get('scoring_provenance') or {}).get('profile_fields') or {})
     assert pf,f'{lid}: current snapshot missing captured live profile provenance'
 
-    live=structural_contract(
+    live_structural=structural_contract(
         str(lid),
         profile.get('format'),
         cur.get('scoring_settings') or profile.get('scoring_settings') or {},
@@ -80,11 +86,44 @@ for lid in enabled:
         pf.get('season_type'),
         profile.get('research_constraints') or [],
     )
-    got=sha256_json(live)
-    exp=profile.get('profile_fingerprint')
-    assert got==exp,(
-        f'{lid}: corrected captured-live fingerprint {got} '
-        f'!= stored structural fingerprint {exp}'
+    live_profile_fp=sha256_json(live_structural)
+
+    # Full structural drift is retained as provenance. Operational waiver
+    # scheduling must not invalidate otherwise compatible historical research.
+    assert cur.get('live_profile_fingerprint')==live_profile_fp,(
+        f'{lid}: captured live structural fingerprint metadata mismatch'
+    )
+    if live_profile_fp != profile.get('profile_fingerprint'):
+        assert cur.get('profile_diff'),(
+            f'{lid}: structural drift exists but profile_diff is empty'
+        )
+
+    profile_research_fp=research_fingerprint_from_profile(profile)
+    live_research=research_contract(
+        str(lid),
+        profile.get('format'),
+        cur.get('scoring_settings') or profile.get('scoring_settings') or {},
+        pf.get('roster_positions') or [],
+        pf.get('settings') or {},
+        pf.get('total_rosters'),
+        pf.get('season'),
+        pf.get('season_type'),
+        profile.get('research_constraints') or [],
+    )
+    live_research_fp=sha256_json(live_research)
+
+    assert cur.get('profile_research_fingerprint')==profile_research_fp,(
+        f'{lid}: stored profile research fingerprint metadata mismatch'
+    )
+    assert cur.get('live_research_fingerprint')==live_research_fp,(
+        f'{lid}: live research fingerprint metadata mismatch'
+    )
+    assert live_research_fp==profile_research_fp,(
+        f'{lid}: genuine research-contract drift '
+        f'{live_research_fp} != {profile_research_fp}'
+    )
+    assert cur.get('profile_current_match') is True,(
+        f'{lid}: current snapshot does not declare research-compatible profile'
     )
     checked.append(lid)
 
@@ -95,6 +134,6 @@ assert checked==existing_current,(
 assert checked,'no enabled current profiles were validated'
 
 print(
-    f'PASS V9.3.2 structural live-profile regression: '
+    f'PASS V9.3.2 research-compatible live-profile regression: '
     f'{len(checked)}/{len(existing_current)} current enabled profiles match'
 )

@@ -123,6 +123,26 @@ def main() -> None:
         dist_index_path = ROOT / "dist" / "data" / "research" / "app" / "league-index.json"
         assert dist_index_path.exists(), "dist league-index missing: Cloudflare cannot serve fast-switch data"
         dist_index = json.loads(dist_index_path.read_text(encoding="utf-8"))
+
+        dist_leagues_root = ROOT / "dist" / "data" / "research" / "leagues"
+        deployed_ids = {
+            p.name
+            for p in dist_leagues_root.iterdir()
+            if p.is_dir()
+        }
+        expected_ids = set(enabled)
+        extra_ids = sorted(deployed_ids - expected_ids)
+        missing_ids = sorted(expected_ids - deployed_ids)
+
+        assert not extra_ids, (
+            "dist contains non-active/retired league namespaces: "
+            + ", ".join(extra_ids)
+        )
+        assert not missing_ids, (
+            "dist missing active league namespaces: "
+            + ", ".join(missing_ids)
+        )
+
         dist_catalog_count, dist_catalog_bytes = check_player_catalog(ROOT / "dist", dist_index)
         assert dist_catalog_count == catalog_count, "source/dist compact player catalog count differs"
         dist_count, dist_bytes = check_tree(ROOT / "dist", enabled, dist_index)

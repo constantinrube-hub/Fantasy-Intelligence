@@ -1,16 +1,69 @@
 #!/usr/bin/env python3
 """Integrity checks for deduplicated league current-snapshot storage."""
 from __future__ import annotations
-import hashlib,json,sys
+import argparse,hashlib,json,sys
 from collections import defaultdict
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'research'))
-from current_snapshot_storage import STORAGE_FORMAT,load_current_snapshot,read_json  # noqa:E402
+from current_snapshot_storage import (  # noqa:E402
+    DEFAULT_REGISTRY,
+    STORAGE_FORMAT,
+    active_current_snapshot_paths,
+    load_current_snapshot,
+    read_json,
+    split_manifest_shared_refs,
+)
 
-paths=sorted((ROOT/'data/research/leagues').glob('*/current/milestone5_current.json'))
-assert paths,'no league current snapshots found'
+parser=argparse.ArgumentParser()
+parser.add_argument(
+    '--storage-only',
+    action='store_true',
+    help='validate split storage without governance hashes; production CI omits this flag',
+)
+parser.add_argument(
+    '--registry',
+    default=str(DEFAULT_REGISTRY),
+    help='generated active registry; retired namespaces are historical-only',
+)
+args=parser.parse_args()
+
+leagues_root=ROOT/'data/research/leagues'
+
+paths=active_current_snapshot_paths(
+    args.registry,
+    root=ROOT,
+    leagues_root=leagues_root,
+)
+assert paths,'no active-registry current snapshots found'
+
+active_path_set={p.resolve() for p in paths}
+
+all_current=sorted(
+    leagues_root.glob('*/current/milestone5_current.json')
+)
+
+retired_current=[
+    p for p in all_current
+    if p.resolve() not in active_path_set
+]
+
+retired_refs=split_manifest_shared_refs(
+    retired_current,
+    root=ROOT,
+)
+
+missing_retired_refs=sorted(
+    str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(p)
+    for p in retired_refs
+    if not p.exists()
+)
+
+assert not missing_retired_refs,(
+    'retired current evidence has missing shared artifacts: '
+    +repr(missing_retired_refs[:5])
+)
 
 def sha(path):
     h=hashlib.sha256()
@@ -18,7 +71,7 @@ def sha(path):
         for c in iter(lambda:f.read(1024*1024),b''): h.update(c)
     return h.hexdigest()
 
-cache={};refs=set();by_sig=defaultdict(set);hydrated_bytes=0
+cache={};refs=set();by_sig=defaultdict(set);by_slice_base=defaultdict(set);hydrated_bytes=0
 for p in paths:
     raw=read_json(p,{}) or {};lid=p.parents[1].name
     assert (raw.get('storage') or {}).get('format')==STORAGE_FORMAT,f'legacy full current snapshot remains: {p.relative_to(ROOT)}'
@@ -36,20 +89,56 @@ for p in paths:
     assert snap.get('scoring_settings'),f'hydrated scoring settings missing: {lid}'
     assert str(snap.get('scoring_signature') or '')==str(raw.get('scoring_signature') or ''),f'hydrated scoring signature mismatch: {lid}'
     by_sig[str(raw.get('scoring_signature') or '')].add(st['scoring_overlay'])
-    gov=read_json(p.parents[1]/'governance/active_release.json',{}) or {}
-    assert (gov.get('checks') or {}).get('current_storage_integrity') is True,f'governance did not validate shared current storage: {lid}'
-    line=gov.get('model_lineage') or {}
-    assert (line.get('artifact_sha256') or {}).get('current_snapshot')==sha(p),f'governance current manifest hash mismatch: {lid}'
-    governed=line.get('shared_current_artifacts') or {}
-    for key in ('player_base','scoring_overlay'):
-        row=governed.get(key) or {}
-        assert row.get('path')==st[key],f'governance shared path mismatch: {lid} {key}'
-        assert row.get('sha256')==sha(ROOT/st[key]),f'governance shared hash mismatch: {lid} {key}'
 
-shared=list((ROOT/'data/research/shared/current').rglob('*.json'))
-assert shared,'shared current store missing'
-assert all(p.resolve() in refs for p in shared),f'unreferenced shared current artifacts exist: {[str(p.relative_to(ROOT)) for p in shared if p.resolve() not in refs][:5]}'
+    slice_key=(
+        raw.get('season'),
+        raw.get('week'),
+        str(raw.get('season_type') or ''),
+    )
+    by_slice_base[slice_key].add(st['player_base'])
+
+    overlay=read_json(ROOT/st['scoring_overlay'],{}) or {}
+    assert isinstance(overlay.get('player_overrides'),dict),f'player override map missing/invalid: {lid}'
+
+    if not args.storage_only:
+        gov=read_json(p.parents[1]/'governance/active_release.json',{}) or {}
+        assert (gov.get('checks') or {}).get('current_storage_integrity') is True,f'governance did not validate shared current storage: {lid}'
+        line=gov.get('model_lineage') or {}
+        assert (line.get('artifact_sha256') or {}).get('current_snapshot')==sha(p),f'governance current manifest hash mismatch: {lid}'
+        governed=line.get('shared_current_artifacts') or {}
+        for key in ('player_base','scoring_overlay'):
+            row=governed.get(key) or {}
+            assert row.get('path')==st[key],f'governance shared path mismatch: {lid} {key}'
+            assert row.get('sha256')==sha(ROOT/st[key]),f'governance shared hash mismatch: {lid} {key}'
+
+all_shared=list(
+    (ROOT/'data/research/shared/current').rglob('*.json')
+)
+assert all_shared,'shared current store missing'
+
+owned_refs=refs|retired_refs
+
+assert all(
+    p.resolve() in owned_refs
+    for p in all_shared
+),f'unreferenced shared current artifacts exist: {[str(p.relative_to(ROOT)) for p in all_shared if p.resolve() not in owned_refs][:5]}'
+
+shared=[
+    p for p in all_shared
+    if p.resolve() in refs
+]
+
+assert shared,'active current snapshots reference no shared current artifacts'
 assert sum(len(v) for v in by_sig.values())<=len(paths)
+
+assert all(len(v)==1 for v in by_slice_base.values()),(
+    'same-time current snapshots must share one player base: '
+    + repr({
+        key: sorted(values)
+        for key, values in by_slice_base.items()
+        if len(values) != 1
+    })
+)
 
 manifest_bytes=sum(p.stat().st_size for p in paths)
 shared_bytes=sum(p.stat().st_size for p in shared)
@@ -85,6 +174,7 @@ store=store_path.read_text(encoding='utf-8')
 assert 'FIECurrentSnapshotStore' in store
 assert "const FORMAT='fie-current-split-v1'" in store
 assert 'scoring_overlay' in store and 'included_player_ids' in store
+assert 'player_overrides' in store
 
 for src in ['app/kicker-intelligence.js','app/dst-intelligence.js']:
     txt=(ROOT/src).read_text(encoding='utf-8')
@@ -94,5 +184,8 @@ print(
     f'PASS integrity_current_storage_test leagues={len(paths)} '
     f'shared_files={len(shared)} manifest_bytes={manifest_bytes} '
     f'shared_bytes={shared_bytes} shared_budget={shared_budget_bytes} '
-    f'hydrated_bytes={hydrated_bytes} storage_ratio={stored_bytes/hydrated_bytes:.3f}'
+    f'hydrated_bytes={hydrated_bytes} '
+    f'storage_ratio={stored_bytes/hydrated_bytes:.3f} '
+    f'retired_manifests={len(retired_current)} '
+    f'retired_shared_refs={len(retired_refs)}'
 )

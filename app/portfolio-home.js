@@ -115,7 +115,7 @@ function leavePortfolio(){Portfolio.mode=false;state.portfolioMode=false;documen
 async function openLeague(id,route='home'){
   const e=savedLeagues().find(x=>String(x.id)===String(id));if(!e)return;leavePortfolio();const inp=document.getElementById('leagueInput'),sel=document.getElementById('savedLeagueSelect'),fmt=document.getElementById('savedLeagueFormat');if(inp)inp.value=String(id);if(sel)sel.value=String(id);if(fmt)fmt.value=e.formatOverride||'AUTO';state.activeTab=route||'home';
   const status=document.getElementById('status');if(status)status.textContent=`Opening ${e.name||id}…`;
-  try{const loader=window.FIELeagueController?.switchLeague||BASE_LOAD;if(typeof loader!=='function')throw new Error('League loader unavailable');await loader(String(id));state.activeTab=route||'home';captureCurrentLeague();BASE_RENDER?.();}catch(err){console.error(err);if(status)status.textContent=`Could not open ${e.name||id}: ${err?.message||err}`;}
+  try{const controller=window.FIELeagueController,loaded=controller?.switchLeague?await controller.switchLeague(String(id),{route}):await BASE_LOAD?.();if(!loaded||String(state.league?.league_id||'')!==String(id))throw new Error('League load did not complete');state.activeTab=route||'home';captureCurrentLeague();BASE_RENDER?.();}catch(err){console.error(err);if(status)status.textContent=`Could not open ${e.name||id}: ${err?.message||err}`;}
 }
 
 function bind(){

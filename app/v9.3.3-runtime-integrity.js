@@ -66,6 +66,11 @@ function activeSeason(){
   const d=new Date();return d.getUTCMonth()<=1?d.getUTCFullYear()-1:d.getUTCFullYear();
 }
 function activeWeek(){const w=finite(document.getElementById('weekSelect')?.value)??finite(stateObj()?.weekly?.week)??1;return Math.max(1,Math.min(18,Math.round(w)));}
+function authoritativeLeagueWeek(league=stateObj()?.league){const w=finite(league?.settings?.leg);return w!==null&&w>=1&&w<=18?Math.round(w):null;}
+function syncAuthoritativeLeagueWeek(){
+  const week=authoritativeLeagueWeek();if(week===null)return activeWeek();const st=stateObj();if(st){st.weekly=st.weekly||{};st.weekly.week=week;}
+  const sel=document.getElementById('weekSelect');if(sel&&Number(sel.value)!==week)sel.value=String(week);return week;
+}
 function currentContext(){return{leagueId:leagueId(),season:activeSeason(),week:activeWeek()};}
 function idle(timeout=600){return new Promise(resolve=>{const cb=()=>requestAnimationFrame(()=>resolve());if(typeof requestIdleCallback==='function')requestIdleCallback(cb,{timeout});else setTimeout(cb,Math.min(120,timeout));});}
 function diag(error,meta={}){try{core().Diagnostics?.capture?.(error,{domain:'v9.3.4-runtime',...meta});}catch{} }
@@ -208,7 +213,11 @@ function installLeagueSimGuard(){
   }catch(e){diag(e,{feature:'league-sim-guard'});return false;}
 }
 function clearLeagueSimulationForContext(target=leagueId()){
-  const eng=window.FIEDecisionEngines;if(!eng)return;try{eng.cancelDraftMonteCarlo?.('league/week context changed');eng.leagueSim=defaultSim(target,activeWeek());}catch(e){diag(e,{feature:'clear-league-sim'});}
+  const eng=window.FIEDecisionEngines;if(!eng)return;try{eng.cancelDraftMonteCarlo?.('league/week context changed');eng.cancelLeagueSimulation?.('league/week context changed');eng.leagueSim=defaultSim(target,activeWeek());}catch(e){diag(e,{feature:'clear-league-sim'});}
+}
+function refreshStartedLeagueSimulation(){
+  const eng=window.FIEDecisionEngines,sim=eng?.leagueSim;if(!eng||(!sim?.loading&&!sim?.data)||sim?.progress?.status==='cancelled')return false;
+  try{eng.cancelLeagueSimulation?.('projection and enrichment hydration completed');eng.leagueSim=defaultSim(leagueId(),activeWeek());if(stateObj()?.activeTab==='matchupsim')setTimeout(()=>{if(stateObj()?.activeTab==='matchupsim')eng.runLeagueSimulation?.(true);},0);return true;}catch(e){diag(e,{feature:'refresh-hydrated-league-sim'});return false;}
 }
 
 /* ----------------------- B · snapshot-first switching --------------------- */
@@ -349,10 +358,10 @@ window.addEventListener('fie:league-changing',e=>{
 });
 window.addEventListener('fie:league-loaded',e=>{
   const stage=e?.detail?.stage,id=String(e?.detail?.leagueId||'');if(stage==='core'){
-    switchingLeagueId=null;ensureSeasonInvariant();repairPlayerNames();clearLeagueSimulationForContext(id);renderCoreOnce();enrichmentActive=true;
-    Promise.allSettled([ensureSchedule(activeSeason()),loadSelectedWeek(activeWeek(),{reason:'core',rerunSimulation:false})]).then(()=>{preloadSpecialTeamsWindow(activeWeek()).catch(()=>{});scheduleDomEnhance();});
+    switchingLeagueId=null;ensureSeasonInvariant();const week=syncAuthoritativeLeagueWeek();repairPlayerNames();clearLeagueSimulationForContext(id);renderCoreOnce();enrichmentActive=true;
+    Promise.allSettled([ensureSchedule(activeSeason()),loadSelectedWeek(week,{reason:'core',rerunSimulation:false})]).then(()=>{preloadSpecialTeamsWindow(week).catch(()=>{});scheduleDomEnhance();});
   }else if(stage==='enhanced'){
-    switchingLeagueId=null;enrichmentActive=false;repairPlayerNames();flushAutomaticRender();scheduleDomEnhance();
+    switchingLeagueId=null;enrichmentActive=false;repairPlayerNames();refreshStartedLeagueSimulation();flushAutomaticRender();scheduleDomEnhance();
   }
 });
 window.addEventListener('fie:league-live-update',e=>applyLiveOverlay(e?.detail||{}));
@@ -368,7 +377,7 @@ function install(){
   if(!complete&&installAttempts<80)setTimeout(install,100);else scheduleDomEnhance();
 }
 
-const API={installed:true,VERSION,RELEASE,diagnostics,ensureSchedule,loadSelectedWeek,setWeek,opponentForTeam,normalizeNFLTeam,currentContext,repairPlayerNames,flushAutomaticRender,primePlayerCatalog,preloadSpecialTeamsWindow,syncLeaguePositionFilter};
+const API={installed:true,VERSION,RELEASE,diagnostics,ensureSchedule,loadSelectedWeek,setWeek,opponentForTeam,normalizeNFLTeam,currentContext,authoritativeLeagueWeek,syncAuthoritativeLeagueWeek,refreshStartedLeagueSimulation,repairPlayerNames,flushAutomaticRender,primePlayerCatalog,preloadSpecialTeamsWindow,syncLeaguePositionFilter};
 window.FIE934AB=API;window.FIE933ABC=API;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

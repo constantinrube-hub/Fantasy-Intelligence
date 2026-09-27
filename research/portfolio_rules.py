@@ -123,6 +123,15 @@ def normalize_entry(raw: Dict[str, Any]) -> Dict[str, Any]:
     alias = raw.get("alias")
     alias = str(alias).strip() if alias not in (None, "") else None
     constraints = normalize_constraints(raw.get("research_constraints") or raw.get("restrictions") or [])
+
+    replaces = raw.get("replaces_league_id")
+    replaces = str(replaces).strip() if replaces not in (None, "") else None
+    if replaces is not None:
+        if not LEAGUE_ID_RE.fullmatch(replaces):
+            raise ValueError(f"Invalid replaces_league_id {replaces!r}")
+        if replaces == lid:
+            raise ValueError("replaces_league_id cannot equal league_id")
+
     return {
         "league_id": lid,
         "format": fmt,
@@ -130,6 +139,7 @@ def normalize_entry(raw: Dict[str, Any]) -> Dict[str, Any]:
         "alias": alias,
         "research_constraints": constraints,
         "enabled": bool(raw.get("enabled", True)),
+        "replaces_league_id": replaces,
     }
 
 
@@ -151,6 +161,29 @@ def load_portfolio_config(path: str | Path) -> Dict[str, Any]:
     dupes = sorted({x for x in ids if ids.count(x) > 1})
     if dupes:
         raise ValueError(f"Duplicate League IDs in portfolio: {', '.join(dupes)}")
+
+    replaced = [
+        row["replaces_league_id"]
+        for row in rows
+        if row.get("replaces_league_id")
+    ]
+    replaced_dupes = sorted({
+        value for value in replaced
+        if replaced.count(value) > 1
+    })
+    if replaced_dupes:
+        raise ValueError(
+            "Multiple live leagues replace the same League ID: "
+            + ", ".join(replaced_dupes)
+        )
+
+    collisions = sorted(set(ids) & set(replaced))
+    if collisions:
+        raise ValueError(
+            "A replaced League ID cannot also remain active: "
+            + ", ".join(collisions)
+        )
+
     return {"schema_version": schema, "sleeper_username": username, "leagues": rows}
 
 

@@ -9,10 +9,29 @@ ROOT=Path(__file__).resolve().parents[1]
 CFG=ROOT/'config'/'league-portfolio.json'
 cfg=load_portfolio_config(CFG)
 assert cfg['sleeper_username']=='C0nstant1n'
-assert len(cfg['leagues'])==22
+assert cfg['leagues'], 'managed portfolio must not be empty'
 formats={}
 for e in cfg['leagues']: formats[e['format']]=formats.get(e['format'],0)+1
-assert formats=={'CHOPPED':5,'REDRAFT':4,'REDRAFT_BESTBALL':2,'DYNASTY':7,'DYNASTY_BESTBALL':3,'CHOPPED_BESTBALL':1},formats
+assert set(formats)=={
+    'CHOPPED',
+    'REDRAFT',
+    'REDRAFT_BESTBALL',
+    'DYNASTY',
+    'DYNASTY_BESTBALL',
+    'CHOPPED_BESTBALL',
+},formats
+
+among=entry_for(cfg,'1402643913583398912')
+assert among and among['format']=='CHOPPED_BESTBALL'
+assert among['replaces_league_id']=='1399318410818519040'
+
+final_cut=entry_for(cfg,'1400561646463672320')
+assert final_cut and final_cut['format']=='CHOPPED'
+assert final_cut['replaces_league_id']=='1396507356048658438'
+
+itn=entry_for(cfg,'1400388486179123200')
+assert itn and itn['format']=='CHOPPED'
+assert itn['replaces_league_id'] is None
 
 legacy=entry_for(cfg,'1316165875291668480')
 assert legacy and legacy['priority']=='VERY_HIGH'
@@ -32,6 +51,7 @@ managed=build_profile(fixture['league_id'],'DYNASTY',league_json=fixture,portfol
 plain=build_profile(fixture['league_id'],'DYNASTY',league_json=fixture)
 assert managed['research_constraints']==legacy['research_constraints']
 assert managed['profile_fingerprint']!=plain['profile_fingerprint'],'custom research rules must be fingerprinted'
+assert managed['research_fingerprint']!=plain['research_fingerprint'],'custom research rules must affect research fingerprint'
 assert managed['portfolio']['priority']=='VERY_HIGH'
 
 # Browser-side implementation is now a dedicated module. Validate its public
@@ -51,4 +71,4 @@ for token in [
 ]:
     assert token in js,token
 
-print('PASS: 22-league portfolio + hybrid format + fixed-cohort custom rules are valid, research-fingerprinted and exposed through modular browser rules')
+print('PASS: managed portfolio + lifecycle lineage + hybrid format + fixed-cohort custom rules are valid, research-fingerprinted and exposed through modular browser rules')

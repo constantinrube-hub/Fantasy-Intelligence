@@ -33,7 +33,12 @@ from fie_research import (
 )
 from fie_m2 import add_change_signals, add_competition_features, add_position_shares, add_team_context
 from fie_m3 import add_lagged_advanced, add_public_enrichment
-from league_profile import sha256_json, structural_contract
+from league_profile import (
+    research_contract,
+    research_fingerprint_from_profile,
+    sha256_json,
+    structural_contract,
+)
 from scoring_relevance import relevant_scoring_audit, position_support
 from dst_contract import dst_enabled, dst_profile_fields
 from fie_dst import predict_dst_from_bundle, score_dst_stats
@@ -654,6 +659,8 @@ def build_snapshot(args) -> dict:
     profile_fp = profile.get("profile_fingerprint")
     league_format = str(profile.get("format") or "").upper() or None
     live_profile_fp = None
+    profile_research_fp = None
+    live_research_fp = None
     profile_current_match = True
     profile_diff = {}
     if profile and league_id:
@@ -665,7 +672,25 @@ def build_snapshot(args) -> dict:
             profile.get("research_constraints") or None,
         )
         live_profile_fp = sha256_json(live_contract)
-        profile_current_match = bool(profile_fp and live_profile_fp == profile_fp)
+
+        profile_research_fp = research_fingerprint_from_profile(profile)
+        live_research_contract = research_contract(
+            str(league_id),
+            str(profile.get("format") or "AUTO"),
+            scoring,
+            pf.get("roster_positions") or [],
+            pf.get("settings") or {},
+            pf.get("total_rosters"),
+            pf.get("season"),
+            pf.get("season_type"),
+            profile.get("research_constraints") or None,
+        )
+        live_research_fp = sha256_json(live_research_contract)
+        profile_current_match = bool(
+            profile_research_fp
+            and live_research_fp == profile_research_fp
+        )
+
         stored_contract = structural_contract(
             str(league_id), str(profile.get("format") or "AUTO"), profile.get("scoring_settings") or {},
             profile.get("roster_positions") or [], profile.get("settings") or {},
@@ -943,7 +968,11 @@ def build_snapshot(args) -> dict:
         "analysis_week_policy": "explicit --week when supplied; otherwise preseason maps to upcoming regular Week 1",
         "league_id": league_id, "league_format": profile.get("format") if profile else None,
         "profile_fingerprint": profile_fp, "profile_scoring_signature": profile_sig,
-        "live_profile_fingerprint": live_profile_fp, "profile_current_match": profile_current_match, "profile_diff": profile_diff,
+        "profile_research_fingerprint": profile_research_fp,
+        "live_profile_fingerprint": live_profile_fp,
+        "live_research_fingerprint": live_research_fp,
+        "profile_current_match": profile_current_match,
+        "profile_diff": profile_diff,
         "scoring_signature": sig, "scoring_settings": scoring, "scoring_provenance": scoring_prov,
         "scoring_support_relevant": scoring_support_relevant,
         "research_compatible": research_compatible, "snapshot_max_age_hours": 18,
@@ -974,7 +1003,7 @@ def build_snapshot(args) -> dict:
             "Scoring signature must match the empirical M5 research profile.",
             "A player model may activate only when every non-zero scoring rule relevant to that player position is replay-supported; irrelevant K/DST rules do not gate offensive-only leagues.",
             "League ID and profile fingerprint must match M4/M5/M6 artifacts when a league profile is supplied.",
-            "Current Sleeper roster/settings fingerprint must still match the historical League-ID profile.",
+            "Current Sleeper research-relevant league contract must still match the historical League-ID profile; operational waiver scheduling may drift without invalidating M1-M6 research.",
             "Immutable Sleeper benchmarks are written only in regular season and within 18 hours before first kickoff.",
             "Sleeper preseason week numbers never masquerade as regular-season weekly decision weeks.",
         ],

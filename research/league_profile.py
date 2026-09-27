@@ -46,9 +46,42 @@ STRUCTURAL_SETTING_KEYS = {
     "max_keepers", "draft_rounds"
 }
 
+# Settings that can alter the model-relevant player pool / league structure.
+# Operational waiver schedules, deadlines and eligibility toggles remain in the
+# full profile fingerprint but must not force historical M1-M6 rebuilds.
+RESEARCH_SETTING_KEYS = {
+    "best_ball",
+    "reserve_slots",
+    "taxi_slots",
+    "taxi_years",
+    "taxi_allow_vets",
+    "max_keepers",
+}
+
 def structural_settings(settings: Dict[str, Any] | None) -> Dict[str, Any]:
     settings = settings or {}
     return {k: settings[k] for k in sorted(STRUCTURAL_SETTING_KEYS) if k in settings}
+
+
+def research_structural_settings(settings: Dict[str, Any] | None) -> Dict[str, Any]:
+    """Stable model-relevant subset of Sleeper league settings."""
+    settings = settings or {}
+    out = {
+        k: settings[k]
+        for k in sorted(RESEARCH_SETTING_KEYS)
+        if k in settings
+    }
+
+    # Sleeper may omit best_ball when false and later expose an explicit 0.
+    # Those states are semantically identical.
+    raw_best_ball = settings.get("best_ball", 0)
+    try:
+        out["best_ball"] = int(raw_best_ball or 0)
+    except (TypeError, ValueError):
+        out["best_ball"] = raw_best_ball
+
+    return out
+
 
 def structural_contract(league_id: str, fmt: str, scoring: Dict[str, Any], roster_positions: list[Any], settings: Dict[str, Any], total_rosters: Any, season: Any, season_type: Any, constraints: list[Any] | None = None) -> Dict[str, Any]:
     c = {
@@ -57,6 +90,33 @@ def structural_contract(league_id: str, fmt: str, scoring: Dict[str, Any], roste
         "scoring_settings": scoring or {},
         "roster_positions": roster_positions or [],
         "structural_settings": structural_settings(settings),
+        "total_rosters": total_rosters,
+        "season": season,
+        "season_type": season_type,
+    }
+    if constraints:
+        c["research_constraints"] = list(constraints)
+    return c
+
+
+def research_contract(
+    league_id: str,
+    fmt: str,
+    scoring: Dict[str, Any],
+    roster_positions: list[Any],
+    settings: Dict[str, Any],
+    total_rosters: Any,
+    season: Any,
+    season_type: Any,
+    constraints: list[Any] | None = None,
+) -> Dict[str, Any]:
+    """Contract whose changes genuinely require historical research review."""
+    c = {
+        "league_id": league_id,
+        "format": fmt,
+        "scoring_settings": scoring or {},
+        "roster_positions": roster_positions or [],
+        "research_structural_settings": research_structural_settings(settings),
         "total_rosters": total_rosters,
         "season": season,
         "season_type": season_type,
@@ -88,6 +148,21 @@ def sha256_json(value: Any) -> str:
 def scoring_signature(scoring: Dict[str, Any]) -> str:
     """Match research/fie_research.py scoring_signature exactly."""
     return hashlib.sha256(canonical_json(scoring or {}).encode("utf-8")).hexdigest()[:16]
+
+
+def research_fingerprint_from_profile(profile: Dict[str, Any]) -> str:
+    contract = research_contract(
+        str(profile.get("league_id") or ""),
+        str(profile.get("format") or ""),
+        profile.get("scoring_settings") or {},
+        profile.get("roster_positions") or [],
+        profile.get("settings") or {},
+        profile.get("total_rosters"),
+        profile.get("season"),
+        profile.get("season_type"),
+        profile.get("research_constraints") or None,
+    )
+    return sha256_json(contract)
 
 
 def fetch_json(url: str, timeout: int = 20) -> Dict[str, Any]:
@@ -180,7 +255,11 @@ def build_profile(league_id: str, requested_format: str = "AUTO", league_json: D
             "priority": portfolio_entry.get("priority"),
             "alias": portfolio_entry.get("alias"),
             "managed": True,
+            "replaces_league_id": portfolio_entry.get("replaces_league_id"),
         }
+
+    # Calculate only after custom research constraints have been attached.
+    profile["research_fingerprint"] = research_fingerprint_from_profile(profile)
     return profile
 
 
@@ -215,12 +294,16 @@ def update_registry(registry_path: Path, profile: Dict[str, Any], current_refres
         "format": profile.get("format"),
         "scoring_signature": profile.get("scoring_signature"),
         "profile_fingerprint": profile.get("profile_fingerprint"),
+        "research_fingerprint": profile.get("research_fingerprint"),
         "dst_enabled": bool(profile.get("dst_enabled")),
         "dst_starter_slots": int(profile.get("dst_starter_slots") or 0),
         "dst_scoring_signature": profile.get("dst_scoring_signature"),
         "dst_roster_signature": profile.get("dst_roster_signature"),
         "current_refresh": bool(current_refresh),
         "profile_path": f"data/research/leagues/{lid}/profile.json",
+        "replaces_league_id": (
+            (profile.get("portfolio") or {}).get("replaces_league_id")
+        ),
         "updated_at": utc_now(),
     }
     reg["updated_at"] = utc_now()
@@ -256,6 +339,7 @@ def build_legacy_profile(league_id: str, requested_format: str, m1_bundle: Dict[
         "migration":{"type":"legacy_single_profile","embedded_league_id":embedded_id or None,
           "current_sleeper_scoring_signature":live_sig,"historical_scoring_matches_current":hist_sig==live_sig},
     }
+    profile["research_fingerprint"] = research_fingerprint_from_profile(profile)
     if dst_profile_fields:
         profile.update(dst_profile_fields(profile))
     return profile
