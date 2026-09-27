@@ -24,10 +24,14 @@ def write(path,obj):
 def sha256_file(path):
     p=Path(path)
     if not p.exists():return None
-    h=hashlib.sha256()
-    with p.open('rb') as f:
-        for c in iter(lambda:f.read(1024*1024),b''):h.update(c)
-    return h.hexdigest()
+    raw=p.read_bytes()
+    # Git and Cloudflare serve the repository's LF-normalized JSON blobs. A
+    # Windows checkout may expose the same tracked JSON as CRLF, so hashing raw
+    # working-tree bytes would publish a governance digest that can never match
+    # the deployed artifact. Normalize text JSON before hashing; binary inputs
+    # remain byte-exact.
+    if p.suffix.lower()=='.json':raw=raw.replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+    return hashlib.sha256(raw).hexdigest()
 def parse_time(v):
     if not v:return None
     try:return datetime.fromisoformat(str(v).replace('Z','+00:00')).astimezone(timezone.utc)
