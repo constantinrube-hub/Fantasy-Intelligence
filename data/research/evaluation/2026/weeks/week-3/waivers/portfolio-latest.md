@@ -1,6 +1,6 @@
 # FIE Window 1D Waiver Plan · Week 3
 
-Generated: `2026-09-28T22:15:14.910577+00:00`
+Generated: `2026-09-28T22:28:05.351851+00:00`
 
 Research-only decision support. M9 production and canonical rankings are unchanged.
 
@@ -223,16 +223,12 @@ FAAB remaining: **100.0 / 100.0**
 
 | Player | Pos | Add→Drop signal | Bid | Range | Win P | Confidence |
 |---|---:|---:|---:|---:|---:|---|
-| Harrison Butker | K | 1.507075 | 1 | 1–5 | 0.875 | LOW |
-| Brandon Aubrey | K | 1.1145 | 1 | 1–4 | 0.875 | LOW |
-| Will Reichard | K | 1.0242 | 1 | 1–4 | 0.875 | LOW |
-| Will Reichard | K | 1.0242 | 1 | 1–4 | 0.875 | LOW |
-| Jason Myers | K | 0.730425 | 1 | 1–3 | 0.875 | LOW |
-| Evan McPherson | K | 0.4839 | 1 | 1–2 | 0.875 | LOW |
-| Ka'imi Fairbairn | K | 0.4836 | 1 | 1–2 | 0.875 | LOW |
-| Tyler Loop | K | 0.45315 | 1 | 1–2 | 0.875 | LOW |
+| Will Reichard | K | 1.0242 | 1 | 1–5 | 0.875 | LOW |
 | Lenny Krieg | K | 0.3638 | 1 | 1–2 | 0.875 | LOW |
-| Jake Bates | K | 0.33855 | 1 | 1–2 | 0.875 | LOW |
+| Nick Folk | K | 0.3049 | 1 | 1–2 | 0.875 | LOW |
+| Tyler Bass | K | 0.257375 | 1 | 1–2 | 0.875 | LOW |
+| Wil Lutz | K | 0.1242 | 1 | 1–1 | 0.875 | LOW |
+| CIN D/ST | DEF | 0.0251 | 0 | 0–1 | 0.375 | LOW |
 
 ### The Hunger Games · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
