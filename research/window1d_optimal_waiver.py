@@ -23,7 +23,8 @@ from pathlib import Path
 from typing import Any, Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_HISTORY = "fie-window1d-waiver-history-v1"
+SCHEMA_HISTORY = "fie-window1d-waiver-history-v2"
+SCHEMA_BID_LEDGER = "fie-window1d-waiver-bid-ledger-v1"
 SCHEMA_LEAGUE = "fie-window1d-optimal-waiver-v1"
 SCHEMA_PORTFOLIO = "fie-window1d-optimal-waiver-portfolio-v1"
 CHOPPED_FORMATS = {"CHOPPED", "CHOPPED_BESTBALL"}
@@ -213,6 +214,46 @@ def managed_roster(rosters: list[dict[str, Any]], users: list[dict[str, Any]], u
     return (owned[0] if len(owned) == 1 else None), user
 
 
+def user_manager_index(users: list[dict[str, Any]], username: str) -> dict[str, dict[str, Any]]:
+    """Resolve Sleeper user IDs and the configured managed username exactly."""
+    needle = str(username or "").strip().lower()
+    out: dict[str, dict[str, Any]] = {}
+    for user in users:
+        if not isinstance(user, dict) or user.get("user_id") is None:
+            continue
+        user_id = str(user["user_id"])
+        display = user.get("display_name") or user.get("username")
+        out[user_id] = {
+            "manager_id": user_id,
+            "manager_name": str(display) if display is not None and str(display).strip() else None,
+            "is_managed_user": bool(
+                needle and display is not None and str(display).strip().lower() == needle
+            ),
+            "identity_status": "RESOLVED" if display else "UNRESOLVED",
+        }
+    return out
+
+
+def roster_manager_index(
+    rosters: list[dict[str, Any]], users: list[dict[str, Any]], username: str,
+) -> dict[str, dict[str, Any]]:
+    """Resolve observable roster ownership without guessing missing identities."""
+    users_by_id = user_manager_index(users, username)
+    out: dict[str, dict[str, Any]] = {}
+    for roster in rosters:
+        if not isinstance(roster, dict) or roster.get("roster_id") is None:
+            continue
+        owner_id = str(roster.get("owner_id") or "").strip() or None
+        owner = users_by_id.get(owner_id or "", {})
+        out[str(roster["roster_id"])] = {
+            "manager_id": owner_id,
+            "manager_name": owner.get("manager_name"),
+            "is_managed_user": bool(owner.get("is_managed_user")),
+            "identity_status": owner.get("identity_status") or "UNRESOLVED",
+        }
+    return out
+
+
 def remaining_budget(roster: dict[str, Any], cap: float) -> float:
     settings = roster.get("settings") if isinstance(roster.get("settings"), dict) else {}
     used = numeric(settings.get("waiver_budget_used")) or 0.0
@@ -233,6 +274,8 @@ def _metadata_text(metadata: Any) -> str:
 def normalize_waiver_transactions(
     transactions: list[dict[str, Any]], *, portfolio_league_id: str, source_league_id: str,
     season: int, week: int, league_format: str, budget_cap: float,
+    managers_by_roster: dict[str, dict[str, Any]] | None = None,
+    managers_by_user: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """Normalize only bids Sleeper explicitly exposes.
 
@@ -256,6 +299,8 @@ def normalize_waiver_transactions(
         meta = _metadata_text(tx.get("metadata"))
         competitive_loss = bool(status == "failed" and any(token in meta for token in ("outbid", "higher bid", "waiver bid", "bid was")))
         for pid, rid in adds.items():
+            creator_id = str(tx.get("creator") or "").strip()
+            manager = (managers_by_user or {}).get(creator_id, {}) or (managers_by_roster or {}).get(str(rid), {})
             out.append({
                 "portfolio_league_id": str(portfolio_league_id),
                 "source_league_id": str(source_league_id),
@@ -268,6 +313,11 @@ def normalize_waiver_transactions(
                 "status": status,
                 "player_id": str(pid),
                 "roster_id": int(rid) if str(rid).isdigit() else rid,
+                "transaction_creator_id": creator_id or None,
+                "manager_id": manager.get("manager_id"),
+                "manager_name": manager.get("manager_name"),
+                "manager_identity_status": manager.get("identity_status") or "UNRESOLVED",
+                "is_managed_user": bool(manager.get("is_managed_user")),
                 "bid": float(bid),
                 "budget_cap": float(budget_cap),
                 "bid_pct_cap": float(bid) / float(budget_cap) if budget_cap > 0 else None,
@@ -279,9 +329,84 @@ def normalize_waiver_transactions(
     return out
 
 
+def build_bid_ledger(observations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Build a truthful player-level view of only the claims Sleeper exposed."""
+    grouped: dict[tuple[str, int, int, str], list[dict[str, Any]]] = {}
+    for row in observations:
+        try:
+            key = (
+                str(row.get("source_league_id") or ""),
+                int(row.get("season")),
+                int(row.get("week")),
+                str(row.get("player_id") or ""),
+            )
+        except (TypeError, ValueError):
+            continue
+        if not key[0] or not key[3]:
+            continue
+        grouped.setdefault(key, []).append(row)
+
+    ledger: list[dict[str, Any]] = []
+    for (source_league_id, season, week, pid), rows in sorted(grouped.items()):
+        claims = sorted(
+            rows,
+            key=lambda row: (
+                int(row.get("created") or 0),
+                str(row.get("transaction_id") or ""),
+            ),
+        )
+        winners = [row for row in claims if bool(row.get("is_winning_bid"))]
+        managed = [row for row in claims if bool(row.get("is_managed_user"))]
+        other_failed = [
+            row for row in claims
+            if bool(row.get("is_failed_claim")) and not bool(row.get("is_managed_user"))
+        ]
+
+        def claim_view(row: dict[str, Any]) -> dict[str, Any]:
+            return {
+                "transaction_id": row.get("transaction_id"),
+                "roster_id": row.get("roster_id"),
+                "transaction_creator_id": row.get("transaction_creator_id"),
+                "manager_id": row.get("manager_id"),
+                "manager_name": row.get("manager_name"),
+                "manager_identity_status": row.get("manager_identity_status") or "UNRESOLVED",
+                "bid": numeric(row.get("bid")),
+                "status": row.get("status"),
+                "is_explicit_competitive_loss": bool(row.get("is_explicit_competitive_loss")),
+                "failure_metadata": row.get("failure_metadata"),
+            }
+
+        visibility = "PARTIAL_OBSERVED" if winners and len(claims) > len(winners) else (
+            "WINNER_ONLY_OBSERVED" if winners else "FAILED_CLAIMS_ONLY_OBSERVED"
+        )
+        ledger.append({
+            "schema": SCHEMA_BID_LEDGER,
+            "source_league_id": source_league_id,
+            "season": season,
+            "week": week,
+            "player_id": pid,
+            "player_name": next((row.get("player_name") for row in claims if row.get("player_name")), None),
+            "position": next((row.get("position") for row in claims if row.get("position")), None),
+            "winning_claim": claim_view(winners[0]) if len(winners) == 1 else None,
+            "winning_claims": [claim_view(row) for row in winners],
+            "managed_user_claims": [claim_view(row) for row in managed],
+            "managed_user_highest_bid": max(
+                (numeric(row.get("bid")) for row in managed if numeric(row.get("bid")) is not None),
+                default=None,
+            ),
+            "other_observed_failed_claims": [claim_view(row) for row in other_failed],
+            "observed_claim_count": len(claims),
+            "visibility": visibility,
+            "visibility_note": (
+                "Sleeper does not guarantee a complete private bid book; absent claims remain unknown."
+            ),
+        })
+    return ledger
+
+
 def capture_history_for_league(
     league_id: str, league_format: str, target_season: int, target_week: int,
-    *, max_seasons: int = 2, fetcher=http_json,
+    *, username: str = "", max_seasons: int = 2, fetcher=http_json,
 ) -> dict[str, Any]:
     observations: list[dict[str, Any]] = []
     sources: list[dict[str, Any]] = []
@@ -300,6 +425,23 @@ def capture_history_for_league(
         season = int(league.get("season") or (target_season - depth))
         settings = league.get("settings") if isinstance(league.get("settings"), dict) else {}
         cap = numeric(settings.get("waiver_budget")) or 100.0
+        managers_by_roster: dict[str, dict[str, Any]] = {}
+        managers_by_user: dict[str, dict[str, Any]] = {}
+        identity_errors: list[str] = []
+        try:
+            rosters = fetcher(f"https://api.sleeper.app/v1/league/{current_id}/rosters") or []
+            users = fetcher(f"https://api.sleeper.app/v1/league/{current_id}/users") or []
+            managers_by_roster = roster_manager_index(
+                rosters if isinstance(rosters, list) else [],
+                users if isinstance(users, list) else [],
+                username,
+            )
+            managers_by_user = user_manager_index(
+                users if isinstance(users, list) else [], username,
+            )
+        except Exception as exc:
+            identity_errors.append(f"manager_identity:{current_id}:{type(exc).__name__}:{exc}")
+            errors.extend(identity_errors)
         last_week = int(target_week) if season == int(target_season) else 18
         count_before = len(observations)
         for week in range(1, max(1, last_week) + 1):
@@ -313,6 +455,8 @@ def capture_history_for_league(
             observations.extend(normalize_waiver_transactions(
                 txs, portfolio_league_id=league_id, source_league_id=current_id,
                 season=season, week=week, league_format=league_format, budget_cap=cap,
+                managers_by_roster=managers_by_roster,
+                managers_by_user=managers_by_user,
             ))
         sources.append({
             "source_league_id": current_id,
@@ -320,9 +464,21 @@ def capture_history_for_league(
             "weeks_requested": last_week,
             "observations": len(observations) - count_before,
             "waiver_budget": cap,
+            "manager_identity_status": (
+                "RESOLVED"
+                if managers_by_roster
+                and not identity_errors
+                and all(value.get("identity_status") == "RESOLVED" for value in managers_by_roster.values())
+                else ("PARTIAL" if managers_by_roster else "UNAVAILABLE")
+            ),
+            "resolved_roster_count": sum(
+                value.get("identity_status") == "RESOLVED"
+                for value in managers_by_roster.values()
+            ),
         })
         current_id = str(league.get("previous_league_id") or "").strip()
     observations.sort(key=lambda x: (x["season"], x["week"], x.get("created") or 0, x["transaction_id"], x["player_id"]))
+    ledger = build_bid_ledger(observations)
     return {
         "schema": SCHEMA_HISTORY,
         "captured_at": utc_now().isoformat(),
@@ -334,11 +490,16 @@ def capture_history_for_league(
         "sources": sources,
         "source_errors": errors,
         "observations": observations,
+        "bid_ledger": ledger,
         "summary": {
             "observations": len(observations),
             "winning_bids": sum(bool(x.get("is_winning_bid")) for x in observations),
             "failed_claims": sum(bool(x.get("is_failed_claim")) for x in observations),
             "explicit_competitive_losses": sum(bool(x.get("is_explicit_competitive_loss")) for x in observations),
+            "player_week_ledgers": len(ledger),
+            "manager_resolved_observations": sum(
+                x.get("manager_identity_status") == "RESOLVED" for x in observations
+            ),
         },
     }
 
@@ -385,12 +546,13 @@ def enrich_history_positions(observations: list[dict[str, Any]], current_indexes
     current identity universe. Such rows simply participate in all-position pools.
     """
     for row in observations:
-        if row.get("position"):
-            continue
         idx = current_indexes.get(str(row.get("portfolio_league_id"))) or {}
         prow = idx.get(str(row.get("player_id")))
         if prow:
-            row["position"] = normalize_position(prow.get("position_model") or prow.get("position"))
+            if not row.get("position"):
+                row["position"] = normalize_position(prow.get("position_model") or prow.get("position"))
+            if not row.get("player_name"):
+                row["player_name"] = player_name(prow, str(row.get("player_id")))
 
 
 def empirical_win_probability(sample: list[dict[str, Any]], bid_pct_cap: float) -> float | None:
@@ -874,6 +1036,37 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
     ]
     for league in report.get("leagues") or []:
         lines.append(f"### {league.get('league_name') or league.get('league_id')} · {league.get('format')} · {league.get('status')}")
+        ledger = (league.get("observed_target_week_bid_ledger") or {}).get("players") or []
+        if ledger:
+            lines.extend([
+                "", "#### Observed target-week bid ledger", "",
+                "| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |",
+                "|---|---|---|---|---|",
+            ])
+            for item in ledger:
+                winners = item.get("winning_claims") or []
+                winner_text = ", ".join(
+                    f"{claim.get('bid')} · {claim.get('manager_name') or claim.get('manager_id') or 'manager unresolved'}"
+                    for claim in winners
+                ) or "—"
+                mine = item.get("managed_user_claims") or []
+                mine_text = ", ".join(
+                    f"{claim.get('bid')} ({claim.get('status')})" for claim in mine
+                ) or "—"
+                others = item.get("other_observed_failed_claims") or []
+                other_text = ", ".join(
+                    f"{claim.get('bid')} · {claim.get('manager_name') or claim.get('manager_id') or 'manager unresolved'}"
+                    for claim in others
+                ) or "—"
+                lines.append(
+                    f"| {item.get('player_name') or item.get('player_id')} | {winner_text} | "
+                    f"{mine_text} | {other_text} | {item.get('visibility')} |"
+                )
+            lines.extend([
+                "",
+                "Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.",
+                "",
+            ])
         if league.get("status", "").startswith("BLOCKED") or league.get("status", "").startswith("NOT_APPLICABLE"):
             lines.extend(["", f"No bid recommendation produced. Reason: `{league.get('status')}`", ""])
             continue
@@ -954,12 +1147,16 @@ def build_portfolio(
             continue
         hist = capture_history_for_league(
             lid, str(profile.get("format") or "UNKNOWN"), int(season), target_week,
-            max_seasons=max_history_seasons, fetcher=fetcher,
+            username=username, max_seasons=max_history_seasons, fetcher=fetcher,
         )
         histories[lid] = hist
         all_observations.extend(hist.get("observations") or [])
 
     enrich_history_positions(all_observations, current_indexes)
+    for hist in histories.values():
+        ledger = build_bid_ledger(hist.get("observations") or [])
+        hist["bid_ledger"] = ledger
+        hist.setdefault("summary", {})["player_week_ledgers"] = len(ledger)
     leagues = []
     source_bindings = {}
     for lid in ids:
@@ -981,6 +1178,19 @@ def build_portfolio(
             target_season=season, target_week=target_week, max_current_age_hours=max_current_age_hours,
         )
         hist = histories.get(lid) or {}
+        target_ledger = [
+            row for row in (hist.get("bid_ledger") or [])
+            if str(row.get("source_league_id")) == lid
+            and int(row.get("season") or -1) == int(season)
+            and int(row.get("week") or -1) == target_week
+        ]
+        plan["observed_target_week_bid_ledger"] = {
+            "schema": SCHEMA_BID_LEDGER,
+            "decision_model_eligible": False,
+            "reason": "Target-week results are reporting evidence and are excluded from their own bid recommendation model.",
+            "player_count": len(target_ledger),
+            "players": target_ledger,
+        }
         plan["source_bindings"] = {
             "profile_sha256": sha256_file(profile_path) if profile_path.is_file() else None,
             "current_snapshot_sha256": sha256_file(current_path) if current_path.is_file() else None,

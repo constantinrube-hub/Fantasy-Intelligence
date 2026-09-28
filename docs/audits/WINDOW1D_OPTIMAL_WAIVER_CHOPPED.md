@@ -200,3 +200,31 @@ A league blocker is recorded inside the portfolio artifact and does not abort th
 - No target-week auction result can inform its own recommendation.
 - Chopped and ordinary waiver economics remain separate.
 - Window 2A remains the next implementation phase after 1D.
+
+## 12. PR2 player-level bid ledger
+
+The in-season intelligence follow-on upgrades the historical evidence artifact to
+`fie-window1d-waiver-history-v2` and adds an additive
+`fie-window1d-waiver-bid-ledger-v1` view. For every observable
+league/season/week/player combination it records:
+
+- the completed winning claim and resolved manager when Sleeper exposes them;
+- every claim belonging to the configured managed username;
+- other observed failed claims and their resolved managers;
+- the highest observed managed-user bid;
+- whether the payload is winner-only, failed-claims-only or partially observed.
+
+Roster ownership is resolved from the matching Sleeper league's `/rosters` and
+`/users` endpoints. Missing owners or display names remain `UNRESOLVED`; they are
+never inferred from transaction order or bid amount. The ledger repeats that the
+Sleeper endpoint does not guarantee a complete private bid book, so an absent
+claim remains unknown rather than becoming a zero bid.
+
+The operational portfolio report embeds only the target week's ledger for human
+review. It is explicitly marked `decision_model_eligible=false`. The existing
+`history_before_target()` guard remains controlling, so a Week N auction result
+cannot inform its own Week N bid recommendation.
+
+This is an evidence-normalization and reporting extension. It does not change the
+FAAB utility function, bid-price hierarchy, M9, M10, rankings, app/runtime, or
+production activation.
