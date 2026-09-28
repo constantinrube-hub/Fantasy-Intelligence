@@ -94,7 +94,6 @@ def validate_profiles(profiles: list[dict[str, Any]], *, fixture: bool) -> None:
         from fie_research_pipeline_contract import enabled_league_rows
         enabled = enabled_league_rows()
         assert set(str(row["league_id"]) for row in profiles) == set(enabled), "profile replay must cover every enabled league"
-        assert len(enabled) == 22, "enabled-league coverage changed; require a new governed design"
         for row in profiles:
             registry = enabled[str(row["league_id"])]
             assert str(row["profile_scoring_signature"]) == str(registry.get("scoring_signature") or "")

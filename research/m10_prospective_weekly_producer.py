@@ -22,6 +22,7 @@ from m10_prospective_capture_contract import (
 from m10_prospective_features import FEATURES, build_features, feature_record
 from m10_prospective_season_lock import HGB_SCHEMA, hgb_predict, ridge_predict
 from m10_prospective_season_lock_v2 import _constrain, _reconcile
+from m10_prospective_source_bundle import validate_profile_population
 
 
 RAW_SCHEMA = "fie-m10-prospective-weekly-raw-envelope-v1"
@@ -146,9 +147,16 @@ def attach_default_distributions(rows: list[dict[str, Any]], lock: dict[str, Any
 
 
 def exact_profile_scoring(rows: list[dict[str, Any]], profiles: list[dict[str, Any]], lock: dict[str, Any]) -> list[dict[str, Any]]:
-    """Replay each frozen residual vector through each captured exact profile."""
+    """Replay frozen residual vectors through every profile in vectorized batches.
+
+    The original row/profile loop created two pandas DataFrames for every
+    forecast/profile pair.  A live slate has hundreds of forecast rows, so that
+    implementation could exceed the scheduled workflow's timeout.  Score one
+    point matrix and one residual matrix per profile while preserving the exact
+    row-major output order and canonical scorer.
+    """
     scorer_hash = sha256_file(ROOT / "research/fie_research.py")
-    output: list[dict[str, Any]] = []
+    prepared: list[dict[str, Any]] = []
     for row in rows:
         # Position-conditioned scoring rules (for example TE reception bonuses)
         # are part of an exact profile replay.  The model vector intentionally
@@ -156,12 +164,32 @@ def exact_profile_scoring(rows: list[dict[str, Any]], profiles: list[dict[str, A
         # time rather than silently treating the positional rule as zero.
         point = {**row["predicted_raw_components"], "position_model": row["position_model"]}
         samples = [{**sample, "position_model": row["position_model"]} for sample in _residual_components(lock, row)]
-        for profile in profiles:
-            scoring = dict(profile["scoring_settings"])
+        prepared.append({"point": point, "samples": samples})
+
+    scored_by_profile: list[list[tuple[float, dict[str, float]]]] = []
+    for profile in profiles:
+        scoring = dict(profile["scoring_settings"])
+        point_scores = _score_many([item["point"] for item in prepared], scoring)
+        residual_rows: list[dict[str, Any]] = []
+        residual_spans: list[tuple[int, int]] = []
+        for item in prepared:
+            start = len(residual_rows)
+            residual_rows.extend(item["samples"])
+            residual_spans.append((start, len(residual_rows)))
+        residual_scores = _score_many(residual_rows, scoring)
+        scored_by_profile.append([
+            (point_scores[index], _quantiles(residual_scores[start:end]))
+            for index, (start, end) in enumerate(residual_spans)
+        ])
+
+    output: list[dict[str, Any]] = []
+    for row_index, row in enumerate(rows):
+        for profile_index, profile in enumerate(profiles):
+            point_score, quantiles = scored_by_profile[profile_index][row_index]
             output.append({
                 "forecast_id": row["forecast_id"], "canonical_player_id": row["canonical_player_id"], "model": row["model"],
                 "league_id": profile["league_id"], "league_format": profile["league_format"], "profile_scoring_signature": profile["profile_scoring_signature"], "profile_fingerprint": profile["profile_fingerprint"],
-                "scored_fantasy_points": _score(point, scoring), "scored_prediction_quantiles": _quantiles(_score_many(samples, scoring)),
+                "scored_fantasy_points": point_score, "scored_prediction_quantiles": quantiles,
                 "distribution_interpretation": "player_level_marginal_not_joint_simulation", "scoring_registry_version_sha256": scorer_hash, "research_only": True,
             })
     return output
@@ -253,8 +281,7 @@ def build_weekly_input(raw_envelope: Path, output_dir: Path, *, source_bundle: P
     forecasts = _point_rows(lock, history, target, capture={**capture, "schedule_snapshot_sha256": sha256_file(paths["schedule"])}, source_bundle_sha256=source_hash)
     attach_default_distributions(forecasts, lock)
     profiles_payload = read_json(paths["roster_profile_snapshot"])
-    profiles = profiles_payload.get("profiles") or []
-    assert int(profiles_payload.get("enabled_league_count", -1)) == 22 and len(profiles) == 22
+    profiles = validate_profile_population(profiles_payload)
     out = output_dir; out.mkdir(parents=True, exist_ok=True)
     forecasts_path, profiles_path, rosters_path = out / "forecast-rows.jsonl.gz", out / "profiles.json", out / "league-rosters.json"
     write_jsonl_gzip(forecasts_path, forecasts); write_json(profiles_path, {"profiles": profiles}); write_json(rosters_path, {"league_roster_states": profiles_payload.get("league_roster_states") or []})

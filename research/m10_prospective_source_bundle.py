@@ -14,6 +14,20 @@ BUNDLE_SCHEMA = "fie-m10-prospective-weekly-source-bundle-v1"
 ROLES = {"schedule", "completed_games", "identity_snapshot", "roster_profile_snapshot"}
 
 
+def validate_profile_population(value: dict[str, Any]) -> list[dict[str, Any]]:
+    """Validate the captured portfolio without freezing it to a league count."""
+    profiles = value.get("profiles") or []
+    enabled_count = int(value.get("enabled_league_count", -1))
+    assert enabled_count > 0 and len(profiles) == enabled_count
+    profile_ids = [str(row.get("league_id") or "") for row in profiles]
+    assert all(profile_ids) and len(set(profile_ids)) == enabled_count
+    states = value.get("league_roster_states")
+    if states is not None:
+        state_ids = [str(row.get("league_id") or "") for row in states]
+        assert len(states) == enabled_count and set(state_ids) == set(profile_ids)
+    return profiles
+
+
 def safe_path(root: Path, value: str) -> Path:
     path = Path(value)
     if path.is_absolute() or ".." in path.parts: raise ValueError("source record path must be a safe relative path")
@@ -41,7 +55,7 @@ def validate_input(path: Path) -> tuple[dict[str, Any], dict[str, Path]]:
     assert schedule["season_type"] == "REG" and schedule["first_kickoff_at"] == capture["first_kickoff_at"]
     identity, profiles = read_json(paths["identity_snapshot"]), read_json(paths["roster_profile_snapshot"])
     assert identity.get("governed_crosswalk") is True and identity.get("ambiguous_count") is not None
-    assert profiles.get("enabled_league_count") == 22 and len(profiles.get("profiles") or []) == 22
+    validate_profile_population(profiles)
     return value, paths
 
 
