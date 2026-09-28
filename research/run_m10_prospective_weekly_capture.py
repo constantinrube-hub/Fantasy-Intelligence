@@ -7,7 +7,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from m10_prospective_capture_contract import ROOT, read_json
+from m10_prospective_capture_contract import ROOT, capture_paths, read_json
 from m10_prospective_operational_capture import create_operational_capture, create_operational_missed_capture
 from m10_prospective_source_bundle import create_bundle
 from m10_prospective_weekly_producer import build_weekly_input, validate_raw_envelope
@@ -19,6 +19,11 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(args.output_root); root = root if root.is_absolute() else ROOT / root
     value, _ = validate_raw_envelope(raw)
     capture = value["capture"]; hours = float(capture["hours_before_first_kickoff"])
+    existing = capture_paths(root, int(capture["season"]), int(capture["week"]))
+    completed = existing["manifest"] if existing["manifest"].exists() else existing["missed"]
+    if completed.exists():
+        print(f"PASS R8C weekly capture EXISTS: {completed}")
+        return 0
     if hours > 18.0:
         print("NO_WRITE_WINDOW_NOT_REACHED"); return 0
     if hours < 0.0:

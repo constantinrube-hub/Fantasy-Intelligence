@@ -83,7 +83,8 @@ def _profile_payload() -> dict[str, Any]:
         # cannot be canonically resolved at cutoff.  The adapter emits an
         # explicit per-league blocker instead of silently optimizing a subset.
         states.append({"league_id": str(league_id), "complete": False, "starter_slots": 0, "legal_canonical_player_ids": [], "blocker": "USER_ROSTER_CANONICAL_MAPPING_UNAVAILABLE"})
-    assert len(profiles) == 22
+    assert profiles, "no enabled league profiles"
+    assert len(profiles) == len(states)
     return {"enabled_league_count": len(profiles), "profiles": profiles, "league_roster_states": states}
 
 

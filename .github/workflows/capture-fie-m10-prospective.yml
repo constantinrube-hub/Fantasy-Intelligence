@@ -20,7 +20,7 @@ jobs:
   capture:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 0}
@@ -31,6 +31,7 @@ jobs:
         run: |
           python research/integrity_m10_prospective_r8c_workflow_test.py
           python research/integrity_m10_prospective_week1_source_boundary.py
+          python research/integrity_m10_capture_portfolio_scale_test.py
       - name: Capture public-core source envelope and immutable evidence
         env:
           INPUT_SEASON: ${{ inputs.season }}
