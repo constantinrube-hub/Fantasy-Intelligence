@@ -1,6 +1,6 @@
 # FIE Window 1D Waiver Plan · Week 3
 
-Generated: `2026-09-28T14:48:20.438732+00:00`
+Generated: `2026-09-28T22:15:14.910577+00:00`
 
 Research-only decision support. M9 production and canonical rankings are unchanged.
 
@@ -67,7 +67,9 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 | Keenan Allen | 0.0 · Vossm | — | 0.0 · gardoffl | PARTIAL_OBSERVED |
 | Jameis Winston | 0.0 · BillsGo | — | — | WINNER_ONLY_OBSERVED |
 | Darren Waller | — | — | 1.0 · Ram_pag3 | FAILED_CLAIMS_ONLY_OBSERVED |
+| Kalif Raymond | 0.0 · fapl | — | — | WINNER_ONLY_OBSERVED |
 | Deshaun Watson | 21.0 · BillsGo | — | 1.0 · Tompi92 | PARTIAL_OBSERVED |
+| Austin Ekeler | 0.0 · fapl | — | — | WINNER_ONLY_OBSERVED |
 | Tyquan Thornton | 0.0 · hannoverbears | — | 0.0 · ArchyAndy | PARTIAL_OBSERVED |
 | CIN D/ST | 3.0 · ArchyAndy | — | — | WINNER_ONLY_OBSERVED |
 | TEN D/ST | 0.0 · C0nstant1n | 0.0 (complete) | — | WINNER_ONLY_OBSERVED |
@@ -112,7 +114,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 | Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
 |---|---|---|---|---|
 | Jake Bates | 0.0 · Zippko | — | — | WINNER_ONLY_OBSERVED |
-| Will Shipley | 0.0 · Goliaht | — | — | WINNER_ONLY_OBSERVED |
+| Will Shipley | 0.0 · Goliaht | — | 0.0 · Goliaht | PARTIAL_OBSERVED |
 | Jacob Cowing | 15.0 · nordkurve | — | 0.0 · BillsGo | PARTIAL_OBSERVED |
 | Spencer Shrader | 0.0 · Eierknacker | — | — | WINNER_ONLY_OBSERVED |
 | Tai Felton | 0.0 · Goliaht | — | — | WINNER_ONLY_OBSERVED |
@@ -121,6 +123,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 | Case Keenum | 5.0 · Edox | — | — | WINNER_ONLY_OBSERVED |
 | Ameer Abdullah | 0.0 · CptLucas | — | — | WINNER_ONLY_OBSERVED |
 | Chris Moore | 0.0 · moritzniklas | — | — | WINNER_ONLY_OBSERVED |
+| Austin Ekeler | — | — | 0.0 · CptLucas | FAILED_CLAIMS_ONLY_OBSERVED |
 | Marquise Brown | 0.0 · Zippko | — | — | WINNER_ONLY_OBSERVED |
 | AJ Dillon | 0.0 · CptLucas | — | — | WINNER_ONLY_OBSERVED |
 | Greg Dulcich | 0.0 · Zippko | — | — | WINNER_ONLY_OBSERVED |
