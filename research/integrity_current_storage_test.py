@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Integrity checks for deduplicated league current-snapshot storage."""
 from __future__ import annotations
-import argparse,hashlib,json,sys
+import argparse,json,sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -15,6 +15,7 @@ from current_snapshot_storage import (  # noqa:E402
     read_json,
     split_manifest_shared_refs,
 )
+from fie_governance import sha256_file  # noqa:E402
 
 parser=argparse.ArgumentParser()
 parser.add_argument(
@@ -65,12 +66,6 @@ assert not missing_retired_refs,(
     +repr(missing_retired_refs[:5])
 )
 
-def sha(path):
-    h=hashlib.sha256()
-    with path.open('rb') as f:
-        for c in iter(lambda:f.read(1024*1024),b''): h.update(c)
-    return h.hexdigest()
-
 cache={};refs=set();by_sig=defaultdict(set);by_slice_base=defaultdict(set);hydrated_bytes=0
 for p in paths:
     raw=read_json(p,{}) or {};lid=p.parents[1].name
@@ -104,12 +99,12 @@ for p in paths:
         gov=read_json(p.parents[1]/'governance/active_release.json',{}) or {}
         assert (gov.get('checks') or {}).get('current_storage_integrity') is True,f'governance did not validate shared current storage: {lid}'
         line=gov.get('model_lineage') or {}
-        assert (line.get('artifact_sha256') or {}).get('current_snapshot')==sha(p),f'governance current manifest hash mismatch: {lid}'
+        assert (line.get('artifact_sha256') or {}).get('current_snapshot')==sha256_file(p),f'governance current manifest hash mismatch: {lid}'
         governed=line.get('shared_current_artifacts') or {}
         for key in ('player_base','scoring_overlay'):
             row=governed.get(key) or {}
             assert row.get('path')==st[key],f'governance shared path mismatch: {lid} {key}'
-            assert row.get('sha256')==sha(ROOT/st[key]),f'governance shared hash mismatch: {lid} {key}'
+            assert row.get('sha256')==sha256_file(ROOT/st[key]),f'governance shared hash mismatch: {lid} {key}'
 
 all_shared=list(
     (ROOT/'data/research/shared/current').rglob('*.json')
