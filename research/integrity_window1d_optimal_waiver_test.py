@@ -97,6 +97,11 @@ def run():
     tx = [{"type": "waiver", "status": "complete", "transaction_id": "t1", "settings": {"waiver_bid": 17}, "adds": {"A": 1}}]
     obs = normalize_waiver_transactions(tx, portfolio_league_id="L", source_league_id="L", season=2026, week=1, league_format="REDRAFT", budget_cap=100)
     assert_true(len(obs) == 1 and obs[0]["is_winning_bid"] and obs[0]["bid"] == 17, "winning bid normalization")
+    duplicate_obs = normalize_waiver_transactions(
+        tx + tx, portfolio_league_id="L", source_league_id="L", season=2026,
+        week=1, league_format="REDRAFT", budget_cap=100,
+    )
+    assert_true(len(duplicate_obs) == 1, "identical transaction ingestion deduplicated")
 
     # 2. Failed claims are not automatically called competitive losses.
     tx2 = [{"type": "waiver", "status": "failed", "transaction_id": "t2", "settings": {"waiver_bid": 12}, "adds": {"A": 1}, "metadata": {"note": "roster full"}}]
@@ -124,6 +129,23 @@ def run():
     assert_true(ledger[0]["managed_user_highest_bid"] == 27 and len(ledger[0]["managed_user_claims"]) == 1, "managed bid")
     assert_true(len(ledger[0]["other_observed_failed_claims"]) == 1 and ledger[0]["visibility"] == "PARTIAL_OBSERVED", "other observed failures")
     assert_true("complete private bid book" in ledger[0]["visibility_note"], "visibility disclaimer")
+    conditional_tx = [
+        {"type": "waiver", "status": "complete", "transaction_id": "c1", "creator": "u2", "created": 4, "settings": {"waiver_bid": 9}, "adds": {"A": 2}},
+        {"type": "waiver", "status": "failed", "transaction_id": "c2", "creator": "u2", "created": 5, "settings": {"waiver_bid": 9}, "adds": {"A": 2}},
+    ]
+    conditional_obs = normalize_waiver_transactions(
+        conditional_tx, portfolio_league_id="L", source_league_id="L", season=2026,
+        week=3, league_format="REDRAFT", budget_cap=100,
+        managers_by_roster=managers, managers_by_user=user_manager_index(users(), "C0nstant1n"),
+    )
+    conditional_ledger = build_bid_ledger(conditional_obs)
+    assert_true(
+        len(conditional_obs) == 2
+        and conditional_ledger[0]["observed_claim_count"] == 2
+        and len(conditional_ledger[0]["winning_claims"]) == 1
+        and len(conditional_ledger[0]["other_observed_failed_claims"]) == 1,
+        "distinct conditional transactions preserved",
+    )
     rendered = markdown_portfolio({
         "week": 3, "generated_at": "fixture", "leagues": [{
             "league_id": "L", "league_name": "Fixture", "format": "REDRAFT",
@@ -181,6 +203,15 @@ def run():
     )
     assert_true(plan["engine"] == "STANDARD" and plan["recommendation_count"] >= 1, "standard plan")
     assert_true(all((x.get("recommendation") or {}).get("recommended_bid", 0) <= 80 for x in plan["recommendations"]), "own budget respected")
+    duplicate_current = current()
+    duplicate_current["players"].append(dict(duplicate_current["players"][0]))
+    duplicate_plan = plan_league(
+        league_id="123456789012345678", profile=profile(), current=duplicate_current, live_league=live(),
+        rosters=rosters(), users=users(), username="C0nstant1n", all_history=history(20),
+        target_season=2026, target_week=2, now=datetime.now(timezone.utc),
+    )
+    recommendation_ids = [row["player_id"] for row in duplicate_plan["recommendations"]]
+    assert_true(len(recommendation_ids) == len(set(recommendation_ids)), "recommendations unique by player id")
 
     # 10. Chopped uses a distinct engine and exposes future-supply context.
     chopped_plan = plan_league(
@@ -219,7 +250,7 @@ def run():
     sig = candidate_signal(current()["players"][0], own, profile(), idx, chopped=False)
     assert_true(sig is not None and sig["status"] == "BLOCKED_DROP_VALUE_UNAVAILABLE", "no zero-imputed drop")
 
-    print("PASS Window 1D optimal waiver + Chopped integrity (15 checks)")
+    print("PASS Window 1D optimal waiver + Chopped integrity (18 checks)")
 
 
 if __name__ == "__main__":
