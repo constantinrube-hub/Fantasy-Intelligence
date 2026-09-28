@@ -17,6 +17,7 @@ from window1d_optimal_waiver import (
     empirical_win_probability,
     history_before_target,
     markdown_portfolio,
+    normalize_player_identifier,
     normalize_waiver_transactions,
     plan_league,
     recommendation_from_curve,
@@ -102,6 +103,14 @@ def run():
         week=1, league_format="REDRAFT", budget_cap=100,
     )
     assert_true(len(duplicate_obs) == 1, "identical transaction ingestion deduplicated")
+    assert_true(
+        normalize_player_identifier(11792)
+        == normalize_player_identifier(11792.0)
+        == normalize_player_identifier("11792.000")
+        == "11792"
+        and normalize_player_identifier("HOU") == "HOU",
+        "integer-like player IDs canonicalized without changing team IDs",
+    )
 
     # 2. Failed claims are not automatically called competitive losses.
     tx2 = [{"type": "waiver", "status": "failed", "transaction_id": "t2", "settings": {"waiver_bid": 12}, "adds": {"A": 1}, "metadata": {"note": "roster full"}}]
@@ -204,14 +213,22 @@ def run():
     assert_true(plan["engine"] == "STANDARD" and plan["recommendation_count"] >= 1, "standard plan")
     assert_true(all((x.get("recommendation") or {}).get("recommended_bid", 0) <= 80 for x in plan["recommendations"]), "own budget respected")
     duplicate_current = current()
-    duplicate_current["players"].append(dict(duplicate_current["players"][0]))
+    duplicate_current["players"][0]["sleeper_id"] = 11792
+    duplicate_row = dict(duplicate_current["players"][0])
+    duplicate_row["sleeper_id"] = "11792.0"
+    duplicate_current["players"].append(duplicate_row)
     duplicate_plan = plan_league(
         league_id="123456789012345678", profile=profile(), current=duplicate_current, live_league=live(),
         rosters=rosters(), users=users(), username="C0nstant1n", all_history=history(20),
         target_season=2026, target_week=2, now=datetime.now(timezone.utc),
     )
     recommendation_ids = [row["player_id"] for row in duplicate_plan["recommendations"]]
-    assert_true(len(recommendation_ids) == len(set(recommendation_ids)), "recommendations unique by player id")
+    assert_true(
+        len(recommendation_ids) == len(set(recommendation_ids))
+        and recommendation_ids.count("11792") == 1
+        and "11792.0" not in recommendation_ids,
+        "recommendations unique by canonical player id",
+    )
 
     # 10. Chopped uses a distinct engine and exposes future-supply context.
     chopped_plan = plan_league(
@@ -250,7 +267,7 @@ def run():
     sig = candidate_signal(current()["players"][0], own, profile(), idx, chopped=False)
     assert_true(sig is not None and sig["status"] == "BLOCKED_DROP_VALUE_UNAVAILABLE", "no zero-imputed drop")
 
-    print("PASS Window 1D optimal waiver + Chopped integrity (18 checks)")
+    print("PASS Window 1D optimal waiver + Chopped integrity (19 checks)")
 
 
 if __name__ == "__main__":

@@ -72,6 +72,23 @@ def numeric(value: Any) -> float | None:
     return out if math.isfinite(out) else None
 
 
+def normalize_player_identifier(value: Any) -> str:
+    """Canonicalize IDs without applying lossy numeric conversion.
+
+    Sleeper IDs are digit strings, but tabular hydration can surface the same
+    value as an integer-like decimal (for example, 11792.0). Collapse only an
+    all-zero decimal suffix and preserve nonnumeric IDs such as team D/ST
+    abbreviations.
+    """
+    if value is None or isinstance(value, bool):
+        return ""
+    text = str(value).strip()
+    whole, dot, fraction = text.partition(".")
+    if dot and whole.isdigit() and fraction and set(fraction) == {"0"}:
+        return whole
+    return text
+
+
 def clamp(value: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, value))
 
@@ -148,7 +165,7 @@ def current_index(current: dict[str, Any]) -> dict[str, dict[str, Any]]:
         for value in ids:
             if value is None:
                 continue
-            key = str(value).strip()
+            key = normalize_player_identifier(value)
             if key and key not in out:
                 out[key] = row
     return out
@@ -156,8 +173,9 @@ def current_index(current: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 def player_id(row: dict[str, Any]) -> str | None:
     for value in (row.get("sleeper_id"), row.get("player_id"), row.get("canonical_player_id")):
-        if value is not None and str(value).strip():
-            return str(value).strip()
+        normalized = normalize_player_identifier(value)
+        if normalized:
+            return normalized
     if normalize_position(row.get("position_model")) == "DEF" and row.get("team"):
         return str(row.get("team"))
     return None
@@ -184,7 +202,7 @@ def rosterable_positions(profile: dict[str, Any]) -> set[str]:
 def valid_ids(values: Iterable[Any] | None) -> list[str]:
     out: list[str] = []
     for value in values or []:
-        text = str(value or "").strip()
+        text = normalize_player_identifier(value)
         if text and text != "0" and text not in out:
             out.append(text)
     return out
@@ -300,11 +318,14 @@ def normalize_waiver_transactions(
         meta = _metadata_text(tx.get("metadata"))
         competitive_loss = bool(status == "failed" and any(token in meta for token in ("outbid", "higher bid", "waiver bid", "bid was")))
         for pid, rid in adds.items():
+            normalized_pid = normalize_player_identifier(pid)
+            if not normalized_pid:
+                continue
             transaction_id = str(tx.get("transaction_id") or "").strip()
             stable_transaction_id = transaction_id or sha256_json(tx)
             observation_key = (
                 str(source_league_id), int(season), int(week),
-                stable_transaction_id, str(pid),
+                stable_transaction_id, normalized_pid,
             )
             if observation_key in seen_observations:
                 continue
@@ -321,7 +342,7 @@ def normalize_waiver_transactions(
                 "created": tx.get("created"),
                 "status_updated": tx.get("status_updated"),
                 "status": status,
-                "player_id": str(pid),
+                "player_id": normalized_pid,
                 "roster_id": int(rid) if str(rid).isdigit() else rid,
                 "transaction_creator_id": creator_id or None,
                 "manager_id": manager.get("manager_id"),
