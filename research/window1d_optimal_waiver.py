@@ -285,6 +285,7 @@ def normalize_waiver_transactions(
     must not be mislabeled as auction competition.
     """
     out: list[dict[str, Any]] = []
+    seen_observations: set[tuple[str, int, int, str, str]] = set()
     for tx in transactions or []:
         if not isinstance(tx, dict) or str(tx.get("type") or "").lower() != "waiver":
             continue
@@ -299,6 +300,15 @@ def normalize_waiver_transactions(
         meta = _metadata_text(tx.get("metadata"))
         competitive_loss = bool(status == "failed" and any(token in meta for token in ("outbid", "higher bid", "waiver bid", "bid was")))
         for pid, rid in adds.items():
+            transaction_id = str(tx.get("transaction_id") or "").strip()
+            stable_transaction_id = transaction_id or sha256_json(tx)
+            observation_key = (
+                str(source_league_id), int(season), int(week),
+                stable_transaction_id, str(pid),
+            )
+            if observation_key in seen_observations:
+                continue
+            seen_observations.add(observation_key)
             creator_id = str(tx.get("creator") or "").strip()
             manager = (managers_by_user or {}).get(creator_id, {}) or (managers_by_roster or {}).get(str(rid), {})
             out.append({
@@ -307,7 +317,7 @@ def normalize_waiver_transactions(
                 "season": int(season),
                 "week": int(week),
                 "league_format": str(league_format),
-                "transaction_id": str(tx.get("transaction_id") or ""),
+                "transaction_id": transaction_id,
                 "created": tx.get("created"),
                 "status_updated": tx.get("status_updated"),
                 "status": status,
@@ -837,7 +847,7 @@ def plan_league(
     index = current_index(current)
     owned_ids = {pid for roster in rosters for pid in valid_ids(roster.get("players"))}
     allowed = rosterable_positions(profile)
-    candidates = []
+    candidates_by_id: dict[str, dict[str, Any]] = {}
     for row in current.get("players") or []:
         if not isinstance(row, dict) or not bool(row.get("waiver_activation_eligible")):
             continue
@@ -845,7 +855,23 @@ def plan_league(
         pos = normalize_position(row.get("position_model") or row.get("position"))
         if not pid or pid in owned_ids or pos not in allowed or current_row_value(row, "waiver_next3_projection") is None:
             continue
-        candidates.append(row)
+        existing = candidates_by_id.get(pid)
+        if existing is None:
+            candidates_by_id[pid] = row
+            continue
+        row_quality = (
+            bool(row.get("weekly_activation_eligible")),
+            numeric(row.get("waiver_feature_coverage")) or -1.0,
+            numeric(row.get("decision_weekly_projection")) is not None,
+        )
+        existing_quality = (
+            bool(existing.get("weekly_activation_eligible")),
+            numeric(existing.get("waiver_feature_coverage")) or -1.0,
+            numeric(existing.get("decision_weekly_projection")) is not None,
+        )
+        if row_quality > existing_quality:
+            candidates_by_id[pid] = row
+    candidates = list(candidates_by_id.values())
     if not candidates:
         return {
             **base, "status": "BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS",
