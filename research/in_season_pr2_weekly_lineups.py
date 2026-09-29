@@ -491,6 +491,22 @@ def write_canonical_pregame_capture(root: Path, portfolio: dict[str, Any]) -> di
     return {"latest": latest, "capture": capture, "markdown": markdown}
 
 
+def evidence_maps(path: Path, *, season: int | None, week: int | None) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+    """Read one immutable capture envelope; never fill missing maps by request."""
+    value = read_json(path, {}) or {}
+    if value.get("schema") != "fie-in-season-pr2-weekly-lineup-evidence-v1":
+        raise LineupEvidenceError("BLOCKED_LINEUP_EVIDENCE_SCHEMA_INVALID")
+    if season is not None and int(value.get("season") or 0) != int(season):
+        raise LineupEvidenceError("BLOCKED_LINEUP_EVIDENCE_SEASON_MISMATCH")
+    if week is not None and int(value.get("week") or 0) != int(week):
+        raise LineupEvidenceError("BLOCKED_LINEUP_EVIDENCE_WEEK_MISMATCH")
+    locks = value.get("lock_evidence_by_league")
+    matchups = value.get("matchup_evidence_by_league")
+    if not isinstance(locks, dict) or not isinstance(matchups, dict):
+        raise LineupEvidenceError("BLOCKED_LINEUP_EVIDENCE_MAPS_MISSING")
+    return locks, matchups
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build In-Season PR2 exact weekly lineup research output")
     parser.add_argument("mode", choices=["portfolio", "league"])
@@ -498,14 +514,24 @@ def main() -> None:
     parser.add_argument("--week", type=int)
     parser.add_argument("--league-id")
     parser.add_argument("--output")
+    parser.add_argument("--evidence", help="immutable PR2 capture from capture_in_season_pr2_lineup_evidence.py")
     parser.add_argument("--write-canonical", action="store_true", help="write an idempotent immutable pregame capture")
+    parser.add_argument("--write-canonical-if-eligible", action="store_true", help="write pregame capture only when every managed lineup is still before first kickoff")
     args = parser.parse_args()
-    output = build_portfolio(season=args.season, week=args.week, league_id=args.league_id if args.mode == "league" else None)
+    locks, matchups = ({}, {}) if not args.evidence else evidence_maps(Path(args.evidence), season=args.season, week=args.week)
+    output = build_portfolio(season=args.season, week=args.week, league_id=args.league_id if args.mode == "league" else None, lock_evidence_by_league=locks, matchup_evidence_by_league=matchups)
     if args.output:
         write_json(Path(args.output), output)
     if args.write_canonical:
         paths = write_canonical_pregame_capture(ROOT, output)
         print(json.dumps({key: str(value) for key, value in paths.items()}, sort_keys=True))
+    elif args.write_canonical_if_eligible:
+        managed = [x for x in output.get("leagues") or [] if x.get("status") != "NOT_APPLICABLE_AUTOMATIC_LINEUP"]
+        if managed and all((x.get("lock_state") or {}).get("status") == "PREGAME_BEFORE_FIRST_KICKOFF" for x in managed):
+            paths = write_canonical_pregame_capture(ROOT, output)
+            print(json.dumps({"canonical_capture": "WRITTEN", **{key: str(value) for key, value in paths.items()}}, sort_keys=True))
+        else:
+            print(json.dumps({"canonical_capture": "SKIPPED_NOT_PREGAME"}, sort_keys=True))
     else:
         print(json.dumps(output, indent=2, sort_keys=True))
 

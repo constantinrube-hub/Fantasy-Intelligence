@@ -110,8 +110,23 @@ def test_immutable_capture_is_pregame_and_idempotent():
         assert paths["capture"] == again["capture"] and paths["capture"].is_file() and paths["latest"].is_file()
 
 
+def test_external_evidence_envelope_is_typed_and_target_bound():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        evidence = root / "evidence.json"
+        write(evidence, {"schema": "fie-in-season-pr2-weekly-lineup-evidence-v1", "season": 2026, "week": 4, "lock_evidence_by_league": {"1": {"player_kickoffs": {}}}, "matchup_evidence_by_league": {"1": {"rows": []}}})
+        locks, matchups = p.evidence_maps(evidence, season=2026, week=4)
+        assert set(locks) == {"1"} and set(matchups) == {"1"}
+        try:
+            p.evidence_maps(evidence, season=2026, week=5)
+        except p.LineupEvidenceError as exc:
+            assert str(exc) == "BLOCKED_LINEUP_EVIDENCE_WEEK_MISMATCH"
+        else:  # pragma: no cover
+            raise AssertionError("mismatched evidence was accepted")
+
+
 def main() -> None:
-    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_immutable_capture_is_pregame_and_idempotent]
+    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_immutable_capture_is_pregame_and_idempotent, test_external_evidence_envelope_is_typed_and_target_bound]
     for test in tests:
         test()
     print(f"PASS In-Season PR2 weekly lineup producer ({len(tests)} tests)")
