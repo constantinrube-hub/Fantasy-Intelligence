@@ -64,6 +64,18 @@ def test_missing_value_is_never_zero_imputed():
     assert result["unfilled_slots"] == [{"slot": "QB", "slot_index": 0}]
 
 
+def test_verified_slot_and_bench_locks_constrain_the_global_solver():
+    result = exact_lineup(
+        [player("a", "RB", 20), player("b", "RB", 19), player("c", "WR", 18)],
+        ["RB", "FLEX", "BN"],
+        locked_slot_player_ids={0: "sleeper:b"},
+        locked_bench_player_ids=["sleeper:a"],
+    )
+    assert result["complete_assignment"]
+    assert selected_by_slot(result) == {0: "sleeper:b", 1: "sleeper:c"}
+    assert result["locks"]["locked_bench_player_ids"] == ["sleeper:a"]
+
+
 def test_unknown_slot_fails_closed():
     try:
         exact_lineup([player("q", "QB", 12)], ["QB", "FAKE_SLOT"])
@@ -87,6 +99,7 @@ def main() -> None:
         test_superflex_and_no_double_assignment,
         test_idp_kicker_and_team_defense_aliases,
         test_missing_value_is_never_zero_imputed,
+        test_verified_slot_and_bench_locks_constrain_the_global_solver,
         test_unknown_slot_fails_closed,
         test_runtime_contract_is_the_only_slot_owner,
     ]

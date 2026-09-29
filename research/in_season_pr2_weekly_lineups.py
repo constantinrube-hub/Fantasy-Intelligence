@@ -38,6 +38,11 @@ except ModuleNotFoundError:  # pragma: no cover - exercised by repository caller
         starter_slot_instances,
     )
 
+try:
+    from weekly_lineup_operational_evidence import head_to_head_context, player_locks, sha256_value
+except ModuleNotFoundError:  # pragma: no cover - exercised by repository callers
+    from research.weekly_lineup_operational_evidence import head_to_head_context, player_locks, sha256_value
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_LEAGUE = "fie-in-season-pr2-weekly-lineup-v1"
@@ -243,7 +248,7 @@ def submitted_lineup(roster: dict[str, Any], slots: list[dict[str, Any]], index:
     return {"status": "COMPLETE" if not issues else "PARTIAL", "detail": issues, "assignment": rows, "total": round(total, 6) if not issues else None}
 
 
-def changes(primary: dict[str, Any], submitted: dict[str, Any]) -> list[dict[str, Any]]:
+def changes(primary: dict[str, Any], submitted: dict[str, Any], *, actionable: bool = True, execution_guard: str | None = None) -> list[dict[str, Any]]:
     if submitted.get("status") != "COMPLETE":
         return []
     previous = {x["slot_index"]: x["player_id"] for x in submitted["assignment"]}
@@ -254,25 +259,30 @@ def changes(primary: dict[str, Any], submitted: dict[str, Any]) -> list[dict[str
         if old == row["player_id"]:
             continue
         action = "MOVE_SLOT" if row["player_id"] in previous_slots else "START_OVER"
-        out.append({"action": action, "slot": row["slot"], "slot_index": row["slot_index"], "start_player_id": row["player_id"], "replace_player_id": old, "from_slot_index": previous_slots.get(row["player_id"]), "basis": "exact global legal assignment"})
+        result = {"action": action, "slot": row["slot"], "slot_index": row["slot_index"], "start_player_id": row["player_id"], "replace_player_id": old, "from_slot_index": previous_slots.get(row["player_id"]), "basis": "exact global legal assignment"}
+        if not actionable:
+            result["action"] = "REVIEW_ONLY_LOCK_EVIDENCE_UNRESOLVED"
+            result["execution_guard"] = execution_guard or "player-specific lock state is unverified"
+        out.append(result)
     return out
 
 
-def floor_advisory(players: list[dict[str, Any]], roster_positions: list[Any], fmt: str, root: Path) -> dict[str, Any] | None:
+def floor_advisory(players: list[dict[str, Any]], roster_positions: list[Any], fmt: str, root: Path, *, locked_slot_player_ids: dict[int, str] | None = None, locked_bench_player_ids: list[str] | None = None) -> dict[str, Any] | None:
     if fmt != "CHOPPED":
         return None
     if any(not bool(p.get("weekly_activation_eligible")) or numeric(p.get("p10")) is None for p in players):
         return {"status": "UNAVAILABLE_INCOMPLETE_GOVERNED_INTERVAL_COVERAGE"}
-    result = exact_lineup(players, roster_positions, value_key="p10", root=root)
+    result = exact_lineup(players, roster_positions, value_key="p10", root=root, locked_slot_player_ids=locked_slot_player_ids, locked_bench_player_ids=locked_bench_player_ids)
     result["status"] = "SURVIVAL_FLOOR_ADVISORY"
     result["actionable"] = False
     result["basis"] = "maximize governed P10, tie handling delegated to deterministic exact assignment"
     return result
 
 
-def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, username: str, target_season: int | None = None, target_week: int | None = None) -> dict[str, Any]:
+def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, username: str, target_season: int | None = None, target_week: int | None = None, as_of: datetime | None = None, lock_evidence: dict[str, Any] | None = None, matchup_evidence: dict[str, Any] | None = None) -> dict[str, Any]:
     root = root.resolve()
     lid = str(league_id)
+    as_of = (as_of or datetime.now(timezone.utc)).astimezone(timezone.utc)
     league_root = root / "data/research/leagues" / lid
     name = str(registry_row.get("league_name") or lid)
     fmt = str(registry_row.get("format") or "UNKNOWN").upper()
@@ -337,17 +347,37 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
                 material_missing.append(canonical_player_id(row))
         if material_missing:
             return blocker(lid, name, fmt, season, week, "BLOCKED_MATERIAL_PROJECTION_MISSING", sorted(x for x in material_missing if x))
-        primary = exact_lineup(active, roster_positions, root=root)
+        for row in active:
+            row["_canonical_player_id"] = canonical_player_id(row)
+        submitted = submitted_lineup(roster, slots, index, player_catalog, contract)
+        lock_state = player_locks(
+            active,
+            submitted,
+            first_kickoff_utc=((current.get("kickoff") or {}).get("first_kickoff_utc")),
+            lock_evidence=lock_evidence,
+            as_of=as_of,
+        )
+        lock_constraints = {
+            "locked_slot_player_ids": lock_state.get("locked_slot_player_ids") or {},
+            "locked_bench_player_ids": lock_state.get("locked_bench_player_ids") or [],
+        } if lock_state.get("status") == "PLAYER_LOCKS_VERIFIED" else {}
+        primary = exact_lineup(active, roster_positions, root=root, **lock_constraints)
         if not primary["complete_assignment"]:
             return blocker(lid, name, fmt, season, week, "BLOCKED_INCOMPLETE_LEGAL_ASSIGNMENT", primary["unfilled_slots"])
-        submitted = submitted_lineup(roster, slots, index, player_catalog, contract)
         contingency_rows = [row for row in active if str(row.get("injury_status") or "") in CONTINGENCY]
         contingencies = []
         for row in contingency_rows:
             player_id = canonical_player_id(row)
-            alternate = exact_lineup([x for x in active if canonical_player_id(x) != player_id], roster_positions, root=root)
+            alternate = exact_lineup([x for x in active if canonical_player_id(x) != player_id], roster_positions, root=root, **lock_constraints)
             contingencies.append({"scenario": "INACTIVE_CONTINGENCY", "player_id": player_id, "injury_status": row.get("injury_status"), "lineup": alternate if alternate["complete_assignment"] else None, "status": "READY" if alternate["complete_assignment"] else "BLOCKED_INCOMPLETE_LEGAL_ASSIGNMENT"})
         sources = Counter(source_class(row) for row in active)
+        action_allowed = bool(lock_state.get("actionable"))
+        action_rows = changes(
+            primary,
+            submitted,
+            actionable=action_allowed,
+            execution_guard="after first kickoff, a captured per-player kickoff envelope is required before a lineup change may be acted on",
+        )
         report = {
             "schema": SCHEMA_LEAGUE,
             "league_id": lid,
@@ -355,7 +385,7 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
             "format": fmt,
             "season": season,
             "week": week,
-            "status": "ACTION_REQUIRED" if changes(primary, submitted) or inactive else "READY_NO_LINEUP_CHANGE",
+            "status": "PARTIAL_LOCK_EVIDENCE_REVIEW_ONLY" if not action_allowed else ("ACTION_REQUIRED" if action_rows or inactive else "READY_NO_LINEUP_CHANGE"),
             "managed_user": str((user or {}).get("display_name") or username),
             "managed_roster_id": roster.get("roster_id"),
             "evidence": {
@@ -367,17 +397,18 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
                 "app_core": str(core_path.relative_to(root)),
                 "app_core_sha256": sha256_file(core_path),
                 "runtime_contract_sha256": contract_sha,
+                "as_of_utc": as_of.isoformat(),
                 "target_week_realised_stats_excluded": True,
                 "projection_source_mix_active_roster": {key: int(sources.get(key, 0)) for key in ("FIE_GOVERNED", "SLEEPER_FALLBACK", "EXISTING_DECISION_PROJECTION", "UNAVAILABLE")},
             },
-            "primary_lineup": {**primary, "status": "OPTIMAL_LINEUP", "actionable": True, "basis": "exact max sum(decision_weekly_projection)"},
+            "primary_lineup": {**primary, "status": "OPTIMAL_LINEUP" if action_allowed else "REVIEW_ONLY_LOCK_EVIDENCE_UNRESOLVED", "actionable": action_allowed, "basis": "exact max sum(decision_weekly_projection) subject to verified player locks" if lock_constraints else "exact max sum(decision_weekly_projection)"},
             "submitted_lineup": submitted,
-            "actions": changes(primary, submitted),
+            "actions": action_rows,
             "official_unavailable": inactive,
             "contingencies": contingencies,
-            "survival_floor_advisory": floor_advisory(active, roster_positions, fmt, root),
-            "opponent_context": {"status": "NOT_YET_CAPTURED", "actionable": False},
-            "lock_state": {"status": "WINDOW1C_FIRST_KICKOFF_GUARD_PRESERVED", "actionable": False},
+            "survival_floor_advisory": floor_advisory(active, roster_positions, fmt, root, **lock_constraints),
+            "opponent_context": head_to_head_context(roster.get("roster_id"), matchup_evidence),
+            "lock_state": lock_state,
             "governance": governance(),
         }
         return report
@@ -385,12 +416,12 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
         return blocker(lid, name, fmt, None, None, str(exc))
 
 
-def build_portfolio(root: Path = ROOT, *, season: int | None = None, week: int | None = None, league_id: str | None = None) -> dict[str, Any]:
+def build_portfolio(root: Path = ROOT, *, season: int | None = None, week: int | None = None, league_id: str | None = None, as_of: datetime | None = None, lock_evidence_by_league: dict[str, dict[str, Any]] | None = None, matchup_evidence_by_league: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
     portfolio = read_json(root / "config/league-portfolio.json", {}) or {}
     username = str(portfolio.get("sleeper_username") or "")
     registry = (read_json(root / "data/research/leagues/registry.json", {}) or {}).get("leagues") or {}
     selected = [(str(lid), row) for lid, row in registry.items() if isinstance(row, dict) and row.get("enabled") and (league_id is None or str(lid) == str(league_id))]
-    reports = [build_league(root, lid, row, username=username, target_season=season, target_week=week) for lid, row in sorted(selected)]
+    reports = [build_league(root, lid, row, username=username, target_season=season, target_week=week, as_of=as_of, lock_evidence=(lock_evidence_by_league or {}).get(lid), matchup_evidence=(matchup_evidence_by_league or {}).get(lid)) for lid, row in sorted(selected)]
     statuses = Counter(str(x.get("status")) for x in reports)
     recoverable = sum(max(0.0, float((x.get("primary_lineup") or {}).get("total") or 0) - float((x.get("submitted_lineup") or {}).get("total") or 0)) for x in reports if (x.get("submitted_lineup") or {}).get("total") is not None)
     return {
@@ -404,6 +435,62 @@ def build_portfolio(root: Path = ROOT, *, season: int | None = None, week: int |
     }
 
 
+def capture_payload(portfolio: dict[str, Any]) -> dict[str, Any]:
+    """Remove generation volatility before deriving an immutable capture ID."""
+    payload = json.loads(json.dumps(portfolio))
+    payload.pop("generated_at", None)
+    payload.pop("capture_id", None)
+    payload.pop("capture_content_sha256", None)
+    return payload
+
+
+def write_canonical_pregame_capture(root: Path, portfolio: dict[str, Any]) -> dict[str, Path]:
+    """Persist an idempotent pregame capture only when timing is verified.
+
+    This intentionally refuses post-kickoff reports.  Those reports can still
+    be inspected through ``--output`` and use player locks, but they must not be
+    relabelled as a pregame evidence capture.
+    """
+    reports = [x for x in portfolio.get("leagues") or [] if isinstance(x, dict)]
+    relevant = [x for x in reports if x.get("status") != "NOT_APPLICABLE_AUTOMATIC_LINEUP"]
+    seasons = {x.get("season") for x in relevant if x.get("season") is not None}
+    weeks = {x.get("week") for x in relevant if x.get("week") is not None}
+    if len(seasons) != 1 or len(weeks) != 1:
+        raise LineupEvidenceError("BLOCKED_CANONICAL_CAPTURE_TARGET_UNRESOLVED")
+    if any((x.get("lock_state") or {}).get("status") != "PREGAME_BEFORE_FIRST_KICKOFF" for x in relevant):
+        raise LineupEvidenceError("BLOCKED_CANONICAL_CAPTURE_NOT_PREGAME")
+    payload = capture_payload(portfolio)
+    digest = sha256_value(payload)
+    capture_id = digest[:16]
+    published = {**portfolio, "capture_id": capture_id, "capture_content_sha256": digest}
+    season, week = next(iter(seasons)), next(iter(weeks))
+    base = root / "data/research/evaluation" / str(season) / "weeks" / f"week-{week}" / "lineups"
+    latest = base / "portfolio-latest.json"
+    capture = base / "captures" / f"portfolio-{capture_id}.json"
+    if capture.exists():
+        existing = read_json(capture, {}) or {}
+        if existing.get("capture_content_sha256") != digest:
+            raise LineupEvidenceError("BLOCKED_IMMUTABLE_CAPTURE_COLLISION")
+    else:
+        write_json(capture, published)
+    write_json(latest, published)
+    markdown = base / "portfolio-latest.md"
+    lines = [
+        f"# In-Season PR2 weekly lineups — {season} Week {week}",
+        "",
+        f"Capture: `{capture_id}`",
+        "",
+        f"Enabled leagues: {portfolio.get('enabled_league_count')}",
+        "",
+        "## Status counts",
+        "",
+    ]
+    lines.extend(f"- {status}: {count}" for status, count in sorted((portfolio.get("status_counts") or {}).items()))
+    markdown.parent.mkdir(parents=True, exist_ok=True)
+    markdown.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return {"latest": latest, "capture": capture, "markdown": markdown}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build In-Season PR2 exact weekly lineup research output")
     parser.add_argument("mode", choices=["portfolio", "league"])
@@ -411,10 +498,14 @@ def main() -> None:
     parser.add_argument("--week", type=int)
     parser.add_argument("--league-id")
     parser.add_argument("--output")
+    parser.add_argument("--write-canonical", action="store_true", help="write an idempotent immutable pregame capture")
     args = parser.parse_args()
     output = build_portfolio(season=args.season, week=args.week, league_id=args.league_id if args.mode == "league" else None)
     if args.output:
         write_json(Path(args.output), output)
+    if args.write_canonical:
+        paths = write_canonical_pregame_capture(ROOT, output)
+        print(json.dumps({key: str(value) for key, value in paths.items()}, sort_keys=True))
     else:
         print(json.dumps(output, indent=2, sort_keys=True))
 

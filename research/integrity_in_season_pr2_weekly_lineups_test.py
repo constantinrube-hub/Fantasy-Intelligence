@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import in_season_pr2_weekly_lineups as p
@@ -36,7 +37,7 @@ def fixture(root: Path, lid: str, *, fmt: str = "REDRAFT", missing: bool = False
         {"sleeper_id": "c", "canonical_player_id": "c", "position_model": "WR", "decision_weekly_projection": 18, "weekly_activation_eligible": True, "fie_weekly_projection": 18, "p10": 10, "p90": 28},
         {"sleeper_id": "q", "canonical_player_id": "q", "position_model": "WR", "decision_weekly_projection": None if missing else 4, "weekly_activation_eligible": False, "fie_weekly_projection": None, "p10": None, "p90": None},
     ]
-    write(league_root / "current/milestone5_current.json", {"season": 2026, "week": 4, "profile_fingerprint": "fp", "profile_current_match": True, "target_week_realised_stats_excluded": True, "scoring_signature": "score-a", "players": rows})
+    write(league_root / "current/milestone5_current.json", {"season": 2026, "week": 4, "profile_fingerprint": "fp", "profile_current_match": True, "target_week_realised_stats_excluded": True, "scoring_signature": "score-a", "kickoff": {"first_kickoff_utc": "2026-10-01T00:15:00+00:00"}, "players": rows})
 
 
 def setup(root: Path) -> None:
@@ -48,13 +49,14 @@ def setup(root: Path) -> None:
 def test_exact_primary_and_submitted_delta():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td); setup(root); fixture(root, "1")
-        report = p.build_league(root, "1", {"league_name": "Alpha", "format": "REDRAFT"}, username="C0nstant1n", target_season=2026, target_week=4)
+        report = p.build_league(root, "1", {"league_name": "Alpha", "format": "REDRAFT"}, username="C0nstant1n", target_season=2026, target_week=4, as_of=datetime(2026, 9, 30, tzinfo=timezone.utc))
         assert report["status"] == "ACTION_REQUIRED"
         assert report["primary_lineup"]["total"] == 39
         assert report["submitted_lineup"]["total"] == 38
         assert report["actions"] and report["actions"][0]["start_player_id"] == "canonical:b"
         assert report["contingencies"][0]["scenario"] == "INACTIVE_CONTINGENCY"
         assert report["opponent_context"]["status"] == "NOT_YET_CAPTURED"
+        assert report["lock_state"]["status"] == "PREGAME_BEFORE_FIRST_KICKOFF"
 
 
 def test_best_ball_is_not_a_manual_action():
@@ -72,8 +74,44 @@ def test_material_missing_projection_blocks():
         assert report["status"] == "BLOCKED_MATERIAL_PROJECTION_MISSING"
 
 
+def test_verified_locks_and_h2h_context_are_evidence_bound():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td); setup(root); fixture(root, "4")
+        current_path = root / "data/research/leagues/4/current/milestone5_current.json"
+        current = json.loads(current_path.read_text(encoding="utf-8"))
+        current["kickoff"]["first_kickoff_utc"] = "2026-09-29T00:15:00+00:00"
+        write(current_path, current)
+        locks = {"player_kickoffs": {"canonical:a": "2026-09-30T00:00:00+00:00", "canonical:b": "2026-10-02T00:00:00+00:00", "canonical:c": "2026-10-02T00:00:00+00:00", "canonical:q": "2026-10-02T00:00:00+00:00"}}
+        matchup = {"captured_at": "2026-09-30T01:00:00+00:00", "rows": [{"roster_id": 1, "matchup_id": 7, "points": 0}, {"roster_id": 8, "matchup_id": 7, "points": 0}]}
+        report = p.build_league(root, "4", {"league_name": "Locked", "format": "REDRAFT"}, username="C0nstant1n", as_of=datetime(2026, 9, 30, 1, tzinfo=timezone.utc), lock_evidence=locks, matchup_evidence=matchup)
+        assert report["lock_state"]["status"] == "PLAYER_LOCKS_VERIFIED"
+        assert report["primary_lineup"]["actionable"] is True
+        assert {x["slot_index"]: x["player_id"] for x in report["primary_lineup"]["assignment"]}[0] == "canonical:a"
+        assert report["opponent_context"]["status"] == "CAPTURED_H2H_CONTEXT"
+        assert report["opponent_context"]["actionable"] is False
+
+
+def test_after_kickoff_without_player_times_is_review_only():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td); setup(root); fixture(root, "5")
+        report = p.build_league(root, "5", {"league_name": "No locks", "format": "REDRAFT"}, username="C0nstant1n", as_of=datetime(2026, 10, 1, 2, tzinfo=timezone.utc))
+        assert report["lock_state"]["status"] == "BLOCKED_PLAYER_KICKOFF_EVIDENCE_MISSING"
+        assert report["primary_lineup"]["actionable"] is False
+        assert report["actions"][0]["action"] == "REVIEW_ONLY_LOCK_EVIDENCE_UNRESOLVED"
+
+
+def test_immutable_capture_is_pregame_and_idempotent():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td); setup(root); fixture(root, "6")
+        write(root / "data/research/leagues/registry.json", {"leagues": {"6": {"enabled": True, "league_name": "Capture", "format": "REDRAFT"}}})
+        report = p.build_portfolio(root, season=2026, week=4, as_of=datetime(2026, 9, 30, tzinfo=timezone.utc))
+        paths = p.write_canonical_pregame_capture(root, report)
+        again = p.write_canonical_pregame_capture(root, report)
+        assert paths["capture"] == again["capture"] and paths["capture"].is_file() and paths["latest"].is_file()
+
+
 def main() -> None:
-    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks]
+    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_immutable_capture_is_pregame_and_idempotent]
     for test in tests:
         test()
     print(f"PASS In-Season PR2 weekly lineup producer ({len(tests)} tests)")
@@ -81,4 +119,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

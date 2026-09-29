@@ -13,7 +13,7 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any, Iterable, Mapping
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -208,6 +208,8 @@ def exact_lineup(
     *,
     value_key: str = "decision_weekly_projection",
     root: Path = ROOT,
+    locked_slot_player_ids: Mapping[int, str] | None = None,
+    locked_bench_player_ids: Iterable[str] | None = None,
 ) -> dict[str, Any]:
     """Return the deterministic legal maximum-value lineup for scoreable rows.
 
@@ -217,15 +219,40 @@ def exact_lineup(
     contract, contract_sha = load_runtime_contract(root)
     slots = starter_slot_instances(roster_positions, contract)
     pool, missing_identity, missing_value = candidates(players, contract, value_key)
+    locked_slots = {int(k): str(v) for k, v in (locked_slot_player_ids or {}).items()}
+    locked_bench = {str(x) for x in (locked_bench_player_ids or [])}
+    slot_by_index = {int(slot["slot_index"]): slot for slot in slots}
+    by_id = {candidate.player_id: candidate for candidate in pool}
+    if set(locked_slots) - set(slot_by_index):
+        raise LineupEvidenceError("BLOCKED_LOCKED_SLOT_UNKNOWN")
+    if set(locked_slots.values()) & locked_bench:
+        raise LineupEvidenceError("BLOCKED_CONTRADICTORY_PLAYER_LOCK")
+    if len(set(locked_slots.values())) != len(locked_slots):
+        raise LineupEvidenceError("BLOCKED_DUPLICATE_LOCKED_PLAYER")
+    for slot_index, player_id in locked_slots.items():
+        candidate = by_id.get(player_id)
+        slot = slot_by_index[slot_index]
+        if candidate is None:
+            raise LineupEvidenceError(f"BLOCKED_LOCKED_PLAYER_UNAVAILABLE:{player_id}")
+        if candidate.value is None:
+            raise LineupEvidenceError(f"BLOCKED_LOCKED_PLAYER_VALUE_UNAVAILABLE:{player_id}")
+        if candidate.position not in slot["eligible_positions"]:
+            raise LineupEvidenceError(f"BLOCKED_LOCKED_PLAYER_ILLEGAL_FOR_SLOT:{player_id}")
+    unknown_bench = locked_bench - set(by_id)
+    if unknown_bench:
+        raise LineupEvidenceError(f"BLOCKED_LOCKED_BENCH_PLAYER_UNAVAILABLE:{sorted(unknown_bench)[0]}")
+
+    free_slots = [slot for slot in slots if slot["slot_index"] not in locked_slots]
+    free_pool = [candidate for candidate in pool if candidate.player_id not in set(locked_slots.values()) | locked_bench]
     # Add one dummy for each slot so an unfillable slot is explicit rather than
     # forcing an ineligible player into an assignment.
-    column_count = len(pool) + len(slots)
+    column_count = len(free_pool) + len(free_slots)
     score_rows: list[list[float | None]] = []
-    for slot in slots:
+    for slot in free_slots:
         values: list[float | None] = []
-        for candidate in pool:
+        for candidate in free_pool:
             values.append(candidate.value if candidate.value is not None and candidate.position in slot["eligible_positions"] else None)
-        values.extend([0.0] * len(slots))
+        values.extend([0.0] * len(free_slots))
         score_rows.append(values)
     maximum = max([0.0, *[value for row in score_rows for value in row if value is not None]])
     # Integer micros preserve projection precision.  The column order is the
@@ -234,13 +261,22 @@ def exact_lineup(
         [int(round((maximum - value) * 1_000_000)) if value is not None else NEGATIVE_INFINITY_COST for value in row]
         for row in score_rows
     ]
-    assignment = _hungarian_min(cost)
-    used: set[str] = set()
+    assignment = _hungarian_min(cost) if free_slots else []
+    used: set[str] = set(locked_slots.values())
     rows: list[dict[str, Any]] = []
     total = 0.0
     unfilled: list[dict[str, Any]] = []
-    for slot, column in zip(slots, assignment):
-        candidate = pool[column] if 0 <= column < len(pool) else None
+    for slot_index, player_id in sorted(locked_slots.items()):
+        candidate = by_id[player_id]
+        slot = slot_by_index[slot_index]
+        total += candidate.value or 0.0
+        rows.append({
+            "slot": slot["slot"], "slot_index": slot_index, "eligible_positions": slot["eligible_positions"],
+            "player_id": candidate.player_id, "position": candidate.position, "value": round(candidate.value or 0.0, 6),
+            "locked": True,
+        })
+    for slot, column in zip(free_slots, assignment):
+        candidate = free_pool[column] if 0 <= column < len(free_pool) else None
         if candidate is None or candidate.value is None or candidate.position not in slot["eligible_positions"]:
             unfilled.append({"slot": slot["slot"], "slot_index": slot["slot_index"]})
             continue
@@ -256,6 +292,7 @@ def exact_lineup(
             "position": candidate.position,
             "value": round(candidate.value, 6),
         })
+    rows.sort(key=lambda x: int(x["slot_index"]))
     return {
         "schema": "fie-in-season-pr2-exact-lineup-v1",
         "method": "canonical runtime contract + deterministic Hungarian maximum-weight assignment",
@@ -271,5 +308,5 @@ def exact_lineup(
         "missing_identity": missing_identity,
         "missing_value_player_ids": missing_value,
         "candidate_count": len(pool),
+        "locks": {"locked_slot_player_ids": dict(sorted(locked_slots.items())), "locked_bench_player_ids": sorted(locked_bench)},
     }
-
