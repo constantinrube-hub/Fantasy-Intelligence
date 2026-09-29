@@ -1,0 +1,136 @@
+{
+  "schema_version": "fie-in-season-pr2-weekly-lineup-design-v1",
+  "status": "SOL_DESIGN_COMPLETE_TERRA_IMPLEMENTATION_AUTHORIZED",
+  "purpose": "Add exact, auditable, portfolio-wide weekly lineup decision support without changing the football model, production browser authority, or executing lineup mutations.",
+  "extends": "Window 1C weekly actions",
+  "canonical_owners": {
+    "slot_and_position_contract": "config/contracts/runtime-contracts.json",
+    "profile": "data/research/leagues/<league_id>/profile.json",
+    "app_manifest": "data/research/leagues/<league_id>/app/manifest.json",
+    "weekly_value": "hydrated current snapshot decision_weekly_projection",
+    "governed_intervals": "hydrated current snapshot p10/p90 with weekly_activation_eligible=true",
+    "identity": "canonical/Sleeper IDs; display-name joins forbidden",
+    "status": "app-core referenced Sleeper player catalog",
+    "opponent": "captured Sleeper /league/<league_id>/matchups/<week>",
+    "locks": "existing nflverse schedule owner with payload hash and observation time"
+  },
+  "bindings": [
+    "profile_fingerprint",
+    "scoring_signature",
+    "current_snapshot_hashes",
+    "runtime_contract_hash",
+    "roster_state_hash",
+    "matchup_payload_hash",
+    "schedule_payload_hash"
+  ],
+  "lineup_solver": {
+    "method": "deterministic maximum-weight bipartite assignment over concrete starter slots and rostered players",
+    "simultaneous_fixed_and_flex_assignment": true,
+    "player_max_assignments": 1,
+    "greedy_assignment_forbidden": true,
+    "pairwise_alert_is_authoritative": false,
+    "tie_break": [
+      "canonical_player_id",
+      "concrete_slot_index"
+    ],
+    "missing_projection_zero_imputation": false,
+    "optimal_claim_requires_complete_material_candidate_coverage": true
+  },
+  "format_policy": {
+    "REDRAFT": "primary exact max-mean lineup",
+    "DYNASTY": "primary exact max-mean lineup; future/market value excluded",
+    "CHOPPED": "primary exact max-mean lineup plus optional P10 survival-floor advisory",
+    "REDRAFT_BESTBALL": "NOT_APPLICABLE_AUTOMATIC_LINEUP",
+    "DYNASTY_BESTBALL": "NOT_APPLICABLE_AUTOMATIC_LINEUP",
+    "CHOPPED_BESTBALL": "NOT_APPLICABLE_AUTOMATIC_LINEUP; research capture only",
+    "unknown_slot": "BLOCKED_UNKNOWN_ROSTER_SLOT"
+  },
+  "availability_policy": {
+    "official_unavailable": [
+      "OUT",
+      "IR",
+      "PUP",
+      "SUSPENDED",
+      "INACTIVE",
+      "NA"
+    ],
+    "contingency_statuses": [
+      "QUESTIONABLE",
+      "DOUBTFUL"
+    ],
+    "projection_haircut": false,
+    "invented_availability_probability": false,
+    "scenarios": [
+      "ACTIVE_BASELINE",
+      "INACTIVE_CONTINGENCY"
+    ]
+  },
+  "objectives": {
+    "primary": "maximize sum(decision_weekly_projection)",
+    "floor_advisory": "maximize sum(governed p10), tie by primary mean",
+    "ceiling_advisory": "maximize sum(governed p90), tie by primary mean",
+    "opponent_context": "opponent exact max-mean lineup and projected mean margin",
+    "opponent_context_changes_primary": false,
+    "max_win_actionable": false,
+    "directional_risk_lens": "advisory only; no calibrated win-probability claim"
+  },
+  "lock_policy": {
+    "requires_verified_entity_kickoff": true,
+    "started_player_fixed_to_submitted_state": true,
+    "started_starter_fixed_to_concrete_slot": true,
+    "unlocked_players_only_fill_unlocked_slots": true,
+    "unknown_or_stale_schedule": "BLOCKED_LOCK_STATE_UNRESOLVED",
+    "window1c_first_kickoff_guard_preserved_until_proven": true
+  },
+  "outputs": {
+    "latest_json": "data/research/evaluation/<season>/weeks/week-<week>/lineups/portfolio-latest.json",
+    "latest_markdown": "data/research/evaluation/<season>/weeks/week-<week>/lineups/portfolio-latest.md",
+    "immutable_capture": "data/research/evaluation/<season>/weeks/week-<week>/lineups/captures/portfolio-<capture_id>.json",
+    "idempotent_same_evidence_capture": true
+  },
+  "portfolio": {
+    "dynamic_enabled_registry": true,
+    "hard_coded_league_count": false,
+    "retired_current_actions": false,
+    "eliminated_chopped_status": "NOT_APPLICABLE_ELIMINATED_ROSTER",
+    "scoring_isolation": "A_TO_B_TO_A_BYTE_EQUIVALENT",
+    "cross_league_exposure_summary": true,
+    "cross_league_conflicts_preserve_league_context": true
+  },
+  "evaluation": {
+    "contract": "research/decision_validation_contract.json#start_sit",
+    "metrics": [
+      "lineup_regret",
+      "best_legal_player_hit_rate",
+      "points_lost_vs_hindsight_best_legal_lineup",
+      "submitted_vs_recommended_realized_points",
+      "coverage_and_blocker_rates"
+    ],
+    "minimum_rows": 300,
+    "minimum_temporal_periods": 8,
+    "target_week_realized_stats_excluded": true
+  },
+  "implementation_order": [
+    "canonical runtime-contract adapter and exact solver",
+    "verified current-snapshot portfolio producer",
+    "availability scenarios and player-level locks",
+    "opponent context and advisory risk lineups",
+    "portfolio exposure and immutable captures",
+    "manual controlled workflow",
+    "targeted integrity and preservation tests",
+    "one deterministic personal release gate",
+    "consumer preview smoke before app integration"
+  ],
+  "governance": {
+    "production_model": "M9",
+    "production_model_changed": false,
+    "m10_activation_changed": false,
+    "football_model_reweighted": false,
+    "canonical_rankings_changed": false,
+    "adp_used_as_lineup_feature": false,
+    "production_browser_changed": false,
+    "transaction_or_lineup_execution": false,
+    "app_integration_authorized": false
+  }
+}
+
