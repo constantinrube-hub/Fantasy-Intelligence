@@ -81,7 +81,7 @@ def test_verified_locks_and_h2h_context_are_evidence_bound():
         current = json.loads(current_path.read_text(encoding="utf-8"))
         current["kickoff"]["first_kickoff_utc"] = "2026-09-29T00:15:00+00:00"
         write(current_path, current)
-        locks = {"player_kickoffs": {"canonical:a": "2026-09-30T00:00:00+00:00", "canonical:b": "2026-10-02T00:00:00+00:00", "canonical:c": "2026-10-02T00:00:00+00:00", "canonical:q": "2026-10-02T00:00:00+00:00"}}
+        locks = {"schedule_games_sha256": "schedule-hash", "player_kickoffs": {"canonical:a": "2026-09-30T00:00:00+00:00", "canonical:b": "2026-10-02T00:00:00+00:00", "canonical:c": "2026-10-02T00:00:00+00:00", "canonical:q": "2026-10-02T00:00:00+00:00"}}
         matchup = {"captured_at": "2026-09-30T01:00:00+00:00", "rows": [{"roster_id": 1, "matchup_id": 7, "points": 0}, {"roster_id": 8, "matchup_id": 7, "points": 0}]}
         report = p.build_league(root, "4", {"league_name": "Locked", "format": "REDRAFT"}, username="C0nstant1n", as_of=datetime(2026, 9, 30, 1, tzinfo=timezone.utc), lock_evidence=locks, matchup_evidence=matchup)
         assert report["lock_state"]["status"] == "PLAYER_LOCKS_VERIFIED"
@@ -89,6 +89,10 @@ def test_verified_locks_and_h2h_context_are_evidence_bound():
         assert {x["slot_index"]: x["player_id"] for x in report["primary_lineup"]["assignment"]}[0] == "canonical:a"
         assert report["opponent_context"]["status"] == "CAPTURED_H2H_CONTEXT"
         assert report["opponent_context"]["actionable"] is False
+        assert report["evidence"]["roster_state_sha256"]
+        assert report["evidence"]["schedule_games_sha256"] == "schedule-hash"
+        assert report["evidence"]["matchup_evidence_sha256"]
+        assert report["contingencies"][0]["timing"]["latest_safe_decision_utc"] == "2026-10-02T00:00:00+00:00"
 
 
 def test_after_kickoff_without_player_times_is_review_only():

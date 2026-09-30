@@ -41,12 +41,16 @@ def player_locks(
 ) -> dict[str, Any]:
     """Derive exact slot and bench locks only from a captured player-time map."""
     first = parse_dt(first_kickoff_utc)
+    envelope = lock_evidence if isinstance(lock_evidence, dict) else {}
     base = {
         "as_of_utc": as_of.astimezone(timezone.utc).isoformat(),
         "first_kickoff_utc": first.isoformat() if first else None,
         "actionable": False,
         "locked_slot_player_ids": {},
         "locked_bench_player_ids": [],
+        "evidence_sha256": sha256_value(envelope) if envelope else None,
+        "schedule_games_sha256": envelope.get("schedule_games_sha256"),
+        "captured_at": envelope.get("captured_at"),
     }
     if first is None:
         return {**base, "status": "BLOCKED_FIRST_KICKOFF_UNVERIFIED"}
@@ -54,7 +58,6 @@ def player_locks(
         return {**base, "status": "PREGAME_BEFORE_FIRST_KICKOFF", "actionable": True}
     if submitted.get("status") != "COMPLETE":
         return {**base, "status": "BLOCKED_SUBMITTED_LINEUP_UNRESOLVED_AFTER_KICKOFF"}
-    envelope = lock_evidence if isinstance(lock_evidence, dict) else {}
     times = envelope.get("player_kickoffs") if isinstance(envelope.get("player_kickoffs"), dict) else {}
     if not times:
         return {**base, "status": "BLOCKED_PLAYER_KICKOFF_EVIDENCE_MISSING"}

@@ -383,6 +383,24 @@ def ceiling_advisory(players: list[dict[str, Any]], roster_positions: list[Any],
     return result
 
 
+def contingency_timing(player_id: str | None, primary: dict[str, Any], alternate: dict[str, Any], lock_evidence: dict[str, Any] | None) -> dict[str, Any]:
+    """Show the schedule deadline without inventing availability odds or locks."""
+    envelope = lock_evidence if isinstance(lock_evidence, dict) else {}
+    times = envelope.get("player_kickoffs") if isinstance(envelope.get("player_kickoffs"), dict) else {}
+    kickoff = parse_dt(times.get(str(player_id))) if player_id else None
+    replacement_ids = sorted(set(alternate.get("selected_player_ids") or []) - set(primary.get("selected_player_ids") or []))
+    replacements = [{"player_id": candidate, "kickoff_utc": times.get(candidate)} for candidate in replacement_ids]
+    earlier = [row["player_id"] for row in replacements if kickoff and parse_dt(row.get("kickoff_utc")) and parse_dt(row["kickoff_utc"]) < kickoff]
+    return {
+        "status": "SCHEDULE_VERIFIED" if kickoff else "SCHEDULE_UNVERIFIED",
+        "contingency_player_kickoff_utc": kickoff.isoformat() if kickoff else None,
+        "latest_safe_decision_utc": kickoff.isoformat() if kickoff else None,
+        "replacement_kickoffs": replacements,
+        "replacement_locks_earlier_than_contingency": earlier,
+        "actionable": False,
+    }
+
+
 def opponent_exact_context(
     context: dict[str, Any], *, core: dict[str, Any], index: dict[str, dict[str, Any]], player_catalog: dict[str, dict[str, Any]], roster_positions: list[Any], contract: dict[str, Any], root: Path, managed_total: float | None, lock_state: dict[str, Any],
 ) -> dict[str, Any]:
@@ -516,7 +534,8 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
         for row in contingency_rows:
             player_id = canonical_player_id(row)
             alternate = exact_lineup([x for x in active if canonical_player_id(x) != player_id], roster_positions, root=root, **lock_constraints)
-            contingencies.append({"scenario": "INACTIVE_CONTINGENCY", "player_id": player_id, "injury_status": row.get("injury_status"), "lineup": alternate if alternate["complete_assignment"] else None, "status": "READY" if alternate["complete_assignment"] else "BLOCKED_INCOMPLETE_LEGAL_ASSIGNMENT"})
+            safe_alternate = alternate if alternate["complete_assignment"] else None
+            contingencies.append({"scenario": "INACTIVE_CONTINGENCY", "player_id": player_id, "injury_status": row.get("injury_status"), "lineup": safe_alternate, "status": "READY" if safe_alternate else "BLOCKED_INCOMPLETE_LEGAL_ASSIGNMENT", "timing": contingency_timing(player_id, primary, safe_alternate or {}, lock_evidence)})
         sources = Counter(source_class(row) for row in active)
         action_allowed = bool(lock_state.get("actionable"))
         action_rows = changes(
@@ -554,7 +573,11 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
                 "current_snapshot_sha256": sha256_file(current_path),
                 "app_core": str(core_path.relative_to(root)),
                 "app_core_sha256": sha256_file(core_path),
+                "roster_state_sha256": sha256_value({key: roster.get(key) for key in ("roster_id", "players", "starters", "reserve", "taxi")}),
                 "runtime_contract_sha256": contract_sha,
+                "schedule_evidence_sha256": lock_state.get("evidence_sha256"),
+                "schedule_games_sha256": lock_state.get("schedule_games_sha256"),
+                "matchup_evidence_sha256": opponent.get("evidence_sha256"),
                 "as_of_utc": as_of.isoformat(),
                 "target_week_realised_stats_excluded": True,
                 "projection_source_mix_active_roster": {key: int(sources.get(key, 0)) for key in ("FIE_GOVERNED", "SLEEPER_FALLBACK", "EXISTING_DECISION_PROJECTION", "UNAVAILABLE")},
