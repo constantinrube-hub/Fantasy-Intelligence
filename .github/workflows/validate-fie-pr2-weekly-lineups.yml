@@ -1,0 +1,41 @@
+name: Validate FIE In-Season PR2 Weekly Lineups
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/capture-fie-pr2-weekly-lineups.yml'
+      - '.github/workflows/evaluate-fie-pr2-weekly-lineups.yml'
+      - '.github/workflows/validate-fie-pr2-weekly-lineups.yml'
+      - 'config/in-season-pr2-weekly-lineup-decision-support-design.json'
+      - 'research/adapt_in_season_pr2_lineup_outcome_stats.py'
+      - 'research/build_in_season_pr2_lineup_outcome.py'
+      - 'research/capture_in_season_pr2_lineup_evidence.py'
+      - 'research/capture_in_season_pr2_lineup_nflverse_outcomes.py'
+      - 'research/evaluate_in_season_pr2_lineups.py'
+      - 'research/in_season_pr2_weekly_lineups.py'
+      - 'research/integrity_in_season_pr2_*'
+      - 'research/integrity_weekly_lineup_exact_solver_test.py'
+      - 'research/integrity_current_storage_test.py'
+      - 'research/integrity_in_season_pr2_release_gate.py'
+      - 'research/weekly_lineup_decision_support.py'
+      - 'research/weekly_lineup_operational_evidence.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - name: Install governed research dependencies
+        run: python -m pip install --disable-pip-version-check -r research/requirements.txt
+      - name: Run deterministic PR2 release gate
+        run: python research/integrity_in_season_pr2_release_gate.py
