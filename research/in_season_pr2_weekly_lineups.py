@@ -50,6 +50,7 @@ SCHEMA_PORTFOLIO = "fie-in-season-pr2-weekly-lineup-portfolio-v1"
 BEST_BALL = {"REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED_BESTBALL"}
 UNAVAILABLE = {"OUT", "IR", "PUP", "SUSPENDED", "INACTIVE", "NA"}
 CONTINGENCY = {"QUESTIONABLE", "DOUBTFUL"}
+PRIORITY_ORDER = {"VERY_HIGH": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
 
 
 def read_json(path: Path, default: Any = None) -> Any:
@@ -216,6 +217,99 @@ def governance() -> dict[str, Any]:
         "transaction_or_lineup_execution": False,
         "adp_used_as_lineup_feature": False,
         "opponent_aware_lineup_actionable": False,
+    }
+
+
+def focus_tags(report: dict[str, Any]) -> list[str]:
+    """Classify the user-configured weekly focus groups from report context."""
+    name = str(report.get("league_name") or "").upper()
+    fmt = str(report.get("format") or "").upper()
+    tags = []
+    if "AEF" in name:
+        tags.append("AEF")
+    if fmt == "CHOPPED":
+        tags.append("CHOPPED")
+    if "GENESIS" in name:
+        tags.append("GENESIS")
+    if "DYNASTY" in name and "PRIME" in name:
+        tags.append("DYNASTY_PRIME")
+    return tags
+
+
+def portfolio_intelligence(reports: list[dict[str, Any]]) -> dict[str, Any]:
+    """Aggregate exposure without transferring any scoring/lineup decision.
+
+    Each occurrence retains league and scoring-signature context.  A player
+    appearing in opposite role sets is informational only; it is never used as
+    a value fallback or a cross-league instruction.
+    """
+    exposures: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    priority_queue = []
+    for report in reports:
+        primary = report.get("primary_lineup") or {}
+        submitted = report.get("submitted_lineup") or {}
+        context = {
+            "league_id": report.get("league_id"),
+            "league_name": report.get("league_name"),
+            "format": report.get("format"),
+            "priority": report.get("priority", "MEDIUM"),
+            "scoring_signature": (report.get("evidence") or {}).get("scoring_signature"),
+        }
+        roles = {
+            "recommended_starter": primary.get("selected_player_ids") or [],
+            "recommended_bench": primary.get("bench_player_ids") or [],
+            "submitted_starter": submitted.get("assignment") or [],
+        }
+        for role, values in roles.items():
+            player_ids = [row.get("player_id") for row in values if isinstance(row, dict)] if role == "submitted_starter" else values
+            for player_id in sorted({str(value) for value in player_ids if value}):
+                exposures.setdefault(player_id, {"recommended_starter": [], "recommended_bench": [], "submitted_starter": []})[role].append(context)
+        delta = None
+        if numeric(primary.get("total")) is not None and numeric(submitted.get("total")) is not None:
+            delta = round(float(primary["total"]) - float(submitted["total"]), 6)
+        tags = focus_tags(report)
+        priority_queue.append({
+            **context,
+            "status": report.get("status"),
+            "focus_tags": tags,
+            "projected_recoverable_points": delta,
+            "action_count": len(report.get("actions") or []),
+            "official_unavailable_count": len(report.get("official_unavailable") or []),
+        })
+    records = []
+    conflicts = []
+    for player_id, roles in sorted(exposures.items()):
+        record = {
+            "player_id": player_id,
+            "recommended_starter_league_count": len(roles["recommended_starter"]),
+            "recommended_bench_league_count": len(roles["recommended_bench"]),
+            "submitted_starter_league_count": len(roles["submitted_starter"]),
+            "contexts": roles,
+        }
+        records.append(record)
+        if roles["recommended_starter"] and roles["recommended_bench"]:
+            conflicts.append({
+                "player_id": player_id,
+                "status": "INFORMATIONAL_CROSS_LEAGUE_ROLE_DIFFERENCE",
+                "recommended_starter_contexts": roles["recommended_starter"],
+                "recommended_bench_contexts": roles["recommended_bench"],
+                "actionable": False,
+                "basis": "league-specific scoring, roster and slots remain isolated",
+            })
+    focus_rank = {"AEF": 0, "CHOPPED": 1, "GENESIS": 2, "DYNASTY_PRIME": 3}
+    priority_queue.sort(key=lambda row: (
+        min([focus_rank[tag] for tag in row["focus_tags"] if tag in focus_rank], default=4),
+        PRIORITY_ORDER.get(str(row["priority"]), 4),
+        0 if row["status"] == "ACTION_REQUIRED" else 1,
+        -float(row["projected_recoverable_points"] or 0.0),
+        str(row["league_id"]),
+    ))
+    return {
+        "schema": "fie-in-season-pr2-portfolio-intelligence-v1",
+        "cross_league_exposure": records,
+        "cross_league_role_differences": conflicts,
+        "priority_queue": priority_queue,
+        "governance": {"cross_league_decision_transfer": False, "scoring_signature_isolation": True, "conflicts_actionable": False},
     }
 
 
@@ -486,7 +580,11 @@ def build_portfolio(root: Path = ROOT, *, season: int | None = None, week: int |
     username = str(portfolio.get("sleeper_username") or "")
     registry = (read_json(root / "data/research/leagues/registry.json", {}) or {}).get("leagues") or {}
     selected = [(str(lid), row) for lid, row in registry.items() if isinstance(row, dict) and row.get("enabled") and (league_id is None or str(lid) == str(league_id))]
-    reports = [build_league(root, lid, row, username=username, target_season=season, target_week=week, as_of=as_of, lock_evidence=(lock_evidence_by_league or {}).get(lid), matchup_evidence=(matchup_evidence_by_league or {}).get(lid)) for lid, row in sorted(selected)]
+    reports = []
+    for lid, row in sorted(selected):
+        report = build_league(root, lid, row, username=username, target_season=season, target_week=week, as_of=as_of, lock_evidence=(lock_evidence_by_league or {}).get(lid), matchup_evidence=(matchup_evidence_by_league or {}).get(lid))
+        report["priority"] = str(row.get("priority") or "MEDIUM").upper()
+        reports.append(report)
     statuses = Counter(str(x.get("status")) for x in reports)
     recoverable = sum(max(0.0, float((x.get("primary_lineup") or {}).get("total") or 0) - float((x.get("submitted_lineup") or {}).get("total") or 0)) for x in reports if (x.get("submitted_lineup") or {}).get("total") is not None)
     return {
@@ -496,6 +594,7 @@ def build_portfolio(root: Path = ROOT, *, season: int | None = None, week: int |
         "status_counts": dict(sorted(statuses.items())),
         "recoverable_submitted_lineup_points": round(recoverable, 6),
         "leagues": reports,
+        "portfolio_intelligence": portfolio_intelligence(reports),
         "governance": governance(),
     }
 

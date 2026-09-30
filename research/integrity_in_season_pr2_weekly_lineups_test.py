@@ -145,8 +145,20 @@ def test_external_evidence_envelope_is_typed_and_target_bound():
             raise AssertionError("mismatched evidence was accepted")
 
 
+def test_portfolio_exposure_preserves_scoring_context_and_focus_order():
+    reports = [
+        {"league_id": "a", "league_name": "AEF - FFLeague", "format": "REDRAFT", "priority": "HIGH", "status": "ACTION_REQUIRED", "evidence": {"scoring_signature": "score-a"}, "primary_lineup": {"selected_player_ids": ["canonical:x"], "bench_player_ids": ["canonical:y"], "total": 100}, "submitted_lineup": {"assignment": [], "total": 90}, "actions": [{}], "official_unavailable": []},
+        {"league_id": "b", "league_name": "Chopped - Drive", "format": "CHOPPED", "priority": "VERY_HIGH", "status": "READY_NO_LINEUP_CHANGE", "evidence": {"scoring_signature": "score-b"}, "primary_lineup": {"selected_player_ids": ["canonical:y"], "bench_player_ids": ["canonical:x"], "total": 80}, "submitted_lineup": {"assignment": [], "total": 80}, "actions": [], "official_unavailable": []},
+    ]
+    intelligence = p.portfolio_intelligence(reports)
+    assert intelligence["priority_queue"][0]["league_id"] == "a"
+    conflict = next(x for x in intelligence["cross_league_role_differences"] if x["player_id"] == "canonical:x")
+    assert conflict["actionable"] is False
+    assert {x["scoring_signature"] for x in conflict["recommended_starter_contexts"] + conflict["recommended_bench_contexts"]} == {"score-a", "score-b"}
+
+
 def main() -> None:
-    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_pregame_opponent_context_and_ceiling_stay_advisory, test_immutable_capture_is_pregame_and_idempotent, test_external_evidence_envelope_is_typed_and_target_bound]
+    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_pregame_opponent_context_and_ceiling_stay_advisory, test_immutable_capture_is_pregame_and_idempotent, test_external_evidence_envelope_is_typed_and_target_bound, test_portfolio_exposure_preserves_scoring_context_and_focus_order]
     for test in tests:
         test()
     print(f"PASS In-Season PR2 weekly lineup producer ({len(tests)} tests)")
