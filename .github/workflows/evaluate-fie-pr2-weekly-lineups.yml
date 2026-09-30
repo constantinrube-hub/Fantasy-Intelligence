@@ -1,0 +1,96 @@
+name: Evaluate FIE PR2 Weekly Lineup Capture
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: NFL season of the immutable pregame capture
+        required: true
+        default: '2026'
+        type: string
+      week:
+        description: NFL regular-season week of the immutable pregame capture
+        required: true
+        type: string
+      capture_path:
+        description: Repository path to one immutable pregame portfolio capture
+        required: true
+        type: string
+      provider_source_path:
+        description: Repository path to reviewed raw provider-player stats JSON under lineups/outcomes/source-inputs
+        required: true
+        type: string
+      outcome_revision_id:
+        description: Immutable, safe revision label (for example official-final-v1)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-pr2-weekly-lineup-evaluation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate frozen-identity outcome contracts
+        run: |
+          python -m py_compile research/adapt_in_season_pr2_lineup_outcome_stats.py research/build_in_season_pr2_lineup_outcome.py research/evaluate_in_season_pr2_lineups.py
+          python research/integrity_in_season_pr2_lineup_outcome_adapter_test.py
+          python research/integrity_in_season_pr2_lineup_outcome_test.py
+          python research/integrity_in_season_pr2_lineup_evaluation_test.py
+
+      - name: Bind, score, and evaluate one immutable capture
+        shell: bash
+        env:
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+          INPUT_CAPTURE_PATH: ${{ inputs.capture_path }}
+          INPUT_PROVIDER_SOURCE_PATH: ${{ inputs.provider_source_path }}
+          INPUT_OUTCOME_REVISION_ID: ${{ inputs.outcome_revision_id }}
+        run: |
+          set -euo pipefail
+          prefix="data/research/evaluation/$INPUT_SEASON/weeks/week-$INPUT_WEEK/lineups/"
+          case "$INPUT_CAPTURE_PATH" in "$prefix"captures/*) ;; *) echo "capture_path must be under $prefix captures"; exit 2;; esac
+          case "$INPUT_PROVIDER_SOURCE_PATH" in "$prefix"outcomes/source-inputs/*) ;; *) echo "provider_source_path must be under $prefix outcomes/source-inputs"; exit 2;; esac
+          case "$INPUT_OUTCOME_REVISION_ID" in *[!A-Za-z0-9._-]*|'') echo "outcome_revision_id must be a safe non-empty label"; exit 2;; esac
+          test -f "$INPUT_CAPTURE_PATH"
+          test -f "$INPUT_PROVIDER_SOURCE_PATH"
+          output_dir="${prefix}outcomes/$INPUT_OUTCOME_REVISION_ID"
+          mkdir -p "$output_dir"
+          python research/adapt_in_season_pr2_lineup_outcome_stats.py --capture "$INPUT_CAPTURE_PATH" --provider-source "$INPUT_PROVIDER_SOURCE_PATH" --output "$output_dir/raw-stats.json"
+          python research/build_in_season_pr2_lineup_outcome.py --capture "$INPUT_CAPTURE_PATH" --raw-stats "$output_dir/raw-stats.json" --outcome-revision-id "$INPUT_OUTCOME_REVISION_ID" --output-dir "$output_dir"
+          python research/evaluate_in_season_pr2_lineups.py --capture "$INPUT_CAPTURE_PATH" --outcome "$output_dir/outcome.json" --output "$output_dir/evaluation.json"
+
+      - name: Commit only PR2 lineage-bound outcome evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Weekly Lineup Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/evaluation
+          if git diff --cached --quiet; then
+            echo "No PR2 weekly lineup outcome evidence change"
+            exit 0
+          fi
+          git commit -m "Evaluate FIE PR2 weekly lineup capture"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
