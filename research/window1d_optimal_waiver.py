@@ -834,6 +834,8 @@ def plan_league(
         "production_model_unchanged": "M9",
         "research_only": True,
     }
+    if int(target_week) >= int((profile.get("roster_evolution") or {}).get("season_complete_week") or 99):
+        return {**base, "status": "NOT_APPLICABLE_LEAGUE_SEASON_COMPLETE"}
     if str(current.get("league_id") or "") != str(league_id):
         return {**base, "status": "BLOCKED_LEAGUE_ID_MISMATCH"}
     if current.get("profile_current_match") is False:
@@ -851,12 +853,27 @@ def plan_league(
     if age_h < -0.25 or age_h > float(max_current_age_hours):
         return {**base, "status": "BLOCKED_STALE_CURRENT", "current_age_hours": round(age_h, 3), "max_current_age_hours": max_current_age_hours}
 
+    from league_profile import roster_evolution_status  # type: ignore
+    roster_evolution = roster_evolution_status(
+        profile, live_league.get("roster_positions") or [], target_season, target_week,
+    )
+    base["roster_evolution"] = roster_evolution
+    decision_profile = {
+        **profile,
+        # Sleeper's observed roster capacity is authoritative for add/drop
+        # advice, including a declared Tuesday slot that has not appeared yet.
+        "roster_positions": list(live_league.get("roster_positions") or profile.get("roster_positions") or []),
+    }
+
     live_settings = live_league.get("settings") if isinstance(live_league.get("settings"), dict) else {}
     if int(live_settings.get("disable_adds") or 0) == 1:
         return {**base, "status": "NOT_APPLICABLE_ADDS_DISABLED"}
     cap = numeric(live_settings.get("waiver_budget"))
     if cap is None or cap <= 0:
         return {**base, "status": "NOT_APPLICABLE_NO_FAAB_BUDGET"}
+    declared_cap = numeric((profile.get("operational_rules") or {}).get("faab_budget"))
+    if declared_cap is not None and cap != declared_cap:
+        return {**base, "status": "BLOCKED_FAAB_CONTRACT_DRIFT", "declared_faab_budget": declared_cap, "live_faab_budget": cap}
 
     own, user = managed_roster(rosters, users, username)
     if own is None:
@@ -867,7 +884,7 @@ def plan_league(
 
     index = current_index(current)
     owned_ids = {pid for roster in rosters for pid in valid_ids(roster.get("players"))}
-    allowed = rosterable_positions(profile)
+    allowed = rosterable_positions(decision_profile)
     candidates_by_id: dict[str, dict[str, Any]] = {}
     for row in current.get("players") or []:
         if not isinstance(row, dict) or not bool(row.get("waiver_activation_eligible")):
@@ -905,7 +922,7 @@ def plan_league(
     opponent_budgets = [remaining_budget(r, cap) for r in rosters if str(r.get("roster_id")) != str(own.get("roster_id"))]
     chopped = fmt in CHOPPED_FORMATS
     supply = chopped_supply_context(rosters, own.get("roster_id"), index, candidates) if chopped else None
-    wrem, regular_end = weeks_remaining(profile, target_week)
+    wrem, regular_end = weeks_remaining(decision_profile, target_week)
     standard_preservation = 0.55 + 0.45 * clamp(wrem / max(1, regular_end), 0.0, 1.0)
     future_supply = numeric((supply or {}).get("future_supply_index")) if chopped else None
     preservation = standard_preservation * (1.0 + 0.8 * (future_supply if future_supply is not None else 0.5)) if chopped else standard_preservation
@@ -913,7 +930,7 @@ def plan_league(
     signals = []
     blocked_candidates = []
     for row in candidates:
-        sig = candidate_signal(row, own, profile, index, chopped=chopped)
+        sig = candidate_signal(row, own, decision_profile, index, chopped=chopped)
         if not sig:
             continue
         if sig.get("status") == "BLOCKED_DROP_VALUE_UNAVAILABLE":
@@ -938,7 +955,7 @@ def plan_league(
         utility = 100.0 * float(sig["raw_acquisition_signal"]) / max_signal if max_signal > 0 else 0.0
         if chopped:
             teams_now = max(1, int((supply or {}).get("teams_remaining_proxy") or len(rosters) or 1))
-            teams_initial = max(teams_now, int(profile.get("total_rosters") or teams_now))
+            teams_initial = max(teams_now, int(decision_profile.get("total_rosters") or teams_now))
             survival_multiplier = 1.0 + 0.7 * (1.0 - teams_now / teams_initial)
             utility *= survival_multiplier
         else:
@@ -1056,9 +1073,12 @@ def _enabled_registry(registry: dict[str, Any]) -> list[str]:
     ]
 
 
-def live_profile_matches(profile: dict[str, Any], live_league: dict[str, Any], portfolio_entry: dict[str, Any] | None) -> tuple[bool, str | None]:
+def live_profile_matches(
+    profile: dict[str, Any], live_league: dict[str, Any], portfolio_entry: dict[str, Any] | None,
+    *, season: int, week: int,
+) -> tuple[bool, str | None, dict[str, Any]]:
     try:
-        from league_profile import build_profile  # type: ignore
+        from league_profile import build_profile, passive_reserve_capacity_expansion, roster_evolution_status  # type: ignore
         rebuilt = build_profile(
             str(profile.get("league_id")),
             str(profile.get("format") or "AUTO"),
@@ -1067,11 +1087,15 @@ def live_profile_matches(profile: dict[str, Any], live_league: dict[str, Any], p
         )
         actual = str(rebuilt.get("profile_fingerprint") or "")
         expected = str(profile.get("profile_fingerprint") or "")
-        return bool(actual and expected and actual == expected), actual
+        evolution = roster_evolution_status(profile, live_league.get("roster_positions") or [], season, week)
+        compatible = bool(evolution.get("recognized")) or passive_reserve_capacity_expansion(
+            profile.get("roster_positions"), live_league.get("roster_positions"),
+        )
+        return bool(actual and expected and (actual == expected or compatible)), actual, evolution
     except Exception:
         # Current snapshot still carries its own live-profile gate. If we cannot
         # independently restamp here, do not claim a live match.
-        return False, None
+        return False, None, {"configured": False, "recognized": False, "status": "PROFILE_RESTAMP_FAILED"}
 
 
 def markdown_portfolio(report: dict[str, Any]) -> str:
@@ -1188,9 +1212,11 @@ def build_portfolio(
         except Exception as exc:
             preblocks[lid] = {"status": "BLOCKED_LIVE_SLEEPER_STATE", "detail": f"{type(exc).__name__}:{exc}"}
             continue
-        match, live_fp = live_profile_matches(profile, live_league, entries.get(lid))
+        match, live_fp, evolution = live_profile_matches(
+            profile, live_league, entries.get(lid), season=int(season), week=target_week,
+        )
         if not match:
-            preblocks[lid] = {"status": "BLOCKED_PROFILE_DRIFT", "stored_profile_fingerprint": profile.get("profile_fingerprint"), "live_profile_fingerprint": live_fp}
+            preblocks[lid] = {"status": "BLOCKED_PROFILE_DRIFT", "stored_profile_fingerprint": profile.get("profile_fingerprint"), "live_profile_fingerprint": live_fp, "roster_evolution": evolution}
             continue
         hist = capture_history_for_league(
             lid, str(profile.get("format") or "UNKNOWN"), int(season), target_week,

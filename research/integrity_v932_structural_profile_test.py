@@ -4,8 +4,11 @@ from pathlib import Path
 import json
 
 from league_profile import (
+    passive_reserve_capacity_expansion,
     research_contract,
     research_fingerprint_from_profile,
+    research_roster_positions_for_live_state,
+    roster_evolution_status,
     structural_contract,
     structural_settings,
     sha256_json,
@@ -37,6 +40,23 @@ b=structural_contract(
 assert sha256_json(a)==sha256_json(b)
 assert 'leg' not in structural_settings(base)
 assert 'daily_waivers_last_ran' not in structural_settings(base)
+
+# A Tuesday-applied declared stage may be pending after Monday Night Football.
+# It remains compatible until Sleeper exposes the next official roster shape.
+evolution_profile = {
+    "roster_positions": ["QB", "BN"],
+    "roster_evolution": {
+        "season": 2026, "application_weekday": "TUESDAY", "season_complete_week": 17,
+        "weekly_additions": {"1": ["BN"], "2": ["FLEX"]},
+    },
+}
+pending = roster_evolution_status(evolution_profile, ["QB", "BN"], 2026, 1)
+assert pending["recognized"] and pending["scheduled_addition_pending"]
+stage_one = roster_evolution_status(evolution_profile, ["QB", "BN", "BN"], 2026, 1)
+assert stage_one["recognized"] and stage_one["matched_stage"] == 1
+assert not roster_evolution_status(evolution_profile, ["QB", "WR", "BN"], 2026, 1)["recognized"]
+assert research_roster_positions_for_live_state(evolution_profile, ["QB", "BN", "BN"], 2026, 1)[0] == ["QB", "BN"]
+assert passive_reserve_capacity_expansion(["QB", "BN"], ["QB", "BN", "BN"])
 
 # Genuine scoring/roster structure changes must invalidate.
 assert sha256_json(a)!=sha256_json(
@@ -99,11 +119,14 @@ for lid in enabled:
         )
 
     profile_research_fp=research_fingerprint_from_profile(profile)
+    research_positions, evolution = research_roster_positions_for_live_state(
+        profile, pf.get('roster_positions') or [], cur.get('season'), cur.get('week'),
+    )
     live_research=research_contract(
         str(lid),
         profile.get('format'),
         cur.get('scoring_settings') or profile.get('scoring_settings') or {},
-        pf.get('roster_positions') or [],
+        research_positions,
         pf.get('settings') or {},
         pf.get('total_rosters'),
         pf.get('season'),
@@ -115,16 +138,34 @@ for lid in enabled:
     assert cur.get('profile_research_fingerprint')==profile_research_fp,(
         f'{lid}: stored profile research fingerprint metadata mismatch'
     )
-    assert cur.get('live_research_fingerprint')==live_research_fp,(
-        f'{lid}: live research fingerprint metadata mismatch'
+    raw_live_research = research_contract(
+        str(lid), profile.get('format'),
+        cur.get('scoring_settings') or profile.get('scoring_settings') or {},
+        pf.get('roster_positions') or [], pf.get('settings') or {}, pf.get('total_rosters'),
+        pf.get('season'), pf.get('season_type'), profile.get('research_constraints') or [],
     )
+    compatibility_exception = bool(evolution.get('recognized')) or passive_reserve_capacity_expansion(
+        profile.get('roster_positions'), pf.get('roster_positions'),
+    )
+    if compatibility_exception and live_profile_fp != profile.get('profile_fingerprint'):
+        # Snapshots written before a declared roster-evolution policy carry the
+        # raw live hash.  The next current refresh rewrites this metadata.
+        assert cur.get('live_research_fingerprint') in {live_research_fp, sha256_json(raw_live_research)}, (
+            f'{lid}: live research fingerprint metadata mismatch'
+        )
+        assert cur.get('profile_diff'), f'{lid}: compatible structural change missing profile_diff'
+    else:
+        assert cur.get('live_research_fingerprint')==live_research_fp,(
+            f'{lid}: live research fingerprint metadata mismatch'
+        )
     assert live_research_fp==profile_research_fp,(
         f'{lid}: genuine research-contract drift '
         f'{live_research_fp} != {profile_research_fp}'
     )
-    assert cur.get('profile_current_match') is True,(
-        f'{lid}: current snapshot does not declare research-compatible profile'
-    )
+    if not (compatibility_exception and live_profile_fp != profile.get('profile_fingerprint')):
+        assert cur.get('profile_current_match') is True,(
+            f'{lid}: current snapshot does not declare research-compatible profile'
+        )
     checked.append(lid)
 
 assert checked==existing_current,(

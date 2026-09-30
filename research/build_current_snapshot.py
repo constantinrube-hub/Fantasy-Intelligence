@@ -34,6 +34,7 @@ from fie_research import (
 from fie_m2 import add_change_signals, add_competition_features, add_position_shares, add_team_context
 from fie_m3 import add_lagged_advanced, add_public_enrichment
 from league_profile import (
+    research_roster_positions_for_live_state,
     research_contract,
     research_fingerprint_from_profile,
     sha256_json,
@@ -658,11 +659,20 @@ def build_snapshot(args) -> dict:
     profile_sig = profile.get("scoring_signature")
     profile_fp = profile.get("profile_fingerprint")
     league_format = str(profile.get("format") or "").upper() or None
+    state = sleeper_state()
+    season = int(args.season or state.get("season") or inferred_nfl_season())
+    sleeper_week = int(state.get("week") or 1)
+    season_type = normalize_season_type(state.get("season_type"))
+    # Sleeper's preseason week counter is not the regular-season decision week.
+    # Unless the operator explicitly supplies --week, preseason analysis points at
+    # upcoming regular-season Week 1 while retaining the source-state metadata.
+    week = resolve_analysis_week(args.week, sleeper_week, season_type)
     live_profile_fp = None
     profile_research_fp = None
     live_research_fp = None
     profile_current_match = True
     profile_diff = {}
+    roster_evolution = {"configured": False, "recognized": False}
     if profile and league_id:
         pf = scoring_prov.get("profile_fields") or {}
         live_contract = structural_contract(
@@ -674,11 +684,14 @@ def build_snapshot(args) -> dict:
         live_profile_fp = sha256_json(live_contract)
 
         profile_research_fp = research_fingerprint_from_profile(profile)
+        research_positions, roster_evolution = research_roster_positions_for_live_state(
+            profile, pf.get("roster_positions") or [], season, week,
+        )
         live_research_contract = research_contract(
             str(league_id),
             str(profile.get("format") or "AUTO"),
             scoring,
-            pf.get("roster_positions") or [],
+            research_positions,
             pf.get("settings") or {},
             pf.get("total_rosters"),
             pf.get("season"),
@@ -708,14 +721,6 @@ def build_snapshot(args) -> dict:
             if bid != league_id or bfp != profile_fp:
                 artifact_identity_ok=False
                 break
-    state = sleeper_state()
-    season = int(args.season or state.get("season") or inferred_nfl_season())
-    sleeper_week = int(state.get("week") or 1)
-    season_type = normalize_season_type(state.get("season_type"))
-    # Sleeper's preseason week counter is not the regular-season decision week.
-    # Unless the operator explicitly supplies --week, preseason analysis points at
-    # upcoming regular-season Week 1 while retaining the source-state metadata.
-    week = resolve_analysis_week(args.week, sleeper_week, season_type)
     generated = utc_now(); cache = Path(args.cache_dir); schedule = load_schedule(cache)
     opponents = opponent_map(schedule, season, week)
     dst_contexts = dst_game_context_map(schedule, season, week)
@@ -727,7 +732,8 @@ def build_snapshot(args) -> dict:
 
     observed, team_hist, identity, source_meta = current_observed_frame(season, week, scoring, cache)
     scoring_support_raw = source_meta.get("scoring_support") or {}
-    scoring_support_relevant = relevant_scoring_audit(scoring, scoring_support_raw, profile.get("roster_positions") or []) if profile else scoring_support_raw
+    live_roster_positions = ((scoring_prov.get("profile_fields") or {}).get("roster_positions") or profile.get("roster_positions") or []) if profile else []
+    scoring_support_relevant = relevant_scoring_audit(scoring, scoring_support_raw, live_roster_positions) if profile else scoring_support_raw
     sp = sleeper_players(); srows = sleeper_projection_rows(season, week)
     if pregame_eligible:
         archive_meta = archive_sleeper_projection(
@@ -751,6 +757,7 @@ def build_snapshot(args) -> dict:
         and (not profile_sig or profile_sig == sig)
         and artifact_identity_ok
         and profile_current_match
+        and not bool(roster_evolution.get("season_complete"))
     )
     specs = m4.get("final_position_models", {}).get("model_specs", {}).get("positions", {}) or {}
     comp = build_competition_now(observed)
@@ -973,6 +980,7 @@ def build_snapshot(args) -> dict:
         "live_research_fingerprint": live_research_fp,
         "profile_current_match": profile_current_match,
         "profile_diff": profile_diff,
+        "roster_evolution": roster_evolution,
         "scoring_signature": sig, "scoring_settings": scoring, "scoring_provenance": scoring_prov,
         "scoring_support_relevant": scoring_support_relevant,
         "research_compatible": research_compatible, "snapshot_max_age_hours": 18,

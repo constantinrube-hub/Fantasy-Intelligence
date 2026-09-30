@@ -112,6 +112,62 @@ def normalize_constraints(values: Iterable[Dict[str, Any]] | None) -> List[Dict[
     return [normalize_constraint(x) for x in (values or [])]
 
 
+def normalize_roster_evolution(raw: Dict[str, Any] | None) -> Dict[str, Any] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise ValueError("roster_evolution must be an object")
+    season = _int_year(raw.get("season"), "roster_evolution season")
+    weekday = str(raw.get("application_weekday") or "").strip().upper()
+    if weekday != "TUESDAY":
+        raise ValueError("roster_evolution application_weekday must be TUESDAY")
+    additions = raw.get("weekly_additions") or {}
+    if not isinstance(additions, dict) or not additions:
+        raise ValueError("roster_evolution weekly_additions must be a non-empty object")
+    normalized: Dict[str, List[str]] = {}
+    for raw_week, raw_slots in additions.items():
+        try:
+            week = int(raw_week)
+        except Exception as exc:
+            raise ValueError("roster_evolution week keys must be integers") from exc
+        if week < 1 or week > 16:
+            raise ValueError("roster_evolution additions are supported only for Weeks 1-16")
+        if not isinstance(raw_slots, list) or not raw_slots:
+            raise ValueError(f"roster_evolution Week {week} must add at least one slot")
+        slots = [str(slot).strip().upper() for slot in raw_slots]
+        if any(not re.fullmatch(r"[A-Z][A-Z0-9_]*", slot) for slot in slots):
+            raise ValueError(f"roster_evolution Week {week} contains an invalid slot")
+        normalized[str(week)] = slots
+    terminal_week = int(raw.get("season_complete_week") or 17)
+    if terminal_week != 17:
+        raise ValueError("roster_evolution season_complete_week must be 17")
+    return {
+        "season": season,
+        "application_weekday": weekday,
+        "weekly_additions": dict(sorted(normalized.items(), key=lambda item: int(item[0]))),
+        "season_complete_week": terminal_week,
+    }
+
+
+def normalize_operational_rules(raw: Dict[str, Any] | None) -> Dict[str, Any] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise ValueError("operational_rules must be an object")
+    try:
+        faab_budget = int(raw.get("faab_budget"))
+        lottery_draws = int(raw.get("draft_lottery_draws"))
+    except Exception as exc:
+        raise ValueError("operational_rules faab_budget and draft_lottery_draws must be integers") from exc
+    if faab_budget <= 0 or lottery_draws < 1:
+        raise ValueError("operational_rules values are outside supported bounds")
+    return {
+        "faab_budget": faab_budget,
+        "trading_allowed": bool(raw.get("trading_allowed", True)),
+        "draft_lottery_draws": lottery_draws,
+    }
+
+
 def normalize_entry(raw: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(raw, dict):
         raise ValueError("Each league entry must be an object")
@@ -123,6 +179,8 @@ def normalize_entry(raw: Dict[str, Any]) -> Dict[str, Any]:
     alias = raw.get("alias")
     alias = str(alias).strip() if alias not in (None, "") else None
     constraints = normalize_constraints(raw.get("research_constraints") or raw.get("restrictions") or [])
+    roster_evolution = normalize_roster_evolution(raw.get("roster_evolution"))
+    operational_rules = normalize_operational_rules(raw.get("operational_rules"))
 
     replaces = raw.get("replaces_league_id")
     replaces = str(replaces).strip() if replaces not in (None, "") else None
@@ -140,6 +198,8 @@ def normalize_entry(raw: Dict[str, Any]) -> Dict[str, Any]:
         "research_constraints": constraints,
         "enabled": bool(raw.get("enabled", True)),
         "replaces_league_id": replaces,
+        "roster_evolution": roster_evolution,
+        "operational_rules": operational_rules,
     }
 
 

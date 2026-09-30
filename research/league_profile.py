@@ -58,6 +58,8 @@ RESEARCH_SETTING_KEYS = {
     "max_keepers",
 }
 
+PASSIVE_RESERVE_SLOT_NAMES = {"BN", "BENCH", "IR", "TAXI", "RESERVE"}
+
 def structural_settings(settings: Dict[str, Any] | None) -> Dict[str, Any]:
     settings = settings or {}
     return {k: settings[k] for k in sorted(STRUCTURAL_SETTING_KEYS) if k in settings}
@@ -81,6 +83,68 @@ def research_structural_settings(settings: Dict[str, Any] | None) -> Dict[str, A
         out["best_ball"] = raw_best_ball
 
     return out
+
+
+def passive_reserve_capacity_expansion(stored_positions: list[Any] | None, live_positions: list[Any] | None) -> bool:
+    """True only when live Sleeper state adds passive reserve capacity."""
+    stored = [str(slot).upper() for slot in (stored_positions or [])]
+    live = [str(slot).upper() for slot in (live_positions or [])]
+    if stored == live:
+        return False
+    stored_active = [slot for slot in stored if slot not in PASSIVE_RESERVE_SLOT_NAMES]
+    live_active = [slot for slot in live if slot not in PASSIVE_RESERVE_SLOT_NAMES]
+    if stored_active != live_active:
+        return False
+    stored_passive = {slot: stored.count(slot) for slot in PASSIVE_RESERVE_SLOT_NAMES}
+    live_passive = {slot: live.count(slot) for slot in PASSIVE_RESERVE_SLOT_NAMES}
+    return all(live_passive[slot] >= stored_passive[slot] for slot in PASSIVE_RESERVE_SLOT_NAMES) and any(
+        live_passive[slot] > stored_passive[slot] for slot in PASSIVE_RESERVE_SLOT_NAMES
+    )
+
+
+def roster_evolution_status(profile: Dict[str, Any], live_positions: list[Any] | None, season: Any, week: Any) -> Dict[str, Any]:
+    """Match live slots to a declared cumulative, Tuesday-applied roster plan."""
+    plan = profile.get("roster_evolution")
+    base = list(profile.get("roster_positions") or [])
+    live = list(live_positions or [])
+    if not isinstance(plan, dict) or str(plan.get("season")) != str(season):
+        return {"configured": False, "recognized": False, "live_roster_positions": live}
+    additions = plan.get("weekly_additions") or {}
+    stages = [{"stage": 0, "through_week": 0, "roster_positions": base, "added_slots": []}]
+    current = list(base)
+    for raw_week, slots in sorted(additions.items(), key=lambda item: int(item[0])):
+        current = current + [str(slot).upper() for slot in (slots or [])]
+        stages.append({"stage": len(stages), "through_week": int(raw_week), "roster_positions": list(current), "added_slots": [str(slot).upper() for slot in (slots or [])]})
+    normalized_live = [str(slot).upper() for slot in live]
+    match = next((item for item in stages if item["roster_positions"] == normalized_live), None)
+    target_week = int(week or 0)
+    scheduled_stage = max((item["stage"] for item in stages if item["through_week"] <= target_week), default=0)
+    next_stage = next((item for item in stages if item["stage"] == ((match or {"stage": 0})["stage"] + 1)), None)
+    return {
+        "configured": True,
+        "recognized": match is not None,
+        "status": "SCHEDULED_STAGE_ACTIVE" if match is not None else "UNPLANNED_ROSTER_DRIFT",
+        "season": int(plan["season"]),
+        "application_weekday": plan["application_weekday"],
+        "season_complete_week": int(plan["season_complete_week"]),
+        "target_week": target_week,
+        "matched_stage": match["stage"] if match else None,
+        "matched_through_week": match["through_week"] if match else None,
+        "scheduled_stage_for_target_week": scheduled_stage,
+        "scheduled_addition_pending": bool(match and match["stage"] < scheduled_stage),
+        "season_complete": target_week >= int(plan["season_complete_week"]),
+        "next_scheduled_change": ({"week": next_stage["through_week"], "slots": next_stage["added_slots"]} if next_stage else None),
+        "live_roster_positions": live,
+        "expected_stages": [{"stage": item["stage"], "through_week": item["through_week"], "roster_positions": item["roster_positions"]} for item in stages],
+    }
+
+
+def research_roster_positions_for_live_state(profile: Dict[str, Any], live_positions: list[Any] | None, season: Any, week: Any) -> tuple[list[Any], Dict[str, Any]]:
+    """Return research-compatible roster slots plus declared-evolution evidence."""
+    evolution = roster_evolution_status(profile, live_positions, season, week)
+    if evolution.get("recognized") or passive_reserve_capacity_expansion(profile.get("roster_positions"), live_positions):
+        return list(profile.get("roster_positions") or []), evolution
+    return list(live_positions or []), evolution
 
 
 def structural_contract(league_id: str, fmt: str, scoring: Dict[str, Any], roster_positions: list[Any], settings: Dict[str, Any], total_rosters: Any, season: Any, season_type: Any, constraints: list[Any] | None = None) -> Dict[str, Any]:
@@ -250,6 +314,10 @@ def build_profile(league_id: str, requested_format: str = "AUTO", league_json: D
         profile.update(dst_profile_fields(profile))
     if constraints:
         profile["research_constraints"] = constraints
+    for key in ("roster_evolution", "operational_rules"):
+        value = (portfolio_entry or {}).get(key)
+        if value is not None:
+            profile[key] = value
     if portfolio_entry:
         profile["portfolio"] = {
             "priority": portfolio_entry.get("priority"),
