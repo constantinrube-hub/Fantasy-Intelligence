@@ -401,6 +401,28 @@ def contingency_timing(player_id: str | None, primary: dict[str, Any], alternate
     }
 
 
+def evaluation_input(active: list[dict[str, Any]], roster_positions: list[Any], contract: dict[str, Any], primary: dict[str, Any], submitted: dict[str, Any]) -> dict[str, Any]:
+    """Freeze the legal candidate universe needed for later hindsight replay."""
+    candidates = []
+    for row in sorted(active, key=lambda item: str(canonical_player_id(item) or "")):
+        candidates.append({
+            "sleeper_id": row.get("sleeper_id"),
+            "canonical_player_id": row.get("canonical_player_id"),
+            "internal_id": row.get("internal_id"),
+            "position_model": player_position(row, contract),
+            "team": row.get("team"),
+            "captured_player_id": canonical_player_id(row),
+        })
+    return {
+        "schema": "fie-in-season-pr2-lineup-evaluation-input-v1",
+        "roster_positions": list(roster_positions),
+        "active_candidates": candidates,
+        "recommended_player_ids": list(primary.get("selected_player_ids") or []),
+        "submitted_player_ids": [row.get("player_id") for row in (submitted.get("assignment") or [])],
+        "runtime_contract_sha256": primary.get("runtime_contract_sha256"),
+    }
+
+
 def opponent_exact_context(
     context: dict[str, Any], *, core: dict[str, Any], index: dict[str, dict[str, Any]], player_catalog: dict[str, dict[str, Any]], roster_positions: list[Any], contract: dict[str, Any], root: Path, managed_total: float | None, lock_state: dict[str, Any],
 ) -> dict[str, Any]:
@@ -584,6 +606,7 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
             },
             "primary_lineup": {**primary, "status": "OPTIMAL_LINEUP" if action_allowed else "REVIEW_ONLY_LOCK_EVIDENCE_UNRESOLVED", "actionable": action_allowed, "basis": "exact max sum(decision_weekly_projection) subject to verified player locks" if lock_constraints else "exact max sum(decision_weekly_projection)"},
             "submitted_lineup": submitted,
+            "evaluation_input": evaluation_input(active, roster_positions, contract, primary, submitted),
             "actions": action_rows,
             "official_unavailable": inactive,
             "contingencies": contingencies,
