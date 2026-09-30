@@ -565,6 +565,8 @@ def build_league_report(
             return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_SEASON_MISMATCH", {"target": target_season, "current": season})
         if target_week is not None and week != int(target_week):
             return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_WEEK_MISMATCH", {"target": target_week, "current": week})
+        if bool((current.get("roster_evolution") or {}).get("season_complete")):
+            return blocker_report(lid, league_name, fmt, season, week, "NOT_APPLICABLE_LEAGUE_SEASON_COMPLETE")
         if current.get("target_week_realised_stats_excluded") is not True:
             return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_REALIZED_STATS_GUARD")
         if current.get("profile_current_match") is False:

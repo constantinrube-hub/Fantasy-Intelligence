@@ -488,6 +488,8 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
             return blocker(lid, name, fmt, season, week, "BLOCKED_SEASON_MISMATCH")
         if target_week is not None and week != target_week:
             return blocker(lid, name, fmt, season, week, "BLOCKED_WEEK_MISMATCH")
+        if bool((current.get("roster_evolution") or {}).get("season_complete")):
+            return blocker(lid, name, fmt, season, week, "NOT_APPLICABLE_LEAGUE_SEASON_COMPLETE")
         if current.get("target_week_realised_stats_excluded") is not True:
             return blocker(lid, name, fmt, season, week, "BLOCKED_REALIZED_STATS_GUARD")
         if current.get("profile_current_match") is False:
