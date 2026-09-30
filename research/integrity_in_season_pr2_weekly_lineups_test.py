@@ -132,6 +132,19 @@ def test_immutable_capture_is_pregame_and_idempotent():
         paths = p.write_canonical_pregame_capture(root, report)
         again = p.write_canonical_pregame_capture(root, report)
         assert paths["capture"] == again["capture"] and paths["capture"].is_file() and paths["latest"].is_file()
+        markdown = paths["markdown"].read_text(encoding="utf-8")
+        assert "## Priority review" in markdown and "## Capture (REDRAFT)" in markdown
+
+
+def test_operational_markdown_leads_with_actions_and_preserves_advisory_labels():
+    portfolio = {
+        "enabled_league_count": 1, "status_counts": {"ACTION_REQUIRED": 1},
+        "portfolio_intelligence": {"priority_queue": [{"league_id": "1", "league_name": "AEF", "status": "ACTION_REQUIRED", "projected_recoverable_points": 1.5, "action_count": 1}]},
+        "leagues": [{"league_id": "1", "league_name": "AEF", "format": "REDRAFT", "status": "ACTION_REQUIRED", "evidence": {"scoring_signature": "score-a"}, "evaluation_input": {"active_candidates": [{"captured_player_id": "canonical:a", "full_name": "Alpha Runner"}, {"captured_player_id": "canonical:b", "full_name": "Beta Runner"}]}, "primary_lineup": {"total": 20}, "submitted_lineup": {"total": 18}, "actions": [{"action": "START_OVER", "slot": "RB", "start_player_id": "canonical:a", "replace_player_id": "canonical:b"}], "survival_floor_advisory": {"status": "SURVIVAL_FLOOR_ADVISORY", "total": 12}, "ceiling_advisory": {"status": "CEILING_ADVISORY", "total": 30}, "opponent_context": {"opponent_lineup": {"status": "EXACT_MAX_MEAN_ADVISORY"}, "projected_mean_margin": 2}}],
+    }
+    text = p.render_portfolio_markdown(portfolio, season=2026, week=4, capture_id="fixture")
+    assert "Alpha Runner (canonical:a)" in text and "for Beta Runner (canonical:b)" in text
+    assert "Risk views (advisory only" in text and "Opponent context" in text
 
 
 def test_external_evidence_envelope_is_typed_and_target_bound():
@@ -162,7 +175,7 @@ def test_portfolio_exposure_preserves_scoring_context_and_focus_order():
 
 
 def main() -> None:
-    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_pregame_opponent_context_and_ceiling_stay_advisory, test_immutable_capture_is_pregame_and_idempotent, test_external_evidence_envelope_is_typed_and_target_bound, test_portfolio_exposure_preserves_scoring_context_and_focus_order]
+    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_pregame_opponent_context_and_ceiling_stay_advisory, test_immutable_capture_is_pregame_and_idempotent, test_operational_markdown_leads_with_actions_and_preserves_advisory_labels, test_external_evidence_envelope_is_typed_and_target_bound, test_portfolio_exposure_preserves_scoring_context_and_focus_order]
     for test in tests:
         test()
     print(f"PASS In-Season PR2 weekly lineup producer ({len(tests)} tests)")

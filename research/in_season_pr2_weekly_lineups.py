@@ -410,6 +410,7 @@ def evaluation_input(active: list[dict[str, Any]], roster_positions: list[Any], 
             "canonical_player_id": row.get("canonical_player_id"),
             "internal_id": row.get("internal_id"),
             "gsis_id": row.get("gsis_id"),
+            "full_name": row.get("full_name") or row.get("player_name") or row.get("display_name"),
             "position_model": player_position(row, contract),
             "team": row.get("team"),
             "captured_player_id": canonical_player_id(row),
@@ -656,6 +657,95 @@ def capture_payload(portfolio: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+def player_label(report: dict[str, Any], player_id: Any) -> str:
+    """Use frozen identity/name evidence only; never query a later player map."""
+    key = str(player_id or "")
+    for row in ((report.get("evaluation_input") or {}).get("active_candidates") or []):
+        if isinstance(row, dict) and str(row.get("captured_player_id") or "") == key:
+            name = str(row.get("full_name") or "").strip()
+            return f"{name} ({key})" if name else key
+    return key or "unresolved player"
+
+
+def render_portfolio_markdown(portfolio: dict[str, Any], *, season: Any, week: Any, capture_id: str) -> str:
+    """Render the operational view from the same frozen portfolio payload."""
+    reports = [row for row in portfolio.get("leagues") or [] if isinstance(row, dict)]
+    by_id = {str(row.get("league_id") or ""): row for row in reports}
+    queue = (portfolio.get("portfolio_intelligence") or {}).get("priority_queue") or []
+    queue_ids = [str(row.get("league_id") or "") for row in queue if isinstance(row, dict)]
+    rank = {league_id: i for i, league_id in enumerate(queue_ids)}
+    reports.sort(key=lambda row: (rank.get(str(row.get("league_id") or ""), len(rank)), str(row.get("league_name") or ""), str(row.get("league_id") or "")))
+    lines = [
+        f"# In-Season PR2 weekly lineups — {season} Week {week}", "",
+        f"Capture: `{capture_id}`", "",
+        f"Enabled leagues: {portfolio.get('enabled_league_count')}", "",
+        "## Status counts", "",
+    ]
+    lines.extend(f"- {status}: {count}" for status, count in sorted((portfolio.get("status_counts") or {}).items()))
+    lines.extend(["", "## Priority review", ""])
+    if queue:
+        for item in queue:
+            report = by_id.get(str(item.get("league_id") or ""), {})
+            delta = item.get("projected_recoverable_points")
+            delta_text = f"; projected recoverable points {float(delta):+.2f}" if numeric(delta) is not None else ""
+            lines.append(f"- **{item.get('league_name') or item.get('league_id')}** — {item.get('status')}{delta_text}; {item.get('action_count', 0)} lineup action(s).")
+    else:
+        lines.append("- No priority queue entries were available from the frozen portfolio.")
+    for report in reports:
+        name = report.get("league_name") or report.get("league_id")
+        fmt, status = report.get("format") or "UNKNOWN", report.get("status") or "UNKNOWN"
+        lines.extend(["", f"## {name} ({fmt})", "", f"Status: **{status}**"])
+        evidence = report.get("evidence") or {}
+        signature = evidence.get("scoring_signature")
+        if signature:
+            lines.append(f"Scoring signature: `{signature}`")
+        if status == "NOT_APPLICABLE_AUTOMATIC_LINEUP":
+            lines.append("Manual lineup action: not applicable (automatic Best Ball lineup).")
+            continue
+        primary, submitted = report.get("primary_lineup") or {}, report.get("submitted_lineup") or {}
+        if numeric(primary.get("total")) is not None:
+            lines.append(f"Exact mean lineup: {float(primary['total']):.2f} projected points.")
+        if numeric(submitted.get("total")) is not None and numeric(primary.get("total")) is not None:
+            lines.append(f"Submitted lineup: {float(submitted['total']):.2f}; difference: {float(primary['total']) - float(submitted['total']):+.2f}.")
+        actions = report.get("actions") or []
+        if actions:
+            lines.append("\nActions:")
+            for action in actions:
+                start = player_label(report, action.get("start_player_id"))
+                replace = player_label(report, action.get("replace_player_id")) if action.get("replace_player_id") else None
+                text = f"- {action.get('action')}: start {start} in {action.get('slot')}"
+                if replace:
+                    text += f" for {replace}"
+                if action.get("execution_guard"):
+                    text += f" — review only: {action['execution_guard']}"
+                lines.append(text + ".")
+        elif status == "READY_NO_LINEUP_CHANGE":
+            lines.append("Action: retain the submitted lineup.")
+        elif str(status).startswith("BLOCKED"):
+            lines.append("Action: no recommendation until the stated evidence blocker is resolved.")
+        unavailable = report.get("official_unavailable") or []
+        if unavailable:
+            lines.append("\nOfficially unavailable:")
+            lines.extend(f"- {player_label(report, row.get('player_id'))}: {row.get('injury_status')}" for row in unavailable if isinstance(row, dict))
+        contingencies = [row for row in report.get("contingencies") or [] if isinstance(row, dict) and row.get("status") == "READY"]
+        if contingencies:
+            lines.append("\nContingencies (not active unless official status changes):")
+            for row in contingencies:
+                timing = row.get("timing") or {}
+                lines.append(f"- If {player_label(report, row.get('player_id'))} is inactive, review the captured alternative before `{timing.get('latest_safe_decision_utc') or 'the verified player lock'}`.")
+        floor, ceiling = report.get("survival_floor_advisory") or {}, report.get("ceiling_advisory") or {}
+        if floor.get("status") == "SURVIVAL_FLOOR_ADVISORY" or ceiling.get("status") == "CEILING_ADVISORY":
+            lines.append("\nRisk views (advisory only; they do not replace the mean-maximizing lineup):")
+            if floor.get("status") == "SURVIVAL_FLOOR_ADVISORY": lines.append(f"- Floor lineup P10 objective: {float(floor.get('total') or 0):.2f}.")
+            if ceiling.get("status") == "CEILING_ADVISORY": lines.append(f"- Ceiling lineup P90 objective: {float(ceiling.get('total') or 0):.2f}.")
+        opponent = report.get("opponent_context") or {}
+        if (opponent.get("opponent_lineup") or {}).get("status") == "EXACT_MAX_MEAN_ADVISORY":
+            margin = opponent.get("projected_mean_margin")
+            lines.append(f"Opponent context: captured direct-H2H exact mean is advisory only{f'; managed mean margin {float(margin):+.2f}' if numeric(margin) is not None else ''}.")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def write_canonical_pregame_capture(root: Path, portfolio: dict[str, Any]) -> dict[str, Path]:
     """Persist an idempotent pregame capture only when timing is verified.
 
@@ -687,19 +777,8 @@ def write_canonical_pregame_capture(root: Path, portfolio: dict[str, Any]) -> di
         write_json(capture, published)
     write_json(latest, published)
     markdown = base / "portfolio-latest.md"
-    lines = [
-        f"# In-Season PR2 weekly lineups — {season} Week {week}",
-        "",
-        f"Capture: `{capture_id}`",
-        "",
-        f"Enabled leagues: {portfolio.get('enabled_league_count')}",
-        "",
-        "## Status counts",
-        "",
-    ]
-    lines.extend(f"- {status}: {count}" for status, count in sorted((portfolio.get("status_counts") or {}).items()))
     markdown.parent.mkdir(parents=True, exist_ok=True)
-    markdown.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    markdown.write_text(render_portfolio_markdown(portfolio, season=season, week=week, capture_id=capture_id), encoding="utf-8")
     return {"latest": latest, "capture": capture, "markdown": markdown}
 
 
