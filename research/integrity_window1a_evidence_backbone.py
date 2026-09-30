@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from hashlib import sha256
 from pathlib import Path
 
 from capture_fie_availability import compact
@@ -11,11 +12,19 @@ from capture_fie_waivers import capture as capture_waivers, enabled_leagues, nor
 from capture_fie_weather import capture as capture_weather
 from fie_research_pipeline_contract import ROOT
 from freeze_fie_2026_baseline import build_baseline, validate_baseline
-from point_in_time_capture import build_envelope, first_write_json, latest_eligible, sha256_file, validate_envelope
+from point_in_time_capture import build_envelope, first_write_json, latest_eligible, validate_envelope
 
 
 def load(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def immutable_evidence_sha256(path: Path) -> str:
+    """Hash JSON evidence independent of Git's Windows line-ending checkout."""
+    value = path.read_bytes()
+    if path.suffix.lower() == ".json":
+        value = value.replace(b"\r\n", b"\n")
+    return sha256(value).hexdigest()
 
 
 def test_envelope_and_first_write(root: Path) -> None:
@@ -153,7 +162,7 @@ def test_closure_contract() -> None:
     ))
     for item in contract["immutable_evidence"].values():
         path = ROOT / item["path"]
-        assert path.is_file() and sha256_file(path) == item["sha256"], path
+        assert path.is_file() and immutable_evidence_sha256(path) == item["sha256"], path
     trace = contract["existing_transaction_producer"]
     assert trace["load_owner"] == "index.html::loadLeagueTransactions"
     assert trace["profile_owner"] == "index.html::buildTransactionProfiles"
