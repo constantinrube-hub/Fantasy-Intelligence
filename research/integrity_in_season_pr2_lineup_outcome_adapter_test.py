@@ -63,8 +63,21 @@ def test_target_mismatch_and_identity_collision_fail_closed():
             assert "conflicting" in str(exc)
 
 
+def test_frozen_team_defense_can_use_explicit_direct_outcome_only():
+    with tempfile.TemporaryDirectory() as td:
+        capture = capture_fixture(Path(td))
+        candidate = capture["leagues"][0]["evaluation_input"]["active_candidates"][0]
+        candidate.update({"captured_player_id": "teamdef:AAA", "position_model": "DEF", "team": "AAA"})
+        payload = source(capture)
+        payload["direct_stats_by_captured_player_id"] = {"teamdef:AAA": {"sack": 2, "points_allowed": 0}}
+        raw = a.adapt_source(capture, payload)
+        assert raw["stats_by_player_id"]["teamdef:AAA"]["sack"] == 2
+        binding = next(row for row in raw["identity_bindings"] if row["captured_player_id"] == "teamdef:AAA")
+        assert binding["status"] == "READY_DIRECT_TEAM_DEFENSE" and binding["source_player_id_namespace"] == "teamdef"
+
+
 def main() -> None:
-    tests = [test_adapter_binds_only_frozen_capture_identities, test_missing_provider_row_remains_missing_for_typed_outcome_blocker, test_target_mismatch_and_identity_collision_fail_closed]
+    tests = [test_adapter_binds_only_frozen_capture_identities, test_missing_provider_row_remains_missing_for_typed_outcome_blocker, test_target_mismatch_and_identity_collision_fail_closed, test_frozen_team_defense_can_use_explicit_direct_outcome_only]
     for test in tests:
         test()
     print(f"PASS In-Season PR2 lineup outcome adapter ({len(tests)} tests)")

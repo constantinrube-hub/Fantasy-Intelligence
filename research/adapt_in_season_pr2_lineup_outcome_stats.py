@@ -88,6 +88,9 @@ def adapt_source(capture: dict[str, Any], source: dict[str, Any]) -> dict[str, A
     provider_stats = source.get("stats_by_source_player_id")
     if not isinstance(provider_stats, dict):
         raise ValueError("provider source stats_by_source_player_id object required")
+    direct_stats = source.get("direct_stats_by_captured_player_id", {})
+    if not isinstance(direct_stats, dict):
+        raise ValueError("provider source direct_stats_by_captured_player_id object required")
 
     namespace = str(source.get("source_player_id_namespace") or "sleeper").lower()
     if namespace not in {"sleeper", "gsis"}:
@@ -108,19 +111,25 @@ def adapt_source(capture: dict[str, Any], source: dict[str, Any]) -> dict[str, A
             if key in seen:
                 continue
             seen.add(key)
-            provider_id = source_identity(candidate, namespace)
+            direct = direct_stats.get(canonical_id)
+            position = str(candidate.get("position_model") or "").upper()
+            if direct is not None and (not canonical_id.startswith("teamdef:") or position not in {"DEF", "DST", "D/ST"}):
+                raise ValueError(f"direct provider outcome is only valid for frozen team-defense identity: {canonical_id}")
+            if direct is not None and not isinstance(direct, dict):
+                raise ValueError(f"direct provider stat row must be an object: {canonical_id}")
+            provider_id = None if direct is not None else source_identity(candidate, namespace)
             if provider_id is not None:
                 prior = source_to_canonical.setdefault(provider_id, canonical_id)
                 if prior != canonical_id:
                     raise ValueError(f"provider identity maps to conflicting capture identities: {provider_id}")
             status = "MISSING_PROVIDER_SOURCE_IDENTITY" if provider_id is None else "MISSING_PROVIDER_STAT_ROW"
-            raw = provider_stats.get(provider_id) if provider_id is not None else None
+            raw = direct if direct is not None else (provider_stats.get(provider_id) if provider_id is not None else None)
             if isinstance(raw, dict):
                 stats_by_player_id[canonical_id] = dict(raw)
-                status = "READY"
+                status = "READY_DIRECT_TEAM_DEFENSE" if direct is not None else "READY"
             elif raw is not None:
                 raise ValueError(f"provider stat row must be an object: {provider_id}")
-            bindings.append({"league_id": league_id, "captured_player_id": canonical_id, "provider_player_id": provider_id, "source_player_id_namespace": namespace, "status": status})
+            bindings.append({"league_id": league_id, "captured_player_id": canonical_id, "provider_player_id": provider_id, "source_player_id_namespace": "teamdef" if direct is not None else namespace, "status": status})
 
     return {
         "schema": RAW_SCHEMA,
