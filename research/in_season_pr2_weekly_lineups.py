@@ -401,7 +401,7 @@ def contingency_timing(player_id: str | None, primary: dict[str, Any], alternate
     }
 
 
-def evaluation_input(active: list[dict[str, Any]], roster_positions: list[Any], contract: dict[str, Any], primary: dict[str, Any], submitted: dict[str, Any]) -> dict[str, Any]:
+def evaluation_input(active: list[dict[str, Any]], roster_positions: list[Any], contract: dict[str, Any], primary: dict[str, Any], submitted: dict[str, Any], scoring_settings: dict[str, Any]) -> dict[str, Any]:
     """Freeze the legal candidate universe needed for later hindsight replay."""
     candidates = []
     for row in sorted(active, key=lambda item: str(canonical_player_id(item) or "")):
@@ -420,6 +420,7 @@ def evaluation_input(active: list[dict[str, Any]], roster_positions: list[Any], 
         "recommended_player_ids": list(primary.get("selected_player_ids") or []),
         "submitted_player_ids": [row.get("player_id") for row in (submitted.get("assignment") or [])],
         "runtime_contract_sha256": primary.get("runtime_contract_sha256"),
+        "scoring_settings": {str(key): value for key, value in sorted((scoring_settings or {}).items())},
     }
 
 
@@ -606,7 +607,7 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
             },
             "primary_lineup": {**primary, "status": "OPTIMAL_LINEUP" if action_allowed else "REVIEW_ONLY_LOCK_EVIDENCE_UNRESOLVED", "actionable": action_allowed, "basis": "exact max sum(decision_weekly_projection) subject to verified player locks" if lock_constraints else "exact max sum(decision_weekly_projection)"},
             "submitted_lineup": submitted,
-            "evaluation_input": evaluation_input(active, roster_positions, contract, primary, submitted),
+            "evaluation_input": evaluation_input(active, roster_positions, contract, primary, submitted, profile.get("scoring_settings") or league.get("scoring_settings") or {}),
             "actions": action_rows,
             "official_unavailable": inactive,
             "contingencies": contingencies,

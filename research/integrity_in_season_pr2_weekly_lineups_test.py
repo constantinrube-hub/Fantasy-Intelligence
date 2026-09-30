@@ -22,7 +22,7 @@ def sha(path: Path) -> str:
 
 def fixture(root: Path, lid: str, *, fmt: str = "REDRAFT", missing: bool = False) -> None:
     league_root = root / "data/research/leagues" / lid
-    profile = {"league_id": lid, "format": fmt, "profile_fingerprint": "fp", "scoring_signature": "score-a"}
+    profile = {"league_id": lid, "format": fmt, "profile_fingerprint": "fp", "scoring_signature": "score-a", "scoring_settings": {"rush_yd": 0.1, "rec": 1.0}}
     write(league_root / "profile.json", profile)
     core = {
         "league_id": lid, "format": fmt, "profile_fingerprint": "fp", "shared": {"player_catalog": "data/research/app/player-catalog.json"},
