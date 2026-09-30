@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Freeze a truthful versioned 22-league baseline from governed current outputs."""
+"""Freeze a truthful versioned baseline from governed current outputs."""
 from __future__ import annotations
 
 import argparse
@@ -56,8 +56,8 @@ def build_baseline(*, root: Path, season: int, games_csv: bytes, created_at: str
     registry_path = root / "data/research/leagues/registry.json"
     registry = load(registry_path)
     enabled = {str(k): v for k, v in (registry.get("leagues") or {}).items() if v.get("enabled") is True}
-    if len(enabled) != 22:
-        raise ValueError(f"baseline requires 22 enabled leagues, found {len(enabled)}")
+    if not enabled:
+        raise ValueError("baseline requires at least one enabled league")
     if {entry.get("format") for entry in enabled.values()} != FORMATS:
         raise ValueError("baseline requires all six registered formats")
     kickoff = first_regular_kickoff(games_csv, season)
@@ -142,7 +142,9 @@ def build_baseline(*, root: Path, season: int, games_csv: bytes, created_at: str
 def validate_baseline(value: dict[str, Any], root: Path) -> None:
     assert value.get("schema_version") == SCHEMA
     assert value.get("season") == 2026 and value.get("baseline_version") == 1
-    assert value.get("enabled_league_count") == 22 and len(value.get("leagues") or []) == 22
+    declared_count = value.get("enabled_league_count")
+    assert isinstance(declared_count, int) and declared_count > 0
+    assert len(value.get("leagues") or []) == declared_count
     assert set(value.get("formats") or []) == FORMATS
     assert value.get("eligibility") in {"PRESEASON_ELIGIBLE", "IN_SEASON_BASELINE_NOT_PRESEASON", "FIRST_KICKOFF_UNVERIFIABLE"}
     assert value.get("governance") == {

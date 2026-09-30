@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from hashlib import sha256
 from pathlib import Path
 
 from capture_fie_availability import compact
@@ -11,11 +12,19 @@ from capture_fie_waivers import capture as capture_waivers, enabled_leagues, nor
 from capture_fie_weather import capture as capture_weather
 from fie_research_pipeline_contract import ROOT
 from freeze_fie_2026_baseline import build_baseline, validate_baseline
-from point_in_time_capture import build_envelope, first_write_json, latest_eligible, sha256_file, validate_envelope
+from point_in_time_capture import build_envelope, first_write_json, latest_eligible, validate_envelope
 
 
 def load(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def immutable_evidence_sha256(path: Path) -> str:
+    """Hash JSON evidence independent of Git's Windows line-ending checkout."""
+    value = path.read_bytes()
+    if path.suffix.lower() == ".json":
+        value = value.replace(b"\r\n", b"\n")
+    return sha256(value).hexdigest()
 
 
 def test_envelope_and_first_write(root: Path) -> None:
@@ -96,13 +105,48 @@ def test_weather_cutoff(root: Path) -> None:
 
 def test_portfolio_and_baseline() -> None:
     leagues = enabled_leagues(ROOT / "data/research/leagues/registry.json")
-    assert len(leagues) == 22
+    portfolio = load(ROOT / "config/league-portfolio.json")
+    expected_leagues = {
+        str(row["league_id"])
+        for row in portfolio.get("leagues") or []
+        if row.get("enabled", True) is not False
+    }
+    assert set(leagues) == expected_leagues
     assert {row["format"] for row in leagues.values()} == {"REDRAFT", "DYNASTY", "CHOPPED", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED_BESTBALL"}
-    games = ("game_id,season,game_type,week,gameday,gametime,home_team,away_team\n"
-             "2026_01_AAA_BBB,2026,REG,1,2026-09-09,20:20,BBB,AAA\n").encode()
-    baseline = build_baseline(root=ROOT, season=2026, games_csv=games, created_at="2026-09-06T09:00:00+00:00")
-    validate_baseline(baseline, ROOT)
+    # Baseline construction is registry-derived.  Test it in an isolated
+    # preseason fixture rather than attempting to rewrite or re-hash the
+    # immutable baseline after later league onboarding.
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        formats = ["REDRAFT", "DYNASTY", "CHOPPED", "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED_BESTBALL"]
+        registry = {"leagues": {}}
+        for index, fmt in enumerate(formats, start=1):
+            league_id = f"fixture-{index}"
+            league_root = root / "data/research/leagues" / league_id
+            profile_path = league_root / "profile.json"
+            current_path = league_root / "current/milestone5_current.json"
+            release_path = league_root / "governance/active_release.json"
+            manifest_path = league_root / "app/manifest.json"
+            rankings_path = league_root / "performance/2026/research_pipeline/rankings.json"
+            for path, value in (
+                (profile_path, {"profile_fingerprint": f"profile-{index}", "scoring_signature": f"score-{index}"}),
+                (current_path, {}),
+                (release_path, {"generated_at": "2026-09-01T00:00:00+00:00", "runtime_enabled": False, "reason": "fixture", "checks": {"current_complete": True}, "current_snapshot": {"path": current_path.relative_to(root).as_posix(), "generated_at": "2026-09-01T00:00:00+00:00", "season": 2026, "week": 1}}),
+                (manifest_path, {"generated_at": "2026-09-01T00:00:00+00:00"}),
+                (rankings_path, {}),
+            ):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps(value), encoding="utf-8")
+            registry["leagues"][league_id] = {"enabled": True, "format": fmt, "profile_path": profile_path.relative_to(root).as_posix(), "profile_fingerprint": f"profile-{index}", "scoring_signature": f"score-{index}"}
+        registry_path = root / "data/research/leagues/registry.json"
+        registry_path.parent.mkdir(parents=True, exist_ok=True)
+        registry_path.write_text(json.dumps(registry), encoding="utf-8")
+        games = ("game_id,season,game_type,week,gameday,gametime,home_team,away_team\n"
+                 "2026_01_AAA_BBB,2026,REG,1,2026-09-09,20:20,BBB,AAA\n").encode()
+        baseline = build_baseline(root=root, season=2026, games_csv=games, created_at="2026-09-06T09:00:00+00:00")
+        validate_baseline(baseline, root)
     assert baseline["eligibility"] == "PRESEASON_ELIGIBLE"
+    assert baseline["enabled_league_count"] == 6
     assert all(row["profile_fingerprint"] and row["scoring_signature"] for row in baseline["leagues"])
     assert baseline["governance"]["production_model"] == "M9"
     assert baseline["governance"]["production_or_runtime_changed"] is False
@@ -118,7 +162,7 @@ def test_closure_contract() -> None:
     ))
     for item in contract["immutable_evidence"].values():
         path = ROOT / item["path"]
-        assert path.is_file() and sha256_file(path) == item["sha256"], path
+        assert path.is_file() and immutable_evidence_sha256(path) == item["sha256"], path
     trace = contract["existing_transaction_producer"]
     assert trace["load_owner"] == "index.html::loadLeagueTransactions"
     assert trace["profile_owner"] == "index.html::buildTransactionProfiles"
