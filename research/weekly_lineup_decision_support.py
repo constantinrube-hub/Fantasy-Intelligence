@@ -210,6 +210,7 @@ def exact_lineup(
     root: Path = ROOT,
     locked_slot_player_ids: Mapping[int, str] | None = None,
     locked_bench_player_ids: Iterable[str] | None = None,
+    tie_break_value_key: str | None = None,
 ) -> dict[str, Any]:
     """Return the deterministic legal maximum-value lineup for scoreable rows.
 
@@ -255,12 +256,29 @@ def exact_lineup(
         values.extend([0.0] * len(free_slots))
         score_rows.append(values)
     maximum = max([0.0, *[value for row in score_rows for value in row if value is not None]])
+    secondary = [numeric(candidate.player.get(tie_break_value_key)) for candidate in free_pool] if tie_break_value_key else []
+    if tie_break_value_key and any(value is None for value in secondary):
+        raise LineupEvidenceError(f"BLOCKED_TIE_BREAK_VALUE_UNAVAILABLE:{tie_break_value_key}")
+    secondary_maximum = max([0.0, *[value for value in secondary if value is not None]])
+    # A one-micro primary difference must dominate all possible secondary
+    # differences across the complete assignment, not merely one slot.
+    secondary_multiplier = max(1, (len(free_slots) + 1) * int(round((secondary_maximum + 1.0) * 1_000_000)))
     # Integer micros preserve projection precision.  The column order is the
     # deterministic tie-break: canonical ID followed by dummy columns.
-    cost = [
-        [int(round((maximum - value) * 1_000_000)) if value is not None else NEGATIVE_INFINITY_COST for value in row]
-        for row in score_rows
-    ]
+    cost = []
+    for row in score_rows:
+        current = []
+        for column, value in enumerate(row):
+            if value is None:
+                current.append(NEGATIVE_INFINITY_COST)
+                continue
+            primary_cost = int(round((maximum - value) * 1_000_000))
+            secondary_cost = 0
+            if tie_break_value_key:
+                tie_value = secondary[column] if column < len(free_pool) else 0.0
+                secondary_cost = int(round((secondary_maximum - float(tie_value)) * 1_000_000))
+            current.append(primary_cost * secondary_multiplier + secondary_cost)
+        cost.append(current)
     assignment = _hungarian_min(cost) if free_slots else []
     used: set[str] = set(locked_slots.values())
     rows: list[dict[str, Any]] = []
@@ -298,6 +316,7 @@ def exact_lineup(
         "method": "canonical runtime contract + deterministic Hungarian maximum-weight assignment",
         "runtime_contract_sha256": contract_sha,
         "value_key": value_key,
+        "tie_break_value_key": tie_break_value_key,
         "slots": slots,
         "assignment": rows,
         "selected_player_ids": sorted(used),

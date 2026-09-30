@@ -272,11 +272,64 @@ def floor_advisory(players: list[dict[str, Any]], roster_positions: list[Any], f
         return None
     if any(not bool(p.get("weekly_activation_eligible")) or numeric(p.get("p10")) is None for p in players):
         return {"status": "UNAVAILABLE_INCOMPLETE_GOVERNED_INTERVAL_COVERAGE"}
-    result = exact_lineup(players, roster_positions, value_key="p10", root=root, locked_slot_player_ids=locked_slot_player_ids, locked_bench_player_ids=locked_bench_player_ids)
+    result = exact_lineup(players, roster_positions, value_key="p10", tie_break_value_key="decision_weekly_projection", root=root, locked_slot_player_ids=locked_slot_player_ids, locked_bench_player_ids=locked_bench_player_ids)
     result["status"] = "SURVIVAL_FLOOR_ADVISORY"
     result["actionable"] = False
-    result["basis"] = "maximize governed P10, tie handling delegated to deterministic exact assignment"
+    result["basis"] = "maximize governed P10; tie by primary decision_weekly_projection, then deterministic assignment order"
     return result
+
+
+def ceiling_advisory(players: list[dict[str, Any]], roster_positions: list[Any], root: Path, *, locked_slot_player_ids: dict[int, str] | None = None, locked_bench_player_ids: list[str] | None = None) -> dict[str, Any] | None:
+    if any(not bool(p.get("weekly_activation_eligible")) or numeric(p.get("p90")) is None for p in players):
+        return {"status": "UNAVAILABLE_INCOMPLETE_GOVERNED_INTERVAL_COVERAGE"}
+    result = exact_lineup(players, roster_positions, value_key="p90", tie_break_value_key="decision_weekly_projection", root=root, locked_slot_player_ids=locked_slot_player_ids, locked_bench_player_ids=locked_bench_player_ids)
+    result["status"] = "CEILING_ADVISORY"
+    result["actionable"] = False
+    result["basis"] = "maximize governed P90; tie by primary decision_weekly_projection, then deterministic assignment order"
+    return result
+
+
+def opponent_exact_context(
+    context: dict[str, Any], *, core: dict[str, Any], index: dict[str, dict[str, Any]], player_catalog: dict[str, dict[str, Any]], roster_positions: list[Any], contract: dict[str, Any], root: Path, managed_total: float | None, lock_state: dict[str, Any],
+) -> dict[str, Any]:
+    """Enrich captured direct H2H identity with a pregame exact mean context.
+
+    This is intentionally advisory.  It never feeds the managed primary solve,
+    and it fails closed after kickoff because only managed-player locks are
+    captured by the first operational envelope.
+    """
+    if context.get("status") != "CAPTURED_H2H_CONTEXT":
+        return context
+    if lock_state.get("status") != "PREGAME_BEFORE_FIRST_KICKOFF":
+        return {**context, "opponent_lineup": {"status": "BLOCKED_OPPONENT_LOCK_STATE_UNVERIFIED", "actionable": False}}
+    target = str(context.get("opponent_roster_id") or "")
+    _, rosters, _ = sleeper_parts(core)
+    matches = [row for row in rosters if str(row.get("roster_id") or "") == target]
+    if len(matches) != 1:
+        return {**context, "opponent_lineup": {"status": "BLOCKED_OPPONENT_ROSTER_UNRESOLVED", "actionable": False}}
+    active, unresolved = [], []
+    for pid in valid_ids(matches[0].get("players")):
+        row = row_for_roster_id(pid, index, player_catalog)
+        if row is None:
+            unresolved.append(pid)
+            continue
+        if injury_status(pid, player_catalog) in UNAVAILABLE:
+            continue
+        active.append(row)
+    if unresolved:
+        return {**context, "opponent_lineup": {"status": "BLOCKED_OPPONENT_ROSTER_PLAYER_UNRESOLVED", "actionable": False, "player_ids": sorted(unresolved)}}
+    missing = [canonical_player_id(row) for row in active if numeric(row.get("decision_weekly_projection")) is None and any(player_position(row, contract) in slot["eligible_positions"] for slot in starter_slot_instances(roster_positions, contract))]
+    if missing:
+        return {**context, "opponent_lineup": {"status": "BLOCKED_OPPONENT_MATERIAL_PROJECTION_MISSING", "actionable": False, "player_ids": sorted(x for x in missing if x)}}
+    lineup = exact_lineup(active, roster_positions, root=root)
+    if not lineup.get("complete_assignment"):
+        return {**context, "opponent_lineup": {"status": "BLOCKED_OPPONENT_INCOMPLETE_LEGAL_ASSIGNMENT", "actionable": False, "detail": lineup.get("unfilled_slots")}}
+    opponent_total = float(lineup["total"])
+    return {
+        **context,
+        "opponent_lineup": {**lineup, "status": "EXACT_MAX_MEAN_ADVISORY", "actionable": False, "basis": "captured direct H2H roster exact legal maximum mean; does not alter managed primary lineup"},
+        "projected_mean_margin": round(float(managed_total) - opponent_total, 6) if managed_total is not None else None,
+    }
 
 
 def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, username: str, target_season: int | None = None, target_week: int | None = None, as_of: datetime | None = None, lock_evidence: dict[str, Any] | None = None, matchup_evidence: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -378,6 +431,17 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
             actionable=action_allowed,
             execution_guard="after first kickoff, a captured per-player kickoff envelope is required before a lineup change may be acted on",
         )
+        opponent = opponent_exact_context(
+            head_to_head_context(roster.get("roster_id"), matchup_evidence),
+            core=core,
+            index=index,
+            player_catalog=player_catalog,
+            roster_positions=roster_positions,
+            contract=contract,
+            root=root,
+            managed_total=primary.get("total"),
+            lock_state=lock_state,
+        )
         report = {
             "schema": SCHEMA_LEAGUE,
             "league_id": lid,
@@ -407,7 +471,8 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
             "official_unavailable": inactive,
             "contingencies": contingencies,
             "survival_floor_advisory": floor_advisory(active, roster_positions, fmt, root, **lock_constraints),
-            "opponent_context": head_to_head_context(roster.get("roster_id"), matchup_evidence),
+            "ceiling_advisory": ceiling_advisory(active, roster_positions, root, **lock_constraints),
+            "opponent_context": opponent,
             "lock_state": lock_state,
             "governance": governance(),
         }

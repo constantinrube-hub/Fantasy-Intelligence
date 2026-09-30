@@ -76,6 +76,16 @@ def test_verified_slot_and_bench_locks_constrain_the_global_solver():
     assert result["locks"]["locked_bench_player_ids"] == ["sleeper:a"]
 
 
+def test_interval_advisory_ties_break_by_primary_mean():
+    result = exact_lineup(
+        [player("a", "RB", 10, p10=5), player("b", "RB", 12, p10=5)],
+        ["RB", "BN"],
+        value_key="p10",
+        tie_break_value_key="decision_weekly_projection",
+    )
+    assert selected_by_slot(result) == {0: "sleeper:b"}
+
+
 def test_unknown_slot_fails_closed():
     try:
         exact_lineup([player("q", "QB", 12)], ["QB", "FAKE_SLOT"])
@@ -100,6 +110,7 @@ def main() -> None:
         test_idp_kicker_and_team_defense_aliases,
         test_missing_value_is_never_zero_imputed,
         test_verified_slot_and_bench_locks_constrain_the_global_solver,
+        test_interval_advisory_ties_break_by_primary_mean,
         test_unknown_slot_fails_closed,
         test_runtime_contract_is_the_only_slot_owner,
     ]

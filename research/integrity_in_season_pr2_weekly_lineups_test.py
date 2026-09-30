@@ -26,7 +26,7 @@ def fixture(root: Path, lid: str, *, fmt: str = "REDRAFT", missing: bool = False
     write(league_root / "profile.json", profile)
     core = {
         "league_id": lid, "format": fmt, "profile_fingerprint": "fp", "shared": {"player_catalog": "data/research/app/player-catalog.json"},
-        "sleeper": {"league": {"roster_positions": ["RB", "FLEX", "BN"]}, "users": [{"user_id": "u", "display_name": "C0nstant1n"}], "rosters": [{"roster_id": 1, "owner_id": "u", "players": ["a", "b", "c", "q"], "starters": ["a", "c"]}]},
+        "sleeper": {"league": {"roster_positions": ["RB", "FLEX", "BN"]}, "users": [{"user_id": "u", "display_name": "C0nstant1n"}], "rosters": [{"roster_id": 1, "owner_id": "u", "players": ["a", "b", "c", "q"], "starters": ["a", "c"]}, {"roster_id": 8, "owner_id": "opponent", "players": ["b", "c"], "starters": ["b", "c"]}]},
     }
     core_path = league_root / "app/core.json"
     write(core_path, core)
@@ -100,6 +100,26 @@ def test_after_kickoff_without_player_times_is_review_only():
         assert report["actions"][0]["action"] == "REVIEW_ONLY_LOCK_EVIDENCE_UNRESOLVED"
 
 
+def test_pregame_opponent_context_and_ceiling_stay_advisory():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td); setup(root); fixture(root, "7")
+        current_path = root / "data/research/leagues/7/current/milestone5_current.json"
+        current = json.loads(current_path.read_text(encoding="utf-8"))
+        for row in current["players"]:
+            if row["sleeper_id"] == "q":
+                row.update({"weekly_activation_eligible": True, "fie_weekly_projection": 4, "p10": 2, "p90": 7})
+        write(current_path, current)
+        matchup = {"captured_at": "2026-09-30T01:00:00+00:00", "rows": [{"roster_id": 1, "matchup_id": 7, "points": 0}, {"roster_id": 8, "matchup_id": 7, "points": 0}]}
+        report = p.build_league(root, "7", {"league_name": "H2H", "format": "REDRAFT"}, username="C0nstant1n", as_of=datetime(2026, 9, 30, tzinfo=timezone.utc), matchup_evidence=matchup)
+        context = report["opponent_context"]
+        assert context["status"] == "CAPTURED_H2H_CONTEXT"
+        assert context["opponent_lineup"]["status"] == "EXACT_MAX_MEAN_ADVISORY"
+        assert context["opponent_lineup"]["actionable"] is False
+        assert context["projected_mean_margin"] == 2
+        assert report["ceiling_advisory"]["status"] == "CEILING_ADVISORY"
+        assert report["ceiling_advisory"]["actionable"] is False
+
+
 def test_immutable_capture_is_pregame_and_idempotent():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td); setup(root); fixture(root, "6")
@@ -126,7 +146,7 @@ def test_external_evidence_envelope_is_typed_and_target_bound():
 
 
 def main() -> None:
-    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_immutable_capture_is_pregame_and_idempotent, test_external_evidence_envelope_is_typed_and_target_bound]
+    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_pregame_opponent_context_and_ceiling_stay_advisory, test_immutable_capture_is_pregame_and_idempotent, test_external_evidence_envelope_is_typed_and_target_bound]
     for test in tests:
         test()
     print(f"PASS In-Season PR2 weekly lineup producer ({len(tests)} tests)")
