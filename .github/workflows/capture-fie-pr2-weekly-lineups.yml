@@ -1,0 +1,91 @@
+name: Capture FIE PR2 Weekly Lineup Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: NFL season matching the already-refreshed current snapshots
+        required: true
+        default: '2026'
+        type: string
+      week:
+        description: NFL regular-season week matching the already-refreshed current snapshots
+        required: true
+        type: string
+      league_id:
+        description: Optional single enabled Sleeper league ID
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-pr2-weekly-lineups-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate exact lineup and capture contracts
+        run: |
+          python -m py_compile research/weekly_lineup_decision_support.py research/weekly_lineup_operational_evidence.py research/in_season_pr2_weekly_lineups.py research/capture_in_season_pr2_lineup_evidence.py
+          python research/integrity_weekly_lineup_exact_solver_test.py
+          python research/integrity_in_season_pr2_weekly_lineups_test.py
+          python research/integrity_in_season_pr2_lineup_capture_test.py
+
+      - name: Capture immutable provider evidence
+        shell: bash
+        env:
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+          INPUT_LEAGUE_ID: ${{ inputs.league_id }}
+        run: |
+          set -euo pipefail
+          args=(--season "$INPUT_SEASON" --week "$INPUT_WEEK")
+          if [ -n "${INPUT_LEAGUE_ID:-}" ]; then args+=(--league-scope "$INPUT_LEAGUE_ID"); fi
+          python research/capture_in_season_pr2_lineup_evidence.py "${args[@]}"
+
+      - name: Build captured lineup decision support
+        shell: bash
+        env:
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+          INPUT_LEAGUE_ID: ${{ inputs.league_id }}
+        run: |
+          set -euo pipefail
+          evidence="data/research/evaluation/$INPUT_SEASON/weeks/week-$INPUT_WEEK/lineups/evidence/latest.json"
+          args=(portfolio --season "$INPUT_SEASON" --week "$INPUT_WEEK" --evidence "$evidence" --output /tmp/fie-pr2-lineups.json --write-canonical-if-eligible)
+          if [ -n "${INPUT_LEAGUE_ID:-}" ]; then args+=(--league-id "$INPUT_LEAGUE_ID"); fi
+          python research/in_season_pr2_weekly_lineups.py "${args[@]}"
+
+      - name: Commit only PR2 lineup research evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Weekly Lineup Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/research/evaluation
+          if git diff --cached --quiet; then
+            echo "No PR2 weekly lineup evidence change"
+            exit 0
+          fi
+          git commit -m "Capture FIE PR2 weekly lineup evidence"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
