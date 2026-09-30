@@ -81,13 +81,17 @@ def _relevant(key: str, position: str) -> bool:
 
 def _special_value(raw: dict[str, Any], key: str) -> float | None:
     k = key.lower()
+    kicker_aliases = {
+        "fgm": ["fgm", "fg_made"], "fgmiss": ["fgmiss", "fg_missed"],
+        "xpm": ["xpm", "pat_made"], "xpmiss": ["xpmiss", "pat_missed"],
+    }
     if k.startswith("pts_allow_"):
         value = numeric(raw.get("points_allowed", raw.get("pts_allow")))
         return _bucket(k, value) if value is not None else None
     if k.startswith("yds_allow_"):
         value = numeric(raw.get("yards_allowed", raw.get("yds_allow")))
         return _bucket(k, value) if value is not None else None
-    value = numeric(raw.get(k))
+    value = next((numeric(raw.get(name)) for name in kicker_aliases.get(k, [k]) if numeric(raw.get(name)) is not None), None)
     return value
 
 

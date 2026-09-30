@@ -58,6 +58,21 @@ def capture_candidates(capture: dict[str, Any]) -> list[tuple[str, str, str]]:
     return bindings
 
 
+def source_identity(candidate: dict[str, Any], namespace: str) -> str | None:
+    """Return an already-frozen exact source identity; never name-match."""
+    if namespace == "sleeper":
+        value = candidate.get("sleeper_id")
+        return str(value) if value is not None and str(value).strip() else None
+    if namespace == "gsis":
+        for value in (candidate.get("gsis_id"), candidate.get("canonical_player_id")):
+            text = str(value or "").strip()
+            if text.startswith("00-"):
+                return text
+        captured = str(candidate.get("captured_player_id") or "")
+        return captured.removeprefix("canonical:") if captured.removeprefix("canonical:").startswith("00-") else None
+    raise ValueError(f"unsupported provider source identity namespace: {namespace}")
+
+
 def adapt_source(capture: dict[str, Any], source: dict[str, Any]) -> dict[str, Any]:
     """Translate provider-keyed rows into the raw outcome scorer contract."""
     if source.get("schema") != SOURCE_SCHEMA:
@@ -74,22 +89,38 @@ def adapt_source(capture: dict[str, Any], source: dict[str, Any]) -> dict[str, A
     if not isinstance(provider_stats, dict):
         raise ValueError("provider source stats_by_source_player_id object required")
 
+    namespace = str(source.get("source_player_id_namespace") or "sleeper").lower()
+    if namespace not in {"sleeper", "gsis"}:
+        raise ValueError(f"unsupported provider source identity namespace: {namespace}")
     stats_by_player_id: dict[str, dict[str, Any]] = {}
     bindings = []
     seen: set[tuple[str, str]] = set()
-    for league_id, canonical_id, provider_id in capture_candidates(capture):
-        key = (league_id, canonical_id)
-        if key in seen:
+    source_to_canonical: dict[str, str] = {}
+    for report in capture.get("leagues") or []:
+        if not isinstance(report, dict) or report.get("status") == "NOT_APPLICABLE_AUTOMATIC_LINEUP":
             continue
-        seen.add(key)
-        raw = provider_stats.get(provider_id)
-        status = "MISSING_PROVIDER_STAT_ROW"
-        if isinstance(raw, dict):
-            stats_by_player_id[canonical_id] = dict(raw)
-            status = "READY"
-        elif raw is not None:
-            raise ValueError(f"provider stat row must be an object: {provider_id}")
-        bindings.append({"league_id": league_id, "captured_player_id": canonical_id, "provider_player_id": provider_id, "status": status})
+        league_id = str(report.get("league_id") or "")
+        for candidate in (report.get("evaluation_input") or {}).get("active_candidates") or []:
+            if not isinstance(candidate, dict):
+                continue
+            canonical_id = str(candidate.get("captured_player_id") or "")
+            key = (league_id, canonical_id)
+            if key in seen:
+                continue
+            seen.add(key)
+            provider_id = source_identity(candidate, namespace)
+            if provider_id is not None:
+                prior = source_to_canonical.setdefault(provider_id, canonical_id)
+                if prior != canonical_id:
+                    raise ValueError(f"provider identity maps to conflicting capture identities: {provider_id}")
+            status = "MISSING_PROVIDER_SOURCE_IDENTITY" if provider_id is None else "MISSING_PROVIDER_STAT_ROW"
+            raw = provider_stats.get(provider_id) if provider_id is not None else None
+            if isinstance(raw, dict):
+                stats_by_player_id[canonical_id] = dict(raw)
+                status = "READY"
+            elif raw is not None:
+                raise ValueError(f"provider stat row must be an object: {provider_id}")
+            bindings.append({"league_id": league_id, "captured_player_id": canonical_id, "provider_player_id": provider_id, "source_player_id_namespace": namespace, "status": status})
 
     return {
         "schema": RAW_SCHEMA,
@@ -101,6 +132,7 @@ def adapt_source(capture: dict[str, Any], source: dict[str, Any]) -> dict[str, A
         "capture_id": capture["capture_id"],
         "capture_content_sha256": capture["capture_content_sha256"],
         "provider_source_payload_sha256": sha256_bytes(canonical_bytes(source)),
+        "source_player_id_namespace": namespace,
         "identity_bindings": sorted(bindings, key=lambda row: (row["league_id"], row["captured_player_id"])),
         "governance": {
             "research_only": True,
