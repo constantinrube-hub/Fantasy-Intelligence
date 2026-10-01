@@ -140,52 +140,61 @@ def _quantiles(values: list[float]) -> dict[str, float]:
 def attach_default_distributions(rows: list[dict[str, Any]], lock: dict[str, Any]) -> None:
     """Attach only marginal default-PPR quantiles; samples remain frozen in the lock."""
     from fie_research import DEFAULT_PPR
-    for row in rows:
+    for index, row in enumerate(rows):
         row["predicted_fantasy_points_default"] = _score(row["predicted_raw_components"], DEFAULT_PPR)
         row["prediction_quantiles"] = _quantiles(_score_many(_residual_components(lock, row), DEFAULT_PPR))
         row["distribution_interpretation"] = "player_level_marginal_not_joint_simulation"
+        if (index + 1) % 25 == 0 or index + 1 == len(rows):
+            print(f"M10_STAGE default_distributions forecasts={index + 1}/{len(rows)}", flush=True)
 
 
-def exact_profile_scoring(rows: list[dict[str, Any]], profiles: list[dict[str, Any]], lock: dict[str, Any]) -> list[dict[str, Any]]:
-    """Replay frozen residual vectors through every profile in vectorized batches.
+def exact_profile_scoring(rows: list[dict[str, Any]], profiles: list[dict[str, Any]], lock: dict[str, Any], *, residual_batch_rows: int = 65_536) -> list[dict[str, Any]]:
+    """Replay every frozen residual through the canonical scorer in bounded batches.
 
-    The original row/profile loop created two pandas DataFrames for every
-    forecast/profile pair.  A live slate has hundreds of forecast rows, so that
-    implementation could exceed the scheduled workflow's timeout.  Score one
-    point matrix and one residual matrix per profile while preserving the exact
-    row-major output order and canonical scorer.
+    Keep each player's complete distribution together for exact quantiles. A
+    batch contains at most residual_batch_rows samples, or one distribution if
+    it alone exceeds that limit. Never materialize the whole slate's residual
+    matrix. Profile metadata and row-major output order remain unchanged.
     """
+    assert residual_batch_rows > 0
     scorer_hash = sha256_file(ROOT / "research/fie_research.py")
-    prepared: list[dict[str, Any]] = []
-    for row in rows:
-        # Position-conditioned scoring rules (for example TE reception bonuses)
-        # are part of an exact profile replay.  The model vector intentionally
-        # contains only raw stat components, so add identity solely at scoring
-        # time rather than silently treating the positional rule as zero.
-        point = {**row["predicted_raw_components"], "position_model": row["position_model"]}
-        samples = [{**sample, "position_model": row["position_model"]} for sample in _residual_components(lock, row)]
-        prepared.append({"point": point, "samples": samples})
-
-    scored_by_profile: list[list[tuple[float, dict[str, float]]]] = []
+    points = [{**row["predicted_raw_components"], "position_model": row["position_model"]} for row in rows]
+    # Identical settings can share numeric replay, while each league retains its
+    # own fingerprint, signature, ID and output rows. No cross-profile rounding.
+    scoring_groups: dict[bytes, dict[str, Any]] = {}
     for profile in profiles:
         scoring = dict(profile["scoring_settings"])
-        point_scores = _score_many([item["point"] for item in prepared], scoring)
-        residual_rows: list[dict[str, Any]] = []
-        residual_spans: list[tuple[int, int]] = []
-        for item in prepared:
-            start = len(residual_rows)
-            residual_rows.extend(item["samples"])
-            residual_spans.append((start, len(residual_rows)))
-        residual_scores = _score_many(residual_rows, scoring)
-        scored_by_profile.append([
-            (point_scores[index], _quantiles(residual_scores[start:end]))
-            for index, (start, end) in enumerate(residual_spans)
-        ])
+        key = canonical_bytes(scoring)
+        if key not in scoring_groups:
+            scoring_groups[key] = {"settings": scoring, "points": _score_many(points, scoring), "quantiles": []}
+
+    def replay_batch(samples: list[dict[str, Any]], spans: list[tuple[int, int]]) -> None:
+        for group in scoring_groups.values():
+            scores = _score_many(samples, group["settings"])
+            group["quantiles"].extend(_quantiles(scores[start:end]) for start, end in spans)
+
+    samples: list[dict[str, Any]] = []
+    spans: list[tuple[int, int]] = []
+    completed = 0
+    for row in rows:
+        distribution = _residual_components(lock, row)
+        if samples and len(samples) + len(distribution) > residual_batch_rows:
+            replay_batch(samples, spans)
+            completed += len(spans)
+            print(f"M10_STAGE profile_replay forecasts={completed}/{len(rows)} residual_batch_rows={len(samples)} scoring_groups={len(scoring_groups)}", flush=True)
+            samples, spans = [], []
+        start = len(samples)
+        samples.extend({**sample, "position_model": row["position_model"]} for sample in distribution)
+        spans.append((start, len(samples)))
+    if samples:
+        replay_batch(samples, spans)
+        print(f"M10_STAGE profile_replay forecasts={len(rows)}/{len(rows)} residual_batch_rows={len(samples)} scoring_groups={len(scoring_groups)}", flush=True)
 
     output: list[dict[str, Any]] = []
     for row_index, row in enumerate(rows):
-        for profile_index, profile in enumerate(profiles):
-            point_score, quantiles = scored_by_profile[profile_index][row_index]
+        for profile in profiles:
+            group = scoring_groups[canonical_bytes(dict(profile["scoring_settings"]))]
+            point_score, quantiles = group["points"][row_index], group["quantiles"][row_index]
             output.append({
                 "forecast_id": row["forecast_id"], "canonical_player_id": row["canonical_player_id"], "model": row["model"],
                 "league_id": profile["league_id"], "league_format": profile["league_format"], "profile_scoring_signature": profile["profile_scoring_signature"], "profile_fingerprint": profile["profile_fingerprint"],
@@ -271,6 +280,7 @@ def build_weekly_input(raw_envelope: Path, output_dir: Path, *, source_bundle: P
     if hours < 0.0:
         return {"status": "POST_KICKOFF", "manifest": None}
     from m10_prospective_activation_guard import validate_activation_lock
+    print("M10_STAGE validate_season_lock", flush=True)
     lock = validate_activation_lock(ROOT)
     assert source_bundle.is_file()
     bundle = read_json(source_bundle)
@@ -278,8 +288,11 @@ def build_weekly_input(raw_envelope: Path, output_dir: Path, *, source_bundle: P
     assert bundle.get("research_only") is True and int(bundle["season"]) == int(capture["season"]) and int(bundle["week"]) == int(capture["week"])
     source_hash = sha256_file(source_bundle)
     schedule, history, target = read_json(paths["schedule"]), _completed_rows(read_json(paths["completed_games"])), _identity_targets(read_json(paths["schedule"]), read_json(paths["identity_snapshot"]), season=int(capture["season"]), week=int(capture["week"]))
+    print(f"M10_STAGE frozen_inference history_rows={len(history)} scheduled_players={len(target)}", flush=True)
     forecasts = _point_rows(lock, history, target, capture={**capture, "schedule_snapshot_sha256": sha256_file(paths["schedule"])}, source_bundle_sha256=source_hash)
+    print(f"M10_STAGE default_distributions forecast_rows={len(forecasts)}", flush=True)
     attach_default_distributions(forecasts, lock)
+    print("M10_STAGE weekly_inputs_ready", flush=True)
     profiles_payload = read_json(paths["roster_profile_snapshot"])
     profiles = validate_profile_population(profiles_payload)
     out = output_dir; out.mkdir(parents=True, exist_ok=True)
