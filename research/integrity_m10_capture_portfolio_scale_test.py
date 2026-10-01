@@ -6,8 +6,15 @@ import shutil
 import tempfile
 from pathlib import Path
 
+import pandas as pd
+import numpy as np
+import capture_m10_prospective_weekly_raw as raw_capture
+from capture_m10_prospective_weekly_raw import current_roster_identity
 import m10_prospective_weekly_producer as producer
-from m10_prospective_capture_contract import capture_paths, write_json
+from m10_prospective_capture_contract import (
+    capture_paths, create_fixture_capture, fixture_scoring_rows, read_json,
+    read_jsonl_gzip, sha256_file, validate_capture, write_json, write_jsonl_gzip,
+)
 from m10_prospective_source_bundle import validate_profile_population
 from m10_prospective_weekly_producer import fixture_raw_envelope
 from run_m10_prospective_weekly_capture import main as run_capture
@@ -61,6 +68,8 @@ def batch_scoring_checks() -> None:
     def fake_many(items, scoring):
         nonlocal calls
         calls += 1
+        if isinstance(items, pd.DataFrame):
+            items = items.to_dict("records")
         factor = float(scoring["factor"])
         return [
             factor * sum(float(value) for value in item.values() if isinstance(value, (int, float)))
@@ -106,6 +115,94 @@ def terminal_capture_retry_check() -> None:
         shutil.rmtree(root)
 
 
+def current_roster_universe_check() -> None:
+    """Current roster membership and current team must replace historical teams."""
+    def row(pid, team="AAA", position="WR", status="ACT", season=2026, week=4):
+        return {"gsis_id": pid, "team": team, "position": position, "status": status,
+            "season": season, "week": week, "game_type": "REG", "full_name": f"Fixture {pid}"}
+    rosters = pd.DataFrame([
+        row("transfer", team="OLD", week=3), row("transfer", team="AAA"),
+        row("transfer", team="AAA"), row("rookie", position="RB"),
+        row("practice", status="DEV"), row("reserve", status="RES", position="TE"),
+        row("retired", status="RET"), row("cut", status="CUT"),
+        row("old-season", season=2025), row("future", week=5),
+        row(None), row("conflict", team="AAA"), row("conflict", team="BBB"),
+    ])
+    value = current_roster_identity(rosters, season=2026, week=4)
+    players = {item["canonical_player_id"]: item for item in value["players"]}
+    assert set(players) == {"transfer", "rookie", "practice", "reserve"}
+    assert players["transfer"]["team"] == "AAA"
+    assert players["rookie"]["position_model"] == "RB"
+    assert value["current_roster_verified"] and value["roster_snapshot_week"] == 4
+    assert value["ambiguous_count"] == 1
+    reasons = {item["reason"] for item in value["symmetric_identity_exclusions"]}
+    assert reasons == {"NOT_CURRENT_NFL_ROSTER_MEMBER", "UNRESOLVED_CURRENT_ROSTER_GSIS_ID", "AMBIGUOUS_CURRENT_ROSTER_IDENTITY"}
+    target = producer._identity_targets({"games": [{"home_team": "AAA", "away_team": "BBB", "kickoff_at": "2026-10-02T00:15:00Z"}]}, value, season=2026, week=4)
+    assert len(target) == 4
+    assert set(target["canonical_player_id"]) == set(players)
+    for bad in (rosters[rosters["week"] == 3], rosters.assign(status="UNKNOWN")):
+        try:
+            current_roster_identity(bad, season=2026, week=4)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("missing current roster or unknown membership status was accepted")
+    # Live envelopes may never silently accept the old all-time identity list.
+    with tempfile.TemporaryDirectory(prefix="fie-m10-live-roster-guard-") as directory:
+        raw = fixture_raw_envelope(Path(directory))
+        envelope = read_json(raw)
+        envelope["fixture"] = False
+        write_json(raw, envelope)
+        try:
+            producer.validate_raw_envelope(raw)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("live historical-catalog universe was accepted")
+        record = next(item for item in envelope["source_records"] if item["role"] == "identity_snapshot")
+        path = raw.parent / record["path"]
+        identity = read_json(path)
+        identity.update(current_roster_verified=True, roster_snapshot_season=2026, roster_snapshot_week=5)
+        write_json(path, identity)
+        record["sha256"] = record["response_files"][0]["sha256"] = sha256_file(path)
+        write_json(raw, envelope)
+        assert producer.validate_raw_envelope(raw)[0]["fixture"] is False
+        identity["roster_snapshot_week"] = 4
+        write_json(path, identity)
+        record["sha256"] = record["response_files"][0]["sha256"] = sha256_file(path)
+        write_json(raw, envelope)
+        try:
+            producer.validate_raw_envelope(raw)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("wrong-week live roster was accepted")
+
+
+def early_window_source_check() -> None:
+    """Early runs need only state/schedule, not an unpublished next-week roster."""
+    calls = []
+    original_fetch, original_now = raw_capture._fetch, raw_capture._now
+    def fake_fetch(url, destination):
+        calls.append(url)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if url == raw_capture.STATE_URL:
+            write_json(destination, {"season": "2026", "week": 4, "season_type": "regular"})
+        elif url == raw_capture.GAMES_URL:
+            destination.write_text("season,week,game_type,gameday,gametime,home_team,away_team\n2026,4,REG,2026-10-01,20:15,AAA,BBB\n", encoding="utf-8")
+        else:
+            raise AssertionError("early run requested football/roster sources")
+        return {"path": destination, "sha256": sha256_file(destination), "source_identity": url, "release_or_etag": "fixture"}
+    try:
+        raw_capture._fetch, raw_capture._now = fake_fetch, lambda: "2026-09-29T00:00:00+00:00"
+        with tempfile.TemporaryDirectory(prefix="fie-m10-early-roster-") as directory:
+            assert raw_capture.capture(Path(directory), season=None, week=None) is None
+            assert not (Path(directory) / "raw-envelope.json").exists()
+        assert calls == [raw_capture.STATE_URL, raw_capture.GAMES_URL]
+    finally:
+        raw_capture._fetch, raw_capture._now = original_fetch, original_now
+
+
 def bounded_residual_parity_check() -> None:
     """Match independent scalar replay across chunk boundaries and scoring rules."""
     positions = ("QB", "RB", "WR", "TE")
@@ -131,8 +228,9 @@ def bounded_residual_parity_check() -> None:
         for profile in profiles:
             point = {**row["predicted_raw_components"], "position_model": row["position_model"]}
             samples = [{**sample, "position_model": row["position_model"]} for sample in producer._residual_components(lock, row)]
-            expected.append((producer._score(point, profile["scoring_settings"]),
-                producer._quantiles([producer._score(sample, profile["scoring_settings"]) for sample in samples])))
+            scalar_scores = [producer._score(sample, profile["scoring_settings"]) for sample in samples]
+            scalar_quantiles = {str(q): float(np.quantile(scalar_scores, q)) for q in (0.1, 0.25, 0.5, 0.75, 0.9)}
+            expected.append((producer._score(point, profile["scoring_settings"]), scalar_quantiles))
     sizes = []
     original_many = producer._score_many
     def measured_many(items, scoring):
@@ -158,14 +256,70 @@ def bounded_residual_parity_check() -> None:
     # retaining quantiles rather than truncating or averaging partial quantiles.
     large = producer.exact_profile_scoring(rows[:1], profiles[:1], lock, residual_batch_rows=1)
     assert large[0]["scored_prediction_quantiles"] == expected[0][1]
+    for invalid in ([], [{"passing_yards": float("inf")} ]):
+        try:
+            producer._score_many(invalid, {"pass_yd": 0.04})
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("empty or non-finite scoring distribution was accepted")
+
+
+def operational_capture_validation_check() -> None:
+    # Synthetic data exercise the non-fixture validation branch only; no
+    # operational evidence is persisted or promoted by this no-network test.
+    with tempfile.TemporaryDirectory(prefix="fie-m10-slate-validator-") as directory:
+        root = Path(directory)
+        create_fixture_capture(root, 2026, 1, "2026-09-09T06:00:00+00:00", "2026-09-10T00:00:00+00:00")
+        paths = capture_paths(root, 2026, 1)
+        forecasts = read_jsonl_gzip(paths["forecasts"])
+        forecasts += [{**row, "forecast_id": "extra-current-player", "canonical_player_id": "extra-current-player"}
+                      for row in forecasts if row["position_model"] == "QB"]
+        decisions = read_jsonl_gzip(paths["decisions"])
+        for row in decisions:
+            row.update(status="BLOCKED_INCOMPLETE_LEGAL_ROSTER", blocker="INCOMPLETE_LEGAL_ROSTER_AT_CUTOFF",
+                       legal_forecast_ids=[], selected_forecast_ids=[])
+        manifest = read_json(paths["manifest"])
+        manifest["fixture"] = False
+
+        def save() -> None:
+            for ledger, key, rows in (("forecast", "forecasts", forecasts),
+                                      ("scoring_replay", "scoring", fixture_scoring_rows(forecasts)),
+                                      ("decision_trace", "decisions", decisions)):
+                write_jsonl_gzip(paths[key], rows)
+                manifest["ledgers"][ledger].update(sha256=sha256_file(paths[key]), rows=len(rows))
+            write_json(paths["manifest"], manifest)
+
+        save()
+        assert validate_capture(root, 2026, 1, require_fixture=False)["forecast_rows"] == 15
+        decisions[0]["blocker"] = "UNAPPROVED_BLOCK"
+        save()
+        try:
+            validate_capture(root, 2026, 1, require_fixture=False)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("unapproved decision block was accepted")
+        decisions[0]["blocker"] = "INCOMPLETE_LEGAL_ROSTER_AT_CUTOFF"
+        forecasts[0]["captured_at"] = "2026-09-09T07:00:00+00:00"
+        save()
+        try:
+            validate_capture(root, 2026, 1, require_fixture=False)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("forecast capture timestamp drift was accepted")
 
 
 def main() -> None:
     profile_population_checks()
     batch_scoring_checks()
+    current_roster_universe_check()
+    early_window_source_check()
     bounded_residual_parity_check()
     terminal_capture_retry_check()
-    print("PASS M10 dynamic portfolio, bounded residual scoring parity, and terminal retry integrity")
+    operational_capture_validation_check()
+    print("PASS M10 current roster universe, dynamic portfolio, bounded residual scoring parity, and terminal retry integrity")
 
 
 if __name__ == "__main__":

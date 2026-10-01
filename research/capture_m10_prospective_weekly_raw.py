@@ -70,6 +70,59 @@ def _number(frame: pd.DataFrame, *names: str) -> pd.Series:
     return pd.Series(float("nan"), index=frame.index)
 
 
+def current_roster_identity(rosters: pd.DataFrame, *, season: int, week: int) -> dict[str, Any]:
+    """Bind current teams to the verified target-week NFL roster, never latest_team.
+
+    The all-time player catalog remains an identity crosswalk for historical
+    stats. A current weekly roster supplies exact GSIS identities and target
+    teams, including rookies, reserves and practice players. RET/CUT rows are
+    explicit departures; other unknown statuses remain retryable source gaps.
+    No injury status is turned into an availability probability.
+    """
+    required = {"season", "week", "team", "position", "gsis_id", "status", "game_type"}
+    if not required <= set(rosters.columns):
+        raise ValueError("current NFL roster is missing required identity fields")
+    selected = rosters[(pd.to_numeric(rosters["season"], errors="coerce") == season)
+        & (pd.to_numeric(rosters["week"], errors="coerce") == week)
+        & rosters["game_type"].astype(str).str.upper().isin({"REG", "REGULAR"})].copy()
+    if selected.empty:
+        raise ValueError(f"current NFL roster for {season} week {week} is unavailable; retry without historical-team fallback")
+    selected["position_model"] = selected["position"].map(normalize_position)
+    selected = selected[selected["position_model"].isin({"QB", "RB", "WR", "TE"})].copy()
+    status = selected["status"].astype(str).str.upper()
+    if not status.isin({"ACT", "DEV", "RES", "EXE", "RET", "CUT"}).all():
+        raise ValueError("current NFL roster has an unrecognized membership status")
+    exclusions = []
+    departed = status.isin({"RET", "CUT"})
+    for _, row in selected[departed].iterrows():
+        exclusions.append({"gsis_id": None if pd.isna(row["gsis_id"]) else str(row["gsis_id"]), "reason": "NOT_CURRENT_NFL_ROSTER_MEMBER"})
+    selected = selected[~departed].copy()
+    ids = selected["gsis_id"].astype("string").str.strip()
+    unresolved = ids.isna() | ids.isin({"", "nan", "None"})
+    for _ in selected[unresolved].itertuples():
+        exclusions.append({"gsis_id": None, "reason": "UNRESOLVED_CURRENT_ROSTER_GSIS_ID"})
+    selected = selected[~unresolved].copy()
+    selected["gsis_id"] = ids[~unresolved]
+    selected["team"] = selected["team"].astype("string").str.strip().str.upper()
+    if selected["team"].isna().any() or selected["team"].isin({"", "NAN", "NONE"}).any():
+        raise ValueError("current NFL roster has an unresolved team")
+    # Exact duplicate source rows are harmless; conflicting teams/positions for
+    # one ID are excluded symmetrically rather than selected by row order.
+    bindings = selected[["gsis_id", "team", "position_model"]].drop_duplicates()
+    ambiguous = set(bindings.loc[bindings["gsis_id"].duplicated(keep=False), "gsis_id"])
+    exclusions.extend({"gsis_id": str(pid), "reason": "AMBIGUOUS_CURRENT_ROSTER_IDENTITY"} for pid in sorted(ambiguous))
+    selected = selected[~selected["gsis_id"].isin(ambiguous)].drop_duplicates("gsis_id")
+    identity, _ = build_identity(selected)
+    identity["team"] = selected["team"].to_numpy()
+    identity["position_model"] = selected["position_model"].to_numpy()
+    players = identity[["canonical_player_id", "position_model", "team"]].sort_values("canonical_player_id").to_dict("records")
+    if not players:
+        raise ValueError("current NFL roster has no unambiguous offensive players")
+    return {"governed_crosswalk": True, "ambiguous_count": len(ambiguous), "current_roster_verified": True,
+        "roster_snapshot_season": season, "roster_snapshot_week": week, "players": players,
+        "symmetric_identity_exclusions": exclusions}
+
+
 def _profile_payload() -> dict[str, Any]:
     registry = __import__("json").loads((ROOT / "data/research/leagues/registry.json").read_text(encoding="utf-8"))
     profiles = []
@@ -111,17 +164,26 @@ def capture(output_dir: Path, *, season: int | None, week: int | None) -> Path |
         "kickoff_at": kickoff_iso(first_present(row, "gameday", "game_date"), first_present(row, "gametime", "game_time")),
     } for _, row in slice_.iterrows()]
     schedule_path = output_dir / "schedule.json"; write_json(schedule_path, {"season": resolved_season, "week": resolved_week, "season_type": "REG", "first_kickoff_at": kickoff.isoformat(), "games": games})
+    if capture_hours(observed, kickoff.isoformat()) > 18.0:
+        # A next-week roster may not yet be published. The governed early exit
+        # depends only on verified state/schedule, never on football sources
+        # that are not required until the capture window opens.
+        print("NO_WRITE_WINDOW_NOT_REACHED", flush=True)
+        return None
     completed_responses = _completed_game_responses(responses, season=resolved_season, week=resolved_week)
     players_response = _fetch(SOURCE_TEMPLATES["players"], responses / "players.csv")
     stats = pd.concat([pd.read_csv(item["path"], low_memory=False) for item in completed_responses], ignore_index=True, sort=False)
     players = pd.read_csv(players_response["path"], low_memory=False)
     identity, _ = build_identity(players)
     id_map = identity[["gsis_id", "canonical_player_id", "position"]].dropna(subset=["gsis_id"]).drop_duplicates("gsis_id")
-    players_out = identity[["canonical_player_id", "position"]].copy()
-    players_out["team"] = players.get("latest_team", players.get("team", "")).astype(str)
-    players_out["position_model"] = players_out["position"].map(normalize_position)
-    player_rows = players_out[players_out["position_model"].isin(["QB", "RB", "WR", "TE"]) & players_out["canonical_player_id"].notna()][["canonical_player_id", "position_model", "team"]].drop_duplicates("canonical_player_id").to_dict("records")
-    identity_path = output_dir / "identity-snapshot.json"; write_json(identity_path, {"governed_crosswalk": True, "ambiguous_count": int(identity["canonical_player_id"].duplicated().sum()), "players": player_rows})
+    rosters_response = _fetch(SOURCE_TEMPLATES["weekly_rosters"].format(season=resolved_season), responses / f"weekly-rosters-{resolved_season}.csv")
+    roster_identity = current_roster_identity(pd.read_csv(rosters_response["path"], low_memory=False), season=resolved_season, week=resolved_week)
+    scheduled_teams = {str(game[key]) for game in games for key in ("home_team", "away_team")}
+    missing_teams = scheduled_teams - {row["team"] for row in roster_identity["players"]}
+    if missing_teams:
+        raise ValueError(f"current NFL roster lacks scheduled teams: {sorted(missing_teams)}")
+    print(f"M10_STAGE current_roster players={len(roster_identity['players'])} historical_catalog_rows={len(players)} exclusions={len(roster_identity['symmetric_identity_exclusions'])}", flush=True)
+    identity_path = output_dir / "identity-snapshot.json"; write_json(identity_path, roster_identity)
     source_id = stats.get("player_id", stats.get("gsis_id", pd.Series("", index=stats.index))).astype(str)
     current = stats.assign(_source_id=source_id).merge(id_map, left_on="_source_id", right_on="gsis_id", how="inner")
     current["position_model"] = current.get("position", current.get("position_y", "")).map(normalize_position)
@@ -138,7 +200,7 @@ def capture(output_dir: Path, *, season: int | None, week: int | None) -> Path |
     completed_path = output_dir / "completed-games.json"; write_json(completed_path, {"player_games": normalized.to_dict("records")})
     profiles_path = output_dir / "roster-profile-snapshot.json"; write_json(profiles_path, _profile_payload())
     manifest = output_dir / "raw-envelope.json"
-    write_json(manifest, {"schema": RAW_SCHEMA, "fixture": False, "research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "runtime_integration": False, "shadow_integration": False, "automatic_promotion": False, "historical_reconstruction": False, "capture": {"season": resolved_season, "week": resolved_week, "observed_at": observed, "first_kickoff_at": kickoff.isoformat(), "hours_before_first_kickoff": capture_hours(observed, kickoff.isoformat())}, "source_records": [_record("schedule", schedule_path, observed, [state_response, games_response]), _record("completed_games", completed_path, observed, completed_responses), _record("identity_snapshot", identity_path, observed, [players_response]), _record("roster_profile_snapshot", profiles_path, observed, [])]})
+    write_json(manifest, {"schema": RAW_SCHEMA, "fixture": False, "research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "runtime_integration": False, "shadow_integration": False, "automatic_promotion": False, "historical_reconstruction": False, "capture": {"season": resolved_season, "week": resolved_week, "observed_at": observed, "first_kickoff_at": kickoff.isoformat(), "hours_before_first_kickoff": capture_hours(observed, kickoff.isoformat())}, "source_records": [_record("schedule", schedule_path, observed, [state_response, games_response]), _record("completed_games", completed_path, observed, completed_responses), _record("identity_snapshot", identity_path, observed, [players_response, rosters_response]), _record("roster_profile_snapshot", profiles_path, observed, [])]})
     # The governed profile snapshot is local evidence, not an HTTP response.
     value = __import__("json").loads(manifest.read_text(encoding="utf-8")); value["source_records"][-1]["source_identity"] = "governed repository league profiles"; value["source_records"][-1]["release_or_etag"] = "NOT_APPLICABLE_LOCAL_GOVERNED_STATE"; value["source_records"][-1]["response_files"] = [{"path": profiles_path.name, "sha256": sha256_file(profiles_path)}]; write_json(manifest, value)
     return manifest

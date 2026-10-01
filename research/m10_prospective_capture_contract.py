@@ -310,13 +310,26 @@ def validate_capture(root: Path, season: int, week: int, *, require_outcome: boo
         assert len(row["source_bundle_sha256"]) == 64 and len(row["model_parameter_sha256"]) == 64
         assert not any(key.startswith("actual") for key in row)
         paired.setdefault(row["forecast_id"], set()).add(row["model"])
-    assert all(models == set(MODELS) for models in paired.values()) and len(paired) == len(POSITIONS)
+    assert all(models == set(MODELS) for models in paired.values())
+    if manifest["fixture"]:
+        assert len(paired) == len(POSITIONS)
+    else:
+        # Operational captures cover the current slate, not the four-player
+        # synthetic fixture. Reuse the operational owner for timing and pairing.
+        from m10_prospective_operational_capture import validate_forecasts
+        validate_forecasts(forecasts, {"season": season, "week": week, "captured_at": manifest["captured_at"]})
     scoring = read_jsonl_gzip(paths["scoring"])
     assert scoring and {(row["forecast_id"], row["model"]) for row in scoring} >= {(row["forecast_id"], row["model"]) for row in forecasts}
     assert all(row["research_only"] is True and row["profile_scoring_signature"] and row["profile_fingerprint"] for row in scoring)
     decisions = read_jsonl_gzip(paths["decisions"])
     assert {row["model"] for row in decisions} == set(MODELS)
-    assert all(row["research_only"] is True and row["production_recommendation_changed"] is False and row["legal_forecast_ids"] for row in decisions)
+    if manifest["fixture"]:
+        assert all(row["research_only"] is True and row["production_recommendation_changed"] is False and row["legal_forecast_ids"] for row in decisions)
+    else:
+        # Missing cutoff roster state is an explicit governed block; it must
+        # never become an unvalidated recommendation or an asymmetric model set.
+        from m10_prospective_operational_capture import validate_decisions
+        validate_decisions(decisions, set(paired))
     outcome_meta = paths["outcome_dir"] / "outcome-manifest.json"
     if require_outcome and not outcome_meta.exists():
         raise ValueError("outcome fixture required but absent")

@@ -71,6 +71,11 @@ def validate_raw_envelope(path: Path) -> tuple[dict[str, Any], dict[str, Path]]:
     schedule = read_json(paths["schedule"])
     assert int(schedule["season"]) == int(capture["season"]) and int(schedule["week"]) == int(capture["week"])
     assert schedule.get("season_type") == "REG" and str(schedule["first_kickoff_at"]) == kickoff
+    if value.get("fixture") is not True:
+        identity = read_json(paths["identity_snapshot"])
+        assert identity.get("current_roster_verified") is True, "live player universe must bind a current NFL roster"
+        assert int(identity["roster_snapshot_season"]) == int(capture["season"])
+        assert int(identity["roster_snapshot_week"]) == int(capture["week"])
     return value, paths
 
 
@@ -117,12 +122,13 @@ def _score(raw: dict[str, Any], scoring: dict[str, Any]) -> float:
     return value
 
 
-def _score_many(rows: list[dict[str, Any]], scoring: dict[str, Any]) -> list[float]:
+def _score_many(rows: list[dict[str, Any]] | pd.DataFrame, scoring: dict[str, Any]) -> list[float]:
     from fie_research import score_rows
-    values = [float(value) for value in score_rows(pd.DataFrame(rows), scoring).tolist()]
-    if not values or not all(np.isfinite(value) for value in values):
+    matrix = rows if isinstance(rows, pd.DataFrame) else pd.DataFrame(rows)
+    values = score_rows(matrix, scoring).to_numpy(dtype=float)
+    if not values.size or not np.isfinite(values).all():
         raise ValueError("exact scorer produced a non-finite distribution")
-    return values
+    return values.tolist()
 
 
 def _residual_components(lock: dict[str, Any], row: dict[str, Any]) -> list[dict[str, float]]:
@@ -133,8 +139,9 @@ def _residual_components(lock: dict[str, Any], row: dict[str, Any]) -> list[dict
 
 
 def _quantiles(values: list[float]) -> dict[str, float]:
-    assert values and all(np.isfinite(value) for value in values)
-    return {str(q): float(np.quantile(np.asarray(values, dtype=float), q)) for q in (0.1, 0.25, 0.5, 0.75, 0.9)}
+    array = np.asarray(values, dtype=float)
+    assert array.size and np.isfinite(array).all()
+    return {str(q): float(np.quantile(array, q)) for q in (0.1, 0.25, 0.5, 0.75, 0.9)}
 
 
 def attach_default_distributions(rows: list[dict[str, Any]], lock: dict[str, Any]) -> None:
@@ -169,8 +176,11 @@ def exact_profile_scoring(rows: list[dict[str, Any]], profiles: list[dict[str, A
             scoring_groups[key] = {"settings": scoring, "points": _score_many(points, scoring), "quantiles": []}
 
     def replay_batch(samples: list[dict[str, Any]], spans: list[tuple[int, int]]) -> None:
+        # All settings replay the same immutable numeric sample matrix. Build
+        # pandas columns once per batch rather than once per scoring profile.
+        matrix = pd.DataFrame(samples)
         for group in scoring_groups.values():
-            scores = _score_many(samples, group["settings"])
+            scores = _score_many(matrix, group["settings"])
             group["quantiles"].extend(_quantiles(scores[start:end]) for start, end in spans)
 
     samples: list[dict[str, Any]] = []
