@@ -19,7 +19,7 @@ import requests
 
 from build_current_snapshot import first_kickoff_utc, regular_schedule_slice
 from fie_research import SOURCE_TEMPLATES, build_identity, normalize_position
-from m10_prospective_capture_contract import ROOT, capture_hours, sha256_file, write_json
+from m10_prospective_capture_contract import ROOT, capture_hours, capture_paths, sha256_file, write_json
 from m10_prospective_weekly_producer import RAW_SCHEMA, fixture_raw_envelope
 from nfl_schedule_time import first_present, kickoff_iso
 
@@ -89,9 +89,14 @@ def current_roster_identity(rosters: pd.DataFrame, *, season: int, week: int) ->
         raise ValueError(f"current NFL roster for {season} week {week} is unavailable; retry without historical-team fallback")
     selected["position_model"] = selected["position"].map(normalize_position)
     selected = selected[selected["position_model"].isin({"QB", "RB", "WR", "TE"})].copy()
-    status = selected["status"].astype(str).str.upper()
-    if not status.isin({"ACT", "DEV", "RES", "EXE", "RET", "CUT"}).all():
-        raise ValueError("current NFL roster has an unrecognized membership status")
+    status = selected["status"].astype(str).str.strip().str.upper()
+    # nflreadr's roster-status dictionary defines INA as under contract but
+    # inactive, not a departure. Preserve membership without inferring whether
+    # that player is available to play. Unknown codes still fail closed.
+    known = status.isin({"ACT", "DEV", "RES", "EXE", "INA", "RET", "CUT"})
+    if not known.all():
+        unknown = status[~known].value_counts().sort_index().to_dict()
+        raise ValueError(f"current NFL roster has an unrecognized membership status for {season} week {week}: {unknown}")
     exclusions = []
     departed = status.isin({"RET", "CUT"})
     for _, row in selected[departed].iterrows():
@@ -145,13 +150,21 @@ def _record(role: str, normalized: Path, observed_at: str, responses: list[dict[
     return {"role": role, "path": normalized.name, "sha256": sha256_file(normalized), "captured_at": observed_at, "as_of": observed_at, "point_in_time_eligible": True, "historical_reconstruction": False, "source_identity": " | ".join(item["source_identity"] for item in responses), "release_or_etag": " | ".join(item["release_or_etag"] for item in responses), "response_files": [{"path": item["path"].relative_to(normalized.parent).as_posix(), "sha256": item["sha256"]} for item in responses]}
 
 
-def capture(output_dir: Path, *, season: int | None, week: int | None) -> Path | None:
+def capture(output_dir: Path, *, season: int | None, week: int | None, output_root: Path | None = None) -> Path | None:
     output_dir.mkdir(parents=True, exist_ok=True); responses = output_dir / "responses"; observed = _now()
     state_response = _fetch(STATE_URL, responses / "sleeper-state.json")
     state = __import__("json").loads(state_response["path"].read_text(encoding="utf-8"))
     resolved_season, resolved_week = int(season or state["season"]), int(week or state["week"])
     if str(state.get("season_type") or "").lower() not in {"regular", "reg"}:
         print("NO_WRITE_NOT_REGULAR_SEASON"); return None
+    # First-write evidence is already terminal. Check before requesting a fresh
+    # schedule or football sources, whose post-cutoff updates cannot change it.
+    root = output_root if output_root is not None else ROOT / "data/research/prospective/m10"
+    existing = capture_paths(root, resolved_season, resolved_week)
+    for key in ("manifest", "missed"):
+        if existing[key].exists():
+            print(f"PASS R8C weekly capture EXISTS: {existing[key]}", flush=True)
+            return None
     games_response = _fetch(GAMES_URL, responses / "games.csv")
     schedule_frame = pd.read_csv(games_response["path"], low_memory=False)
     slice_ = regular_schedule_slice(schedule_frame, resolved_season, resolved_week)

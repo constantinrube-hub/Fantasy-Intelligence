@@ -124,13 +124,14 @@ def current_roster_universe_check() -> None:
         row("transfer", team="OLD", week=3), row("transfer", team="AAA"),
         row("transfer", team="AAA"), row("rookie", position="RB"),
         row("practice", status="DEV"), row("reserve", status="RES", position="TE"),
+        row("inactive", status="INA"), row("inactive-spaced", status=" ina "),
         row("retired", status="RET"), row("cut", status="CUT"),
         row("old-season", season=2025), row("future", week=5),
         row(None), row("conflict", team="AAA"), row("conflict", team="BBB"),
     ])
     value = current_roster_identity(rosters, season=2026, week=4)
     players = {item["canonical_player_id"]: item for item in value["players"]}
-    assert set(players) == {"transfer", "rookie", "practice", "reserve"}
+    assert set(players) == {"transfer", "rookie", "practice", "reserve", "inactive", "inactive-spaced"}
     assert players["transfer"]["team"] == "AAA"
     assert players["rookie"]["position_model"] == "RB"
     assert value["current_roster_verified"] and value["roster_snapshot_week"] == 4
@@ -138,15 +139,21 @@ def current_roster_universe_check() -> None:
     reasons = {item["reason"] for item in value["symmetric_identity_exclusions"]}
     assert reasons == {"NOT_CURRENT_NFL_ROSTER_MEMBER", "UNRESOLVED_CURRENT_ROSTER_GSIS_ID", "AMBIGUOUS_CURRENT_ROSTER_IDENTITY"}
     target = producer._identity_targets({"games": [{"home_team": "AAA", "away_team": "BBB", "kickoff_at": "2026-10-02T00:15:00Z"}]}, value, season=2026, week=4)
-    assert len(target) == 4
+    assert len(target) == 6
     assert set(target["canonical_player_id"]) == set(players)
-    for bad in (rosters[rosters["week"] == 3], rosters.assign(status="UNKNOWN")):
+    for bad in (rosters[rosters["week"] == 3], rosters.assign(status="UNKNOWN"), rosters.assign(status=None)):
         try:
             current_roster_identity(bad, season=2026, week=4)
         except ValueError:
             pass
         else:
             raise AssertionError("missing current roster or unknown membership status was accepted")
+    try:
+        current_roster_identity(pd.DataFrame([row("bad", status="NEW_CODE")]), season=2026, week=4)
+    except ValueError as exc:
+        assert "2026 week 4" in str(exc) and "NEW_CODE" in str(exc), str(exc)
+    else:
+        raise AssertionError("unknown status was accepted")
     # Live envelopes may never silently accept the old all-time identity list.
     with tempfile.TemporaryDirectory(prefix="fie-m10-live-roster-guard-") as directory:
         raw = fixture_raw_envelope(Path(directory))
@@ -196,9 +203,48 @@ def early_window_source_check() -> None:
     try:
         raw_capture._fetch, raw_capture._now = fake_fetch, lambda: "2026-09-29T00:00:00+00:00"
         with tempfile.TemporaryDirectory(prefix="fie-m10-early-roster-") as directory:
-            assert raw_capture.capture(Path(directory), season=None, week=None) is None
+            assert raw_capture.capture(Path(directory), season=None, week=None, output_root=Path(directory) / "evidence") is None
             assert not (Path(directory) / "raw-envelope.json").exists()
         assert calls == [raw_capture.STATE_URL, raw_capture.GAMES_URL]
+    finally:
+        raw_capture._fetch, raw_capture._now = original_fetch, original_now
+
+
+def terminal_raw_capture_retry_check() -> None:
+    """Frozen evidence must not depend on mutable post-cutoff source status."""
+    original_fetch, original_now = raw_capture._fetch, raw_capture._now
+    calls = []
+
+    def fake_fetch(url, destination):
+        calls.append(url)
+        assert url == raw_capture.STATE_URL, "terminal retry requested schedule or football sources"
+        write_json(destination, {"season": "2026", "week": 4, "season_type": "regular"})
+        return {"path": destination, "sha256": sha256_file(destination), "source_identity": url, "release_or_etag": "fixture"}
+
+    try:
+        raw_capture._fetch = fake_fetch
+        for key in ("manifest", "missed"):
+            for observed in ("2026-10-01T20:00:00+00:00", "2026-10-02T17:00:00+00:00"):
+                raw_capture._now = lambda: observed
+                with tempfile.TemporaryDirectory(prefix="fie-m10-raw-terminal-") as directory:
+                    root = Path(directory)
+                    evidence = root / "evidence"
+                    terminal = capture_paths(evidence, 2026, 4)[key]
+                    write_json(terminal, {"immutable": True, "fixture": True})
+                    before = terminal.read_bytes()
+                    calls.clear()
+                    assert raw_capture.capture(root / "raw", season=None, week=None, output_root=evidence) is None
+                    assert calls == [raw_capture.STATE_URL]
+                    assert terminal.read_bytes() == before
+                    assert not (root / "raw/raw-envelope.json").exists()
+                    # Explicit target arguments must select that target's
+                    # terminal evidence rather than the state API's week.
+                    target = capture_paths(evidence, 2026, 5)[key]
+                    write_json(target, {"immutable": True, "fixture": True})
+                    calls.clear()
+                    assert raw_capture.capture(root / "override", season=2026, week=5, output_root=evidence) is None
+                    assert calls == [raw_capture.STATE_URL]
+                    assert not (root / "override/raw-envelope.json").exists()
     finally:
         raw_capture._fetch, raw_capture._now = original_fetch, original_now
 
@@ -316,6 +362,7 @@ def main() -> None:
     batch_scoring_checks()
     current_roster_universe_check()
     early_window_source_check()
+    terminal_raw_capture_retry_check()
     bounded_residual_parity_check()
     terminal_capture_retry_check()
     operational_capture_validation_check()
