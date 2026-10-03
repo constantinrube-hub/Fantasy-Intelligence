@@ -22,7 +22,8 @@ on:
         type: choice
         options: [KEEP, AUTO, CONTROL]
   schedule:
-    - cron: "17 5,11,17,23 * 1,2,8-12 *"
+    - cron: "17 5,11,17,23 1-11 1 *"
+    - cron: "17 5,11,17,23 * 8-12 *"
 
 permissions:
   contents: write
@@ -32,7 +33,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: current_refresh
   refresh-current:
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:

@@ -25,9 +25,9 @@ on:
         default: '0.25'
         type: string
   schedule:
-    - cron: '7 6 * * 2'
-    - cron: '47 12 * * 2'
-    - cron: '7 6 * * 3'
+    - cron: '7 6 * 9-12 2'
+    - cron: '47 12 * 9-12 2'
+    - cron: '7 6 * 9-12 3'
 
 permissions:
   contents: write
@@ -37,8 +37,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: weekly_actions
   weekly-actions:
-    if: github.ref == 'refs/heads/main'
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

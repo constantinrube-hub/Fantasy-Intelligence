@@ -43,6 +43,7 @@ ARCHIVES: dict[str, dict[str, str]] = {
 
 SOURCE_CONTRACTS: dict[str, dict[str, Any]] = {
     "season_market": {
+        "display_name": "Sleeper Season Projections / ADP",
         "provider": "Sleeper",
         "endpoint_template": "https://api.sleeper.com/projections/nfl/{season}?season_type=regular",
         "release_cadence": "daily scheduled prospective capture",
@@ -57,6 +58,7 @@ SOURCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "target_time_eligibility": "Availability evidence is eligible only for its recorded observed-at/as-of date; it does not backfill historical injury or depth-chart states.",
     },
     "weekly_market_benchmark": {
+        "display_name": "Sleeper Weekly Benchmark",
         "provider": "Sleeper",
         "endpoint_template": "https://api.sleeper.com/projections/nfl/{season}/{week}?season_type=regular",
         "release_cadence": "verified pregame scheduled capture",

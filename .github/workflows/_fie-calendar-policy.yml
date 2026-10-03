@@ -1,0 +1,41 @@
+name: FIE Shared Seasonal Calendar Policy
+on:
+  workflow_call:
+    inputs:
+      purpose:
+        required: true
+        type: string
+    outputs:
+      allowed:
+        value: ${{ jobs.policy.outputs.allowed }}
+      mode:
+        value: ${{ jobs.policy.outputs.mode }}
+      season:
+        value: ${{ jobs.policy.outputs.season }}
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      allowed: ${{ steps.calendar.outputs.allowed }}
+      mode: ${{ steps.calendar.outputs.mode }}
+      season: ${{ steps.calendar.outputs.season }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - id: calendar
+        env:
+          PURPOSE: ${{ inputs.purpose }}
+        run: |
+          python research/workflow_season_calendar.py --purpose "$PURPOSE" --event "$GITHUB_EVENT_NAME" --ref "$GITHUB_REF" --github-output >> "$GITHUB_OUTPUT"
+      - name: Summarize date policy
+        env:
+          ALLOWED: ${{ steps.calendar.outputs.allowed }}
+          REASON: ${{ steps.calendar.outputs.reason }}
+          MODE: ${{ steps.calendar.outputs.mode }}
+        run: echo "Calendar allowed=$ALLOWED mode=$MODE reason=$REASON" >> "$GITHUB_STEP_SUMMARY"

@@ -13,7 +13,13 @@ on:
       timezone: "Europe/Berlin"
 
 jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: waivers
   capture:
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/_fie-evidence-capture-reusable.yml
     with:
       capture_kind: waiver

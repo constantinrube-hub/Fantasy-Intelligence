@@ -134,3 +134,105 @@ This tranche gathers prospective evidence only. Existing Window 2C offensive red
 Validation: seven capture scenario groups pass, Window 1A compatibility passes, and Window 2C preservation passes 26/26 checks. Workflow YAML and every Bash step pass syntax checks. The capture, integrity tests and point-in-time inventory are manifest-bound; the new capture suite is registered in the release gate.
 
 Closure: the deterministic personal release returns `DEPLOYABLE_SOURCE` with 57/57 checks. The complete availability archive validates 36 snapshots, including the additive expanded capture. Windows handoff validation covers CRLF patch application and actual Git staging, including the mutable point-in-time inventory, rather than stopping at patch application alone.
+
+
+## Shared seasonal calendar and literal workflow pause — October 3, 2026
+
+This tranche follows merged availability PR #24 (main f979aacd84d639a2f59a9aa34c6d82851b2cfe76).
+It adds one shared calendar policy to all ten scheduled operational wrappers and
+renames the displayed weekly market workflow/UI label to **Sleeper Weekly
+Benchmark**. The daily preseason source is **Sleeper Season Projections / ADP**.
+Archive paths and source keys stay compatible; these labels do not imply Vegas
+odds support. Existing immutable evidence and M10 first-kickoff identity stay unchanged.
+
+### Automatic calendar policy
+
+`config/workflow-season-calendar.json` owns Berlin civil-date boundaries. Its
+policy/config, controller, reusable workflow, ten callers and integrity tests are
+bound into the release manifest. All automatic capture/build writes require main.
+
+| Work | Automatic window |
+| --- | --- |
+| All workflows | January 12–April 25 inclusive blackout |
+| Availability | September 1–January 10 inclusive; January belongs to the prior football season |
+| Waiver transaction collection | Existing September–January 11 cadence; preseason dynasty scope remains pending |
+| Sleeper season projections / ADP | After the actual final draft day has ended in New York, through September |
+| Full current refresh, M10, weekly Sleeper benchmark, weather | From known first kickoff minus seven days through January 11; each collector still applies its narrower due/timing rules |
+| Weekly actions, optimal waiver, trench | Regular season only; existing schedule frequency retained |
+
+Unknown future draft/kickoff dates fail closed. The 2026 kickoff is bound to the
+preserved Week 1 schedule envelope (September 10, 00:20 UTC). The published 2027
+draft dates are April 29–May 1, per
+https://operations.nfl.com/calendar-events/nfl-important-dates (dates subject to
+change). Consequently the first eligible 2027 season-market day is May 2, after
+00:00 New York; April 26 is not interpreted as draft completion. Update the
+calendar when the actual future kickoff is published. Explicit manual calls
+bypass date policy but retain main-only writes and collector validation.
+
+### Literal blackout controller
+
+Date guards skip work but still create run records. To satisfy the literal
+repository-wide blackout, `control-fie-workflow-calendar.yml` uses the Actions
+API to disable **all registered workflows except itself**, including push/PR
+validation, workflow chains and manual-only definitions. Its own schedules are
+January 11 at 20:17 Berlin and April 26 at 08:17 Berlin: neither occurs inside
+the blackout. The early pause is a buffer; late January 11 automatic runs are
+also stopped. Manual-only definitions are included because older branch
+versions may still contain automatic triggers.
+
+The controller needs its declared `contents: write` and `actions: write` on the
+standard GITHUB_TOKEN; no personal token is configured. Actions disable/enable
+API reference: https://docs.github.com/en/rest/actions/workflows.
+
+1. Save original workflow IDs, paths and active/disabled states to an immutable
+   per-year receipt under `data/operations/workflow-calendar/pause_<year>.json`.
+2. Commit/publish the receipt to main before any Actions mutation. Apply verifies
+   its bytes match origin/main, main ref, date interval and controller identity.
+3. Disable active workflows; cancel existing automatic runs while allowing
+   explicit manual runs and the controller to finish. Verify no other registered
+   workflow remains active and automatic queued/running work has finished
+   cancelling. A bounded poll fails visibly if work remains. Cancellation races are accepted only if the run is
+   already completed.
+4. April 26 restores **only IDs active in the saved receipt**. Previously disabled
+   workflows remain disabled. Both transitions are idempotent. Missing receipt,
+   ID/path drift, unexpected new active workflows or failed verification stop
+   visibly rather than enabling workflows by guesswork.
+
+Disabled workflows cannot receive new manual dispatches during the pause.
+The controller remains available with read-only `status` and date-restricted
+`pause`/`resume` repairs; local CLI tests/builds remain usable. Newly introduced
+workflow definitions during the pause must be explicitly disabled before relying
+on a zero-run guarantee. The controller does not poll during the blackout.
+
+GitHub scheduled dispatch can be delayed or dropped. Verify the January 11
+transition completed successfully before midnight Berlin. The literal guarantee
+starts with a successful verified API pause, not merely with the merge. If that
+transition fails, the shared guards still prevent operational evidence writes,
+but automatic run records can exist until the pause is repaired. Branch
+protection/token policy failures stop before disabling anything if the receipt
+cannot first be published. October validation exercises a fake Actions client
+and a read-only public API dry run; it does not pause the real repository.
+
+### Remaining clean design boundary
+
+Sunday T-minus-six-hour M10 checkpoints are not implemented in this tranche.
+The existing writer enforces one frozen first-kickoff capture per week. A second
+checkpoint changes capture identity and the matched evaluation protocol; the
+Sol design must first be documented and committed under CODEX_MODEL_ROUTING.md.
+A Sunday Sleeper companion checkpoint should follow that same committed identity
+contract. Preseason dynasty-only waiver scope and lightweight roster/profile
+sync also remain future collection work; the current full refresh is not relabeled
+as a cheap preseason sync.
+
+### Validation and Windows handoff
+
+Run `research/integrity_workflow_season_calendar_test.py` for fourteen no-network
+calendar/transition scenarios, plus lifecycle target, existing waiver, availability
+and M10 capture preservation checks. Full personal release closure now has 58
+checks. Workflow YAML and Bash blocks are parsed/checked separately.
+The distribution patch omits generated manifests/release gate and the mutable
+point-in-time inventory; the handoff rebuilds them locally. It uses the existing
+Python environment, repairs only byte-proven CRLF leftovers in the three known
+dist config files, normalizes only patched text and derived inventory, and stages
+exact paths. A real temporary Git index with CRLF working files is checked against
+the validated commit before the ZIP is delivered.
