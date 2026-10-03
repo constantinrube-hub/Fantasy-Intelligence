@@ -4,17 +4,25 @@ from __future__ import annotations
 import argparse,os,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'research'))
+from build_app_manifest import COMPONENTS
 def normalize_deployment_code(root:Path=ROOT)->None:
- """Finalize mutable deployment code bytes before generation and hashing."""
- paths=[root/name for name in ('index.html','_headers','_routes.json')]
- paths.extend(p for p in sorted((root/'app').rglob('*')) if p.is_file() and p.suffix in {'.js','.css'})
+ """Finalize deployment code and every manifest input before hashing."""
+ paths={root/name for name in ('index.html','_headers','_routes.json')}
+ paths.update(p for p in (root/'app').rglob('*') if p.is_file() and p.suffix in {'.js','.css'})
+ # These are mutable source/config components, never captured research data.
+ for rel in COMPONENTS.values():
+  if rel not in {'index.html','_headers'} and not rel.startswith(('app/','config/','research/','tools/')):
+   raise ValueError(f'Unexpected build-manifest input namespace: {rel}')
+  paths.add(root/rel)
+ paths.add(root/'config/league-portfolio.json')
  changed=[]
- for path in paths:
+ for path in sorted(paths):
   if not path.exists():continue
   raw=path.read_bytes();canonical=raw.replace(b'\r\n',b'\n')
   if raw!=canonical:
    path.write_bytes(canonical);changed.append(str(path.relative_to(root)))
- if changed:print(f'Normalized {len(changed)} deployment code files to LF before hashing',flush=True)
+ if changed:print(f'Normalized {len(changed)} deployment/manifest input files to LF before hashing',flush=True)
 def run(*args:str)->None:
  cmd=[sys.executable if args[0]=='python' else args[0],*args[1:]]
  print('+',' '.join(map(str,cmd)),flush=True)

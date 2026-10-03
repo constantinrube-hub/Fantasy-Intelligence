@@ -57,6 +57,7 @@ Counts are source rows before identity deduplication, not unique players. Model-
 
 ## Validation and remaining work
 
+- Post-merge PR #20 (`4bae0038`) CI run `37125111010` passed all 55 release checks, but its committed-dist synchronization check failed only on `dist/config/build-manifest.json`. All 41 differing component hashes and byte counts exactly matched CRLF versions of the LF source files; there were no other component differences. The release preflight now normalizes every canonical `COMPONENTS` input and the copied portfolio config before raw-byte hashing. Git rules also keep manifest-bound research/tools code at LF on future checkouts. Captured research data and unused config inputs remain untouched. The regenerated source/dist manifests retain exact raw-byte validation instead of accepting mismatched hashes or disabling synchronization checks.
 - Targeted regression suite: schedule/calendar and DST boundaries, late game, missing schedule, explicit historical override, stale-snapshot week selection, matching waiver target, scoring identity, coverage classes and exact report selection.
 - Preserve Window 1C, Window 1D, Window 1B, current storage, documentation lifecycle and the deterministic personal release gate.
 - Closure: the deterministic personal build regenerated source/dist manifests; the final release gate returned `DEPLOYABLE_SOURCE` with all 55 checks passing. Earlier attempts were blocked only by local bytecode artifacts; those were removed before the successful gate. Source/dist parity is preserved.

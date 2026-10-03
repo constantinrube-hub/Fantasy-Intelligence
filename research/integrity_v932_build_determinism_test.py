@@ -53,7 +53,10 @@ with tempfile.TemporaryDirectory() as directory:
  fixture=Path(directory)
  texts={'index.html':b'<html>\r\n</html>\n','_headers':b'/*\r\n  X-Test: yes\r\n',
         '_routes.json':b'{\r\n}\r\n','app/core/nested.js':b'// code\r\nconst x=1;\n',
-        'app/style.css':b'body {}\r\n'}
+        'app/style.css':b'body {}\r\n','config/model-config.json':b'{\r\n}\r\n',
+        'config/league-portfolio.json':b'{\r\n}\r\n',
+        'research/league_profile.py':b'# manifest input\r\nx=1\r\n',
+        'tools/sync_league_app_snapshots.py':b'# manifest input\r\nx=1\r\n'}
  untouched={'app/icon.png':b'\x00\r\n\xff','data/research/evidence.json':b'{\r\n}\r\n',
             'config/locked-input.json':b'{\r\n}\r\n'}
  for rel,raw in {**texts,**untouched}.items():
@@ -64,5 +67,20 @@ with tempfile.TemporaryDirectory() as directory:
  before={rel:(fixture/rel).read_bytes() for rel in texts}
  release_builder.normalize_deployment_code(fixture)
  assert before=={rel:(fixture/rel).read_bytes() for rel in texts},'normalization must be idempotent'
+
+# Exercise every real manifest input, rather than a subset of app files.
+with tempfile.TemporaryDirectory() as directory:
+ fixture=Path(directory)
+ for rel in set(build_app_manifest.COMPONENTS.values()):
+  path=fixture/rel;path.parent.mkdir(parents=True,exist_ok=True)
+  raw=(ROOT/rel).read_bytes().replace(b'\r\n',b'\n')
+  path.write_bytes(raw.replace(b'\n',b'\r\n'))
+ original_root=build_app_manifest.ROOT
+ try:
+  build_app_manifest.ROOT=fixture
+  assert build_app_manifest.build()!=first,'fixture must reproduce platform-dependent hashes'
+  release_builder.normalize_deployment_code(fixture)
+  assert build_app_manifest.build()==first,'all raw component hashes/byte counts must agree across OS line endings'
+ finally:build_app_manifest.ROOT=original_root
 
 print('PASS V9.3.2 deterministic build manifest')
