@@ -33,6 +33,12 @@ ARCHIVES: dict[str, dict[str, str]] = {
         "as_of_key": "availability_as_of",
         "source_role": "prospective_availability",
     },
+    "sunday_paired_benchmark": {
+        "root": "data/research/market/sleeper/checkpoints/2026",
+        "pattern": "week_*/sunday-main-t6/projection.jsonl.gz.meta.json",
+        "as_of_key": "captured_at",
+        "source_role": "prospective_sunday_paired_benchmark",
+    },
     "weekly_market_benchmark": {
         "root": "data/research/market/sleeper/2026",
         "pattern": "week_*.jsonl.gz.meta.json",
@@ -56,6 +62,14 @@ SOURCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "release_cadence": "daily scheduled prospective capture, September through January 10",
         "revision_policy": "Provider release/revision identifiers are not exposed by this endpoint; the exact observed response is immutably first-written and SHA-256 recorded.",
         "target_time_eligibility": "Availability evidence is eligible only for its recorded observed-at/as-of date; it does not backfill historical injury or depth-chart states.",
+    },
+    "sunday_paired_benchmark": {
+        "display_name": "Sleeper Sunday Paired Benchmark",
+        "provider": "Sleeper",
+        "endpoint_template": "https://api.sleeper.com/projections/nfl/{season}/{week}?season_type=regular",
+        "release_cadence": "Sunday main-slate T-6 paired checkpoint",
+        "revision_policy": "The exact observed response is immutably first-written and hash-bound to the paired M10 checkpoint.",
+        "target_time_eligibility": "Eligible only for remaining-slate identities at the actual Sunday checkpoint; missing provider rows are never reconstructed or imputed.",
     },
     "weekly_market_benchmark": {
         "display_name": "Sleeper Weekly Benchmark",

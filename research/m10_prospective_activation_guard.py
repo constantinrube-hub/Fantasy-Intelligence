@@ -11,6 +11,9 @@ WRITE_PREFIXES = (
     "data/research/prospective/m10/decision-traces/",
     "data/research/prospective/m10/outcomes/",
     "data/research/prospective/m10/source-bundles/",
+    "data/research/prospective/m10/checkpoints/",
+    "data/research/prospective/paired-checkpoints/",
+    "data/research/market/sleeper/checkpoints/",
 )
 
 

@@ -1,0 +1,95 @@
+name: Capture FIE Sunday M10 / Sleeper Paired Checkpoint
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "Optional verified NFL season"
+        required: false
+        type: string
+      week:
+        description: "Optional verified NFL regular-season week"
+        required: false
+        type: string
+  schedule:
+    # Poll from 07:00 through 09:30 New York. The writer opens at main-slate
+    # T-6 and closes at T-4.5; later polls only verify or record a typed miss.
+    - cron: "0,30 7-9 * 8-12 0"
+      timezone: America/New_York
+    - cron: "0,30 7-9 * 1 0"
+      timezone: America/New_York
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-sunday-paired-checkpoint
+  cancel-in-progress: false
+
+jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: m10
+  capture:
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - run: pip install -r research/requirements.txt
+      - name: Verify paired-checkpoint contract without network
+        run: |
+          python research/integrity_m10_sunday_checkpoint_design.py
+          python research/integrity_m10_sunday_paired_checkpoint_test.py
+          python research/integrity_m10_prospective_r8c_workflow_test.py
+      - name: Capture coordinated Sunday evidence
+        env:
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+        shell: bash
+        run: |
+          args=()
+          [[ -z "$INPUT_SEASON" ]] || args+=(--season "$INPUT_SEASON")
+          [[ -z "$INPUT_WEEK" ]] || args+=(--week "$INPUT_WEEK")
+          python research/capture_fie_sunday_paired_checkpoint.py "${args[@]}"
+          python research/build_fie_point_in_time_evidence_report.py
+          python research/validate_fie_point_in_time_evidence_report.py --verify-deterministic
+          python research/validate_sunday_paired_checkpoint_write_plan.py --github-ref "$GITHUB_REF"
+      - name: Commit immutable additive evidence
+        shell: bash
+        run: |
+          git config user.name "FIE Sunday Checkpoint Bot"
+          git config user.email "actions@users.noreply.github.com"
+          candidates=(
+            data/research/prospective/m10/checkpoints
+            data/research/prospective/paired-checkpoints
+            data/research/market/sleeper/checkpoints
+            data/research/portfolio/2026/point-in-time-evidence-report.json
+          )
+          paths=()
+          for candidate in "${candidates[@]}"; do [[ -e "$candidate" ]] && paths+=("$candidate"); done
+          ((${#paths[@]})) && git add -- "${paths[@]}"
+          if git diff --cached --quiet; then echo "No Sunday checkpoint evidence write"; exit 0; fi
+          python research/validate_sunday_paired_checkpoint_write_plan.py --github-ref "$GITHUB_REF"
+          git commit -m "Capture Sunday M10 and Sleeper paired checkpoint"
+          git fetch origin main
+          git rebase origin/main
+          python research/validate_sunday_paired_checkpoint_write_plan.py --github-ref "$GITHUB_REF" --base origin/main
+          if git push origin HEAD:main; then exit 0; fi
+          git fetch origin main
+          git rebase origin/main
+          python research/validate_sunday_paired_checkpoint_write_plan.py --github-ref "$GITHUB_REF" --base origin/main
+          if git diff --quiet origin/main...HEAD; then echo "An identical Sunday first-write winner is already present"; exit 0; fi
+          git push origin HEAD:main
