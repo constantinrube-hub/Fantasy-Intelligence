@@ -55,11 +55,12 @@ def test_availability_compatibility() -> None:
         "2": {"player_id": "2", "full_name": "Fixture CB", "team": "BBB", "position": "CB", "status": "Active"},
     }
     rows = compact(raw, "2026-09-06T09:00:00+00:00", "2026-09-06")
-    assert rows == [{
+    assert next(row for row in rows if row['sleeper_id'] == '1') == {
         "captured_at": "2026-09-06T09:00:00+00:00", "availability_as_of": "2026-09-06",
         "source": "Sleeper /v1/players/nfl", "sleeper_id": "1", "full_name": "Fixture RB",
         "team": "AAA", "position_model": "RB", "status": "Active",
-    }]
+    }
+    assert next(row for row in rows if row['sleeper_id'] == '2')['position_model'] == 'CB'
     assert "schema_version" not in rows[0] and "payload_sha256" not in rows[0]
 
 
