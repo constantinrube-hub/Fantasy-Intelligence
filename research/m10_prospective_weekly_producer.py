@@ -23,6 +23,7 @@ from m10_prospective_features import FEATURES, build_features, feature_record
 from m10_prospective_season_lock import HGB_SCHEMA, hgb_predict, ridge_predict
 from m10_prospective_season_lock_v2 import _constrain, _reconcile
 from m10_prospective_source_bundle import validate_profile_population
+from weekly_lineup_decision_support import LineupEvidenceError, exact_lineup
 
 
 RAW_SCHEMA = "fie-m10-prospective-weekly-raw-envelope-v1"
@@ -207,6 +208,7 @@ def exact_profile_scoring(rows: list[dict[str, Any]], profiles: list[dict[str, A
             point_score, quantiles = group["points"][row_index], group["quantiles"][row_index]
             output.append({
                 "forecast_id": row["forecast_id"], "canonical_player_id": row["canonical_player_id"], "model": row["model"],
+                "position_model": row["position_model"],
                 "league_id": profile["league_id"], "league_format": profile["league_format"], "profile_scoring_signature": profile["profile_scoring_signature"], "profile_fingerprint": profile["profile_fingerprint"],
                 "scored_fantasy_points": point_score, "scored_prediction_quantiles": quantiles,
                 "distribution_interpretation": "player_level_marginal_not_joint_simulation", "scoring_registry_version_sha256": scorer_hash, "research_only": True,
@@ -215,7 +217,7 @@ def exact_profile_scoring(rows: list[dict[str, Any]], profiles: list[dict[str, A
 
 
 def build_decision_traces(profiles: list[dict[str, Any]], roster_states: list[dict[str, Any]], scoring: list[dict[str, Any]], *, capture: dict[str, Any]) -> list[dict[str, Any]]:
-    """Produce counterfactual legal-choice traces or a symmetric typed blocker."""
+    """Produce exact legal offensive-lineup traces or a symmetric typed blocker."""
     by_profile: dict[str, list[dict[str, Any]]] = {}
     for row in scoring: by_profile.setdefault(str(row["league_id"]), []).append(row)
     state_by_league = {str(row.get("league_id")): row for row in roster_states}
@@ -225,21 +227,77 @@ def build_decision_traces(profiles: list[dict[str, Any]], roster_states: list[di
         state = state_by_league.get(league_id) or {}
         domain = "chopped" if "CHOPPED" in fmt else ("best_ball" if "BESTBALL" in fmt else "start_sit")
         legal_players = {str(value) for value in state.get("legal_canonical_player_ids") or []}
-        slots = int(state.get("starter_slots") or 0)
+        roster_positions = [str(value) for value in state.get("m10_roster_positions") or []]
         complete = state.get("complete") is True
         rows = by_profile.get(league_id) or []
         ids_by_model = {model: {row["forecast_id"] for row in rows if row["model"] == model and row["canonical_player_id"] in legal_players} for model in MODELS}
-        valid = complete and slots > 0 and all(ids_by_model[model] == ids_by_model["M9"] and len(ids_by_model[model]) >= slots for model in MODELS)
+        valid = complete and bool(roster_positions) and all(ids_by_model[model] == ids_by_model["M9"] for model in MODELS)
+        prepared: dict[str, dict[str, Any]] = {}
+        blocker_detail = state.get("blocker") or "M10_LEGAL_FORECAST_COHORT_INCOMPLETE"
+        if valid:
+            try:
+                for model in MODELS:
+                    legal = [row for row in rows if row["model"] == model and row["forecast_id"] in ids_by_model[model]]
+                    if not legal or len({str(row["canonical_player_id"]) for row in legal}) != len(legal):
+                        raise LineupEvidenceError("BLOCKED_EMPTY_OR_DUPLICATE_M10_CANDIDATE_COHORT")
+                    raw_values = [float(row["scored_prediction_quantiles"]["0.1"] if domain == "chopped" else row["scored_fantasy_points"]) for row in legal]
+                    offset = max(0.0, 1.0 - min(raw_values))
+                    candidates = []
+                    by_solver_id = {}
+                    for row, raw_value in zip(legal, raw_values):
+                        candidate = {
+                            "canonical_player_id": str(row["canonical_player_id"]),
+                            "position_model": str(row["position_model"]),
+                            "_m10_assignment_value": raw_value + offset,
+                            "_m10_tie_value": float(row["scored_prediction_quantiles"]["0.5"]),
+                        }
+                        candidates.append(candidate)
+                        by_solver_id[f"canonical:{row['canonical_player_id']}"] = row
+                    lineup = exact_lineup(
+                        candidates, roster_positions, value_key="_m10_assignment_value",
+                        tie_break_value_key="_m10_tie_value" if domain == "chopped" else None,
+                        root=ROOT,
+                    )
+                    if not lineup.get("complete_assignment") or len(lineup.get("assignment") or []) != len(roster_positions):
+                        raise LineupEvidenceError(f"BLOCKED_M10_OFFENSIVE_LINEUP_UNFILLABLE:{lineup.get('unfilled_slots')}")
+                    assignment = []
+                    for item in lineup["assignment"]:
+                        scored = by_solver_id[str(item["player_id"])]
+                        raw_value = float(scored["scored_prediction_quantiles"]["0.1"] if domain == "chopped" else scored["scored_fantasy_points"])
+                        assignment.append({
+                            "slot": item["slot"], "slot_index": item["slot_index"],
+                            "eligible_positions": item["eligible_positions"],
+                            "canonical_player_id": str(scored["canonical_player_id"]),
+                            "forecast_id": str(scored["forecast_id"]),
+                            "position_model": str(scored["position_model"]), "value": raw_value,
+                        })
+                    prepared[model] = {
+                        "assignment": assignment,
+                        "selected_forecast_ids": [row["forecast_id"] for row in assignment],
+                        "predicted_utility": sum(float(row["value"]) for row in assignment),
+                        "runtime_contract_sha256": lineup["runtime_contract_sha256"],
+                    }
+            except (LineupEvidenceError, KeyError, TypeError, ValueError) as exc:
+                valid = False
+                blocker_detail = str(exc)
         for model in MODELS:
             base = {"trace_id": f"{capture['season']}-{int(capture['week']):02d}-{league_id}-{domain}-{model}", "season": int(capture["season"]), "week": int(capture["week"]), "captured_at": capture["captured_at"], "domain": domain, "league_id": league_id, "league_format": fmt, "model": model, "research_only": True, "production_recommendation_changed": False}
             if not valid:
-                output.append({**base, "status": "BLOCKED_INCOMPLETE_LEGAL_ROSTER", "blocker": "INCOMPLETE_LEGAL_ROSTER_AT_CUTOFF", "legal_forecast_ids": [], "selected_forecast_ids": [], "predicted_utility": None})
+                output.append({**base, "status": "BLOCKED_INCOMPLETE_LEGAL_ROSTER", "blocker": "INCOMPLETE_LEGAL_ROSTER_AT_CUTOFF", "blocker_detail": blocker_detail, "legal_forecast_ids": [], "selected_forecast_ids": [], "predicted_utility": None})
                 continue
-            legal = [row for row in rows if row["model"] == model and row["forecast_id"] in ids_by_model[model]]
-            key = (lambda row: (-float(row["scored_prediction_quantiles"]["0.1"]), -float(row["scored_prediction_quantiles"]["0.5"]), str(row["canonical_player_id"]))) if domain == "chopped" else (lambda row: (-float(row["scored_fantasy_points"]), str(row["canonical_player_id"])))
-            chosen = sorted(legal, key=key)[:slots]
-            utility = sum(float(row["scored_prediction_quantiles"]["0.1"] if domain == "chopped" else row["scored_fantasy_points"]) for row in chosen)
-            output.append({**base, "status": "CAPTURED", "legal_forecast_ids": sorted(ids_by_model[model]), "selected_forecast_ids": [row["forecast_id"] for row in chosen], "predicted_utility": utility, "constraints_sha256": sha256_bytes(canonical_bytes({"league_id": league_id, "slots": slots, "domain": domain, "profile": profile["profile_fingerprint"]}))})
+            result = prepared[model]
+            output.append({
+                **base, "status": "CAPTURED", "legal_forecast_ids": sorted(ids_by_model[model]),
+                "selected_forecast_ids": result["selected_forecast_ids"],
+                "predicted_utility": result["predicted_utility"],
+                "assignment_method": "canonical_exact_hungarian",
+                "runtime_contract_sha256": result["runtime_contract_sha256"],
+                "m10_roster_positions": roster_positions,
+                "lineup_assignment": result["assignment"],
+                "decision_scope": "QB_RB_WR_TE_STARTER_SLOTS_ONLY",
+                "excluded_non_m10_starter_slots": list(state.get("excluded_non_m10_starter_slots") or []),
+                "constraints_sha256": sha256_bytes(canonical_bytes({"league_id": league_id, "roster_positions": roster_positions, "domain": domain, "profile": profile["profile_fingerprint"], "runtime_contract_sha256": result["runtime_contract_sha256"]})),
+            })
     return output
 
 
@@ -335,7 +393,7 @@ def fixture_raw_envelope(root: Path, observed_at: str = "2026-09-09T06:00:00+00:
         "schedule": {"season": 2026, "week": 5, "season_type": "REG", "first_kickoff_at": kickoff, "games": games},
         "completed_games": {"player_games": completed},
         "identity_snapshot": {"governed_crosswalk": True, "ambiguous_count": 0, "players": players},
-        "roster_profile_snapshot": {"enabled_league_count": 22, "profiles": profiles, "league_roster_states": [{"league_id": profile["league_id"], "complete": True, "starter_slots": 1, "legal_canonical_player_ids": [player["canonical_player_id"] for player in players]} for profile in profiles]},
+        "roster_profile_snapshot": {"enabled_league_count": 22, "profiles": profiles, "league_roster_states": [{"league_id": profile["league_id"], "complete": True, "starter_slots": 1, "m10_roster_positions": ["SUPER_FLEX"], "excluded_non_m10_starter_slots": [], "legal_canonical_player_ids": [player["canonical_player_id"] for player in players]} for profile in profiles]},
     }
     records = []
     for role, payload in payloads.items():

@@ -115,7 +115,7 @@ def validate_forecasts(rows: list[dict[str, Any]], capture: dict[str, Any]) -> N
     assert {next(row["position_model"] for row in rows if row["forecast_id"] == key) for key in paired} == set(POSITIONS)
 
 
-def validate_decisions(rows: list[dict[str, Any]], forecast_ids: set[str]) -> None:
+def validate_decisions(rows: list[dict[str, Any]], forecast_ids: set[str], *, require_exact: bool = True) -> None:
     assert rows
     grouped: dict[tuple[str, str], dict[str, tuple[str, ...]]] = {}
     for row in rows:
@@ -126,7 +126,24 @@ def validate_decisions(rows: list[dict[str, Any]], forecast_ids: set[str]) -> No
         if row.get("status") == "BLOCKED_INCOMPLETE_LEGAL_ROSTER":
             assert row.get("blocker") == "INCOMPLETE_LEGAL_ROSTER_AT_CUTOFF" and not ids and not row.get("selected_forecast_ids")
         else:
-            assert ids and set(ids) <= forecast_ids and set(row.get("selected_forecast_ids") or []) <= set(ids)
+            if not require_exact:
+                assert ids and set(ids) <= forecast_ids and set(row.get("selected_forecast_ids") or []) <= set(ids)
+                grouped.setdefault((str(row["domain"]), str(row["league_id"])), {})[model] = ids
+                continue
+            selected = [str(item) for item in row.get("selected_forecast_ids") or []]
+            assignment = row.get("lineup_assignment") or []
+            assigned = [str(item.get("forecast_id") or "") for item in assignment]
+            slots = row.get("m10_roster_positions") or []
+            assert row.get("status") == "CAPTURED" and row.get("assignment_method") == "canonical_exact_hungarian"
+            assert len(str(row.get("runtime_contract_sha256") or "")) == 64
+            assert row.get("decision_scope") == "QB_RB_WR_TE_STARTER_SLOTS_ONLY"
+            assert ids and set(ids) <= forecast_ids and set(selected) <= set(ids)
+            assert selected == assigned and len(selected) == len(set(selected)) == len(assignment) == len(slots)
+            assert [int(item["slot_index"]) for item in assignment] == list(range(len(slots)))
+            assert [str(item["slot"]) for item in assignment] == [str(slot) for slot in slots]
+            assert all(str(item.get("position_model") or "") in set(item.get("eligible_positions") or []) for item in assignment)
+            assert len({str(item.get("canonical_player_id") or "") for item in assignment}) == len(assignment)
+            assert abs(sum(float(item["value"]) for item in assignment) - float(row["predicted_utility"])) < 1e-8
         grouped.setdefault((str(row["domain"]), str(row["league_id"])), {})[model] = ids
     assert all(set(models) == set(MODELS) and len(set(models.values())) == 1 for models in grouped.values())
 
@@ -168,7 +185,7 @@ def create_operational_capture(input_manifest: Path, output_root: Path, *, score
     else:
         decisions = read_json(inputs["decision_inputs"])["decision_traces"]
         scoring = replay_scoring(forecasts, profiles, score)
-    validate_decisions(decisions, {str(row["forecast_id"]) for row in forecasts})
+    validate_decisions(decisions, {str(row["forecast_id"]) for row in forecasts}, require_exact=manifest_input.get("schema") == R8_INPUT_SCHEMA)
     write_jsonl_gzip(paths["forecasts"], forecasts)
     write_jsonl_gzip(paths["scoring"], scoring)
     write_jsonl_gzip(paths["decisions"], decisions)
