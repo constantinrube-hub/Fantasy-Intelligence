@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import tempfile
 from pathlib import Path
@@ -12,6 +13,10 @@ from fie_governance import sha256_file
 ROOT = Path(__file__).resolve().parents[1]
 LEAGUES = ROOT / "data/research/leagues"
 
+spec = importlib.util.spec_from_file_location("fie_build_dist_portability", ROOT / "tools/build_dist.py")
+dist_builder = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(dist_builder)
+
 
 with tempfile.TemporaryDirectory() as td:
     lf = Path(td) / "lf.json"
@@ -20,6 +25,18 @@ with tempfile.TemporaryDirectory() as td:
     crlf.write_bytes(b'{\r\n  "ok": true\r\n}\r\n')
     assert sha256_file(lf) == sha256_file(crlf), "JSON governance hashes must be newline-portable"
     assert sha256_file(lf) == hashlib.sha256(lf.read_bytes()).hexdigest()
+    original = crlf.read_bytes()
+    served = Path(td) / "served.json"
+    dist_builder.copy(crlf, served, governed_json=True)
+    expected = sha256_file(lf)
+    assert hashlib.sha256(served.read_bytes()).hexdigest() == expected, "browser byte hash must match source governance after a CRLF checkout"
+    assert served.read_bytes() == lf.read_bytes(), "governed copy must retain the authenticated LF JSON representation"
+    assert crlf.read_bytes() == original, "deploy copy must not mutate source evidence"
+    plain = Path(td) / "plain.json"
+    dist_builder.copy(crlf, plain)
+    assert plain.read_bytes() == original, "unrelated manifest/config copies remain byte-exact"
+    served.write_bytes(served.read_bytes().replace(b"true", b"false"))
+    assert hashlib.sha256(served.read_bytes()).hexdigest() != expected, "JSON content changes must still fail the governed digest"
 
 checked = 0
 for governance_path in sorted(LEAGUES.glob("*/governance/active_release.json")):

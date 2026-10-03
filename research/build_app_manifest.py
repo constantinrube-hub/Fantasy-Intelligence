@@ -64,6 +64,10 @@ COMPONENTS={
  'current_snapshot_storage':'research/current_snapshot_storage.py',
  'current_snapshot_deduper':'research/deduplicate_current_snapshots.py',
  'current_snapshot_storage_integrity':'research/integrity_current_storage_test.py',
+ 'workflow_decision_context':'research/workflow_decision_context.py',
+ 'workflow_decision_context_integrity':'research/integrity_workflow_decision_context_test.py',
+ 'weekly_actions_producer':'research/window1c_weekly_actions.py',
+ 'optimal_waiver_producer':'research/window1d_optimal_waiver.py',
  'league_app_snapshot_builder':'research/build_league_app_snapshots.py',
  'league_fast_switch_integrity':'research/integrity_league_fast_switch_test.py',
  'league_fast_switch_runtime_integrity':'research/integrity_league_fast_switch_runtime_test.js',
@@ -109,5 +113,5 @@ def build():
   files[name]={'path':rel,'sha256':sha(p),'bytes':p.stat().st_size}
  return {'schema_version':2,'app_version':release['release'],'runtime_version':release['runtime'],'draft_model_version':release['decision_model'],'value_finder_version':release['value_finder'],'research_generation':release['research_schema'],'model_promotion':json.loads((ROOT/'config/model-config.json').read_text()).get('production',{}),'runtime_research_scope':'league_namespaced_only','generated_at':release_timestamp(release),'files':files}
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--output',default='config/build-manifest.json');a=ap.parse_args();out=ROOT/a.output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(build(),indent=2)+'\n');print(out.relative_to(ROOT))
+ ap=argparse.ArgumentParser();ap.add_argument('--output',default='config/build-manifest.json');a=ap.parse_args();out=ROOT/a.output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(build(),indent=2)+'\n', encoding='utf-8', newline='\n');print(out.relative_to(ROOT))
 if __name__=='__main__':main()
