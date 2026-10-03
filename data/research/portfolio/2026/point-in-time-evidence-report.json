@@ -1768,6 +1768,29 @@
         "target_time_eligibility": "Preseason market evidence is eligible only for its recorded observed-at/as-of date; it is not a historical forecast reconstruction."
       }
     },
+    "sunday_paired_benchmark": {
+      "capture_count_with_timestamp": 0,
+      "completed_historical_seasons": [],
+      "coverage_as_of_values": [],
+      "coverage_status": "NO_CAPTURED_EVIDENCE",
+      "coverage_years": [],
+      "first_captured_at": null,
+      "immutable_first_write_count": 0,
+      "latest_capture_age_days_at_report_reference": null,
+      "latest_captured_at": null,
+      "metadata_complete_count": 0,
+      "metadata_incomplete_count": 0,
+      "records": [],
+      "snapshot_count": 0,
+      "source_contract": {
+        "display_name": "Sleeper Sunday Paired Benchmark",
+        "endpoint_template": "https://api.sleeper.com/projections/nfl/{season}/{week}?season_type=regular",
+        "provider": "Sleeper",
+        "release_cadence": "Sunday main-slate T-6 paired checkpoint",
+        "revision_policy": "The exact observed response is immutably first-written and hash-bound to the paired M10 checkpoint.",
+        "target_time_eligibility": "Eligible only for remaining-slate identities at the actual Sunday checkpoint; missing provider rows are never reconstructed or imputed."
+      }
+    },
     "weekly_market_benchmark": {
       "capture_count_with_timestamp": 4,
       "completed_historical_seasons": [],
@@ -1903,6 +1926,6 @@
     "metadata_complete_count": 58,
     "metadata_incomplete_count": 15,
     "snapshot_count": 73,
-    "source_count": 3
+    "source_count": 4
   }
 }

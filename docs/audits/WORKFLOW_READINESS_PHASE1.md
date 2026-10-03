@@ -66,7 +66,7 @@ Counts are source rows before identity deduplication, not unique players. Model-
 - The seven profile blocks are Dynasty Prime, Stoned Lack IDP Dynasty 39, Stoned Lack Bestball Dynasty 4, Stoned Lack Dynasty 30, Stoned Lack Bestball Dynasty 3, MinusPPR Knockout, and Guillotine - last team standing. Their captured differences concern waiver scheduling or explicit `best_ball: 0`. Replaying all seven captured differences passes the canonical research contract after the repair. A repeat live portfolio probe encountered endpoint timeouts and was stopped; post-repair live recommendation counts are not asserted from that replay.
 - Profile repair does not create eligible projections or promote models. The 13 observed projection blocks, zero governed offensive waiver coverage across the stored snapshots, and the two disabled-adds results remain follow-up evidence. Forecast quality, legality and actual actionable candidate coverage require their own checks.
 - Next repair boundary: diagnose governed offense/format/next-three-week projection eligibility without bypassing promotion/scoring gates; then implement waiver reconciliation/cadence and IDP/K availability capture.
-- Sunday M10/Sleeper checkpoints, legal M10 roster traces, the four manual workflow schedules, blackout enforcement, app integration, individual trench/Vegas sources and model extensions remain later plan items.
+- Sunday M10/Sleeper checkpoint collection is implemented in the later section below. Legal M10 roster traces, the remaining manual workflow schedules, app integration, individual trench/Vegas sources and model extensions remain later plan items; the repository-wide blackout controller is already implemented.
 
 ## Offensive waiver investigation — 3 October follow-up
 
@@ -213,24 +213,48 @@ protection/token policy failures stop before disabling anything if the receipt
 cannot first be published. October validation exercises a fake Actions client
 and a read-only public API dry run; it does not pause the real repository.
 
-### Remaining clean design boundary
+### Sunday M10/Sleeper paired checkpoint implementation
 
-The Sunday checkpoint methodology is now defined by
+The Sunday checkpoint methodology is defined by
 `M10_SUNDAY_PAIRED_CHECKPOINT_DESIGN.md` and
 `config/m10-sunday-paired-checkpoint-design.json`. It preserves the immutable
 week-open capture and adds a separate `SUNDAY_MAIN_T6` identity around 07:00 New
-York, with a remaining-slate cohort and a coordinated Sleeper binding. Code and
-scheduling remain the next implementation phase and must follow the committed
-design contract. Preseason dynasty-only waiver scope and lightweight roster/profile
-sync also remain future collection work; the current full refresh is not relabeled
-as a cheap preseason sync.
+York, with a remaining-slate cohort and a coordinated Sleeper binding.
+
+`capture-fie-sunday-paired-checkpoint.yml` polls every 30 minutes from 07:00
+through 09:30 New York on Sundays in August through January. The shared calendar
+policy still controls the real season window and the January 12–April 25 global
+blackout. The writer opens at main-slate T-6 and closes at T-4.5, records actual
+observation times, excludes games less than 30 minutes away, and writes only on
+`main`. A pre-window poll is a no-op; a late poll or a week without a qualifying
+main slate gets an immutable typed miss. Queue delays can still cause a miss.
+
+The coordinated writer reuses the frozen 2026 M10 lock and excludes all target-
+week realized statistics. It writes all three M9/M10 identities under the
+additive checkpoint namespace, preserves the raw Sleeper response, scores only
+the resolved intersection through all captured league profiles, and binds both
+ledgers to the same schedule hash. Missing Sleeper rows remain typed exclusions
+and are never imputed. The optional Sunday-minus-week-open delta is written only
+when the immutable canonical week-open capture exists; it never changes that
+capture.
+
+First writes are immutable. Identical retries are no-ops, divergent retries fail
+closed, and source observations more than ten minutes apart are rejected before
+a paired manifest is written. A path allowlist permits only the three additive
+checkpoint trees and the derived point-in-time inventory. App/runtime data,
+ranks, recommendations, model selection and promotion remain unchanged.
+
+Preseason dynasty-only waiver scope and lightweight roster/profile sync remain
+future collection work; the current full refresh is not relabeled as a cheap
+preseason sync.
 
 ### Validation and Windows handoff
 
 Run `research/integrity_workflow_season_calendar_test.py` for fourteen no-network
-calendar/transition scenarios, plus lifecycle target, existing waiver, availability
-and M10 capture preservation checks. Full personal release closure now has 58
-checks. Workflow YAML and Bash blocks are parsed/checked separately.
+calendar/transition scenarios, plus the Sunday paired-checkpoint fixture,
+lifecycle target, existing waiver, availability and M10 capture preservation
+checks. Full personal release closure now has 60 checks. Workflow YAML and Bash
+blocks are parsed/checked separately.
 The distribution patch omits generated manifests/release gate and the mutable
 point-in-time inventory; the handoff rebuilds them locally. It uses the existing
 Python environment, repairs only byte-proven CRLF leftovers in the three known

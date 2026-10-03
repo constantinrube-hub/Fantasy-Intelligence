@@ -20,7 +20,7 @@
       "cmd": "C:\\Users\\User\\AppData\\Local\\FIE\\workflow-readiness-python312\\Scripts\\python.exe research/integrity_v932_build_determinism_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "Normalized 9 deployment/manifest input files to LF before hashing\nNormalized 112 deployment/manifest input files to LF before hashing\nPASS V9.3.2 deterministic build manifest\n",
+      "stdout": "Normalized 9 deployment/manifest input files to LF before hashing\nNormalized 116 deployment/manifest input files to LF before hashing\nPASS V9.3.2 deterministic build manifest\n",
       "stderr": ""
     },
     {
@@ -119,13 +119,20 @@
       "ok": true,
       "code": 0,
       "stdout": "",
-      "stderr": "..............\n----------------------------------------------------------------------\nRan 14 tests in 0.051s\n\nOK\n"
+      "stderr": "..............\n----------------------------------------------------------------------\nRan 14 tests in 0.044s\n\nOK\n"
     },
     {
       "cmd": "C:\\Users\\User\\AppData\\Local\\FIE\\workflow-readiness-python312\\Scripts\\python.exe research/integrity_m10_sunday_checkpoint_design.py",
       "ok": true,
       "code": 0,
       "stdout": "PASS Sunday paired-checkpoint design: additive T-6 identity, time-safe cohort and M9 governance\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "C:\\Users\\User\\AppData\\Local\\FIE\\workflow-readiness-python312\\Scripts\\python.exe research/integrity_m10_sunday_paired_checkpoint_test.py",
+      "ok": true,
+      "code": 0,
+      "stdout": "M10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-3m4vu88n\\m10\\forecasts\\2026\\week_05\\capture-manifest.json\nM10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-84zd2yau\\m10\\forecasts\\2026\\week_05\\capture-manifest.json\nPASS Sunday paired checkpoint (timing, cohort, pairing, scoring, drift, first-write, partial-failure, write allowlist)\n",
       "stderr": ""
     },
     {
@@ -349,7 +356,7 @@
       "cmd": "C:\\Users\\User\\AppData\\Local\\FIE\\workflow-readiness-python312\\Scripts\\python.exe research/integrity_tranche5c_documentation_lifecycle.py --mode target",
       "ok": true,
       "code": 0,
-      "stdout": "TARGET_GAP_CLOSED documentation and workflow lifecycle ownership are explicit\n{\"active_controlled_workflows\": [], \"canonical_documents_present\": {\"CHANGELOG.md\": true, \"README.md\": true, \"docs/current/ARCHITECTURE.md\": true, \"docs/current/DATA_CONTRACTS.md\": true, \"docs/current/DEPLOYMENT.md\": true, \"docs/current/MODEL_GOVERNANCE.md\": true, \"docs/current/RELEASE_CHECKLIST.md\": true, \"docs/current/SECURITY.md\": true, \"docs/current/TESTING.md\": true}, \"completed_tranche_push_workflows\": [], \"explicit_tranche4_disposition\": [\"docs/audits/TRANCHE4_DISPOSITION.md\"], \"lifecycle_contract_present\": true, \"mode\": \"target\", \"root_legacy_document_count\": 3, \"root_legacy_documents\": [\"APPLY_INSTRUCTIONS.md\", \"APPLY_V975.md\", \"RELEASE_NOTES_V9.3.4A3.md\"], \"scheduled_workflows\": [\"build-fie-current.yml\", \"build-fie-window1c-weekly-actions.yml\", \"build-fie-window1d-optimal-waiver.yml\", \"build-fie-window2a-trench-evidence.yml\", \"capture-fie-availability.yml\", \"capture-fie-m10-prospective.yml\", \"capture-fie-market.yml\", \"capture-fie-season-market.yml\", \"capture-fie-waiver-evidence.yml\", \"capture-fie-weather-evidence.yml\", \"control-fie-workflow-calendar.yml\"], \"versioned_current_document_count\": 1, \"versioned_current_documents\": [\"V9.3.4A3-SCORE-FIX.md\"], \"workflow_count\": 97}\n",
+      "stdout": "TARGET_GAP_CLOSED documentation and workflow lifecycle ownership are explicit\n{\"active_controlled_workflows\": [], \"canonical_documents_present\": {\"CHANGELOG.md\": true, \"README.md\": true, \"docs/current/ARCHITECTURE.md\": true, \"docs/current/DATA_CONTRACTS.md\": true, \"docs/current/DEPLOYMENT.md\": true, \"docs/current/MODEL_GOVERNANCE.md\": true, \"docs/current/RELEASE_CHECKLIST.md\": true, \"docs/current/SECURITY.md\": true, \"docs/current/TESTING.md\": true}, \"completed_tranche_push_workflows\": [], \"explicit_tranche4_disposition\": [\"docs/audits/TRANCHE4_DISPOSITION.md\"], \"lifecycle_contract_present\": true, \"mode\": \"target\", \"root_legacy_document_count\": 3, \"root_legacy_documents\": [\"APPLY_INSTRUCTIONS.md\", \"APPLY_V975.md\", \"RELEASE_NOTES_V9.3.4A3.md\"], \"scheduled_workflows\": [\"build-fie-current.yml\", \"build-fie-window1c-weekly-actions.yml\", \"build-fie-window1d-optimal-waiver.yml\", \"build-fie-window2a-trench-evidence.yml\", \"capture-fie-availability.yml\", \"capture-fie-m10-prospective.yml\", \"capture-fie-market.yml\", \"capture-fie-season-market.yml\", \"capture-fie-sunday-paired-checkpoint.yml\", \"capture-fie-waiver-evidence.yml\", \"capture-fie-weather-evidence.yml\", \"control-fie-workflow-calendar.yml\"], \"versioned_current_document_count\": 1, \"versioned_current_documents\": [\"V9.3.4A3-SCORE-FIX.md\"], \"workflow_count\": 98}\n",
       "stderr": ""
     },
     {

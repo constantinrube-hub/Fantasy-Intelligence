@@ -8,9 +8,9 @@ coordinated run around 07:00 New York time, six hours before the normal 13:00
 Sunday main slate. It does not replace or modify the immutable
 `WEEK_OPEN_FIRST_KICKOFF` capture. M9 remains the production model.
 
-This is the required methodology boundary before implementation. The executable
-contract is `config/m10-sunday-paired-checkpoint-design.json`. Implementation
-may add storage and scheduling only after this design commit exists. It cannot
+This document was the required methodology boundary before implementation. The
+executable contract is `config/m10-sunday-paired-checkpoint-design.json`. The
+implemented storage and schedule follow that committed contract. They cannot
 change model parameters, features, selection, app output, ranks or promotion.
 
 ## Why the week-open capture remains necessary
@@ -117,14 +117,14 @@ exclusions. Existing row and temporal-period thresholds in
 `research/decision_validation_contract.json` remain authoritative. Operational
 success or a better Sunday point estimate cannot promote a model or checkpoint.
 
-## Implementation boundary
+## Implemented boundary
 
-The next implementation may add additive schema fields, timing and cohort
-helpers, deterministic fixtures, validators, coordinated storage and the Sunday
-workflow. It must prove DST-safe New York timing, international/started-game
-exclusion, exact M9/M10 pairing, missing Sleeper behavior, shared schedule
-binding, source drift, retry collisions, missed windows and preservation of the
-week-open archive before scheduling reaches `main`.
+The implementation adds timing and cohort helpers, deterministic fixtures,
+validators, coordinated storage and a main-only Sunday workflow. Its no-network
+tests prove DST-safe New York timing, international/started-game exclusion,
+exact M9/M10 pairing, missing Sleeper behavior, shared schedule binding, source
+drift, retry collisions, missed windows, exact profile replay and preservation
+of the week-open archive.
 
 No app/runtime integration, recommendation change, model selection, feature or
 parameter change, ensemble, historical reconstruction or automatic promotion is
