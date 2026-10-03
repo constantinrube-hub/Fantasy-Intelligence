@@ -31,6 +31,7 @@ def main():
   run([sys.executable,'research/integrity_waiver_capture_reconciliation_test.py']),
   run([sys.executable,'research/integrity_availability_capture_test.py']),
   run([sys.executable,'research/integrity_workflow_season_calendar_test.py']),
+  run([sys.executable,'research/integrity_m10_sunday_checkpoint_design.py']),
   run(['node','research/integrity_monte_carlo_worker_test.js']),
   run([sys.executable,'research/integrity_decision_engines_test.py']),
   run([sys.executable,'research/integrity_v89_test.py']),

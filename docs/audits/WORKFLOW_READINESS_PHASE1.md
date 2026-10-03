@@ -215,12 +215,13 @@ and a read-only public API dry run; it does not pause the real repository.
 
 ### Remaining clean design boundary
 
-Sunday T-minus-six-hour M10 checkpoints are not implemented in this tranche.
-The existing writer enforces one frozen first-kickoff capture per week. A second
-checkpoint changes capture identity and the matched evaluation protocol; the
-Sol design must first be documented and committed under CODEX_MODEL_ROUTING.md.
-A Sunday Sleeper companion checkpoint should follow that same committed identity
-contract. Preseason dynasty-only waiver scope and lightweight roster/profile
+The Sunday checkpoint methodology is now defined by
+`M10_SUNDAY_PAIRED_CHECKPOINT_DESIGN.md` and
+`config/m10-sunday-paired-checkpoint-design.json`. It preserves the immutable
+week-open capture and adds a separate `SUNDAY_MAIN_T6` identity around 07:00 New
+York, with a remaining-slate cohort and a coordinated Sleeper binding. Code and
+scheduling remain the next implementation phase and must follow the committed
+design contract. Preseason dynasty-only waiver scope and lightweight roster/profile
 sync also remain future collection work; the current full refresh is not relabeled
 as a cheap preseason sync.
 
