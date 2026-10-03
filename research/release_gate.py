@@ -33,6 +33,7 @@ def main():
   run([sys.executable,'research/integrity_workflow_season_calendar_test.py']),
   run([sys.executable,'research/integrity_m10_sunday_checkpoint_design.py']),
   run([sys.executable,'research/integrity_m10_sunday_paired_checkpoint_test.py'],timeout=180),
+  run([sys.executable,'research/integrity_m10_legal_roster_assignment_test.py']),
   run(['node','research/integrity_monte_carlo_worker_test.js']),
   run([sys.executable,'research/integrity_decision_engines_test.py']),
   run([sys.executable,'research/integrity_v89_test.py']),
@@ -74,6 +75,8 @@ def main():
   run(['node','research/integrity_top100_optimizer_runtime_test.js']),
  ]
  # Hygiene: release output only and no backup/cache files.
+ for d in ROOT.rglob('__pycache__'):
+  if d.is_dir(): shutil.rmtree(d,ignore_errors=True)
  bad=[str(p.relative_to(ROOT)) for p in ROOT.rglob('*') if p.is_file() and ('.pre_' in p.name or p.suffix in {'.pyc','.pyo'} or '__pycache__' in p.parts)]
  checks.append({'cmd':'artifact hygiene','ok':not bad,'stderr':'\n'.join(bad[:100]),'stdout':''})
  dist=ROOT/'dist'; forbidden=[]

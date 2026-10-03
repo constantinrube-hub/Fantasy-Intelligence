@@ -66,7 +66,7 @@ Counts are source rows before identity deduplication, not unique players. Model-
 - The seven profile blocks are Dynasty Prime, Stoned Lack IDP Dynasty 39, Stoned Lack Bestball Dynasty 4, Stoned Lack Dynasty 30, Stoned Lack Bestball Dynasty 3, MinusPPR Knockout, and Guillotine - last team standing. Their captured differences concern waiver scheduling or explicit `best_ball: 0`. Replaying all seven captured differences passes the canonical research contract after the repair. A repeat live portfolio probe encountered endpoint timeouts and was stopped; post-repair live recommendation counts are not asserted from that replay.
 - Profile repair does not create eligible projections or promote models. The 13 observed projection blocks, zero governed offensive waiver coverage across the stored snapshots, and the two disabled-adds results remain follow-up evidence. Forecast quality, legality and actual actionable candidate coverage require their own checks.
 - Next repair boundary: diagnose governed offense/format/next-three-week projection eligibility without bypassing promotion/scoring gates; then implement waiver reconciliation/cadence and IDP/K availability capture.
-- Sunday M10/Sleeper checkpoint collection is implemented in the later section below. Legal M10 roster traces, the remaining manual workflow schedules, app integration, individual trench/Vegas sources and model extensions remain later plan items; the repository-wide blackout controller is already implemented.
+- Sunday M10/Sleeper checkpoint collection and legal M10 roster traces are implemented in the later sections below. The remaining manual workflow schedules, app integration, individual trench/Vegas sources and model extensions remain later plan items; the repository-wide blackout controller is already implemented.
 
 ## Offensive waiver investigation — 3 October follow-up
 
@@ -248,12 +248,34 @@ Preseason dynasty-only waiver scope and lightweight roster/profile sync remain
 future collection work; the current full refresh is not relabeled as a cheap
 preseason sync.
 
+### Canonical M10 legal-roster decisions
+
+The weekly and Sunday M10 source envelopes now bind the configured user's
+managed Sleeper roster to the captured current NFL identity snapshot. Numeric
+Sleeper IDs coerced by CSV transport, such as `10859.0`, are normalized to the
+provider's `10859` identity; there is no player-name fallback. Each league also
+binds the target season/week, current snapshot, verified app core, profile
+fingerprint and scoring signature. Missing, stale, empty, drifted or unresolved
+evidence writes a typed league blocker while the common raw forecast archive is
+still retained.
+
+Decision traces use the canonical runtime roster-slot contract and the existing
+deterministic Hungarian maximum-weight solver. This replaces the former top-N
+selection and respects repeated QB/RB/WR/TE, FLEX, receiver flex and SUPER_FLEX
+slots. Chopped leagues optimize P10 with P50 as a deterministic secondary
+value; other formats optimize exact league-scored mean points. K, D/ST and IDP
+starter slots and roster players are explicitly recorded as outside the
+QB/RB/WR/TE M10 experiment rather than counted as missing evidence. All three
+model identities share one legal cohort and either produce complete assignments
+or receive the same blocker. M9 production, app/runtime behavior, canonical
+rankings, lineup execution and model promotion remain unchanged.
+
 ### Validation and Windows handoff
 
 Run `research/integrity_workflow_season_calendar_test.py` for fourteen no-network
 calendar/transition scenarios, plus the Sunday paired-checkpoint fixture,
 lifecycle target, existing waiver, availability and M10 capture preservation
-checks. Full personal release closure now has 60 checks. Workflow YAML and Bash
+checks. Full personal release closure now has 61 checks. Workflow YAML and Bash
 blocks are parsed/checked separately.
 The distribution patch omits generated manifests/release gate and the mutable
 point-in-time inventory; the handoff rebuilds them locally. It uses the existing

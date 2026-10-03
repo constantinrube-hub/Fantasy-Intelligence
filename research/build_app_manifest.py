@@ -74,6 +74,7 @@ COMPONENTS={
  'm10_sunday_checkpoint_design_integrity':'research/integrity_m10_sunday_checkpoint_design.py',
  'm10_sunday_checkpoint_capture':'research/capture_fie_sunday_paired_checkpoint.py',
  'm10_sunday_checkpoint_integrity':'research/integrity_m10_sunday_paired_checkpoint_test.py',
+ 'm10_legal_roster_assignment_integrity':'research/integrity_m10_legal_roster_assignment_test.py',
  'm10_sunday_checkpoint_write_validator':'research/validate_sunday_paired_checkpoint_write_plan.py',
  'm10_sunday_checkpoint_workflow':'.github/workflows/capture-fie-sunday-paired-checkpoint.yml',
  'workflow_season_calendar':'research/workflow_season_calendar.py',

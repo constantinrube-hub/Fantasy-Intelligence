@@ -24,7 +24,7 @@ import pandas as pd
 from build_current_snapshot import score_sleeper_projection
 from capture_m10_prospective_weekly_raw import (
     GAMES_URL, STATE_URL, _completed_game_responses, _fetch, _number, _profile_payload,
-    _record, current_roster_identity,
+    _record, attach_sleeper_identity, current_roster_identity, normalize_sleeper_id,
 )
 from fie_research import SOURCE_TEMPLATES, build_identity, normalize_position
 from m10_prospective_capture_contract import (
@@ -162,12 +162,7 @@ def _normalized_history(stats: pd.DataFrame, players: pd.DataFrame, *, season: i
 
 
 def _identity_with_sleeper(rosters: pd.DataFrame, players: pd.DataFrame, *, season: int, week: int) -> dict[str, Any]:
-    result = current_roster_identity(rosters, season=season, week=week)
-    identity, _ = build_identity(players)
-    sleeper = {str(row.canonical_player_id): str(row.sleeper_id) for row in identity.dropna(subset=["canonical_player_id", "sleeper_id"]).itertuples() if str(row.sleeper_id).strip()}
-    for row in result["players"]: row["sleeper_id"] = sleeper.get(str(row["canonical_player_id"]))
-    result["sleeper_identity_resolved"] = sum(bool(row.get("sleeper_id")) for row in result["players"])
-    return result
+    return attach_sleeper_identity(current_roster_identity(rosters, season=season, week=week), players)
 
 
 def build_live_raw(output: Path, *, season: int, week: int, games_response: dict[str, Any], state_response: dict[str, Any], decision: dict[str, Any]) -> tuple[Path, dict[str, str]]:
@@ -191,12 +186,12 @@ def build_live_raw(output: Path, *, season: int, week: int, games_response: dict
     write_json(schedule_path, {"season": season, "week": week, "season_type": "REG", "first_kickoff_at": live_decision["anchor_at"], "checkpoint_id": CHECKPOINT_ID, "games": live_decision["eligible_games"], "excluded_games": live_decision["excluded_games"]})
     completed_path = output / "completed-games.json"; write_json(completed_path, {"player_games": history.to_dict("records"), "target_week_realised_stats_excluded": True})
     identity_path = output / "identity-snapshot.json"; write_json(identity_path, identity)
-    profiles_path = output / "roster-profile-snapshot.json"; write_json(profiles_path, _profile_payload())
+    profiles_path = output / "roster-profile-snapshot.json"; write_json(profiles_path, _profile_payload(identity, season=season, week=week))
     records = [_record("schedule", schedule_path, observed, [state_response, games_response]), _record("completed_games", completed_path, observed, completed_responses), _record("identity_snapshot", identity_path, observed, [players_response, rosters_response]), _record("roster_profile_snapshot", profiles_path, observed, [])]
-    records[-1]["source_identity"] = "governed repository league profiles"; records[-1]["release_or_etag"] = "NOT_APPLICABLE_LOCAL_GOVERNED_STATE"; records[-1]["response_files"] = [{"path": profiles_path.name, "sha256": sha256_file(profiles_path)}]
+    records[-1]["source_identity"] = "governed league profiles plus verified current/app roster evidence"; records[-1]["release_or_etag"] = "NOT_APPLICABLE_LOCAL_GOVERNED_STATE"; records[-1]["response_files"] = [{"path": profiles_path.name, "sha256": sha256_file(profiles_path)}]
     manifest = output / "raw-envelope.json"
     write_json(manifest, {"schema": RAW_SCHEMA, "fixture": False, "research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "runtime_integration": False, "shadow_integration": False, "automatic_promotion": False, "historical_reconstruction": False, "checkpoint_id": CHECKPOINT_ID, "capture": {"season": season, "week": week, "observed_at": observed, "first_kickoff_at": live_decision["anchor_at"], "hours_before_first_kickoff": live_decision["hours_before_anchor"]}, "source_records": records})
-    mapping = {str(row["sleeper_id"]): str(row["canonical_player_id"]) for row in identity["players"] if row.get("sleeper_id")}
+    mapping = {normalize_sleeper_id(row["sleeper_id"]): str(row["canonical_player_id"]) for row in identity["players"] if normalize_sleeper_id(row.get("sleeper_id"))}
     return manifest, mapping
 
 
@@ -207,7 +202,7 @@ def _sleeper_ledgers(raw_payload: bytes, *, season: int, week: int, observed_at:
     by_canonical: dict[str, list[dict[str, Any]]] = defaultdict(list); reasons = Counter()
     supported_rows = 0; identity_resolved = 0
     for row in provider:
-        sid = str(row.get("player_id") or (row.get("player") or {}).get("player_id") or "")
+        sid = normalize_sleeper_id(row.get("player_id") or (row.get("player") or {}).get("player_id"))
         position = normalize_position((row.get("player") or {}).get("position"))
         if not sid: reasons["MISSING_SLEEPER_ID"] += 1; continue
         if position not in POSITIONS: reasons["UNSUPPORTED_POSITION"] += 1; continue
