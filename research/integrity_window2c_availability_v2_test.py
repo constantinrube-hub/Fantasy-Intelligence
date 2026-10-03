@@ -66,6 +66,8 @@ def main() -> None:
             {"sleeper_id":"a4","full_name":"RB Four","team":"AAA","position_model":"RB","status":"Inactive","depth_chart_order":4},
             {"sleeper_id":"b1","full_name":"RB Other","team":"BBB","position_model":"RB","status":"Active","depth_chart_order":1},
             {"sleeper_id":"a5","full_name":"WR Q","team":"AAA","position_model":"WR","status":"Active","injury_status":"Questionable","depth_chart_order":1},
+            {"sleeper_id":"k1","team":"AAA","position_model":"K","injury_status":"Out"},
+            {"sleeper_id":"lb1","team":"AAA","position_model":"LB","injury_status":"Out"},
         ]
         old = write_snapshot(root, "2026-09-05T12:00:00+00:00", base_rows)
         # A post-kickoff capture contains contradictory evidence and must never be selected.
@@ -82,6 +84,7 @@ def main() -> None:
             schedule_binding={"status":"FIXTURE"},
         )
         by_id = {row["sleeper_id"]: row for row in payload["players"]}
+        assert 'k1' not in by_id and 'lb1' not in by_id, 'New raw capture rows must not expand offensive redistribution methodology'
         # 7–11 point-in-time and governance.
         check("latest eligible snapshot is pre-kickoff", by_id["a1"]["evidence_source_path"].endswith(old.name))
         check("post-kickoff snapshot rejected", not by_id["a1"]["evidence_source_path"].endswith(post.name))

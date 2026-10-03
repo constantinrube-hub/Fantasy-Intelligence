@@ -11,6 +11,7 @@ import argparse
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from capture_fie_availability import CONTRACT as AVAILABILITY_CONTRACT, validate_capture
 
 from fie_research_pipeline_contract import ROOT, canonical_bytes, load_json, sha256_bytes, sha256_file, write_json
 
@@ -51,7 +52,7 @@ SOURCE_CONTRACTS: dict[str, dict[str, Any]] = {
     "availability": {
         "provider": "Sleeper",
         "endpoint_template": "https://api.sleeper.app/v1/players/nfl",
-        "release_cadence": "daily scheduled prospective capture",
+        "release_cadence": "daily scheduled prospective capture, September through January 10",
         "revision_policy": "Provider release/revision identifiers are not exposed by this endpoint; the exact observed response is immutably first-written and SHA-256 recorded.",
         "target_time_eligibility": "Availability evidence is eligible only for its recorded observed-at/as-of date; it does not backfill historical injury or depth-chart states.",
     },
@@ -136,6 +137,8 @@ def records_for(kind: str, spec: dict[str, str]) -> list[dict[str, Any]]:
         snapshot = snapshot_path_for(meta_path)
         if not snapshot.is_file():
             raise ValueError(f"missing immutable snapshot for sidecar: {relative(meta_path)}")
+        if kind == 'availability' and raw.get('capture_contract') == AVAILABILITY_CONTRACT:
+            validate_capture(snapshot)
         records.append({
             "snapshot_path": relative(snapshot),
             "sidecar_path": relative(meta_path),
@@ -148,6 +151,8 @@ def records_for(kind: str, spec: dict[str, str]) -> list[dict[str, Any]]:
             "immutable_first_write": bool(raw.get("immutable_first_write") is True or raw.get("first_write_policy") is True),
             "pregame_eligible": raw.get("pregame_eligible"),
             "metadata": metadata_view(raw, spec["source_role"]),
+            **({"coverage": raw['coverage'], "source_archive": relative(snapshot.parent / raw['source_archive']),
+                "source_archive_sha256": raw['source_archive_sha256']} if kind == 'availability' and raw.get('capture_contract') == AVAILABILITY_CONTRACT else {}),
         })
     return records
 
@@ -192,6 +197,8 @@ def build_report() -> dict[str, Any]:
     for summary in sources.values():
         for record in summary["records"]:
             inputs.extend([record["snapshot_path"], record["sidecar_path"]])
+            if record.get('source_archive'):
+                inputs.append(record['source_archive'])
     return {
         "schema": SCHEMA,
         "schema_version": 1,

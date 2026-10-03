@@ -4,7 +4,10 @@ on:
   workflow_dispatch:
   schedule:
     # Prospective evidence cannot be reconstructed cleanly after the fact.
-    - cron: "29 8 * * *"
+    - cron: "29 8 * 9-12 *"
+      timezone: "Europe/Berlin"
+    - cron: "29 8 1-10 1 *"
+      timezone: "Europe/Berlin"
 
 permissions:
   contents: write
@@ -15,30 +18,60 @@ concurrency:
 
 jobs:
   capture:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Check automatic season window
+        id: capture_policy
+        if: github.event_name == 'schedule'
+        run: python research/capture_fie_availability.py --schedule-check >> "$GITHUB_OUTPUT"
       - name: Verify capture contract
+        if: steps.capture_policy.outputs.capture_allowed != 'false'
         run: |
+          python research/integrity_availability_capture_test.py
           python research/capture_fie_availability.py --fixture --output-root /tmp/fie-availability
       - name: Capture immutable availability evidence
+        if: steps.capture_policy.outputs.capture_allowed != 'false'
         run: |
-          python research/capture_fie_availability.py --output-root data/research/availability/sleeper
+          args=()
+          if [ "${{ github.event_name }}" = "schedule" ]; then args+=(--automatic); fi
+          python research/capture_fie_availability.py --output-root data/research/availability/sleeper --output-index .cache/availability-output.json "${args[@]}"
           python research/build_fie_point_in_time_evidence_report.py
           python research/validate_fie_point_in_time_evidence_report.py --verify-deterministic
+      - name: Summarize exact availability capture
+        if: steps.capture_policy.outputs.capture_allowed != 'false'
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          result = json.loads(Path('.cache/availability-output.json').read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as handle:
+              handle.write(f"Availability capture: {result['capture_status']}\n\n")
+              handle.write(f"Snapshot: `{result.get('snapshot_path', 'none')}`\n\n")
+              for group, values in result.get('coverage', {}).items():
+                  handle.write(f"- {group}: {values['rows']} rows; {values['rows_with_team']} with team; {values['rows_with_injury_status']} with injury status\n")
+              handle.write('\nMissing provider fields remain unknown. No playing probabilities or model adjustments.\n')
+          PY
       - name: Commit first-write evidence
+        if: steps.capture_policy.outputs.capture_allowed != 'false'
         run: |
           git config user.name "FIE Availability Evidence Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/research/availability/sleeper data/research/portfolio/2026/point-in-time-evidence-report.json || true
+          git add data/research/availability/sleeper data/research/portfolio/2026/point-in-time-evidence-report.json
           if git diff --cached --quiet; then echo "Today's immutable availability snapshot already exists"; exit 0; fi
           git commit -m "Capture FIE daily availability evidence"
           git fetch origin main
           git rebase origin/main
-          git push origin HEAD:main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
