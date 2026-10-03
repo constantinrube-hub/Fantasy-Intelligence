@@ -1,0 +1,34 @@
+{
+  "schema": "fie-workflow-season-calendar-v1",
+  "timezone": "Europe/Berlin",
+  "blackout": {"start": "01-12", "end": "04-25"},
+  "availability": {"start": "09-01", "end": "01-10"},
+  "warmup_days": 7,
+  "closeout_end": "01-11",
+  "seasons": {
+    "2026": {
+      "draft_last_day_eastern": "2026-04-25",
+      "first_kickoff_at": "2026-09-10T00:20:00+00:00",
+      "kickoff_source": "data/research/context/weather/2026/week_01/20260907T075758556862Z/schedule-source-envelope.json"
+    },
+    "2027": {
+      "draft_last_day_eastern": "2027-05-01",
+      "draft_source": "https://operations.nfl.com/calendar-events/nfl-important-dates",
+      "first_kickoff_at": null,
+      "kickoff_source": null
+    }
+  },
+  "purposes": ["current_refresh", "m10", "weekly_benchmark", "season_market", "availability", "waivers", "weather", "weekly_actions", "optimal_waiver", "trench"],
+  "preseason_supported": ["season_market"],
+  "preseason_pending": {
+    "current_refresh": "lightweight profile/roster sync not implemented; full rebuild remains warmup/season only",
+    "waivers": "dynasty-only preseason scope requires season-specific league onboarding; regular collection stays September-January"
+  },
+  "literal_blackout": {
+    "controller": "control-fie-workflow-calendar.yml",
+    "pause": "January 11, 20:17 Berlin",
+    "resume": "April 26, 08:17 Berlin",
+    "method": "disable repository workflows via Actions API, retaining only controller; restore only previously active workflow IDs",
+    "manual_during_pause": "controller status/repair operations and local CLI validation remain available; disabled workflows cannot be dispatched"
+  }
+}

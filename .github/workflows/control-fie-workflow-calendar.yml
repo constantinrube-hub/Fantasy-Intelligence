@@ -1,0 +1,55 @@
+name: Control FIE Seasonal Workflow Pause
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: status is read-only; pause/resume are date-restricted repair operations
+        type: choice
+        default: status
+        options: [status, pause, resume]
+  schedule:
+    - cron: '17 20 11 1 *'
+      timezone: Europe/Berlin
+    - cron: '17 8 26 4 *'
+      timezone: Europe/Berlin
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: fie-workflow-season-transition
+  cancel-in-progress: false
+jobs:
+  transition:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPERATION: ${{ github.event_name == 'schedule' && 'auto' || inputs.operation }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify calendar contracts
+        run: python research/integrity_workflow_season_calendar_test.py
+      - name: Persist original workflow state plan
+        run: python research/workflow_calendar_control.py --operation "$OPERATION" --stage plan
+      - name: Publish pause receipt before Actions mutations
+        if: env.OPERATION != 'status'
+        run: |
+          git config user.name "FIE Workflow Calendar Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/operations/workflow-calendar
+          if ! git diff --cached --quiet; then
+            git commit -m "Preserve FIE workflow states before seasonal pause"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Apply and verify date-restricted transition
+        if: env.OPERATION != 'status'
+        run: python research/workflow_calendar_control.py --operation "$OPERATION" --stage apply >> "$GITHUB_STEP_SUMMARY"

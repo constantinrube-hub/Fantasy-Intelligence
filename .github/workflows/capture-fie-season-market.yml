@@ -1,4 +1,4 @@
-name: Capture Daily FIE Season Market
+name: Capture Daily FIE Sleeper Season Projections / ADP
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
       season:
         description: "NFL season"
         required: false
-        default: "2026"
+        default: ""
         type: string
   schedule:
     # Prospective preseason evidence. Daily capture matters because old ADP cannot be reconstructed cleanly later.
-    - cron: "17 11 * 5-9 *"
+    - cron: "17 11 * 4-9 *"
 
 permissions:
   contents: write
@@ -19,7 +19,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: season_market
   capture:
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -33,9 +39,10 @@ jobs:
       - name: Resolve season and capture immutable daily market
         env:
           INPUT_SEASON: ${{ inputs.season }}
+          CALENDAR_SEASON: ${{ needs.calendar.outputs.season }}
         shell: bash
         run: |
-          SEASON="${INPUT_SEASON:-$(date -u +%Y)}"
+          SEASON="${INPUT_SEASON:-$CALENDAR_SEASON}"
           [[ "$SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Invalid season" >&2; exit 2; }
           python research/capture_sleeper_season_market.py --season "$SEASON" --output-root data/research/market/sleeper
           python research/build_fie_point_in_time_evidence_report.py

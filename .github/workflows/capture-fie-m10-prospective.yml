@@ -11,14 +11,20 @@ on:
         required: false
         type: string
   schedule:
-    - cron: "0 */3 * 1,9,10,11,12 *"
+    - cron: "0 */3 1-11 1 *"
+    - cron: "0 */3 * 8-12 *"
 permissions: {contents: write}
 concurrency:
   group: fie-m10-prospective-weekly
   cancel-in-progress: false
 jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: m10
   capture:
-    if: github.ref == 'refs/heads/main'
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:

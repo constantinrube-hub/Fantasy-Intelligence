@@ -37,8 +37,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: optimal_waiver
   build:
-    if: github.ref == 'refs/heads/main'
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
