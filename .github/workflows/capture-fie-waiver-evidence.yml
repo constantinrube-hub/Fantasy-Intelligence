@@ -3,12 +3,20 @@ name: Capture FIE Waiver Evidence
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 */2 * 9-12 2,3,4"
+    - cron: "17 */4 * 9-12 2-4"
+      timezone: "Europe/Berlin"
+    - cron: "17 8 * 9-12 0,1,5,6"
+      timezone: "Europe/Berlin"
+    # Jan 1-11 only. The reusable policy skips non-08:00 slots Fri-Mon.
+    # Keep DOW unrestricted here: restricted DOM+DOW has POSIX OR semantics.
+    - cron: "17 */4 1-11 1 *"
+      timezone: "Europe/Berlin"
 
 jobs:
   capture:
     uses: ./.github/workflows/_fie-evidence-capture-reusable.yml
     with:
       capture_kind: waiver
+      automatic_capture: ${{ github.event_name == 'schedule' }}
     permissions:
       contents: write
