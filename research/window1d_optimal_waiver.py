@@ -22,6 +22,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+from workflow_decision_context import (
+    default_season, input_readiness, projection_coverage, readiness_markdown,
+    resolve_target, summarize_readiness, write_output_index,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_HISTORY = "fie-window1d-waiver-history-v2"
 SCHEMA_BID_LEDGER = "fie-window1d-waiver-bid-ledger-v1"
@@ -842,6 +847,8 @@ def plan_league(
         return {**base, "status": "BLOCKED_PROFILE_DRIFT", "profile_diff": current.get("profile_diff") or {}}
     if str(current.get("profile_fingerprint") or "") != str(profile.get("profile_fingerprint") or ""):
         return {**base, "status": "BLOCKED_PROFILE_BINDING_MISMATCH"}
+    if profile.get("scoring_signature") != current.get("scoring_signature"):
+        return {**base, "status": "BLOCKED_CURRENT_SCORING_MISMATCH"}
     if int(current.get("season") or -1) != int(target_season) or int(current.get("week") or -1) != int(target_week):
         return {**base, "status": "BLOCKED_CURRENT_WEEK_MISMATCH", "current_season": current.get("season"), "current_week": current.get("week")}
     if current.get("target_week_realised_stats_excluded") is not True:
@@ -850,7 +857,9 @@ def plan_league(
     if generated is None:
         return {**base, "status": "BLOCKED_CURRENT_TIMESTAMP_MISSING"}
     age_h = (now - generated).total_seconds() / 3600.0
-    if age_h < -0.25 or age_h > float(max_current_age_hours):
+    if age_h < -0.25:
+        return {**base, "status": "BLOCKED_CURRENT_TIMESTAMP_IN_FUTURE", "current_age_hours": round(age_h, 3)}
+    if age_h > float(max_current_age_hours):
         return {**base, "status": "BLOCKED_STALE_CURRENT", "current_age_hours": round(age_h, 3), "max_current_age_hours": max_current_age_hours}
 
     from league_profile import roster_evolution_status  # type: ignore
@@ -1078,7 +1087,10 @@ def live_profile_matches(
     *, season: int, week: int,
 ) -> tuple[bool, str | None, dict[str, Any]]:
     try:
-        from league_profile import build_profile, passive_reserve_capacity_expansion, roster_evolution_status  # type: ignore
+        from league_profile import (  # type: ignore
+            build_profile, research_contract, research_fingerprint_from_profile,
+            research_roster_positions_for_live_state, sha256_json,
+        )
         rebuilt = build_profile(
             str(profile.get("league_id")),
             str(profile.get("format") or "AUTO"),
@@ -1086,12 +1098,25 @@ def live_profile_matches(
             portfolio_entry=portfolio_entry,
         )
         actual = str(rebuilt.get("profile_fingerprint") or "")
-        expected = str(profile.get("profile_fingerprint") or "")
-        evolution = roster_evolution_status(profile, live_league.get("roster_positions") or [], season, week)
-        compatible = bool(evolution.get("recognized")) or passive_reserve_capacity_expansion(
-            profile.get("roster_positions"), live_league.get("roster_positions"),
+        research_positions, evolution = research_roster_positions_for_live_state(
+            profile, live_league.get("roster_positions") or [], season, week,
         )
-        return bool(actual and expected and (actual == expected or compatible)), actual, evolution
+        # Use the same canonical research contract as the Current Snapshot.
+        # Operational waiver timing changes do not invalidate historical models.
+        # Compatible roster evolution normalizes only roster positions: it must
+        # never bypass scoring, season, league size or other research changes.
+        expected_research = research_fingerprint_from_profile(profile)
+        live_research = sha256_json(research_contract(
+            str(profile.get("league_id") or ""), str(profile.get("format") or "AUTO"),
+            live_league.get("scoring_settings") or {}, research_positions,
+            live_league.get("settings") or {}, live_league.get("total_rosters"),
+            live_league.get("season"), live_league.get("season_type"),
+            profile.get("research_constraints") or None,
+        ))
+        evolution = {**evolution, "stored_research_fingerprint": expected_research,
+                     "live_research_fingerprint": live_research}
+        return bool(actual and profile.get("profile_fingerprint") and
+                    expected_research == live_research), actual, evolution
     except Exception:
         # Current snapshot still carries its own live-profile gate. If we cannot
         # independently restamp here, do not claim a live match.
@@ -1105,8 +1130,16 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
         "Research-only decision support. M9 production and canonical rankings are unchanged.", "",
         "## Portfolio status", "",
     ]
+    if report.get("target_identity"):
+        lines += [f"Target basis: `{report['target_identity']['basis']}`", ""]
+    if report.get("operational_readiness"):
+        lines += readiness_markdown(report["operational_readiness"])
     for league in report.get("leagues") or []:
         lines.append(f"### {league.get('league_name') or league.get('league_id')} · {league.get('format')} · {league.get('status')}")
+        context = league.get("input_readiness") or {}
+        if context:
+            lines += ["", f"Input week: **{context.get('current_week')}**; target: **{context.get('target_week')}**; snapshot age: **{context.get('current_age_hours')} h**.",
+                      f"Governed waiver eligible rows: **{context.get('waiver_activation_eligible_total')}**."]
         ledger = (league.get("observed_target_week_bid_ledger") or {}).get("players") or []
         if ledger:
             lines.extend([
@@ -1172,6 +1205,7 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
 def build_portfolio(
     *, root: Path, season: int, week: int | None, league_id: str | None,
     max_history_seasons: int, max_current_age_hours: float, fetcher=http_json,
+    as_of: datetime | None = None, schedule_path: Path | None = None,
 ) -> dict[str, Any]:
     registry = read_json(root / "data/research/leagues/registry.json", {}) or {}
     portfolio = read_json(root / "config/league-portfolio.json", {}) or {}
@@ -1179,13 +1213,15 @@ def build_portfolio(
     username = str(portfolio.get("sleeper_username") or "")
     if not username:
         raise EvidenceError("PORTFOLIO_SLEEPER_USERNAME_MISSING")
-    if week is None:
-        state = fetcher("https://api.sleeper.app/v1/state/nfl") or {}
-        week = int(state.get("week") or state.get("leg") or 1)
-        if str(state.get("season_type") or "").lower() in {"pre", "preseason"}:
-            week = 1
-    target_week = int(week)
+    as_of = as_of or utc_now()
+    try:
+        target_identity = resolve_target(season=season, week=week, as_of=as_of, schedule_path=schedule_path)
+    except Exception as exc:
+        raise EvidenceError(f"TARGET_WEEK_UNRESOLVED:{exc}") from exc
+    target_week = target_identity["week"]
     ids = [str(league_id)] if league_id else _enabled_registry(registry)
+    if league_id and str(league_id) not in _enabled_registry(registry):
+        raise EvidenceError(f"LEAGUE_NOT_ENABLED_OR_UNKNOWN:{league_id}")
 
     live_state: dict[str, tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]] = {}
     currents: dict[str, dict[str, Any]] = {}
@@ -1249,6 +1285,7 @@ def build_portfolio(
             league_id=lid, profile=profile, current=currents[lid], live_league=live_league,
             rosters=rosters, users=users, username=username, all_history=all_observations,
             target_season=season, target_week=target_week, max_current_age_hours=max_current_age_hours,
+            now=as_of,
         )
         hist = histories.get(lid) or {}
         target_ledger = [
@@ -1273,6 +1310,14 @@ def build_portfolio(
         leagues.append(plan)
         source_bindings[lid] = plan["source_bindings"]
 
+    for plan in leagues:
+        lid = str(plan["league_id"])
+        plan["input_readiness"] = input_readiness(
+            root, lid, (registry.get("leagues") or {}).get(lid) or {},
+            season=season, week=target_week, as_of=as_of,
+        )
+        plan["input_readiness"]["projection_coverage"] = projection_coverage(currents[lid]) if lid in currents else None
+    readiness = summarize_readiness(leagues)
     counts = Counter(str(x.get("status")) for x in leagues)
     generated = utc_now()
     capture_id = generated.strftime("%Y%m%dT%H%M%SZ")
@@ -1282,6 +1327,9 @@ def build_portfolio(
         "capture_id": capture_id,
         "season": int(season),
         "week": target_week,
+        "as_of_utc": as_of.isoformat(),
+        "target_identity": target_identity,
+        "operational_readiness": readiness,
         "managed_username": username,
         "enabled_league_count": len(ids),
         "league_count": len(leagues),
@@ -1335,12 +1383,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="FIE Window 1D optimal waiver / Chopped engine")
     sub = p.add_subparsers(dest="command", required=True)
     b = sub.add_parser("portfolio")
-    b.add_argument("--season", type=int, default=2026)
+    b.add_argument("--season", type=int, default=None)
     b.add_argument("--week", type=int, default=None)
+    b.add_argument("--as-of-utc", default="")
+    b.add_argument("--schedule-file", default="", help="Optional schedule CSV for reproducible target resolution")
     b.add_argument("--league-id", default="")
     b.add_argument("--max-history-seasons", type=int, default=2)
     b.add_argument("--max-current-age-hours", type=float, default=36.0)
     b.add_argument("--root", default=str(ROOT))
+    b.add_argument("--output-index", default="")
     return p.parse_args(argv)
 
 
@@ -1348,13 +1399,24 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if args.command == "portfolio":
         root = Path(args.root).resolve()
+        as_of = parse_dt(args.as_of_utc) if args.as_of_utc else utc_now()
+        if as_of is None:
+            raise SystemExit("Invalid --as-of-utc")
         report = build_portfolio(
-            root=root, season=int(args.season), week=args.week,
+            root=root, season=args.season if args.season is not None else default_season(as_of), week=args.week,
             league_id=str(args.league_id).strip() or None,
             max_history_seasons=int(args.max_history_seasons),
             max_current_age_hours=float(args.max_current_age_hours),
+            as_of=as_of,
+            schedule_path=Path(args.schedule_file).resolve() if args.schedule_file else None,
         )
         paths = write_portfolio_outputs(root, report)
+        if args.output_index:
+            base = root / f"data/research/evaluation/{report['season']}/weeks/week-{report['week']}/waivers"
+            index_path = Path(args.output_index)
+            write_output_index(index_path if index_path.is_absolute() else root / index_path,
+                               season=report["season"], report_json=base / "portfolio-latest.json",
+                               report_markdown=base / "portfolio-latest.md")
         print(f"Window 1D portfolio week={report['week']} leagues={report['league_count']} observations={report['history']['portfolio_observation_count']}")
         for p in paths:
             print(p.relative_to(root))

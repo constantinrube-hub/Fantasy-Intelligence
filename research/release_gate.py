@@ -27,6 +27,7 @@ def main():
   run([sys.executable,'research/integrity_release_versions_test.py']),
   run([sys.executable,'research/integrity_dist_hygiene_test.py']),
   run([sys.executable,'research/integrity_current_storage_test.py']),
+  run([sys.executable,'research/integrity_workflow_decision_context_test.py']),
   run(['node','research/integrity_monte_carlo_worker_test.js']),
   run([sys.executable,'research/integrity_decision_engines_test.py']),
   run([sys.executable,'research/integrity_v89_test.py']),
@@ -80,5 +81,5 @@ def main():
  checks.append({'cmd':'dist hygiene','ok':not forbidden,'stderr':'\n'.join(forbidden[:100]),'stdout':''})
  ok=all(c['ok'] for c in checks)
  result={'status':'DEPLOYABLE_SOURCE' if ok else 'BLOCKED','browser_preview_required':True,'checks':checks}
- out=ROOT/a.json_output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2));raise SystemExit(0 if ok else 1)
+ out=ROOT/a.json_output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8', newline='\n');print(json.dumps(result,indent=2));raise SystemExit(0 if ok else 1)
 if __name__=='__main__':main()

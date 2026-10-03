@@ -27,7 +27,14 @@ MODEL_POS={
  'K':{'K','K/P'},'P':{'P','K/P'},'DEF':{'DEF'},
  'OL':{'OL','G','OG','OT','T','C'},
 }
-def copy(src:Path,dst:Path): dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+def copy(src:Path,dst:Path,*,governed_json:bool=False):
+ dst.parent.mkdir(parents=True,exist_ok=True)
+ if governed_json:
+  # Source governance hashes JSON using its Git/served LF representation.
+  # A Windows CRLF checkout must deploy those authenticated bytes, without
+  # reserializing JSON, changing source artifacts or restamping model hashes.
+  dst.write_bytes(src.read_bytes().replace(b'\r\n',b'\n'))
+ else:shutil.copy2(src,dst)
 def sha256_file(path:Path):
  h=hashlib.sha256()
  with path.open('rb') as f:
@@ -102,7 +109,7 @@ def rewrite_dist_governance(entries):
  the current manifest and shared files during runtime compaction, so the served
  governance copy must hash the served derivatives or browser verification would
  (correctly) fail. Historical M4-M6 hashes remain unchanged because those files
- are copied byte-for-byte.
+ are copied using the LF JSON representation authenticated by source governance.
  """
  for e in entries:
   lid=e['lid'];gp=DIST/'data/research/leagues'/lid/'governance/active_release.json'
@@ -133,7 +140,7 @@ def main():
  port=ROOT/'config/league-portfolio.json';out=DIST/'config/league-portfolio.json';out.parent.mkdir(parents=True,exist_ok=True)
  if a.mode=='personal': copy(port,out)
  else:
-  base=json.loads(port.read_text(encoding='utf-8')) if port.exists() else {}; safe={k:v for k,v in base.items() if k not in {'sleeper_username','leagues'}};safe['sleeper_username']=None;safe['leagues']=[];out.write_text(json.dumps(safe,indent=2)+'\n')
+  base=json.loads(port.read_text(encoding='utf-8')) if port.exists() else {}; safe={k:v for k,v in base.items() if k not in {'sleeper_username','leagues'}};safe['sleeper_username']=None;safe['leagues']=[];out.write_text(json.dumps(safe,indent=2)+'\n', encoding='utf-8', newline='\n')
  contracts=json.loads((ROOT/'config/contracts/runtime-contracts.json').read_text())
  leagues=ROOT/'data/research/leagues';current_entries=[];cache={}
  for extra in ['registry.json','portfolio-status.json']:
@@ -153,7 +160,7 @@ def main():
    raise SystemExit(f'active league namespace incomplete: {lid}')
   profile=json.loads((d/'profile.json').read_text())
   for name in ['profile.json','milestone1.json','milestone2.json','milestone3.json','milestone4.json','milestone5.json','milestone6.json']:
-   if (d/name).exists(): copy(d/name,DIST/'data/research/leagues'/d.name/name)
+   if (d/name).exists(): copy(d/name,DIST/'data/research/leagues'/d.name/name,governed_json=name in {'milestone4.json','milestone5.json','milestone6.json'})
   for name in ['governance/active_release.json','governance/operator_override.json']:
    if (d/name).exists(): copy(d/name,DIST/'data/research/leagues'/d.name/name)
   cur=d/'current/milestone5_current.json'
@@ -163,7 +170,7 @@ def main():
  emit_runtime_current(current_entries)
  rewrite_dist_governance(current_entries)
  for p in (ROOT/'data/research/governance').glob('*.json') if (ROOT/'data/research/governance').exists() else []: copy(p,DIST/p.relative_to(ROOT))
- (DIST/'BUILD_MODE.txt').write_text(a.mode+'\n',encoding='utf-8')
+ (DIST/'BUILD_MODE.txt').write_text(a.mode+'\n',encoding='utf-8', newline='\n')
  total=sum(p.stat().st_size for p in DIST.rglob('*') if p.is_file())
  print(f'Built {DIST} mode={a.mode} files={sum(1 for p in DIST.rglob("*") if p.is_file())} bytes={total}')
 if __name__=='__main__':main()

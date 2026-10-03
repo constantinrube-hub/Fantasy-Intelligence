@@ -3,8 +3,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const runtime = fs.readFileSync('app/v9.3.3-runtime-integrity.js', 'utf8');
-const shell = fs.readFileSync('index.html', 'utf8');
+// Test slices use LF delimiters; Windows checkout formatting is not runtime behavior.
+const runtime = fs.readFileSync('app/v9.3.3-runtime-integrity.js', 'utf8').replace(/\r\n/g, '\n');
+const shell = fs.readFileSync('index.html', 'utf8').replace(/\r\n/g, '\n');
 
 function currentWeekDefaultsToSleeperLeg() {
   const start = runtime.indexOf('const stateObj=');

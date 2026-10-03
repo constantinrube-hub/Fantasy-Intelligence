@@ -4,6 +4,7 @@ from __future__ import annotations
 import importlib.util
 import itertools
 import json
+import tempfile
 from pathlib import Path
 import build_app_manifest
 
@@ -44,5 +45,24 @@ for perm in itertools.permutations(entries):
         f'compact current partition depends on input/filesystem order: {membership} != {expected}'
     )
 assert expected==[['A','C'],['B']], expected
+
+# Windows/mixed source line endings must be finalized before manifest hashing.
+spec=importlib.util.spec_from_file_location('fie_release_build',ROOT/'tools/release_build.py')
+release_builder=importlib.util.module_from_spec(spec);spec.loader.exec_module(release_builder)
+with tempfile.TemporaryDirectory() as directory:
+ fixture=Path(directory)
+ texts={'index.html':b'<html>\r\n</html>\n','_headers':b'/*\r\n  X-Test: yes\r\n',
+        '_routes.json':b'{\r\n}\r\n','app/core/nested.js':b'// code\r\nconst x=1;\n',
+        'app/style.css':b'body {}\r\n'}
+ untouched={'app/icon.png':b'\x00\r\n\xff','data/research/evidence.json':b'{\r\n}\r\n',
+            'config/locked-input.json':b'{\r\n}\r\n'}
+ for rel,raw in {**texts,**untouched}.items():
+  path=fixture/rel;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(raw)
+ release_builder.normalize_deployment_code(fixture)
+ for rel,raw in texts.items():assert (fixture/rel).read_bytes()==raw.replace(b'\r\n',b'\n'),rel
+ for rel,raw in untouched.items():assert (fixture/rel).read_bytes()==raw,rel
+ before={rel:(fixture/rel).read_bytes() for rel in texts}
+ release_builder.normalize_deployment_code(fixture)
+ assert before=={rel:(fixture/rel).read_bytes() for rel in texts},'normalization must be idempotent'
 
 print('PASS V9.3.2 deterministic build manifest')

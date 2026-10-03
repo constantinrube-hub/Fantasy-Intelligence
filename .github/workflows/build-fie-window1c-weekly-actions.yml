@@ -4,12 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       season:
-        description: Season
-        required: true
-        default: '2026'
+        description: Optional season; blank resolves from the operational NFL calendar
+        required: false
         type: string
       week:
-        description: Optional target week; blank infers the modal current-snapshot week
+        description: Optional target week; blank resolves from the regular-season schedule
         required: false
         type: string
       league_id:
@@ -54,6 +53,7 @@ jobs:
       - name: Validate Window 1C and inherited contracts
         run: |
           python research/integrity_window1c_weekly_actions_test.py
+          python research/integrity_workflow_decision_context_test.py
           python research/integrity_window1b_evaluation_test.py
           python research/integrity_15point_completion_test.py
 
@@ -67,9 +67,9 @@ jobs:
           INPUT_DELTA: ${{ inputs.minimum_lineup_delta }}
         run: |
           set -euo pipefail
-          SEASON="${INPUT_SEASON:-2026}"
           DELTA="${INPUT_DELTA:-0.25}"
-          args=(portfolio --season "$SEASON" --minimum-lineup-delta "$DELTA")
+          args=(portfolio --minimum-lineup-delta "$DELTA" --output-index .cache/window1c-output.json)
+          if [ -n "${INPUT_SEASON:-}" ]; then args+=(--season "$INPUT_SEASON"); fi
           if [ -n "${INPUT_WEEK:-}" ]; then args+=(--week "$INPUT_WEEK"); fi
           if [ -n "${INPUT_LEAGUE_ID:-}" ]; then args+=(--league-id "$INPUT_LEAGUE_ID"); fi
           if [ -n "${INPUT_AS_OF:-}" ]; then args+=(--as-of-utc "$INPUT_AS_OF"); fi
@@ -80,12 +80,9 @@ jobs:
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           from pathlib import Path
-          rows=list(Path('data/research/evaluation/2026/weeks').glob('week-*/weekly-actions-portfolio-v1.md'))
-          if not rows:
-              print('# FIE Window 1C\n\nNo weekly action report was generated.')
-          else:
-              latest=max(rows,key=lambda p:p.stat().st_mtime)
-              print(latest.read_text(encoding='utf-8'))
+          import json
+          index=json.loads(Path('.cache/window1c-output.json').read_text())
+          print(Path(index['report_markdown']).read_text(encoding='utf-8'))
           PY
 
       - name: Commit only Window 1C evaluation outputs
@@ -94,7 +91,8 @@ jobs:
           set -euo pipefail
           git config user.name "FIE Weekly Actions Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/research/evaluation/2026
+          SEASON="$(python -c "import json; print(json.load(open('.cache/window1c-output.json'))['season'])")"
+          git add "data/research/evaluation/$SEASON"
           if git diff --cached --quiet; then
             echo "No Window 1C weekly-action change"
             exit 0

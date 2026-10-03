@@ -27,6 +27,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+from workflow_decision_context import (
+    default_season, input_readiness, projection_coverage, readiness_markdown,
+    resolve_target, summarize_readiness, write_output_index,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_LEAGUE = "fie-window1c-weekly-actions-v1"
 SCHEMA_PORTFOLIO = "fie-window1c-weekly-actions-portfolio-v1"
@@ -559,12 +564,12 @@ def build_league_report(
         if not current_path.is_file():
             return blocker_report(lid, league_name, fmt, target_season, target_week, "BLOCKED_CURRENT_SNAPSHOT_MISSING")
         current = load_current(current_path, root=root)
-        season = int(current.get("season") or target_season or 0) or None
-        week = int(current.get("week") or target_week or 0) or None
+        season = int(current.get("season") or 0) or None
+        week = int(current.get("week") or 0) or None
         if target_season is not None and season != int(target_season):
-            return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_SEASON_MISMATCH", {"target": target_season, "current": season})
+            return blocker_report(lid, league_name, fmt, target_season, target_week, "BLOCKED_SEASON_MISMATCH", {"target": target_season, "current": season})
         if target_week is not None and week != int(target_week):
-            return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_WEEK_MISMATCH", {"target": target_week, "current": week})
+            return blocker_report(lid, league_name, fmt, target_season, target_week, "BLOCKED_WEEK_MISMATCH", {"target": target_week, "current": week})
         if bool((current.get("roster_evolution") or {}).get("season_complete")):
             return blocker_report(lid, league_name, fmt, season, week, "NOT_APPLICABLE_LEAGUE_SEASON_COMPLETE")
         if current.get("target_week_realised_stats_excluded") is not True:
@@ -579,6 +584,8 @@ def build_league_report(
             return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_REGISTRY_PROFILE_MISMATCH")
         if declared_fp and current_fp and declared_fp != current_fp:
             return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_CURRENT_PROFILE_MISMATCH")
+        if profile.get("scoring_signature") != current.get("scoring_signature"):
+            return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_CURRENT_SCORING_MISMATCH")
 
         generated = parse_dt(current.get("generated_at"))
         if generated is None:
@@ -596,6 +603,8 @@ def build_league_report(
         core_fp = str(core.get("profile_fingerprint") or "")
         if declared_fp and core_fp and declared_fp != core_fp:
             return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_APP_PROFILE_MISMATCH")
+        if profile.get("scoring_signature") != core.get("scoring_signature"):
+            return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_APP_SCORING_MISMATCH")
         if str(core.get("league_id") or "") != lid:
             return blocker_report(lid, league_name, fmt, season, week, "BLOCKED_APP_LEAGUE_MISMATCH")
 
@@ -630,6 +639,12 @@ def build_league_report(
             "max_age_hours": max_age_hours,
             "first_kickoff_utc": kickoff.isoformat() if kickoff else None,
             "before_first_kickoff": (as_of < kickoff) if kickoff else None,
+            "lineup_execution_status": (
+                "NOT_APPLICABLE_BEST_BALL" if lineup_status == "NOT_APPLICABLE_BEST_BALL"
+                else "UNKNOWN_LOCK_STATE" if kickoff is None
+                else "REVIEW_ONLY_PLAYER_LOCKS_UNVERIFIED" if as_of >= kickoff
+                else "PREGAME_ALERT_ONLY"
+            ),
         }
 
         # If a report is generated after the first kickoff, retain evidence but do not
@@ -663,6 +678,7 @@ def build_league_report(
                 "fie_weekly_activation_eligible_total": int(((current.get("summary") or {}).get("weekly_activation_eligible") or 0)),
                 "waiver_activation_eligible_total": int(((current.get("summary") or {}).get("waiver_activation_eligible") or 0)),
                 "source_health_reason": ((current.get("source_health") or {}).get("reason")),
+                "projection_coverage": projection_coverage(current),
             },
             "actions": {
                 "injury_alerts": inj,
@@ -700,23 +716,6 @@ def build_league_report(
         return blocker_report(lid, league_name, fmt, target_season, target_week, code, text)
 
 
-def infer_week(root: Path, registry: dict[str, Any], season: int | None) -> int | None:
-    weeks: list[int] = []
-    for lid, row in sorted((registry.get("leagues") or {}).items()):
-        if not isinstance(row, dict) or not row.get("enabled", True):
-            continue
-        x = read_json(root / f"data/research/leagues/{lid}/current/milestone5_current.json", {}) or {}
-        if season is not None and int(x.get("season") or 0) != int(season):
-            continue
-        w = x.get("week")
-        if isinstance(w, int) or (isinstance(w, str) and w.isdigit()):
-            weeks.append(int(w))
-    if not weeks:
-        return None
-    counts = Counter(weeks)
-    return sorted(counts.items(), key=lambda kv: (-kv[1], -kv[0]))[0][0]
-
-
 def markdown_portfolio(report: dict[str, Any]) -> str:
     lines = [
         f"# FIE Weekly Actions — {report.get('season')} Week {report.get('week')}",
@@ -728,13 +727,22 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
         "## Portfolio summary",
         "",
         f"- Enabled leagues: **{report.get('enabled_league_count')}**",
-        f"- Ready/actionable: **{report.get('ready_count')}**",
-        f"- Blocked/partial: **{report.get('blocked_count')}**",
-        f"- Immediate action leagues: **{report.get('action_required_count')}**",
+        f"- Full report evidence: **{report.get('ready_count')}**",
+        f"- Blocked/partial evidence: **{report.get('blocked_count')}**",
+        f"- Not applicable: **{report.get('not_applicable_count', 0)}**",
+        f"- Leagues with alerts (inspect execution guards): **{report.get('action_required_count')}**",
         "",
     ]
+    if report.get("target_identity"):
+        lines += [f"Target basis: `{report['target_identity']['basis']}`", ""]
+    if report.get("operational_readiness"):
+        lines += readiness_markdown(report["operational_readiness"])
     for league in report.get("leagues") or []:
         lines += [f"## {league.get('league_name')} ({league.get('format')})", "", f"Status: **{league.get('status')}**"]
+        context = league.get("input_readiness") or {}
+        if context:
+            lines += ["", f"Input week: **{context.get('current_week')}**; target: **{context.get('target_week')}**; snapshot age: **{context.get('current_age_hours')} h**.",
+                      f"Governed eligible rows — weekly: **{context.get('weekly_activation_eligible_total')}**; next-three-week waiver: **{context.get('waiver_activation_eligible_total')}**."]
         if league.get("blocker"):
             lines += [f"", f"Blocked: `{league['blocker'].get('code')}`", ""]
             continue
@@ -791,15 +799,18 @@ def build_portfolio(
     league_id: str | None = None,
     minimum_lineup_delta: float = 0.25,
     waiver_limit: int = 10,
+    schedule_path: Path | None = None,
 ) -> dict[str, Any]:
     registry = read_json(root / "data/research/leagues/registry.json", {}) or {}
     portfolio = read_json(root / "config/league-portfolio.json", {}) or {}
     managed_username = str(username or portfolio.get("sleeper_username") or "").strip()
     if not managed_username:
         raise EvidenceError("PORTFOLIO_USERNAME_MISSING")
-    resolved_week = int(week) if week is not None else infer_week(root, registry, season)
-    if resolved_week is None:
-        raise EvidenceError("TARGET_WEEK_UNRESOLVED")
+    try:
+        target_identity = resolve_target(season=season, week=week, as_of=as_of, schedule_path=schedule_path)
+    except Exception as exc:
+        raise EvidenceError(f"TARGET_WEEK_UNRESOLVED:{exc}") from exc
+    resolved_week = target_identity["week"]
 
     league_rows = registry.get("leagues") if isinstance(registry.get("leagues"), dict) else {}
     selected: list[tuple[str, dict[str, Any]]] = []
@@ -820,18 +831,22 @@ def build_portfolio(
         )
         for lid, row in selected
     ]
-    blocked = [x for x in reports if str(x.get("status") or "").startswith("BLOCKED") or x.get("status") == "PARTIAL_EVIDENCE"]
-    ready = [x for x in reports if x not in blocked]
+    for report, (lid, row) in zip(reports, selected):
+        report["input_readiness"] = input_readiness(root, lid, row, season=season, week=resolved_week, as_of=as_of)
+    readiness = summarize_readiness(reports)
     action_required = [x for x in reports if x.get("status") == "ACTION_REQUIRED"]
     return {
         "schema": SCHEMA_PORTFOLIO,
         "season": int(season),
         "week": int(resolved_week),
         "as_of_utc": as_of.isoformat(),
+        "target_identity": target_identity,
+        "operational_readiness": readiness,
         "managed_username": managed_username,
         "enabled_league_count": len(reports),
-        "ready_count": len(ready),
-        "blocked_count": len(blocked),
+        "ready_count": readiness["counts"]["ready"],
+        "blocked_count": readiness["counts"]["blocked"] + readiness["counts"]["partial"] + readiness["counts"]["unknown"],
+        "not_applicable_count": readiness["counts"]["not_applicable"],
         "action_required_count": len(action_required),
         "status_counts": dict(sorted(Counter(str(x.get("status") or "UNKNOWN") for x in reports).items())),
         "leagues": reports,
@@ -848,8 +863,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Build FIE Window 1C weekly action decision-support report")
     p.add_argument("portfolio", nargs="?")
     p.add_argument("--root", default=str(ROOT))
-    p.add_argument("--season", type=int, default=2026)
+    p.add_argument("--season", type=int, default=None)
     p.add_argument("--week", type=int, default=None)
+    p.add_argument("--schedule-file", default="", help="Optional schedule CSV for reproducible target resolution")
     p.add_argument("--league-id", default="")
     p.add_argument("--username", default="")
     p.add_argument("--as-of-utc", default="")
@@ -857,6 +873,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--waiver-limit", type=int, default=10)
     p.add_argument("--json-output", default="")
     p.add_argument("--markdown-output", default="")
+    p.add_argument("--output-index", default="")
     return p.parse_args(argv)
 
 
@@ -868,13 +885,14 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("Invalid --as-of-utc")
     report = build_portfolio(
         root,
-        season=args.season,
+        season=args.season if args.season is not None else default_season(as_of),
         week=args.week,
         as_of=as_of,
         username=args.username or None,
         league_id=args.league_id or None,
         minimum_lineup_delta=args.minimum_lineup_delta,
         waiver_limit=max(1, int(args.waiver_limit)),
+        schedule_path=Path(args.schedule_file).resolve() if args.schedule_file else None,
     )
     default_json, default_md = output_paths(root, report["season"], report["week"])
     json_out = Path(args.json_output) if args.json_output else default_json
@@ -886,6 +904,10 @@ def main(argv: list[str] | None = None) -> int:
     write_json(json_out, report)
     md_out.parent.mkdir(parents=True, exist_ok=True)
     md_out.write_text(markdown_portfolio(report), encoding="utf-8")
+    if args.output_index:
+        index_path = Path(args.output_index)
+        write_output_index(index_path if index_path.is_absolute() else root / index_path,
+                           season=report["season"], report_json=json_out, report_markdown=md_out)
     print(f"Window 1C weekly actions: season={report['season']} week={report['week']} leagues={report['enabled_league_count']} ready={report['ready_count']} blocked={report['blocked_count']} actions={report['action_required_count']}")
     print(json_out)
     print(md_out)
