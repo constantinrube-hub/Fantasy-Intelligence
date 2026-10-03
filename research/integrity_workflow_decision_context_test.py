@@ -16,7 +16,7 @@ import window1c_weekly_actions as actions
 import window1d_optimal_waiver as waivers
 from integrity_window1c_weekly_actions_test import league_fixture, setup_root, write
 from integrity_window1d_optimal_waiver_test import current, live, profile, rosters, users
-from workflow_decision_context import default_season, projection_coverage, resolve_target, summarize_readiness, write_output_index
+from workflow_decision_context import default_season, projection_coverage, resolve_target, summarize_readiness, write_output_index, waiver_projection_diagnostics, waiver_diagnostics_markdown, build_waiver_diagnostic_portfolio
 
 UTC = timezone.utc
 
@@ -206,11 +206,85 @@ def test_live_profile_uses_canonical_research_contract() -> None:
     assert not waivers.live_profile_matches(evolved, stage, None, season=2026, week=4)[0]
 
 
+def test_waiver_diagnostics_preserve_gates_and_unknowns() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        lid = "123456789012345678"
+        snapshot = current()
+        snapshot.update({"scoring_signature": "scoring", "scoring_settings": {"rec": 1, "fum_rec_td": 6},
+                         "source_health": {"scoring_support": {"unsupported": [{"key": "fum_rec_td"}]}},
+                         "research_compatible": True})
+        for row in snapshot["players"]:
+            row.update({"waiver_activation_eligible": False, "waiver_next3_projection": None, "history_games": 3})
+        original = deepcopy(snapshot)
+        m5 = {"league_id": lid, "profile_fingerprint": "fp", "scoring_signature": "scoring",
+              "activation": {"decision_gates": {"waiver_policy_positions": ["QB", "RB"],
+                  "decision_format_position_gates": {"waiver": {"REDRAFT": ["QB"], "DYNASTY": []}}}},
+              "waiver_integration": {"model_specs": {"positions": {"QB": {"features": ["fp_prior_4"]}, "RB": {"features": ["fp_prior_4"]}}}}}
+        path = root / f"data/research/leagues/{lid}/milestone5.json"
+        write(path, m5)
+        result = waiver_projection_diagnostics(root, lid, snapshot)
+        assert result["grants_eligibility"] is False and result["m5_local_identity_verified"] is True
+        assert result["m5_local_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+        rb = result["by_model_position"]["RB"]
+        assert rb["unsupported_scoring_keys"] == ["fum_rec_td"] and rb["history_at_least_two_rows"] == 3
+        assert rb["diagnostic_reasons"] == ["CURRENT_SCORING_UNSUPPORTED", "CURRENT_M5_FORMAT_GATE_OFF"]
+        assert rb["waiver_eligible_rows_with_value"] == 0 and snapshot == original
+        text = "\n".join(waiver_diagnostics_markdown(result))
+        assert "fum_rec_td" in text and "CURRENT_M5_FORMAT_GATE_OFF" in text
+        # Binding failures do not attribute another profile's gates to a capture.
+        m5["profile_fingerprint"] = "foreign-profile"
+        write(path, m5)
+        wrong = waiver_projection_diagnostics(root, lid, snapshot)["by_model_position"]["RB"]
+        assert wrong["local_generic_gate_enabled"] is None
+        assert "M5_LOCAL_BINDING_UNVERIFIED" in wrong["diagnostic_reasons"]
+        assert "CURRENT_M5_FORMAT_GATE_OFF" not in wrong["diagnostic_reasons"]
+        # No static blocker is not evidence that inference/feature coverage passed.
+        write(path, {**m5, "profile_fingerprint": "fp",
+              "activation": {"decision_gates": {"waiver_policy_positions": ["QB", "RB"]}}})
+        snapshot["source_health"]["scoring_support"]["unsupported"] = []
+        clear = waiver_projection_diagnostics(root, lid, snapshot)["by_model_position"]["RB"]
+        assert clear["status"] == "NO_ELIGIBLE_VALUES_INFERENCE_REVIEW_REQUIRED"
+        # Missing evidence and malformed/missing bundles are explicitly unknown.
+        snapshot.pop("source_health")
+        path.write_text("not JSON")
+        missing = waiver_projection_diagnostics(root, lid, snapshot)["by_model_position"]["RB"]
+        assert missing["scoring_exact"] is None and "SCORING_AUDIT_UNAVAILABLE" in missing["diagnostic_reasons"]
+        path.unlink()
+        assert waiver_projection_diagnostics(root, lid, snapshot)["m5_local_sha256"] is None
+        # Eligible flags alone cannot turn missing, NaN or boolean values into forecasts.
+        snapshot["players"][0].update({"waiver_activation_eligible": True, "waiver_next3_projection": float("nan")})
+        assert waiver_projection_diagnostics(root, lid, snapshot)["by_model_position"]["RB"]["waiver_eligible_rows_with_value"] == 0
+        snapshot["players"][0]["waiver_next3_projection"] = True
+        assert waiver_projection_diagnostics(root, lid, snapshot)["by_model_position"]["RB"]["waiver_eligible_rows_with_value"] == 0
+
+
+def test_waiver_diagnostic_portfolio_is_read_only() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        lid = "123456789012345678"
+        base = root / "data/research/leagues" / lid
+        write(root / "data/research/leagues/registry.json", {"leagues": {lid: {"enabled": True}, "disabled": {"enabled": False}}})
+        write(base / "profile.json", profile())
+        path = base / "current/milestone5_current.json"
+        write(path, current())
+        before = {p: p.read_bytes() for p in root.rglob("*.json")}
+        report = build_waiver_diagnostic_portfolio(root)
+        assert report["read_only"] is True and report["network_access"] is False
+        assert report["enabled_league_count"] == report["league_count"] == 1
+        assert report["leagues"][0]["current_snapshot_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+        assert {p: p.read_bytes() for p in root.rglob("*.json")} == before
+        reject(lambda: build_waiver_diagnostic_portfolio(root, "disabled"), "LEAGUE_NOT_ENABLED_OR_UNKNOWN")
+        path.unlink()
+        assert build_waiver_diagnostic_portfolio(root)["leagues"][0]["status"] == "BLOCKED_DIAGNOSTIC_INPUT"
+
+
 def main() -> None:
     tests = [test_schedule_target_boundaries, test_late_game_and_missing_schedule_fail_closed,
              test_explicit_historical_week_never_fetches, test_stale_snapshots_do_not_select_actions_week,
              test_waivers_use_same_target_and_keep_blocked_diagnostics, test_scoring_identity_mismatch_blocks_actions,
-             test_coverage_categories_and_exact_output_pointer, test_live_profile_uses_canonical_research_contract]
+             test_coverage_categories_and_exact_output_pointer, test_live_profile_uses_canonical_research_contract,
+             test_waiver_diagnostics_preserve_gates_and_unknowns, test_waiver_diagnostic_portfolio_is_read_only]
     for test in tests:
         test()
     print(f"PASS workflow decision context ({len(tests)} regression scenarios)")
