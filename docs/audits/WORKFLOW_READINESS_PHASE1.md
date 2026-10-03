@@ -67,3 +67,28 @@ Counts are source rows before identity deduplication, not unique players. Model-
 - Profile repair does not create eligible projections or promote models. The 13 observed projection blocks, zero governed offensive waiver coverage across the stored snapshots, and the two disabled-adds results remain follow-up evidence. Forecast quality, legality and actual actionable candidate coverage require their own checks.
 - Next repair boundary: diagnose governed offense/format/next-three-week projection eligibility without bypassing promotion/scoring gates; then implement waiver reconciliation/cadence and IDP/K availability capture.
 - Sunday M10/Sleeper checkpoints, legal M10 roster traces, the four manual workflow schedules, blackout enforcement, app integration, individual trench/Vegas sources and model extensions remain later plan items.
+
+## Offensive waiver investigation — 3 October follow-up
+
+Baseline: merged PR #21, `2c6160e8f4b5561d445e8c045bcb1fb31bab8505`. Its post-merge CI run `37128615759` passed the release gate and committed-dist synchronization. The Windows byte-portability repair is closed.
+
+The new no-network diagnostic reads all 23 enabled hydrated snapshots and their current local M5 artifacts. The recorded result is `data/research/diagnostics/waiver-coverage-2026-10-03.json`; it contains snapshot/M5 hashes, source observation times, position counts, unsupported scoring keys, identity checks and local gate observations. These are diagnostics of stored evidence, not new live forecasts or frozen-capture model replays.
+
+Findings:
+
+- All 23 snapshot/M5 pairs have matching League ID, profile fingerprint and scoring signature; snapshots report research compatibility. Snapshot input loading succeeds for all 23.
+- Each snapshot has 419 offensive rows with at least two prior games: 54 QB, 101 RB, 167 WR and 97 TE. Missing player history is therefore not a complete explanation of the zero offensive eligibility.
+- The recorded scoring audit fails exact scoring for all four offensive positions in every league. Depending on the league, blocking keys include `fum_rec_td`, `fum`, `pass_int_td`, `pass_sack`, `st_td`, `st_fum_rec`, `st_ff`, return yardage and long-play bonuses. AEF also has an unmapped `bonus_rush_td_qb` rule. These lists are reported per position; a key is not assumed to affect every position.
+- The current M5 waiver gates independently admit QB/RB/WR for the four REDRAFT leagues, QB only for the two REDRAFT_BESTBALL leagues, and no offensive positions for the remaining dynasty/chopped leagues. TE is excluded by the generic waiver gate in every league. A scoring repair alone cannot open the format gates.
+- Across these stored snapshots there are still zero eligible offensive next-three-week forecasts. Static blockers prevent inference from running on those paths; zero recorded waiver feature coverage is not proof that the live features themselves are missing.
+
+Implemented diagnostic behavior:
+
+- Both Weekly Actions and Optimal Waiver reports show offensive eligible-with-value counts, unsupported scoring keys and local gate reasons before their recommendation tables.
+- Local M5 binding failures, absent scoring audits and missing/malformed bundles remain unknown. Diagnostics never set activation flags, replace a missing next-three-week value with a weekly projection, or change planner/model eligibility.
+- A standalone read-only command is available: `python research/workflow_decision_context.py waiver-diagnostics --output .cache/waiver-coverage.json`. An optional `--league-id` limits investigation to an enabled league. Input failures remain explicit rows in the output.
+- The output separates observed snapshot facts from current local artifact checks; local identity agreement does not prove that this M5 was the one used by an older capture. Ownership, legal add/drop options and live budgets remain independent decision checks.
+
+Next repair boundary: exact raw-stat/scoring support and validated next-three-week model/format coverage require the repository's Sol design boundary before changing forecast methodology or promotion authority. This tranche identifies the blockers and exposes them; it does not claim to restore offensive recommendations. Waiver cadence/reconciliation and prospective IDP/K capture remain separately implementable collection work.
+
+Validation: workflow decision-context tests pass all 10 regression scenarios, Window 1C passes 10 tests, and Window 1D passes 19 checks. The deterministic personal release returns `DEPLOYABLE_SOURCE` with 55/55 checks. The diagnostic loads all 23 leagues without input failures; each local M5 identity matches its snapshot. Existing current snapshots, captured forecasts, profiles and scoring/model gates are unchanged. Only the new diagnostic evidence and authorized generated release synchronization are added.

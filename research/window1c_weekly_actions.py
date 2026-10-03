@@ -30,6 +30,7 @@ from typing import Any, Iterable
 from workflow_decision_context import (
     default_season, input_readiness, projection_coverage, readiness_markdown,
     resolve_target, summarize_readiness, write_output_index,
+    waiver_projection_diagnostics, waiver_diagnostics_markdown,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -679,6 +680,7 @@ def build_league_report(
                 "waiver_activation_eligible_total": int(((current.get("summary") or {}).get("waiver_activation_eligible") or 0)),
                 "source_health_reason": ((current.get("source_health") or {}).get("reason")),
                 "projection_coverage": projection_coverage(current),
+                "waiver_projection_diagnostics": waiver_projection_diagnostics(root, league_id, current),
             },
             "actions": {
                 "injury_alerts": inj,
@@ -743,6 +745,7 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
         if context:
             lines += ["", f"Input week: **{context.get('current_week')}**; target: **{context.get('target_week')}**; snapshot age: **{context.get('current_age_hours')} h**.",
                       f"Governed eligible rows — weekly: **{context.get('weekly_activation_eligible_total')}**; next-three-week waiver: **{context.get('waiver_activation_eligible_total')}**."]
+            lines += waiver_diagnostics_markdown(context.get("waiver_projection_diagnostics") or {})
         if league.get("blocker"):
             lines += [f"", f"Blocked: `{league['blocker'].get('code')}`", ""]
             continue
@@ -833,6 +836,7 @@ def build_portfolio(
     ]
     for report, (lid, row) in zip(reports, selected):
         report["input_readiness"] = input_readiness(root, lid, row, season=season, week=resolved_week, as_of=as_of)
+        report["input_readiness"]["waiver_projection_diagnostics"] = (report.get("evidence") or {}).get("waiver_projection_diagnostics")
     readiness = summarize_readiness(reports)
     action_required = [x for x in reports if x.get("status") == "ACTION_REQUIRED"]
     return {

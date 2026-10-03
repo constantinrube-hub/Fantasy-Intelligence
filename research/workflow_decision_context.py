@@ -10,6 +10,8 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
+import json
+import math
 from collections import Counter
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
@@ -146,6 +148,111 @@ def projection_coverage(current: dict[str, Any]) -> dict[str, Any]:
     return {"unit": "source_rows_before_identity_deduplication", "by_model_position": dict(sorted(positions.items()))}
 
 
+def waiver_projection_diagnostics(root: Path, league_id: str, current: dict[str, Any]) -> dict[str, Any]:
+    """Explain stored coverage with current local gates; never grant eligibility.
+
+    The local M5 is not claimed to be the immutable M5 used by an older capture.
+    Its hash and identity checks are separate from facts in the hydrated snapshot.
+    Missing audit evidence remains unknown rather than becoming exact scoring.
+    """
+    from scoring_relevance import position_support
+
+    path = root / "data/research/leagues" / str(league_id) / "milestone5.json"
+    try:
+        m5 = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(m5, dict):
+            raise ValueError("M5_NOT_OBJECT")
+    except (OSError, ValueError):
+        m5 = {}
+    binding = bool(m5 and str(current.get("league_id") or "") == str(league_id)
+                   and str(m5.get("league_id") or "") == str(league_id)
+                   and current.get("profile_fingerprint")
+                   and m5.get("profile_fingerprint") == current.get("profile_fingerprint")
+                   and current.get("scoring_signature")
+                   and m5.get("scoring_signature") == current.get("scoring_signature"))
+    gates = (m5.get("activation") or {}).get("decision_gates") or {}
+    generic = gates.get("waiver_policy_positions")
+    formats = (gates.get("decision_format_position_gates") or {}).get("waiver") or {}
+    fmt = str(current.get("league_format") or "").upper().strip()
+    format_positions = formats.get(fmt)
+    specs = ((m5.get("waiver_integration") or {}).get("model_specs") or {}).get("positions") or {}
+    audit = (current.get("source_health") or {}).get("scoring_support")
+    scoring = current.get("scoring_settings")
+    audit_known = isinstance(audit, dict) and isinstance(audit.get("unsupported"), list) and isinstance(scoring, dict)
+    coverage = projection_coverage(current)["by_model_position"]
+    positions = {}
+    for pos, counts in coverage.items():
+        rows = [r for r in current.get("players") or [] if isinstance(r, dict)
+                and str(r.get("position_model") or "UNKNOWN") == pos]
+        support = position_support(scoring, audit, pos) if audit_known else None
+        unsupported = sorted(str(r["key"]) for r in (support or {}).get("unsupported") or [])
+        reasons = []
+        if current.get("research_compatible") is False:
+            reasons.append("SNAPSHOT_RESEARCH_INCOMPATIBLE")
+        if unsupported:
+            reasons.append("CURRENT_SCORING_UNSUPPORTED")
+        if not audit_known:
+            reasons.append("SCORING_AUDIT_UNAVAILABLE")
+        if binding:
+            if not isinstance(generic, list):
+                reasons.append("M5_WAIVER_GATE_UNAVAILABLE")
+            elif pos not in generic:
+                reasons.append("CURRENT_M5_POSITION_GATE_OFF")
+            if isinstance(format_positions, list) and pos not in format_positions:
+                reasons.append("CURRENT_M5_FORMAT_GATE_OFF")
+            # D/ST and kicker use their dedicated model bundles, not this spec.
+            if pos not in {"DEF", "K"} and not specs.get(pos):
+                reasons.append("CURRENT_M5_MODEL_SPEC_MISSING")
+        else:
+            reasons.append("M5_LOCAL_BINDING_UNVERIFIED")
+        def finite(value: Any) -> bool:
+            try:
+                return value is not None and not isinstance(value, bool) and math.isfinite(float(value))
+            except (TypeError, ValueError):
+                return False
+        eligible_values = sum(bool(r.get("waiver_activation_eligible"))
+                              and finite(r.get("waiver_next3_projection")) for r in rows)
+        positions[pos] = {
+            **counts, "waiver_eligible_rows_with_value": eligible_values,
+            "history_at_least_two_rows": sum(finite(r.get("history_games")) and float(r["history_games"]) >= 2 for r in rows),
+            "scoring_exact": support["exact"] if support else None,
+            "unsupported_scoring_keys": unsupported,
+            "local_generic_gate_enabled": pos in generic if binding and isinstance(generic, list) else None,
+            "local_format_override": format_positions if binding and isinstance(format_positions, list) else None,
+            "local_model_spec_present": bool(specs.get(pos)) if binding and pos not in {"DEF", "K"} else None,
+            "diagnostic_reasons": reasons,
+            # No static blocker proves that inference ran or coverage passed.
+            "status": "SNAPSHOT_HAS_ELIGIBLE_VALUES" if eligible_values else
+                      "NO_ELIGIBLE_VALUES_STATIC_BLOCKERS" if reasons else "NO_ELIGIBLE_VALUES_INFERENCE_REVIEW_REQUIRED",
+        }
+    return {
+        "schema": "fie-waiver-projection-diagnostics-v1",
+        "basis": "HYDRATED_SNAPSHOT_AND_CURRENT_LOCAL_M5_NOT_FROZEN_CAPTURE_REPLAY",
+        "unit": "source_rows_before_identity_deduplication",
+        "grants_eligibility": False,
+        "m5_local_identity_verified": binding,
+        "m5_local_sha256": hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None,
+        "by_model_position": positions,
+    }
+
+
+def waiver_diagnostics_markdown(diagnostic: dict[str, Any]) -> list[str]:
+    if not diagnostic:
+        return []
+    lines = ["", "Offensive waiver coverage (source rows; current local gate diagnostics):", "",
+             "| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |",
+             "|---|---:|---|---|"]
+    for pos in ("QB", "RB", "WR", "TE"):
+        row = (diagnostic.get("by_model_position") or {}).get(pos)
+        if row is None:
+            lines.append(f"| {pos} | — | Unknown | No snapshot rows |")
+            continue
+        keys = ", ".join(row.get("unsupported_scoring_keys") or []) or ("—" if row.get("scoring_exact") is not None else "Unknown")
+        reasons = ", ".join(row.get("diagnostic_reasons") or []) or row.get("status")
+        lines.append(f"| {pos} | {row.get('waiver_eligible_rows_with_value')} | {keys} | {reasons} |")
+    return lines + ["", "Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks."]
+
+
 def summarize_readiness(reports: list[dict[str, Any]]) -> dict[str, Any]:
     counts: Counter[str] = Counter()
     lineups: Counter[str] = Counter()
@@ -224,3 +331,49 @@ def write_output_index(path: Path, *, season: int, report_json: Path, report_mar
         "report_markdown": str(report_markdown),
         "report_sha256": hashlib.sha256(report_json.read_bytes()).hexdigest(),
     }, indent=2) + "\n", encoding="utf-8")
+
+
+def build_waiver_diagnostic_portfolio(root: Path, league_id: str | None = None) -> dict[str, Any]:
+    """Read-only, no-network investigation of enabled stored snapshots."""
+    from current_snapshot_storage import load_current_snapshot
+
+    registry = json.loads((root / "data/research/leagues/registry.json").read_text(encoding="utf-8"))
+    enabled = {str(lid): entry for lid, entry in (registry.get("leagues") or {}).items() if entry.get("enabled")}
+    if league_id and league_id not in enabled:
+        raise ValueError(f"LEAGUE_NOT_ENABLED_OR_UNKNOWN:{league_id}")
+    leagues = []
+    for lid in sorted([league_id] if league_id else enabled):
+        base = root / "data/research/leagues" / lid
+        path = base / "current/milestone5_current.json"
+        try:
+            current = load_current_snapshot(path, root=root)
+            profile = json.loads((base / "profile.json").read_text(encoding="utf-8"))
+            leagues.append({"league_id": lid, "league_name": profile.get("league_name"),
+                            "format": current.get("league_format"), "season": current.get("season"),
+                            "week": current.get("week"), "current_generated_at": current.get("generated_at"),
+                            "current_snapshot_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                            "research_compatible": current.get("research_compatible"),
+                            "diagnostics": waiver_projection_diagnostics(root, lid, current)})
+        except (OSError, ValueError, KeyError) as exc:
+            leagues.append({"league_id": lid, "status": "BLOCKED_DIAGNOSTIC_INPUT",
+                            "detail": f"{type(exc).__name__}:{exc}"})
+    return {"schema": "fie-waiver-diagnostic-portfolio-v1", "observed_at_utc": datetime.now(UTC).isoformat(),
+            "read_only": True, "network_access": False, "enabled_league_count": len(enabled),
+            "league_count": len(leagues), "leagues": leagues}
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Read-only waiver coverage diagnostics; no forecasts or archive changes")
+    parser.add_argument("command", choices=["waiver-diagnostics"])
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--league-id")
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    report = build_waiver_diagnostic_portfolio(args.root, args.league_id)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with args.output.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(report, indent=2, allow_nan=False) + "\n")
+    print(json.dumps({"output": str(args.output), "league_count": report["league_count"],
+                      "blocked_inputs": sum(x.get("status") == "BLOCKED_DIAGNOSTIC_INPUT" for x in report["leagues"])}))

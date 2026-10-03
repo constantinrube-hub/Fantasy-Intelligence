@@ -25,6 +25,7 @@ from typing import Any, Iterable
 from workflow_decision_context import (
     default_season, input_readiness, projection_coverage, readiness_markdown,
     resolve_target, summarize_readiness, write_output_index,
+    waiver_projection_diagnostics, waiver_diagnostics_markdown,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -1140,6 +1141,7 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
         if context:
             lines += ["", f"Input week: **{context.get('current_week')}**; target: **{context.get('target_week')}**; snapshot age: **{context.get('current_age_hours')} h**.",
                       f"Governed waiver eligible rows: **{context.get('waiver_activation_eligible_total')}**."]
+            lines += waiver_diagnostics_markdown(context.get("waiver_projection_diagnostics") or {})
         ledger = (league.get("observed_target_week_bid_ledger") or {}).get("players") or []
         if ledger:
             lines.extend([
@@ -1317,6 +1319,7 @@ def build_portfolio(
             season=season, week=target_week, as_of=as_of,
         )
         plan["input_readiness"]["projection_coverage"] = projection_coverage(currents[lid]) if lid in currents else None
+        plan["input_readiness"]["waiver_projection_diagnostics"] = waiver_projection_diagnostics(root, lid, currents[lid]) if lid in currents else None
     readiness = summarize_readiness(leagues)
     counts = Counter(str(x.get("status")) for x in leagues)
     generated = utc_now()
