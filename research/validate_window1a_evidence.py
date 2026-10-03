@@ -9,6 +9,7 @@ from pathlib import Path
 from fie_research_pipeline_contract import ROOT
 from freeze_fie_2026_baseline import validate_baseline
 from point_in_time_capture import validate_envelope
+from waiver_capture_reconciliation import validate_reconciliation
 
 
 def load(path: Path):
@@ -16,7 +17,7 @@ def load(path: Path):
 
 
 def validate_waivers(root: Path) -> int:
-    envelopes = sorted(root.glob("2026/week_*/*/*/source-envelope.json"))
+    envelopes = sorted(root.glob("*/week_*/*/*/source-envelope.json"))
     if not envelopes:
         raise AssertionError(f"no waiver source envelopes under {root}")
     for path in envelopes:
@@ -24,7 +25,7 @@ def validate_waivers(root: Path) -> int:
         assert value["capture_intent"] == "WAIVER_TRANSACTION"
         week = int(path.parts[-4].split("_")[-1])
         normalized = path.with_name("normalized-transactions.json")
-        if week >= 1:
+        if week >= 1 or normalized.is_file():
             assert normalized.is_file()
             for row in load(normalized):
                 assert row["schema_version"] == "fie-waiver-transaction-evidence-v1"
@@ -35,6 +36,8 @@ def validate_waivers(root: Path) -> int:
             assert cycle["visibility_status"] != "COMPLETE_ENOUGH_FOR_BID_MODEL"
             behavior = load(path.with_name("behavior-features.json"))
             assert behavior["schema_version"] == "fie-waiver-behavior-features-v1"
+    for path in root.glob("*/reconciliations/*/*.json"):
+        validate_reconciliation(load(path), root)
     return len(envelopes)
 
 

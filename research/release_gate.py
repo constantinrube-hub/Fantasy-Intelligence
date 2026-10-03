@@ -28,6 +28,7 @@ def main():
   run([sys.executable,'research/integrity_dist_hygiene_test.py']),
   run([sys.executable,'research/integrity_current_storage_test.py']),
   run([sys.executable,'research/integrity_workflow_decision_context_test.py']),
+  run([sys.executable,'research/integrity_waiver_capture_reconciliation_test.py']),
   run(['node','research/integrity_monte_carlo_worker_test.js']),
   run([sys.executable,'research/integrity_decision_engines_test.py']),
   run([sys.executable,'research/integrity_v89_test.py']),

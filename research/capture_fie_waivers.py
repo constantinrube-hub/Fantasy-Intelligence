@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timezone
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,7 @@ from point_in_time_capture import (
     utc_now,
     validate_envelope,
 )
+from waiver_capture_reconciliation import automatic_capture_due, BERLIN, rolling_rounds, reconcile, validate_reconciliation
 
 
 BASE = "https://api.sleeper.app/v1"
@@ -90,6 +92,8 @@ def observation_type(raw: dict[str, Any]) -> str:
     kind, status = str(raw.get("type") or "").lower(), str(raw.get("status") or "").lower()
     if kind == "waiver" and status == "complete":
         return "COMPLETED_WAIVER"
+    if kind == "waiver" and status == "pending":
+        return "PENDING_WAIVER"
     if kind == "waiver" and status in {"failed", "rejected"}:
         return "FAILED_OR_REJECTED_WAIVER"
     if kind == "free_agent" and status == "complete":
@@ -107,26 +111,19 @@ def visibility_for_payload(transactions: list[dict[str, Any]]) -> tuple[str, str
             "PARTIAL_OBSERVED",
             "Sleeper exposed at least one failed/rejected claim; the endpoint does not guarantee a complete private bid book.",
         )
-    if waivers:
+    if waivers and all(str(row.get("status") or "").lower() == "complete" for row in waivers):
         return (
             "WINNER_ONLY_OBSERVED",
             "Only completed waiver claims were observed in this payload; absent losing claims are unknown.",
         )
-    return "UNKNOWN", "No waiver claims were returned for this league/week observation."
+    return "UNKNOWN", "No completed/failed claim visibility is established; absent or pending claims do not establish a private bid book."
 
 
 def normalize_transactions(
     transactions: list[dict[str, Any]], *, league_id: str, week: int, fetched_at: str, raw_sha256: str
 ) -> list[dict[str, Any]]:
     visibility, reason = visibility_for_payload(transactions)
-    by_id: dict[str, dict[str, Any]] = {}
-    for raw in transactions:
-        transaction_id = str(raw.get("transaction_id") or "").strip()
-        if not transaction_id:
-            continue
-        prior = by_id.get(transaction_id)
-        if prior is None or int(raw.get("status_updated") or raw.get("created") or 0) >= int(prior.get("status_updated") or prior.get("created") or 0):
-            by_id[transaction_id] = raw
+    by_id = deduplicate_transactions(transactions)
     rows = []
     for raw in sorted(by_id.values(), key=lambda row: (int(row.get("created") or 0), str(row.get("transaction_id") or ""))):
         transaction_id = str(raw.get("transaction_id") or "").strip()
@@ -154,13 +151,25 @@ def normalize_transactions(
                 "roster_ids": list(raw.get("roster_ids") or []),
                 "adds": raw.get("adds"),
                 "drops": raw.get("drops"),
-                "waiver_bid": float(bid) if isinstance(bid, (int, float)) and bid >= 0 else None,
+                "waiver_bid": float(bid) if isinstance(bid, (int, float)) and not isinstance(bid, bool) and bid >= 0 else None,
                 "waiver_priority": float(priority) if isinstance(priority, (int, float)) and priority >= 0 else None,
                 "failure_reason": failure_reason(raw),
             },
             "visibility": {"losing_claim_visibility": row_visibility, "reason": reason},
         })
     return rows
+
+
+def deduplicate_transactions(transactions: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    by_id: dict[str, dict[str, Any]] = {}
+    for raw in transactions:
+        transaction_id = str(raw.get("transaction_id") or "").strip()
+        if not transaction_id:
+            continue
+        prior = by_id.get(transaction_id)
+        if prior is None or int(raw.get("status_updated") or raw.get("created") or 0) >= int(prior.get("status_updated") or prior.get("created") or 0):
+            by_id[transaction_id] = raw
+    return by_id
 
 
 def observed_bid_book_summary(bids: list[float], *, source_complete: bool) -> dict[str, Any]:
@@ -196,6 +205,7 @@ def cycle_state(
     transactions: list[dict[str, Any]],
     source_available: bool = True,
 ) -> dict[str, Any]:
+    transactions = list(deduplicate_transactions(transactions).values())
     budget = profile.get("settings", {}).get("waiver_budget")
     rostered = {
         str(player_id)
@@ -285,7 +295,8 @@ def fixture_payload() -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, A
         {"transaction_id": "tx_fail", "type": "waiver", "status": "failed", "creator": "m2", "roster_ids": [2], "adds": {"rb": 2}, "drops": None, "settings": {"waiver_bid": 27}, "created": 2, "status_updated": 3, "metadata": {"notes": "This player was claimed by another owner."}},
         {"transaction_id": "tx_fa", "type": "free_agent", "status": "complete", "creator": "m1", "roster_ids": [1], "adds": {"te": 1}, "drops": None, "settings": {}, "created": 4, "status_updated": 4, "metadata": {}},
     ]
-    return profile, rosters, {"transactions": transactions, "league": {"league_id": "123456789012345678"}, "rosters": rosters}
+    return profile, rosters, {"transactions": transactions, "league": {"league_id": "123456789012345678", "settings": {"waiver_budget": 100}}, "rosters": rosters,
+                              "users": [{"user_id": "m1", "display_name": "Fixture Manager 1"}, {"user_id": "m2", "display_name": "Fixture Manager 2"}]}
 
 
 def stored_visibility_audit(
@@ -301,13 +312,14 @@ def stored_visibility_audit(
                     "transaction_count": 0, "transaction_status_counts": {}, "losing_claim_visibility": "UNKNOWN",
                     "visibility_reason": "No source observation has been captured.", "source_status": "SOURCE_UNAVAILABLE",
                     "source_errors": ["NO_CAPTURED_SOURCE_ENVELOPE"], "source_envelope_sha256": None,
+                    "observed_at": None,
                 })
                 continue
             envelope = json.loads(candidates[-1].read_text(encoding="utf-8")); validate_envelope(envelope)
             observed_values.append(envelope["observed_at"])
             payload = envelope.get("payload") or {}; transactions = payload.get("transactions")
             errors = list(payload.get("source_errors") or [])
-            available = isinstance(transactions, list)
+            available = isinstance(transactions, list) and all(isinstance(row, dict) for row in transactions)
             rows = transactions if available else []
             visibility, reason = visibility_for_payload(rows)
             if not available:
@@ -319,6 +331,7 @@ def stored_visibility_audit(
                 "losing_claim_visibility": visibility, "visibility_reason": reason,
                 "source_status": "OBSERVED" if available else "SOURCE_UNAVAILABLE", "source_errors": errors,
                 "source_envelope_sha256": sha256_bytes(canonical_bytes(envelope)),
+                "observed_at": envelope["observed_at"],
             })
     observed_at = max(observed_values) if observed_values else utc_now()
     return {
@@ -332,28 +345,52 @@ def stored_visibility_audit(
 def capture(
     *, output_root: Path, season: int, weeks: list[int], fixture: bool = False,
     league_scope: set[str] | None = None,
+    automatic: bool = False,
 ) -> dict[str, Any]:
+    if not weeks or any(isinstance(w, bool) or not 0 <= w <= 18 for w in weeks):
+        raise ValueError("TRANSACTION_ROUNDS_OUT_OF_RANGE")
+    weeks = sorted(set(weeks))
     observed_at = "2026-09-06T09:00:00+00:00" if fixture else utc_now()
+    capture_schedule_date = datetime.fromisoformat(observed_at).astimezone(BERLIN).date().isoformat()
     all_registry = enabled_leagues(ROOT / "data/research/leagues/registry.json") if not fixture else {
         "123456789012345678": {"format": "REDRAFT", "profile_path": "fixture"}
     }
     registry = {key: value for key, value in all_registry.items() if league_scope is None or key in league_scope}
     if not registry:
         raise ValueError("league scope selected no enabled leagues")
+    if not fixture:
+        for league_id, entry in registry.items():
+            declared = json.loads((ROOT / str(entry["profile_path"])).read_text(encoding="utf-8")).get("season")
+            if declared is not None and str(declared) != str(season):
+                raise ValueError(f"LEAGUE_PROFILE_SEASON_MISMATCH:{league_id}:{declared}:{season}")
     catalog_path = ROOT / "data/research/app/player-catalog.json"
     catalog = json.loads(catalog_path.read_text(encoding="utf-8")) if catalog_path.exists() else {"players": {}}
     player_positions = {str(pid): str(row.get("position") or "") for pid, row in (catalog.get("players") or {}).items()}
     player_ids = set(player_positions)
-    audit_rows = []
+    audit_rows, reconciliation_paths = [], []
     for league_id, entry in sorted(registry.items()):
         if fixture:
             profile, rosters, payload = fixture_payload()
             league, league_error, roster_error = payload["league"], None, None
+            users, user_error = payload["users"], None
         else:
             profile = json.loads((ROOT / str(entry["profile_path"])).read_text(encoding="utf-8"))
             league, league_error = safe_fetch_json(f"{BASE}/league/{league_id}")
             rosters, roster_error = safe_fetch_json(f"{BASE}/league/{league_id}/rosters")
-            rosters = rosters if isinstance(rosters, list) else []
+            users, user_error = safe_fetch_json(f"{BASE}/league/{league_id}/users")
+            if isinstance(league, dict) and league.get("season") is not None and str(league["season"]) != str(season):
+                raise ValueError(f"LIVE_LEAGUE_SEASON_MISMATCH:{league_id}")
+            if league is not None and (not isinstance(league, dict) or str(league.get("league_id") or "") != league_id):
+                league_error = "INVALID_LEAGUE_IDENTITY_PAYLOAD"
+            if rosters is not None and not isinstance(rosters, list):
+                roster_error = "INVALID_ROSTER_PAYLOAD"
+            if users is not None and not isinstance(users, list):
+                user_error = "INVALID_USERS_PAYLOAD"
+            if isinstance(league, dict) and league.get("settings") is not None and not isinstance(league["settings"], dict):
+                league_error = "INVALID_LEAGUE_SETTINGS_PAYLOAD"
+        observed_rosters = rosters if isinstance(rosters, list) else []
+        observed_settings = (league.get("settings") or {}) if isinstance(league, dict) and not league_error else {}
+        observed_profile = {**profile, "settings": observed_settings}
         for week in weeks:
             if fixture:
                 transactions = payload["transactions"]
@@ -361,16 +398,19 @@ def capture(
                 transaction_error = None
             else:
                 transactions, transaction_error = safe_fetch_json(f"{BASE}/league/{league_id}/transactions/{week}")
-                source_errors = [value for value in (league_error, roster_error, transaction_error) if value]
-                combined = {"transactions": transactions, "league": league, "rosters": rosters, "source_errors": source_errors}
-            if transactions is not None and not isinstance(transactions, list):
-                raise ValueError(f"invalid Sleeper transaction payload for {league_id} week {week}")
-            observed_transactions = transactions if isinstance(transactions, list) else []
+                if transactions is not None and (not isinstance(transactions, list) or any(not isinstance(row, dict) for row in transactions)):
+                    transaction_error = "INVALID_TRANSACTION_PAYLOAD"
+                source_errors = [value for value in (league_error, roster_error, user_error, transaction_error) if value]
+                combined = {"transactions": transactions, "league": league, "rosters": rosters, "users": users, "source_errors": source_errors}
+                # Bind each response after it was fetched, rather than stamping
+                # every league with the portfolio's earlier start timestamp.
+                observed_at = utc_now()
+            observed_transactions = transactions if isinstance(transactions, list) and not transaction_error else []
             envelope = build_envelope(
                 capture_id=f"sleeper-waiver-{season}-{week:02d}-{league_id}-{compact_timestamp(observed_at)}",
                 capture_intent="WAIVER_TRANSACTION",
                 provider="Sleeper",
-                endpoint=f"{BASE}/league/{league_id}/transactions/{week} + league + rosters",
+                endpoint=f"{BASE}/league/{league_id}/transactions/{week} + league + rosters + users",
                 observed_at=observed_at,
                 as_of_semantics="Exact provider responses observed at observed_at; absent transactions or claims are not inferred.",
                 payload=combined,
@@ -385,14 +425,13 @@ def capture(
             kinds = Counter(f"{row.get('type')}/{row.get('status')}" for row in observed_transactions)
             audit_rows.append({
                 "league_id": league_id, "league_format": entry.get("format"), "requested_week": week,
-                "transaction_count": len(transactions), "transaction_status_counts": dict(sorted(kinds.items())),
+                "transaction_count": len(observed_transactions), "transaction_status_counts": dict(sorted(kinds.items())),
                 "losing_claim_visibility": visibility, "visibility_reason": reason,
                 "source_status": "SOURCE_UNAVAILABLE" if transaction_error else "OBSERVED",
                 "source_errors": list(combined.get("source_errors") or []),
                 "source_envelope_sha256": sha256_bytes(canonical_bytes(envelope)),
+                "observed_at": observed_at,
             })
-            if week < 1:
-                continue
             normalized = normalize_transactions(
                 observed_transactions, league_id=league_id, week=week, fetched_at=observed_at,
                 raw_sha256=envelope["payload_sha256"],
@@ -400,15 +439,21 @@ def capture(
             first_write_json(capture_dir / "normalized-transactions.json", normalized)
             first_write_json(capture_dir / "cycle-state.json", cycle_state(
                 league_id=league_id, season=season, week=week, observed_at=observed_at,
-                profile=profile, rosters=rosters, player_ids=player_ids, transactions=observed_transactions,
-                source_available=transaction_error is None and roster_error is None,
+                profile=observed_profile, rosters=observed_rosters, player_ids=player_ids, transactions=observed_transactions,
+                source_available=transaction_error is None and roster_error is None and league_error is None,
             ))
-            budget = profile.get("settings", {}).get("waiver_budget")
+            budget = observed_settings.get("waiver_budget")
             first_write_json(capture_dir / "behavior-features.json", behavior_features(
                 normalized, league_id=league_id, as_of=observed_at,
                 budget=float(budget) if isinstance(budget, (int, float)) and budget > 0 else None,
                 player_positions=player_positions,
             ))
+        cutoff = observed_at if fixture else utc_now()
+        reconciled = reconcile(output_root, season, league_id, cutoff)
+        validate_reconciliation(reconciled, output_root)
+        path = output_root / str(season) / "reconciliations" / league_id / f"reconciliation_{compact_timestamp(cutoff)}.json"
+        first_write_json(path, reconciled)
+        reconciliation_paths.append(path.relative_to(output_root).as_posix())
     audit = {
         "schema_version": AUDIT_SCHEMA,
         "season": season,
@@ -422,21 +467,38 @@ def capture(
     }
     if not fixture:
         audit = stored_visibility_audit(output_root=output_root, season=season, weeks=weeks, registry=all_registry)
-    first_write_json(output_root / str(season) / "visibility-audits" / f"audit_{compact_timestamp(observed_at)}.json", audit)
+    audit["reconciliation_paths"] = reconciliation_paths
+    audit["captured_league_count"] = len(registry)
+    audit["invocation_observations"] = audit_rows
+    audit["invocation_status"] = "PARTIAL_SOURCE_FAILURE" if any(row["source_errors"] for row in audit_rows) else "OBSERVED_PRIVATE_BOOK_UNKNOWN"
+    audit["capture_mode"] = "AUTOMATIC" if automatic else "MANUAL"
+    audit["capture_schedule_date"] = capture_schedule_date
+    audit["round_policy"] = "EXPLICIT_ROUNDS_OR_CURRENT_PLUS_TWO_PRIOR_ROUNDS_INCLUDING_ZERO"
+    audit_path = output_root / str(season) / "visibility-audits" / f"audit_{compact_timestamp(observed_at)}.json"
+    audit["audit_relative_path"] = audit_path.relative_to(output_root).as_posix()
+    first_write_json(audit_path, audit)
     return audit
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-root", default="data/research/waivers/sleeper")
-    parser.add_argument("--season", type=int, default=2026)
-    parser.add_argument("--weeks", default="", help="Comma-separated Sleeper rounds; defaults to current state week")
+    parser.add_argument("--season", type=int)
+    parser.add_argument("--weeks", default="", help="Explicit Sleeper rounds, including 0; default is current plus two prior rounds")
+    parser.add_argument("--round-lookback", type=int, default=2)
+    parser.add_argument("--schedule-check", action="store_true", help="No-network automatic date/cadence check for the reusable workflow")
+    parser.add_argument("--automatic", action="store_true", help="Tag the workflow's automatic observation for daily deduplication")
+    parser.add_argument("--output-index", type=Path, help="Exact audit generated by this invocation, for workflow summaries")
     parser.add_argument("--fixture", action="store_true")
     parser.add_argument("--league-scope", default="", help="Optional comma-separated enabled league IDs")
     args = parser.parse_args(argv)
     output_root = Path(args.output_root)
     if not output_root.is_absolute():
         output_root = ROOT / output_root
+    if args.schedule_check:
+        allowed = automatic_capture_due(output_root, datetime.now(timezone.utc), len(enabled_leagues(ROOT / "data/research/leagues/registry.json")))
+        print(f"capture_allowed={'true' if allowed else 'false'}")
+        return 0
     if args.weeks:
         weeks = sorted({int(value) for value in args.weeks.split(",") if value.strip()})
     elif args.fixture:
@@ -446,11 +508,20 @@ def main(argv: list[str] | None = None) -> int:
         if str(state.get("season_type") or "").lower() not in {"regular", "reg", "pre"}:
             print("NO_WRITE_OUTSIDE_NFL_CAPTURE_SEASON")
             return 0
-        args.season = int(state.get("season") or args.season)
-        weeks = [max(1, int(state.get("week") or 1))]
+        if args.season is not None and str(state.get("season")) != str(args.season):
+            raise ValueError("REQUESTED_SEASON_STATE_MISMATCH")
+        args.season = int(state["season"])
+        weeks = rolling_rounds(state, args.round_lookback)
+    if args.season is None:
+        from workflow_decision_context import default_season
+        args.season = 2026 if args.fixture else default_season(datetime.now(timezone.utc))
     scope = {value.strip() for value in args.league_scope.split(",") if value.strip()} or None
-    audit = capture(output_root=output_root, season=args.season, weeks=weeks, fixture=args.fixture, league_scope=scope)
-    print(f"PASS waiver evidence leagues={audit['enabled_league_count']} observations={len(audit['leagues'])}")
+    audit = capture(output_root=output_root, season=args.season, weeks=weeks, fixture=args.fixture, league_scope=scope, automatic=args.automatic)
+    if args.output_index:
+        args.output_index.parent.mkdir(parents=True, exist_ok=True)
+        with args.output_index.open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(json.dumps({"season": args.season, "audit_path": str(output_root / audit["audit_relative_path"])}) + "\n")
+    print(f"PASS waiver evidence status={audit['invocation_status']} captured_leagues={audit['captured_league_count']} round_observations={len(audit['invocation_observations'])}")
     return 0
 
 

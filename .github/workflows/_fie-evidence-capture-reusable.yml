@@ -6,6 +6,10 @@ on:
       capture_kind:
         required: true
         type: string
+      automatic_capture:
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -22,25 +26,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Check automatic waiver capture window
+        id: capture_policy
+        if: inputs.capture_kind == 'waiver' && inputs.automatic_capture
+        run: python research/capture_fie_waivers.py --schedule-check >> "$GITHUB_OUTPUT"
       - name: Verify focused first-write contract
+        if: steps.capture_policy.outputs.capture_allowed != 'false'
         shell: bash
         run: |
           python research/integrity_window1a_evidence_backbone.py
           case "${{ inputs.capture_kind }}" in
-            waiver) python research/capture_fie_waivers.py --fixture --output-root /tmp/fie-waiver-fixture ;;
+            waiver)
+              python research/integrity_waiver_capture_reconciliation_test.py
+              python research/capture_fie_waivers.py --fixture --output-root /tmp/fie-waiver-fixture
+              ;;
             weather) python research/capture_fie_weather.py --fixture --output-root /tmp/fie-weather-fixture ;;
             *) echo "Unsupported capture kind" >&2; exit 2 ;;
           esac
       - name: Capture immutable evidence
+        if: steps.capture_policy.outputs.capture_allowed != 'false'
         shell: bash
         run: |
           case "${{ inputs.capture_kind }}" in
             waiver)
-              python research/capture_fie_waivers.py
+              args=()
+              if [ "${{ inputs.automatic_capture }}" = "true" ]; then args+=(--automatic); fi
+              python research/capture_fie_waivers.py "${args[@]}" --output-index .cache/waiver-output.json
               python research/validate_window1a_evidence.py --kind waiver
               ;;
             weather)
@@ -48,7 +64,26 @@ jobs:
               python research/validate_window1a_evidence.py --kind weather
               ;;
           esac
+      - name: Summarize this waiver invocation
+        if: inputs.capture_kind == 'waiver' && steps.capture_policy.outputs.capture_allowed != 'false'
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          index = json.loads(Path('.cache/waiver-output.json').read_text())
+          audit = json.loads(Path(index['audit_path']).read_text())
+          print('## Waiver capture observations')
+          print('Rounds:', audit['requested_weeks'])
+          print('Captured leagues:', audit.get('captured_league_count', audit['enabled_league_count']))
+          print('Evidence status:', audit.get('invocation_status', 'UNKNOWN'))
+          for rel in audit.get('reconciliation_paths', []):
+              data=json.loads((Path('data/research/waivers/sleeper')/rel).read_text())
+              print(f"- {data['league_id']}: {data['unique_transaction_count']} unique observed transactions; {data['source_failure_observation_count']} archived source-failure observations.")
+          print('Only source-exposed claims are retained; private missing bids remain unknown.')
+          PY
       - name: Commit only authorized research evidence
+        if: steps.capture_policy.outputs.capture_allowed != 'false'
         shell: bash
         run: |
           git config user.name "FIE Evidence Bot"
@@ -61,4 +96,8 @@ jobs:
           git commit -m "Capture FIE ${{ inputs.capture_kind }} evidence"
           git fetch origin main
           git rebase origin/main
-          git push origin HEAD:main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
