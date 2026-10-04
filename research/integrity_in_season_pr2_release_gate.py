@@ -31,15 +31,18 @@ def main() -> None:
     design = json.loads((ROOT / "config/in-season-pr2-weekly-lineup-decision-support-design.json").read_text(encoding="utf-8"))
     assert design.get("governance", {}).get("production_model") == "M9"
     assert design.get("evaluation", {}).get("minimum_rows") == 300
-    for relative in WORKFLOWS:
-        text = (ROOT / relative).read_text(encoding="utf-8")
-        assert "workflow_dispatch:" in text, relative
-        assert "schedule:" not in text and "  push:" not in text, relative
+    capture = (ROOT / WORKFLOWS[0]).read_text(encoding="utf-8")
+    assert "workflow_dispatch:" in capture and "schedule:" in capture
+    assert "purpose: weekly_lineups" in capture and "--schedule-check --github-output" in capture
+    assert "  push:" not in capture
+    outcome = (ROOT / WORKFLOWS[1]).read_text(encoding="utf-8")
+    assert "workflow_dispatch:" in outcome
+    assert "schedule:" not in outcome and "  push:" not in outcome
     for relative in TESTS:
         path = ROOT / relative
         assert path.is_file(), relative
         subprocess.run([sys.executable, relative], cwd=ROOT, check=True)
-    print("PASS In-Season PR2 release gate: exact lineups, immutable capture/outcomes, manual-only workflows, and 23-league storage preserved")
+    print("PASS In-Season PR2 release gate: exact lineups, scheduled immutable capture, manual outcomes, and 23-league storage preserved")
 
 
 if __name__ == "__main__":

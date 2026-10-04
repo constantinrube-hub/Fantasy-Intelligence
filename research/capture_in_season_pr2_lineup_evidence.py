@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo
 
 try:
     from current_snapshot_storage import load_current_snapshot
@@ -41,6 +42,11 @@ SLEEPER_BASE = "https://api.sleeper.app/v1"
 GAMES_URL = "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
 SCHEMA = "fie-in-season-pr2-weekly-lineup-evidence-v1"
 UA = "Fantasy-Intelligence-InSeason-Lineup-Evidence/1.0"
+NEW_YORK = ZoneInfo("America/New_York")
+AUTOMATIC_CHECKPOINTS = {
+    "PR2_WEEK_OPEN_T6": {"opens_hours_before": 7.5, "closes_hours_before": 4.0},
+    "PR2_SUNDAY_MAIN_T4": {"opens_hours_before": 4.0, "closes_hours_before": 2.5},
+}
 
 
 def utc_now() -> str:
@@ -83,6 +89,91 @@ def schedule_games(csv_bytes: bytes, *, season: int, week: int) -> list[dict[str
     return sorted(out, key=lambda row: (str(row["kickoff_utc"]), str(row["away_team"]), str(row["home_team"])))
 
 
+def parse_time(value: str) -> datetime:
+    parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise ValueError("capture time must include a timezone")
+    return parsed.astimezone(timezone.utc)
+
+
+def season_schedule(csv_bytes: bytes, *, season: int) -> dict[int, list[dict[str, Any]]]:
+    weeks: dict[int, list[dict[str, Any]]] = {}
+    for week in range(1, 19):
+        try:
+            weeks[week] = schedule_games(csv_bytes, season=season, week=week)
+        except ValueError:
+            continue
+    if not weeks:
+        raise ValueError(f"no valid regular-season schedule games for {season}")
+    return weeks
+
+
+def checkpoint_already_captured(root: Path, *, season: int, week: int, checkpoint_id: str) -> bool:
+    base = root / "data/research/evaluation" / str(season) / "weeks" / f"week-{week}" / "lineups" / "evidence" / "captures"
+    for path in sorted(base.glob("portfolio-*/operational-evidence.json")):
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if value.get("checkpoint_id") == checkpoint_id:
+            return True
+    return False
+
+
+def automatic_capture_decision(root: Path, csv_bytes: bytes, *, season: int, as_of: str) -> dict[str, Any]:
+    """Resolve one due checkpoint without fetching Sleeper or guessing a week.
+
+    The three-hour general poll is bounded to T-7.5 through T-4 for the first
+    weekly kickoff. Dedicated Sunday half-hour polls use T-4 through T-2.5,
+    after the scheduled current refresh. Existing checkpoint evidence wins.
+    """
+    now = parse_time(as_of)
+    due: list[dict[str, Any]] = []
+    already = []
+    for week, games in sorted(season_schedule(csv_bytes, season=season).items()):
+        anchors: list[tuple[str, datetime]] = [("PR2_WEEK_OPEN_T6", min(parse_time(row["kickoff_utc"]) for row in games))]
+        sunday = [
+            parse_time(row["kickoff_utc"])
+            for row in games
+            if parse_time(row["kickoff_utc"]).astimezone(NEW_YORK).weekday() == 6
+            and 13 <= parse_time(row["kickoff_utc"]).astimezone(NEW_YORK).hour < 16
+        ]
+        if sunday:
+            anchors.append(("PR2_SUNDAY_MAIN_T4", min(sunday)))
+        for checkpoint_id, anchor in anchors:
+            policy = AUTOMATIC_CHECKPOINTS[checkpoint_id]
+            hours = (anchor - now).total_seconds() / 3600.0
+            if not policy["closes_hours_before"] <= hours <= policy["opens_hours_before"]:
+                continue
+            if checkpoint_already_captured(root, season=season, week=week, checkpoint_id=checkpoint_id):
+                already.append(f"{week}:{checkpoint_id}")
+                continue
+            due.append({
+                "capture_allowed": True,
+                "reason": "CHECKPOINT_DUE",
+                "season": int(season),
+                "week": int(week),
+                "checkpoint_id": checkpoint_id,
+                "anchor_at": anchor.isoformat(),
+                "hours_before_anchor": round(hours, 6),
+            })
+    if due:
+        # When week-open and Sunday share an anchor, preserve both identities
+        # over successive serialized polls by taking week-open first.
+        due.sort(key=lambda row: (row["week"], 0 if row["checkpoint_id"] == "PR2_WEEK_OPEN_T6" else 1))
+        return due[0]
+    return {
+        "capture_allowed": False,
+        "reason": "CHECKPOINT_ALREADY_CAPTURED" if already else "OUTSIDE_CHECKPOINT_WINDOW",
+        "season": int(season),
+        "week": "",
+        "checkpoint_id": "",
+        "anchor_at": "",
+        "hours_before_anchor": "",
+        "existing_checkpoints": already,
+    }
+
+
 def team_kickoffs(games: list[dict[str, Any]]) -> dict[str, str]:
     out: dict[str, str] = {}
     for game in games:
@@ -111,6 +202,7 @@ def build_evidence(
     schedule: list[dict[str, Any]],
     matchup_payloads: dict[str, list[dict[str, Any]]],
     league_scope: set[str] | None = None,
+    checkpoint_id: str = "MANUAL",
 ) -> dict[str, Any]:
     """Build the consumer envelope from already-captured source responses."""
     root = root.resolve()
@@ -177,6 +269,7 @@ def build_evidence(
         "transaction_or_lineup_execution": False,
         "season": int(season),
         "week": int(week),
+        "checkpoint_id": str(checkpoint_id),
         "captured_at": observed_at,
         "schedule_games": schedule,
         "schedule_games_sha256": sha256_bytes(canonical_bytes(schedule)),
@@ -212,14 +305,30 @@ def write_capture(root: Path, evidence: dict[str, Any], source_payload: dict[str
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Capture immutable In-Season PR2 lineup evidence")
     parser.add_argument("--season", type=int, required=True)
-    parser.add_argument("--week", type=int, required=True)
+    parser.add_argument("--week", type=int)
     parser.add_argument("--schedule-csv", help="Use a supplied nflverse games.csv; omitted fetches it")
     parser.add_argument("--matchups-json", help="JSON object keyed by league ID; omitted fetches Sleeper")
     parser.add_argument("--league-scope", default="", help="Optional comma-separated enabled league IDs")
     parser.add_argument("--observed-at", help="UTC ISO timestamp; defaults to capture time")
+    parser.add_argument("--checkpoint-id", default="MANUAL", choices=["MANUAL", *AUTOMATIC_CHECKPOINTS])
+    parser.add_argument("--schedule-check", action="store_true", help="Resolve whether an automatic checkpoint is due")
+    parser.add_argument("--github-output", action="store_true", help="Emit schedule-check fields as GitHub outputs")
     args = parser.parse_args(argv)
     observed_at = args.observed_at or utc_now()
     csv_bytes = Path(args.schedule_csv).read_bytes() if args.schedule_csv else fetch_bytes(GAMES_URL)
+    if args.schedule_check:
+        decision = automatic_capture_decision(ROOT, csv_bytes, season=args.season, as_of=observed_at)
+        if args.github_output:
+            for key in ("capture_allowed", "reason", "season", "week", "checkpoint_id", "anchor_at", "hours_before_anchor"):
+                value = decision.get(key, "")
+                if isinstance(value, bool):
+                    value = str(value).lower()
+                print(f"{key}={value}")
+        else:
+            print(json.dumps(decision, sort_keys=True))
+        return 0
+    if args.week is None:
+        parser.error("--week is required unless --schedule-check is used")
     schedule = schedule_games(csv_bytes, season=args.season, week=args.week)
     registry = enabled_registry(ROOT)
     scope = {x.strip() for x in args.league_scope.split(",") if x.strip()} or None
@@ -228,7 +337,7 @@ def main(argv: list[str] | None = None) -> int:
         payloads = read_json(Path(args.matchups_json), {}) or {}
     else:
         payloads = {lid: fetch_json(f"{SLEEPER_BASE}/league/{lid}/matchups/{args.week}") for lid in sorted(selected)}
-    evidence = build_evidence(ROOT, season=args.season, week=args.week, observed_at=observed_at, schedule=schedule, matchup_payloads=payloads, league_scope=scope)
+    evidence = build_evidence(ROOT, season=args.season, week=args.week, observed_at=observed_at, schedule=schedule, matchup_payloads=payloads, league_scope=scope, checkpoint_id=args.checkpoint_id)
     paths = write_capture(ROOT, evidence, {"schedule_source_sha256": sha256_bytes(csv_bytes), "schedule_games": schedule, "matchup_payloads": {lid: payloads[lid] for lid in sorted(selected)}})
     print(json.dumps({key: str(value) for key, value in paths.items()}, sort_keys=True))
     return 0
