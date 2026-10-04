@@ -80,3 +80,25 @@ jobs:
             git rebase origin/main
             git push origin HEAD:main
           fi
+
+      - name: Emit workflow usability evidence
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          CAPTURE_ALLOWED: ${{ steps.capture_policy.outputs.capture_allowed }}
+        run: |
+          python research/workflow_usability.py emit \
+            --workflow-path .github/workflows/capture-fie-availability.yml \
+            --workflow-name "Capture Daily FIE Availability Evidence" \
+            --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
+            --job-status "$JOB_STATUS" --adapter availability-index \
+            --source-file .cache/availability-output.json \
+            --policy-allowed "$CAPTURE_ALLOWED"
+
+      - name: Upload workflow usability evidence
+        if: always() && hashFiles('.cache/fie-workflow-usability.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-workflow-usability
+          path: .cache/fie-workflow-usability.json
+          retention-days: 21

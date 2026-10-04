@@ -279,3 +279,24 @@ jobs:
           git fetch origin main
           git rebase origin/main
           git push origin HEAD:main
+
+      - name: Emit workflow usability evidence
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          python research/workflow_usability.py emit \
+            --workflow-path .github/workflows/build-fie-current.yml \
+            --workflow-name "Refresh FIE Current Season" \
+            --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
+            --job-status "$JOB_STATUS" --adapter current-refresh \
+            --target-file /tmp/fie_leagues.txt \
+            --completed-file /tmp/fie_built_current_ids.txt
+
+      - name: Upload workflow usability evidence
+        if: always() && hashFiles('.cache/fie-workflow-usability.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-workflow-usability
+          path: .cache/fie-workflow-usability.json
+          retention-days: 21
