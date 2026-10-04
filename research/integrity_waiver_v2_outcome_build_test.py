@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from build_waiver_v2_outcome_ledger import build
+from build_waiver_v2_outcome_ledger import build, scoring_signature
 
 
 with tempfile.TemporaryDirectory() as raw:
@@ -33,7 +33,8 @@ with tempfile.TemporaryDirectory() as raw:
         {"season": 2026, "week": 1, "team": "B", "team_has_game": True, "game_complete": True},
         {"season": 2026, "week": 1, "team": "C", "team_has_game": True, "game_complete": True},
     ]).to_csv(team_schedule, index=False)
-    scoring.write_text(json.dumps({"pass_yd": 0.04, "pass_td": 4, "pass_int": -2, "rush_yd": 0.1, "rec": 1}), encoding="utf-8")
+    settings = {"pass_yd": 0.04, "pass_td": 4, "pass_int": -2, "rush_yd": 0.1, "rec": 1}
+    scoring.write_text(json.dumps({"scoring_settings": settings}), encoding="utf-8")
     report = build(
         player_stats_path=player_stats,
         weekly_roster_path=weekly_roster,
@@ -49,6 +50,8 @@ with tempfile.TemporaryDirectory() as raw:
     assert receipt["diagnostic_only"] is True and receipt["activation_eligible"] is False
     assert receipt["ledger"]["complete_exact_rows"] == 3
     assert receipt["ledger"]["status_counts"] == {"COMPLETE_EXACT": 3}
+    assert receipt["scoring_signature"] == scoring_signature(settings)
+    assert len(receipt["scoring_signature"]) == 16
     assert receipt["inputs"]["player_stats"]["sha256"]
     assert persisted["scoring_signature"].nunique() == 1
     assert persisted["outcome_complete"].all()
