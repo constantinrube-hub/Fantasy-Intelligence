@@ -46,10 +46,12 @@ EXACT_STAT_RENAMES = {
     "passing_interceptions": ("passing_interceptions", "interceptions"),
     "attempts": ("attempts", "passing_attempts"),
     "carries": ("carries", "rushing_attempts"),
-    # E2 uses the published player-week sack total as the canonical scoring
-    # value for Sleeper's QB-only pass_sack rule. PBP is retained separately
-    # to reconcile the passer/week accounting rather than overwrite it.
-    "sacks": ("sacks",),
+    # E2 uses the published player-week sacks suffered total as the canonical
+    # scoring value for Sleeper's QB-only pass_sack rule. nflverse names that
+    # field ``sacks_suffered``; a direct ``sacks`` field remains equivalent
+    # when a source supplies it. PBP is retained separately to reconcile the
+    # passer/week accounting rather than overwrite it.
+    "sacks": ("sacks", "sacks_suffered"),
     # E4 reconciles individual return yards directly against the published
     # player-week aggregates; aliases are intentionally not accepted.
     "kickoff_return_yards": ("kickoff_return_yards",),

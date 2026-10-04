@@ -14,7 +14,7 @@ with tempfile.TemporaryDirectory() as raw:
     root = Path(raw)
     stats_path, roster_path, games_path, identity_path = [root / name for name in ("stats.csv", "roster.csv", "games.csv", "identity.csv")]
     pd.DataFrame([
-        {"season": 2025, "week": 1, "season_type": "REG", "player_id": "p-qb", "recent_team": "AAA", "position": "QB", "passing_yards": 250, "passing_tds": 2, "interceptions": 1, "rushing_yards": 5, "receptions": 0, "kickoff_return_yards": 0, "punt_return_yards": 0},
+        {"season": 2025, "week": 1, "season_type": "REG", "player_id": "p-qb", "recent_team": "AAA", "position": "QB", "passing_yards": 250, "passing_tds": 2, "interceptions": 1, "rushing_yards": 5, "receptions": 0, "sacks_suffered": 1, "kickoff_return_yards": 0, "punt_return_yards": 0},
         {"season": 2025, "week": 1, "season_type": "REG", "player_id": "p-wr", "recent_team": "BBB", "position": "WR", "passing_yards": 0, "passing_tds": 0, "interceptions": 0, "rushing_yards": 0, "receptions": 4},
         # Aggregate/non-player rows can lack player identity and must not block
         # the offensive-player source contract.
@@ -47,6 +47,7 @@ with tempfile.TemporaryDirectory() as raw:
     canonical_schedule = pd.read_csv(root / "adapted" / "team-schedule.csv.gz")
     assert receipt["activation_eligible"] is False
     assert receipt["exact_stat_bindings"]["passing_interceptions"] == "interceptions"
+    assert receipt["exact_stat_bindings"]["sacks"] == "sacks_suffered"
     assert receipt["exact_stat_bindings"]["kickoff_return_yards"] == "kickoff_return_yards"
     assert receipt["exact_stat_bindings"]["punt_return_yards"] == "punt_return_yards"
     assert receipt["weekly_roster_status_audit"]["active_description_override_count"] == 1
@@ -54,6 +55,7 @@ with tempfile.TemporaryDirectory() as raw:
     assert receipt["weekly_roster_status_audit"]["exact_source_gsis_fallback_ids"] == 1
     assert receipt["weekly_roster_status_audit"]["excluded_missing_identity_rows"] == 1
     assert canonical_stats.loc[canonical_stats.canonical_player_id.eq("QB1"), "passing_interceptions"].iloc[0] == 1
+    assert canonical_stats.loc[canonical_stats.canonical_player_id.eq("QB1"), "sacks"].iloc[0] == 1
     bye = canonical_schedule[canonical_schedule.team.eq("CCC")].iloc[0]
     assert not bool(bye.team_has_game) and bool(bye.game_complete)
 

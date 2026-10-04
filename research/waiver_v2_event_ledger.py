@@ -61,15 +61,15 @@ E4_RULE_FIELDS = {
     "pr_yd": ("play_type", "return_yards", "return_team", "punt_returner_player_id", "lateral_punt_returner_player_id"),
 }
 E5_RULE_FIELDS = {
-    "pass_cmp_40p": ("complete_pass", "passing_yards", "passer_player_id"),
-    "pass_td_40p": ("pass_touchdown", "passing_yards", "passer_player_id"),
-    "pass_td_50p": ("pass_touchdown", "passing_yards", "passer_player_id"),
-    "rush_40p": ("rush_attempt", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards"),
-    "rush_td_40p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards"),
-    "rush_td_50p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards"),
-    "rec_40p": ("complete_pass", "receiving_yards", "receiver_player_id", "lateral_receiver_player_id", "lateral_receiving_yards"),
-    "rec_td_40p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards"),
-    "rec_td_50p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards"),
+    "pass_cmp_40p": ("complete_pass", "passing_yards", "passer_player_id", "two_point_conv_attempt"),
+    "pass_td_40p": ("pass_touchdown", "passing_yards", "passer_player_id", "two_point_conv_attempt"),
+    "pass_td_50p": ("pass_touchdown", "passing_yards", "passer_player_id", "two_point_conv_attempt"),
+    "rush_40p": ("rush_attempt", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_conv_attempt"),
+    "rush_td_40p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_conv_attempt"),
+    "rush_td_50p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_conv_attempt"),
+    "rec_40p": ("complete_pass", "receiving_yards", "receiver_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_conv_attempt"),
+    "rec_td_40p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_conv_attempt"),
+    "rec_td_50p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_conv_attempt"),
 }
 EVENT_WEEKLY_COLUMNS = (
     "event_fumbles", "event_fumbles_lost", "event_pass_int_td", "event_bonus_rush_td_qb",
@@ -782,6 +782,12 @@ def build_e5_event_ledger(
     regular = _regular(pbp)
     if "play_deleted" in regular.columns:
         regular = regular[~regular["play_deleted"].map(_flag)].copy()
+    # Two-point attempts are not ordinary plays for Sleeper's 40/50-yard
+    # bonus counters. nflverse deliberately leaves their official rushing
+    # yard field null, so retaining them would turn a correctly excluded play
+    # into a false source-incomplete blocker.
+    if "two_point_conv_attempt" in regular.columns:
+        regular = regular[~regular["two_point_conv_attempt"].map(_flag)].copy()
     resolver = _canonical_resolver(identity)
     supports = dict(base["rule_support"])
     source_ready = bool(source_inventory["pbp_source_complete"])
