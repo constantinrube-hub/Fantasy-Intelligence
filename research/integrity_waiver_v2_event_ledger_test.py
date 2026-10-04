@@ -17,10 +17,10 @@ from run_waiver_v2_historical_ledger import write_source_snapshot
 
 def source_rows() -> pd.DataFrame:
     return pd.DataFrame([
-        {"season": 2024, "week": 1, "game_id": "2024_01_A_B", "play_id": 10, "season_type": "REG", "play_type": "pass", "no_play": 0},
-        {"season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 11, "season_type": "REG", "play_type": "kickoff", "no_play": 0},
+        {"season": 2024, "week": 1, "game_id": "2024_01_A_B", "play_id": 10, "season_type": "REG", "play_type": "pass", "play_deleted": 0},
+        {"season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 11, "season_type": "REG", "play_type": "kickoff", "play_deleted": 0},
         # Postseason rows cannot prove the completed regular-season envelope.
-        {"season": 2025, "week": 19, "game_id": "2025_wc_A_B", "play_id": 12, "season_type": "POST", "play_type": "punt", "no_play": 0},
+        {"season": 2025, "week": 19, "game_id": "2025_wc_A_B", "play_id": 12, "season_type": "POST", "play_type": "punt", "play_deleted": 0},
     ])
 
 
@@ -36,7 +36,7 @@ with tempfile.TemporaryDirectory() as raw:
     assert inventory["participation"]["status"] == "NOT_REQUESTED"
     assert all(row["regular_rows"] == 1 for row in inventory["pbp_by_season"])
 
-    missing = pbp.drop(columns=["no_play"])
+    missing = pbp.drop(columns=["play_deleted"])
     blocked = build_source_inventory(missing, requested_seasons=[2024, 2025], pbp_source_items=source_items)
     assert not blocked["pbp_source_complete"]
     assert blocked["pbp_by_season"][0]["status"] == "BLOCKED_SOURCE_INCOMPLETE"
@@ -73,13 +73,13 @@ with tempfile.TemporaryDirectory() as raw:
     except ValueError as error:
         assert "duplicate canonical football events" in str(error)
     no_play = fixture_events.copy()
-    no_play["no_play"] = False
-    no_play.loc[0, "no_play"] = True
+    no_play["play_deleted"] = False
+    no_play.loc[0, "play_deleted"] = True
     try:
         validate_event_ledger(no_play)
         raise AssertionError("penalty/no-play event must fail")
     except ValueError as error:
-        assert "penalty/no-play" in str(error)
+        assert "deleted/no-play" in str(error)
 
     snapshot = write_source_snapshot(
         players=pd.DataFrame([{"gsis_id": "p1"}]),
