@@ -26,6 +26,7 @@ WRAPPERS = {
     'capture-fie-season-market': 'season_market',
     'capture-fie-waiver-evidence': 'waivers',
     'capture-fie-weather-evidence': 'weather',
+    'report-fie-workflow-usability': 'workflow_usability',
 }
 
 class FakeGitHub:
@@ -85,7 +86,7 @@ class CalendarTests(unittest.TestCase):
         self.assertFalse(self.result('season_market', '2027-10-01T12:00:00Z')['allowed'])
         self.assertEqual(self.result('season_market', '2028-05-02T12:00:00Z')['reason'], 'DRAFT_DATE_UNKNOWN')
     def test_warmup_exactly_seven_days_and_future_fail_closed(self):
-        for purpose in ('current_refresh', 'm10', 'weekly_benchmark', 'weather'):
+        for purpose in ('current_refresh', 'm10', 'weekly_benchmark', 'weather', 'workflow_usability'):
             self.assertFalse(self.result(purpose, '2026-09-03T00:19:59Z')['allowed'])
             self.assertEqual(self.result(purpose, '2026-09-03T00:20:00Z')['mode'], 'WARMUP')
             self.assertEqual(self.result(purpose, '2026-09-10T00:20:00Z')['mode'], 'SEASON')

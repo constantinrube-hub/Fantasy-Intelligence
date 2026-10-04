@@ -1,0 +1,73 @@
+name: Report FIE Workflow Usability
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7 10 * 8-12 *'
+      timezone: Europe/Berlin
+    - cron: '7 10 1-11 1 *'
+      timezone: Europe/Berlin
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: fie-workflow-usability-report
+  cancel-in-progress: false
+
+jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: workflow_usability
+
+  report:
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate workflow usability contract
+        run: python research/integrity_workflow_usability_test.py
+
+      - name: Build rolling 14-day automatic-run report
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/workflow_usability.py collect \
+            --repository "$GITHUB_REPOSITORY" \
+            --output-json data/operations/workflow-usability/latest.json \
+            --output-markdown data/operations/workflow-usability/latest.md
+          cat data/operations/workflow-usability/latest.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit only the rolling usability report
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "FIE Workflow Usability Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/operations/workflow-usability
+          if git diff --cached --quiet; then
+            echo "Rolling workflow usability report unchanged"
+            exit 0
+          fi
+          git commit -m "Report FIE automatic workflow usability"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi

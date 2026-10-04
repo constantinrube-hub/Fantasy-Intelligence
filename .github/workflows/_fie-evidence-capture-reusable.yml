@@ -101,3 +101,34 @@ jobs:
             git rebase origin/main
             git push origin HEAD:main
           fi
+
+      - name: Emit workflow usability evidence
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          CAPTURE_ALLOWED: ${{ steps.capture_policy.outputs.capture_allowed }}
+        shell: bash
+        run: |
+          if [ "${{ inputs.capture_kind }}" = "waiver" ]; then
+            path=.github/workflows/capture-fie-waiver-evidence.yml
+            name="Capture FIE Waiver Evidence"
+            adapter=waiver-index
+          else
+            path=.github/workflows/capture-fie-weather-evidence.yml
+            name="Capture FIE Pregame Weather Evidence"
+            adapter=commit
+          fi
+          python research/workflow_usability.py emit \
+            --workflow-path "$path" --workflow-name "$name" \
+            --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
+            --job-status "$JOB_STATUS" --adapter "$adapter" \
+            --source-file .cache/waiver-output.json \
+            --policy-allowed "$CAPTURE_ALLOWED" --initial-sha "$GITHUB_SHA"
+
+      - name: Upload workflow usability evidence
+        if: always() && hashFiles('.cache/fie-workflow-usability.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-workflow-usability
+          path: .cache/fie-workflow-usability.json
+          retention-days: 21

@@ -111,3 +111,23 @@ jobs:
             git rebase origin/main
             git push origin HEAD:main
           fi
+
+      - name: Emit workflow usability evidence
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          python research/workflow_usability.py emit \
+            --workflow-path .github/workflows/build-fie-window1c-weekly-actions.yml \
+            --workflow-name "Build FIE Window 1C Weekly Actions" \
+            --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
+            --job-status "$JOB_STATUS" --adapter readiness-index \
+            --source-file .cache/window1c-output.json
+
+      - name: Upload workflow usability evidence
+        if: always() && hashFiles('.cache/fie-workflow-usability.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-workflow-usability
+          path: .cache/fie-workflow-usability.json
+          retention-days: 21

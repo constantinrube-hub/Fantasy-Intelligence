@@ -71,3 +71,22 @@ jobs:
           python research/validate_m10_prospective_write_plan.py --github-ref "$GITHUB_REF" --base origin/main
           if git diff --quiet origin/main...HEAD; then echo "An identical first-write winner is already present"; exit 0; fi
           git push origin HEAD:main
+
+      - name: Emit workflow usability evidence
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          python research/workflow_usability.py emit \
+            --workflow-path .github/workflows/capture-fie-m10-prospective.yml \
+            --workflow-name "Capture FIE M10 Prospective Research Evidence" \
+            --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
+            --job-status "$JOB_STATUS" --adapter commit --initial-sha "$GITHUB_SHA"
+
+      - name: Upload workflow usability evidence
+        if: always() && hashFiles('.cache/fie-workflow-usability.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-workflow-usability
+          path: .cache/fie-workflow-usability.json
+          retention-days: 21

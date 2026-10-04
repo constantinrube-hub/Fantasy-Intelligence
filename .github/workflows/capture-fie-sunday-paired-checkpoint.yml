@@ -60,10 +60,11 @@ jobs:
           INPUT_WEEK: ${{ inputs.week }}
         shell: bash
         run: |
+          mkdir -p .cache
           args=()
           [[ -z "$INPUT_SEASON" ]] || args+=(--season "$INPUT_SEASON")
           [[ -z "$INPUT_WEEK" ]] || args+=(--week "$INPUT_WEEK")
-          python research/capture_fie_sunday_paired_checkpoint.py "${args[@]}"
+          python research/capture_fie_sunday_paired_checkpoint.py "${args[@]}" | tee .cache/sunday-paired-result.json
           python research/build_fie_point_in_time_evidence_report.py
           python research/validate_fie_point_in_time_evidence_report.py --verify-deterministic
           python research/validate_sunday_paired_checkpoint_write_plan.py --github-ref "$GITHUB_REF"
@@ -93,3 +94,23 @@ jobs:
           python research/validate_sunday_paired_checkpoint_write_plan.py --github-ref "$GITHUB_REF" --base origin/main
           if git diff --quiet origin/main...HEAD; then echo "An identical Sunday first-write winner is already present"; exit 0; fi
           git push origin HEAD:main
+
+      - name: Emit workflow usability evidence
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          python research/workflow_usability.py emit \
+            --workflow-path .github/workflows/capture-fie-sunday-paired-checkpoint.yml \
+            --workflow-name "Capture FIE Sunday M10 / Sleeper Paired Checkpoint" \
+            --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
+            --job-status "$JOB_STATUS" --adapter checkpoint-json \
+            --source-file .cache/sunday-paired-result.json
+
+      - name: Upload workflow usability evidence
+        if: always() && hashFiles('.cache/fie-workflow-usability.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-workflow-usability
+          path: .cache/fie-workflow-usability.json
+          retention-days: 21

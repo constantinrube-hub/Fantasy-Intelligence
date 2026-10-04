@@ -1,0 +1,37 @@
+{
+  "schema": "fie-workflow-usability-monitor-v1",
+  "lookback_days": 14,
+  "artifact_name": "fie-workflow-usability",
+  "states": [
+    "USABLE",
+    "NO_OP",
+    "PARTIAL",
+    "BLOCKED",
+    "MISSED",
+    "INFRASTRUCTURE"
+  ],
+  "automatic_events": ["schedule"],
+  "workflows": [
+    {"path": ".github/workflows/build-fie-current.yml", "name": "Refresh FIE Current Season"},
+    {"path": ".github/workflows/build-fie-window1c-weekly-actions.yml", "name": "Build FIE Window 1C Weekly Actions"},
+    {"path": ".github/workflows/build-fie-window1d-optimal-waiver.yml", "name": "Build FIE Window 1D Optimal Waiver"},
+    {"path": ".github/workflows/build-fie-window2a-trench-evidence.yml", "name": "Build FIE Window 2A Trench Evidence"},
+    {"path": ".github/workflows/capture-fie-availability.yml", "name": "Capture Daily FIE Availability Evidence"},
+    {"path": ".github/workflows/capture-fie-m10-prospective.yml", "name": "Capture FIE M10 Prospective Research Evidence"},
+    {"path": ".github/workflows/capture-fie-market.yml", "name": "Capture Immutable FIE Sleeper Weekly Benchmark"},
+    {"path": ".github/workflows/capture-fie-pr2-weekly-lineups.yml", "name": "Capture FIE PR2 Weekly Lineup Evidence"},
+    {"path": ".github/workflows/capture-fie-season-market.yml", "name": "Capture Daily FIE Sleeper Season Projections / ADP"},
+    {"path": ".github/workflows/capture-fie-sunday-paired-checkpoint.yml", "name": "Capture FIE Sunday M10 / Sleeper Paired Checkpoint"},
+    {"path": ".github/workflows/capture-fie-waiver-evidence.yml", "name": "Capture FIE Waiver Evidence"},
+    {"path": ".github/workflows/capture-fie-weather-evidence.yml", "name": "Capture FIE Pregame Weather Evidence"},
+    {"path": ".github/workflows/evaluate-fie-pr2-weekly-lineups.yml", "name": "Evaluate FIE PR2 Weekly Lineup Capture"}
+  ],
+  "semantics": {
+    "USABLE": "The invocation produced or verified a current, contract-valid result for its purpose.",
+    "NO_OP": "Nothing was due, the immutable result already existed, or policy correctly skipped the invocation.",
+    "PARTIAL": "Some intended evidence is usable, but declared source or portfolio coverage is incomplete.",
+    "BLOCKED": "The workflow completed technically but did not prove a usable result for its intended purpose.",
+    "MISSED": "A time-bound evidence opportunity passed without a valid prospective capture.",
+    "INFRASTRUCTURE": "The workflow did not complete successfully because of a technical, runner, validation, or delivery failure."
+  }
+}
