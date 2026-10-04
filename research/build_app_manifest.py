@@ -76,6 +76,8 @@ COMPONENTS={
  'optimal_waiver_producer':'research/window1d_optimal_waiver.py',
  'waiver_v2_contract':'research/waiver_v2_contract.py',
  'waiver_v2_contract_integrity':'research/integrity_waiver_v2_contract_test.py',
+ 'waiver_v2_outcomes':'research/waiver_v2_outcomes.py',
+ 'waiver_v2_outcomes_integrity':'research/integrity_waiver_v2_outcomes_test.py',
  'waiver_evidence_capture':'research/capture_fie_waivers.py',
  'm10_sunday_checkpoint_design':'config/m10-sunday-paired-checkpoint-design.json',
  'm10_sunday_checkpoint_design_doc':'docs/audits/M10_SUNDAY_PAIRED_CHECKPOINT_DESIGN.md',
