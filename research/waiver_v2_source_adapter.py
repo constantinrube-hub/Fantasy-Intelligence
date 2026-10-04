@@ -85,7 +85,8 @@ def _identity_map(identity: pd.DataFrame) -> pd.DataFrame:
 
 
 def _missing_source_identity(values: pd.Series) -> pd.Series:
-    return values.isin({"", "nan", "None", "<NA>"})
+    normalized = values.astype("string").str.strip()
+    return values.isna() | normalized.isin({"", "nan", "None", "<NA>"})
 
 
 def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
