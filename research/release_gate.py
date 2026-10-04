@@ -44,6 +44,7 @@ def main():
   run([sys.executable,'research/integrity_waiver_v2_contract_test.py']),
   run([sys.executable,'research/integrity_waiver_v2_outcomes_test.py']),
   run([sys.executable,'research/integrity_waiver_v2_outcome_build_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_source_adapter_test.py']),
   run([sys.executable,'research/integrity_m6_test.py']),
   run([sys.executable,'research/integrity_scoring_relevance_test.py']),
   run([sys.executable,'research/integrity_dst_test.py']),
