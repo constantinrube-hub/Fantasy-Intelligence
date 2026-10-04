@@ -20,8 +20,19 @@ from scoring_relevance import canonical_position
 
 
 OFFENSIVE_POSITIONS = {"QB", "RB", "WR", "TE"}
-KNOWN_ROSTER_STATUSES = {"ACT", "DEV", "RES", "EXE", "INA", "RET", "CUT"}
-DEPARTED_ROSTER_STATUSES = {"RET", "CUT"}
+# Source: nflreadr roster-status data dictionary.  These statuses identify a
+# player still attached to the weekly team universe.  A reserve/inactive player
+# receives a confirmed zero only after the schedule/stat-completeness gates in
+# the outcome ledger; this adapter does not infer availability.
+ROSTERED_MEMBERSHIP_STATUSES = {"ACT", "DEV", "E14", "EXE", "INA", "PUP", "RES", "RSN", "SUS"}
+# nflreadr documents these as waived, released, retired, or free-agent states.
+# They are not a weekly team member and therefore cannot become a synthetic
+# player-week zero.
+DEPARTED_ROSTER_STATUSES = {"CUT", "NWT", "RET", "RFA", "RSR", "TRC", "TRD", "TRT", "UFA"}
+# The historical `status` field can retain a transaction code while the weekly
+# `status_description_abbr` states the actual active roster designation. A01
+# is the documented active designation and wins over the transaction code.
+ACTIVE_STATUS_DESCRIPTIONS = {"A01"}
 # Each fallback is already used in the research pipeline and has a known
 # identical statistical meaning; arbitrary similar names are not accepted.
 EXACT_STAT_RENAMES = {
@@ -111,23 +122,38 @@ def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> t
     return result.drop(columns=["_source_gsis_id", "gsis_id"], errors="ignore"), bindings
 
 
-def normalize_weekly_roster(raw_roster: pd.DataFrame, identity: pd.DataFrame) -> pd.DataFrame:
-    """Return the complete weekly offensive roster universe, without departures."""
+def normalize_weekly_roster(raw_roster: pd.DataFrame, identity: pd.DataFrame, *, return_audit: bool = False) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, Any]]:
+    """Return the complete weekly offensive roster universe, without departures.
+
+    Undocumented statuses are excluded from this dense universe and reported in
+    the audit. This is fail-closed at player level: the adapter emits neither a
+    roster row nor an inferred zero for those players, but it does not discard
+    the otherwise valid historical source snapshot.
+    """
     source = _regular(raw_roster)
     required = {"season", "week", "team", "position", "gsis_id", "status"}
     missing = sorted(required - set(source.columns))
     if missing:
         raise ValueError(f"waiver-v2 weekly roster missing required fields: {', '.join(missing)}")
     result = source.copy()
-    result["_source_gsis_id"] = result["gsis_id"].astype(str).str.strip()
-    result = result.merge(_identity_map(identity), left_on="_source_gsis_id", right_on="gsis_id", how="left", validate="many_to_one")
     result["position_model"] = result["position"].map(canonical_position)
     result = result[result.position_model.isin(OFFENSIVE_POSITIONS)].copy()
     status = result["status"].astype(str).str.strip().str.upper()
-    unknown = status[~status.isin(KNOWN_ROSTER_STATUSES)]
-    if not unknown.empty:
-        raise ValueError(f"waiver-v2 weekly roster has unknown membership statuses: {unknown.value_counts().sort_index().to_dict()}")
-    result = result[~status.isin(DEPARTED_ROSTER_STATUSES)].copy()
+    description = result.get("status_description_abbr", pd.Series("", index=result.index)).fillna("").astype(str).str.strip().str.upper()
+    active_override = description.isin(ACTIVE_STATUS_DESCRIPTIONS)
+    member = active_override | status.isin(ROSTERED_MEMBERSHIP_STATUSES)
+    departed = ~active_override & status.isin(DEPARTED_ROSTER_STATUSES)
+    undocumented = ~(member | departed)
+    audit = {
+        "included_status_counts": status[member].value_counts().sort_index().to_dict(),
+        "active_description_override_count": int(active_override.sum()),
+        "excluded_departed_status_counts": status[departed].value_counts().sort_index().to_dict(),
+        "excluded_undocumented_status_counts": status[undocumented].value_counts().sort_index().to_dict(),
+        "excluded_undocumented_rows": int(undocumented.sum()),
+    }
+    result = result[member].copy()
+    result["_source_gsis_id"] = result["gsis_id"].astype(str).str.strip()
+    result = result.merge(_identity_map(identity), left_on="_source_gsis_id", right_on="gsis_id", how="left", validate="many_to_one")
     unresolved = result["canonical_player_id"].isna() | result["canonical_player_id"].astype(str).str.strip().isin({"", "nan", "None"})
     if unresolved.any():
         sample = sorted(result.loc[unresolved, "_source_gsis_id"].astype(str).unique())[:8]
@@ -141,7 +167,7 @@ def normalize_weekly_roster(raw_roster: pd.DataFrame, identity: pd.DataFrame) ->
     output["roster_complete"] = True
     if output.duplicated(["canonical_player_id", "season", "week"]).any():
         raise ValueError("waiver-v2 weekly roster has duplicate canonical player-season-week rows")
-    return output
+    return (output, audit) if return_audit else output
 
 
 def normalize_team_schedule(raw_games: pd.DataFrame, weekly_roster: pd.DataFrame) -> pd.DataFrame:
@@ -199,7 +225,7 @@ def adapt(
     games = pd.read_csv(raw_games_path, low_memory=False)
     identity = pd.read_csv(identity_path, low_memory=False)
     canonical_stats, stat_bindings = normalize_player_stats(stats, identity)
-    canonical_roster = normalize_weekly_roster(roster, identity)
+    canonical_roster, roster_audit = normalize_weekly_roster(roster, identity, return_audit=True)
     canonical_schedule = normalize_team_schedule(games, canonical_roster)
     output_dir.mkdir(parents=True, exist_ok=True)
     paths = {
@@ -220,6 +246,7 @@ def adapt(
             "identity": {"path": str(identity_path), "sha256": _sha256(identity_path), "rows": int(len(identity))},
         },
         "exact_stat_bindings": stat_bindings,
+        "weekly_roster_status_audit": roster_audit,
         "outputs": {key: {"path": str(path), "sha256": _sha256(path), "rows": int(len(frame))} for key, path, frame in (
             ("player_stats", paths["player_stats"], canonical_stats),
             ("weekly_roster", paths["weekly_roster"], canonical_roster),
@@ -227,7 +254,7 @@ def adapt(
         )},
         "limitations": [
             "This adapter only prepares research inputs; it cannot activate M5, recommendations, transactions, or the app.",
-            "Roster rows with unknown membership status and scheduled teams absent from the roster source fail closed.",
+            "Undocumented roster statuses are excluded player-by-player with a typed audit; scheduled teams absent from the roster source fail closed.",
             "Only documented exact stat renames are applied; unrecognised source fields remain unavailable to exact scoring.",
         ],
     }
