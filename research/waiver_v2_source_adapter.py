@@ -75,6 +75,11 @@ def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> t
     team_column = _first(source, ("recent_team", "team"), "player team")
     position_column = _first(source, ("position", "position_model"), "player position")
     result = source.copy()
+    # nflverse player-week releases can include non-player aggregate rows. They
+    # are outside the offensive-player ledger universe and may not carry a
+    # player ID. Filter them before requiring canonical PlayerIdentity.
+    result["position_model"] = result[position_column].map(canonical_position)
+    result = result[result.position_model.isin(OFFENSIVE_POSITIONS)].copy()
     result["_source_gsis_id"] = result[id_column].astype(str).str.strip()
     result = result.merge(_identity_map(identity), left_on="_source_gsis_id", right_on="gsis_id", how="left", validate="many_to_one")
     unresolved = result["canonical_player_id"].isna() | result["canonical_player_id"].astype(str).str.strip().isin({"", "nan", "None"})
@@ -84,8 +89,6 @@ def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> t
     result["season"] = pd.to_numeric(result[season_column], errors="raise").astype(int)
     result["week"] = pd.to_numeric(result[week_column], errors="raise").astype(int)
     result["team"] = result[team_column].astype(str).str.strip().str.upper()
-    result["position_model"] = result[position_column].map(canonical_position)
-    result = result[result.position_model.isin(OFFENSIVE_POSITIONS)].copy()
     if (result.team == "").any() or result.team.isin({"NAN", "NONE"}).any():
         raise ValueError("waiver-v2 player stats contain an unresolved team")
     bindings: dict[str, str] = {}
