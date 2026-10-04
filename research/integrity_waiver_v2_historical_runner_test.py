@@ -25,4 +25,11 @@ with tempfile.TemporaryDirectory() as raw:
     assert snapshot["player_stats"]["rows"] == 1
     assert len(pd.read_csv(snapshot["weekly_roster"]["path"])) == 1
 
+    event_snapshot = write_source_snapshot(
+        players=players, player_stats_frames=stats, weekly_roster_frames=rosters, games=games, identity=identity,
+        raw_dir=root / "events", pbp_frames=[pd.DataFrame([{"season": 2025, "week": 1, "play_id": 1}])],
+        participation_frames=[pd.DataFrame([{"season": 2025, "week": 1, "play_id": 1}])],
+    )
+    assert event_snapshot["pbp"]["rows"] == 1 and event_snapshot["participation"]["rows"] == 1
+
 print("OK waiver-v2 historical runner preserves raw source snapshot")

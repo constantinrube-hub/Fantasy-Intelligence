@@ -48,7 +48,7 @@ def load_profile_groups(profiles_root: Path, portfolio_overview: Path | None = N
 
 def run_batch(
     *, seasons: list[int], cache_dir: Path, profiles_root: Path, portfolio_overview: Path | None,
-    output_dir: Path, player_stats_complete: bool,
+    output_dir: Path, player_stats_complete: bool, event_evidence: bool = True, participation_evidence: bool = False,
 ) -> dict[str, Any]:
     groups = load_profile_groups(profiles_root, portfolio_overview)
     # Build/cache raw history only once. The first profile's ledger is retained
@@ -56,6 +56,7 @@ def run_batch(
     shared = run_historical(
         seasons=seasons, cache_dir=cache_dir, scoring_path=Path(groups[0]["scoring_path"]),
         output_dir=output_dir / "shared-source", player_stats_complete=player_stats_complete,
+        event_evidence=event_evidence, participation_evidence=participation_evidence,
     )
     adapted = shared["adapter_receipt"]["outputs"]
     entries = []
@@ -106,6 +107,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--portfolio-overview", default="data/research/portfolio/2026/research-overview.json")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--player-stats-complete", action="store_true")
+    parser.add_argument("--without-event-evidence", action="store_true")
+    parser.add_argument("--with-participation", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -115,6 +118,7 @@ def main(argv: list[str] | None = None) -> None:
     report = run_batch(
         seasons=_parse_seasons(args.seasons), cache_dir=Path(args.cache_dir), profiles_root=Path(args.profiles_root),
         portfolio_overview=overview, output_dir=Path(args.output_dir), player_stats_complete=bool(args.player_stats_complete),
+        event_evidence=not bool(args.without_event_evidence), participation_evidence=bool(args.with_participation),
     )
     print(json.dumps({"schema": BATCH_SCHEMA, "profiles": report["profile_count"], "leagues": report["league_count"], "activation_eligible": False}, indent=2))
 
