@@ -32,14 +32,17 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _signature(scoring: Mapping[str, Any]) -> str:
-    canonical = json.dumps(dict(scoring), sort_keys=True, separators=(",", ":"), allow_nan=False)
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+def scoring_signature(scoring: Mapping[str, Any]) -> str:
+    """Match the canonical 16-character league-profile scoring signature."""
+    canonical = json.dumps(dict(scoring), sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
 
 
 def _load_scoring(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if isinstance(payload, Mapping) and isinstance(payload.get("settings"), Mapping):
+    if isinstance(payload, Mapping) and isinstance(payload.get("scoring_settings"), Mapping):
+        payload = payload["scoring_settings"]
+    elif isinstance(payload, Mapping) and isinstance(payload.get("settings"), Mapping):
         payload = payload["settings"]
     if not isinstance(payload, Mapping):
         raise ValueError("waiver-v2 scoring JSON must be an object or contain an object at settings")
@@ -66,7 +69,7 @@ def build(
 ) -> dict[str, Any]:
     """Build ledger and deterministic provenance report from explicit inputs."""
     scoring = _load_scoring(scoring_path)
-    signature = _signature(scoring)
+    signature = scoring_signature(scoring)
     player_stats = pd.read_csv(player_stats_path, low_memory=False)
     weekly_roster = pd.read_csv(weekly_roster_path, low_memory=False)
     team_schedule = pd.read_csv(team_schedule_path, low_memory=False)
