@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from waiver_v2_event_ledger import (
-    EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_source_inventory,
+    EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_e3_event_ledger, build_source_inventory,
     validate_event_ledger,
 )
 from run_waiver_v2_historical_ledger import write_source_snapshot
@@ -125,5 +125,44 @@ with tempfile.TemporaryDirectory() as raw:
     weekly = pd.read_csv(root / "e2" / "weekly.csv.gz").iloc[0]
     assert weekly.event_fumbles == 1 and weekly.event_fumbles_lost == 1
     assert weekly.event_pass_int_td == 1 and weekly.event_bonus_rush_td_qb == 1
+
+    # E3 admits direct, individual PBP roles only.  A recovery touchdown may
+    # also be a special-teams touchdown and recovery, but each Sleeper rule
+    # receives its own single, de-duplicated event family row.
+    e3_pbp = e2_pbp.copy()
+    for column, value in {
+        "td_player_id": None, "fumble_recovery_1_player_id": None, "fumble_recovery_2_player_id": None,
+        "fumble_forced": 0, "fumble_out_of_bounds": 0,
+        "forced_fumble_player_1_player_id": None, "forced_fumble_player_2_player_id": None,
+    }.items():
+        e3_pbp[column] = value
+    e3_pbp.loc[len(e3_pbp)] = {
+        "season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 5, "season_type": "REG", "play_type": "kickoff", "play_deleted": 0,
+        "fumble": 1, "fumble_lost": 1, "fumbled_1_player_id": "00-0000004", "fumbled_2_player_id": None,
+        "interception": 0, "return_touchdown": 1, "passer_player_id": None, "rush_touchdown": 0, "rusher_player_id": None,
+        "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 97, "touchdown": 1, "special_teams_play": 1,
+        "td_player_id": "00-0000003", "fumble_recovery_1_player_id": "00-0000003", "fumble_recovery_2_player_id": None,
+        "fumble_forced": 1, "fumble_out_of_bounds": 0,
+        "forced_fumble_player_1_player_id": "00-0000002", "forced_fumble_player_2_player_id": None,
+    }
+    e3_pbp_path, e3_identity_path = root / "e3-pbp.csv.gz", root / "e3-identity.csv"
+    e3_pbp.to_csv(e3_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
+    pd.DataFrame([
+        {"gsis_id": "00-0000001", "canonical_player_id": "QB1"},
+        {"gsis_id": "00-0000002", "canonical_player_id": "ST_FORCE"},
+        {"gsis_id": "00-0000003", "canonical_player_id": "ST_REC"},
+        {"gsis_id": "00-0000004", "canonical_player_id": "ST_FUM"},
+    ]).to_csv(e3_identity_path, index=False)
+    e3 = build_e3_event_ledger(
+        raw_pbp_path=e3_pbp_path, identity_path=e3_identity_path, canonical_player_stats_path=e2_stats_path,
+        requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "d" * 64}],
+        output_path=root / "e3" / "events.csv.gz", weekly_stats_output_path=root / "e3" / "weekly.csv.gz", report_path=root / "e3" / "report.json",
+    )
+    assert all(e3["rule_support"][key]["support_status"] == "EXACT_EVENT_READY" for key in ("fum_rec_td", "st_td", "st_ff", "st_fum_rec"))
+    e3_weekly = pd.read_csv(root / "e3" / "weekly.csv.gz").set_index("canonical_player_id")
+    assert e3_weekly.loc["ST_REC", "event_fumble_recovery_tds"] == 1
+    assert e3_weekly.loc["ST_REC", "event_special_teams_tds"] == 1
+    assert e3_weekly.loc["ST_REC", "event_special_teams_fumble_recoveries"] == 1
+    assert e3_weekly.loc["ST_FORCE", "event_special_teams_forced_fumbles"] == 1
 
 print("OK waiver-v2 E1 event-source inventory and adversarial ledger contract")

@@ -50,6 +50,17 @@ E2_RULE_FIELDS = {
     "bonus_rush_td_qb": ("rush_touchdown", "rusher_player_id"),
     "pass_sack": ("sack", "passer_player_id"),
 }
+E3_RULE_FIELDS = {
+    "fum_rec_td": ("fumble", "touchdown", "td_player_id", "fumble_recovery_1_player_id", "fumble_recovery_2_player_id"),
+    "st_td": ("special_teams_play", "touchdown", "td_player_id"),
+    "st_ff": ("special_teams_play", "fumble", "fumble_forced", "forced_fumble_player_1_player_id", "forced_fumble_player_2_player_id"),
+    "st_fum_rec": ("special_teams_play", "fumble", "fumble_out_of_bounds", "fumble_recovery_1_player_id", "fumble_recovery_2_player_id"),
+}
+EVENT_WEEKLY_COLUMNS = (
+    "event_fumbles", "event_fumbles_lost", "event_pass_int_td", "event_bonus_rush_td_qb",
+    "event_fumble_recovery_tds", "event_special_teams_tds", "event_special_teams_forced_fumbles",
+    "event_special_teams_fumble_recoveries",
+)
 EXACT_GSIS_ID = re.compile(r"^00-\d{7}$")
 
 
@@ -261,6 +272,26 @@ def _support(status: str, reason: str, column: str | None = None) -> dict[str, A
     }
 
 
+def _event_weekly_stats(events: pd.DataFrame) -> pd.DataFrame:
+    """Count scoreable event rows once, after their player roles are proven."""
+    grouping = ["canonical_player_id", "season", "week"]
+    if events.empty:
+        return pd.DataFrame(columns=grouping + list(EVENT_WEEKLY_COLUMNS))
+    ready = events[events.event_status.eq("EXACT_EVENT_READY")].copy()
+    if ready.empty:
+        return pd.DataFrame(columns=grouping + list(EVENT_WEEKLY_COLUMNS))
+    return ready.groupby(grouping, as_index=False).agg(
+        event_fumbles=("event_type", lambda value: int((value == "all_play_fumble").sum())),
+        event_fumbles_lost=("fumble_lost", lambda value: int(pd.Series(value).fillna(False).astype(bool).sum())),
+        event_pass_int_td=("event_type", lambda value: int((value == "pass_interception_td").sum())),
+        event_bonus_rush_td_qb=("event_type", lambda value: int((value == "qb_rushing_td").sum())),
+        event_fumble_recovery_tds=("event_type", lambda value: int((value == "fumble_recovery_td").sum())),
+        event_special_teams_tds=("event_type", lambda value: int((value == "special_teams_td").sum())),
+        event_special_teams_forced_fumbles=("event_type", lambda value: int((value == "special_teams_forced_fumble").sum())),
+        event_special_teams_fumble_recoveries=("event_type", lambda value: int((value == "special_teams_fumble_recovery").sum())),
+    )
+
+
 def build_e2_event_ledger(
     *, raw_pbp_path: Path, identity_path: Path, canonical_player_stats_path: Path,
     requested_seasons: list[int], pbp_source_items: list[Mapping[str, Any]], output_path: Path,
@@ -385,14 +416,7 @@ def build_e2_event_ledger(
                 sack_reconciliation = {"status": "BLOCKED_RECONCILIATION_MISMATCH", "mismatch_rows": int(len(mismatches)),
                                        "sample": mismatches.head(8).to_dict(orient="records")}
 
-    ready = event_frame[event_frame.event_status.eq("EXACT_EVENT_READY")].copy()
-    grouping = ["canonical_player_id", "season", "week"]
-    weekly = ready.groupby(grouping, as_index=False).agg(
-        event_fumbles=("event_type", lambda value: int((value == "all_play_fumble").sum())),
-        event_fumbles_lost=("fumble_lost", lambda value: int(pd.Series(value).fillna(False).astype(bool).sum())),
-        event_pass_int_td=("event_type", lambda value: int((value == "pass_interception_td").sum())),
-        event_bonus_rush_td_qb=("event_type", lambda value: int((value == "qb_rushing_td").sum())),
-    ) if not ready.empty else pd.DataFrame(columns=grouping + ["event_fumbles", "event_fumbles_lost", "event_pass_int_td", "event_bonus_rush_td_qb"])
+    weekly = _event_weekly_stats(event_frame)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     event_frame.to_csv(output_path, index=False, compression={"method": "gzip", "mtime": 0})
     weekly_stats_output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -407,5 +431,153 @@ def build_e2_event_ledger(
         "limitations": ["Only E2 event families are represented.", "Blocked event attribution prevents exact rule replay; it is never converted to zero.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    return report
+
+
+def build_e3_event_ledger(
+    *, raw_pbp_path: Path, identity_path: Path, canonical_player_stats_path: Path,
+    requested_seasons: list[int], pbp_source_items: list[Mapping[str, Any]], output_path: Path,
+    weekly_stats_output_path: Path, report_path: Path,
+) -> dict[str, Any]:
+    """Extend E2 with exact individual recovery and special-teams event roles.
+
+    PBP's direct player identifiers are sufficient for these four narrow E3
+    rules.  The builder deliberately declines a rule family globally when a
+    relevant event has missing or semantically ambiguous role attribution;
+    it does not use event text, team totals, or a name fallback to manufacture
+    a zero.
+    """
+    base = build_e2_event_ledger(
+        raw_pbp_path=raw_pbp_path, identity_path=identity_path, canonical_player_stats_path=canonical_player_stats_path,
+        requested_seasons=requested_seasons, pbp_source_items=pbp_source_items, output_path=output_path,
+        weekly_stats_output_path=weekly_stats_output_path, report_path=report_path,
+    )
+    pbp = pd.read_csv(raw_pbp_path, low_memory=False)
+    identity = pd.read_csv(identity_path, low_memory=False)
+    source_inventory = build_source_inventory(pbp, requested_seasons=requested_seasons, pbp_source_items=pbp_source_items)
+    source_by_season = {int(item["season"]): dict(item) for item in pbp_source_items}
+    builder = _sha256(Path(__file__))
+    source_schema = schema_fingerprint(pbp)
+    regular = _regular(pbp)
+    if "play_deleted" in regular.columns:
+        regular = regular[~regular["play_deleted"].map(_flag)].copy()
+    resolver = _canonical_resolver(identity)
+    supports = dict(base["rule_support"])
+    source_ready = bool(source_inventory["pbp_source_complete"])
+    for key, fields in E3_RULE_FIELDS.items():
+        missing = sorted(set(fields) - set(pbp.columns))
+        supports[key] = _support(
+            "EXACT_EVENT_READY" if source_ready and not missing else "BLOCKED_SOURCE_INCOMPLETE",
+            "confirmed E3 direct PBP player-role fields and complete seasons available" if source_ready and not missing
+            else f"missing PBP fields or incomplete source: {', '.join(missing) if missing else 'season inventory'}",
+        )
+
+    events: list[dict[str, Any]] = []
+    blockers: list[dict[str, Any]] = []
+
+    def blocked(row: pd.Series, event_type: str, status: str, reason: str) -> None:
+        blockers.append({"season": int(row["season"]), "week": int(row["week"]), "game_id": str(row["game_id"]),
+                         "play_id": str(row["play_id"]), "event_type": event_type, "status": status, "reason": reason})
+
+    def role_ids(row: pd.Series, fields: tuple[str, ...], event_type: str) -> list[str] | None:
+        values = [_clean_id(row.get(field)) for field in fields]
+        values = [value for value in values if value]
+        if not values:
+            return []
+        if len(values) != len(set(values)):
+            blocked(row, event_type, "BLOCKED_EVENT_SEMANTICS", "same source player is repeated in multiple PBP role slots")
+            return None
+        return values
+
+    def append(row: pd.Series, event_type: str, source_id: str, *, fumble_recovery: bool = False) -> None:
+        canonical, evidence = resolver(source_id)
+        if canonical is None:
+            blocked(row, event_type, "BLOCKED_EVENT_IDENTITY", evidence)
+            return
+        event = _event_row(row, event_type=event_type, canonical_player_id=canonical, identity_evidence=evidence,
+                           source_by_season=source_by_season, schema=source_schema, builder=builder,
+                           special_teams=event_type.startswith("special_teams"))
+        event["fumble_recovery"] = bool(fumble_recovery)
+        event["source_player_roles"] = json.dumps({"direct_pbp_role": event_type}, sort_keys=True)
+        events.append(event)
+
+    special = regular[regular["special_teams_play"].map(_flag)].copy()
+    if supports["fum_rec_td"]["support_status"] == "EXACT_EVENT_READY":
+        candidates = regular[regular["fumble"].map(_flag) & regular["touchdown"].map(_flag)]
+        for _, row in candidates.iterrows():
+            recoveries = role_ids(row, ("fumble_recovery_1_player_id", "fumble_recovery_2_player_id"), "fumble_recovery_td")
+            if recoveries is None:
+                continue
+            if not recoveries:
+                blocked(row, "fumble_recovery_td", "BLOCKED_EVENT_IDENTITY", "touchdown fumble play lacks an exact recovery-player role")
+                continue
+            scorer = _clean_id(row.get("td_player_id"))
+            if scorer is None:
+                blocked(row, "fumble_recovery_td", "BLOCKED_EVENT_IDENTITY", "touchdown fumble play lacks exact scorer player ID")
+            elif len(recoveries) != 1:
+                blocked(row, "fumble_recovery_td", "BLOCKED_EVENT_SEMANTICS", "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership")
+            elif scorer == recoveries[0]:
+                append(row, "fumble_recovery_td", scorer, fumble_recovery=True)
+
+    if supports["st_td"]["support_status"] == "EXACT_EVENT_READY":
+        for _, row in special[special["touchdown"].map(_flag)].iterrows():
+            scorer = _clean_id(row.get("td_player_id"))
+            if scorer is None:
+                blocked(row, "special_teams_td", "BLOCKED_EVENT_IDENTITY", "special-teams touchdown lacks exact scorer player ID")
+            else:
+                append(row, "special_teams_td", scorer)
+
+    if supports["st_ff"]["support_status"] == "EXACT_EVENT_READY":
+        forced = special[special["fumble"].map(_flag) & special["fumble_forced"].map(_flag)]
+        for _, row in forced.iterrows():
+            identifiers = role_ids(row, ("forced_fumble_player_1_player_id", "forced_fumble_player_2_player_id"), "special_teams_forced_fumble")
+            if identifiers is None:
+                continue
+            if not identifiers:
+                blocked(row, "special_teams_forced_fumble", "BLOCKED_EVENT_IDENTITY", "forced special-teams fumble lacks exact forcing player ID")
+                continue
+            for source_id in identifiers:
+                append(row, "special_teams_forced_fumble", source_id)
+
+    if supports["st_fum_rec"]["support_status"] == "EXACT_EVENT_READY":
+        fumbles = special[special["fumble"].map(_flag)]
+        for _, row in fumbles.iterrows():
+            identifiers = role_ids(row, ("fumble_recovery_1_player_id", "fumble_recovery_2_player_id"), "special_teams_fumble_recovery")
+            if identifiers is None:
+                continue
+            if not identifiers:
+                if not _flag(row.get("fumble_out_of_bounds")):
+                    blocked(row, "special_teams_fumble_recovery", "BLOCKED_EVENT_IDENTITY", "special-teams fumble has no exact recovery player ID")
+                continue
+            for source_id in identifiers:
+                append(row, "special_teams_fumble_recovery", source_id, fumble_recovery=True)
+
+    for key, event_type in (("fum_rec_td", "fumble_recovery_td"), ("st_td", "special_teams_td"),
+                            ("st_ff", "special_teams_forced_fumble"), ("st_fum_rec", "special_teams_fumble_recovery")):
+        relevant = [row for row in blockers if row["event_type"] == event_type]
+        if relevant:
+            status = "BLOCKED_EVENT_IDENTITY" if "BLOCKED_EVENT_IDENTITY" in {row["status"] for row in relevant} else "BLOCKED_EVENT_SEMANTICS"
+            supports[key] = _support(status, f"{len(relevant)} {event_type} PBP events lack exact scoring attribution")
+
+    base_events = pd.read_csv(output_path, low_memory=False)
+    event_frame = pd.concat([base_events, pd.DataFrame(events, columns=EVENT_COLUMNS)], ignore_index=True, sort=False)
+    key = ["season", "week", "game_id", "play_id", "event_type", "canonical_player_id"]
+    if not event_frame.empty and event_frame.duplicated(key).any():
+        raise ValueError("waiver-v2 E3 event derivation produced duplicate canonical events")
+    validate_event_ledger(event_frame)
+    weekly = _event_weekly_stats(event_frame)
+    event_frame.to_csv(output_path, index=False, compression={"method": "gzip", "mtime": 0})
+    weekly.to_csv(weekly_stats_output_path, index=False, compression={"method": "gzip", "mtime": 0})
+    report = {
+        "schema": EVENT_LEDGER_SCHEMA, "phase": "E3_COMMON_RARE_EVENT_LAYER", "base_phase": base["phase"],
+        "diagnostic_only": True, "activation_eligible": False, "builder_sha256": builder,
+        "source_inventory": source_inventory, "rule_support": supports,
+        "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
+        "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
+        "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted({row["status"] for row in blockers})}, "sample": blockers[:12]},
+        "sack_reconciliation": base["sack_reconciliation"],
+        "limitations": ["E3 uses direct PBP roles only; a missing or ambiguous individual role blocks the affected rule family.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
+    }
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return report
