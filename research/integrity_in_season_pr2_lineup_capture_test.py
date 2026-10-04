@@ -63,8 +63,47 @@ def test_nflverse_csv_filters_regular_season_only():
     assert rows == [{"home_team": "AAA", "away_team": "BBB", "kickoff_utc": "2026-10-02T00:15:00+00:00", "game_id": "g"}]
 
 
+def checkpoint_csv() -> bytes:
+    return (
+        b"season,week,game_type,home_team,away_team,gameday,gametime,game_id\n"
+        b"2026,5,REG,AAA,BBB,2026-10-08,20:15,thu\n"
+        b"2026,5,REG,CCC,DDD,2026-10-11,13:00,sun\n"
+        b"2026,5,REG,EEE,FFF,2026-10-11,16:25,late\n"
+    )
+
+
+def test_automatic_week_open_and_sunday_checkpoints_are_dynamic_and_bounded():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        week_open = c.automatic_capture_decision(root, checkpoint_csv(), season=2026, as_of="2026-10-08T18:15:00+00:00")
+        assert week_open["capture_allowed"] is True
+        assert week_open["checkpoint_id"] == "PR2_WEEK_OPEN_T6" and week_open["week"] == 5
+        assert week_open["hours_before_anchor"] == 6.0
+        sunday = c.automatic_capture_decision(root, checkpoint_csv(), season=2026, as_of="2026-10-11T13:00:00+00:00")
+        assert sunday["checkpoint_id"] == "PR2_SUNDAY_MAIN_T4"
+        assert sunday["anchor_at"] == "2026-10-11T17:00:00+00:00"
+        outside = c.automatic_capture_decision(root, checkpoint_csv(), season=2026, as_of="2026-10-10T11:00:00+00:00")
+        assert outside["capture_allowed"] is False and outside["reason"] == "OUTSIDE_CHECKPOINT_WINDOW"
+
+
+def test_existing_automatic_checkpoint_suppresses_provider_capture_retry():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        capture = root / "data/research/evaluation/2026/weeks/week-5/lineups/evidence/captures/portfolio-existing/operational-evidence.json"
+        write(capture, {"season": 2026, "week": 5, "checkpoint_id": "PR2_WEEK_OPEN_T6"})
+        result = c.automatic_capture_decision(root, checkpoint_csv(), season=2026, as_of="2026-10-08T18:15:00+00:00")
+        assert result["capture_allowed"] is False
+        assert result["reason"] == "CHECKPOINT_ALREADY_CAPTURED"
+
+
 def main() -> None:
-    tests = [test_schedule_slice_and_exact_player_bindings, test_first_write_is_idempotent_and_scope_is_registry_bound, test_nflverse_csv_filters_regular_season_only]
+    tests = [
+        test_schedule_slice_and_exact_player_bindings,
+        test_first_write_is_idempotent_and_scope_is_registry_bound,
+        test_nflverse_csv_filters_regular_season_only,
+        test_automatic_week_open_and_sunday_checkpoints_are_dynamic_and_bounded,
+        test_existing_automatic_checkpoint_suppresses_provider_capture_retry,
+    ]
     for test in tests:
         test()
     print(f"PASS In-Season PR2 lineup capture ({len(tests)} tests)")

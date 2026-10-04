@@ -16,6 +16,19 @@ on:
         description: Optional single enabled Sleeper league ID
         required: false
         type: string
+  schedule:
+    # General three-hour poll reaches the first-game T-6 checkpoint despite
+    # Thursday, Thanksgiving, Saturday, London and holiday schedule movement.
+    - cron: '15 */3 * 8-12 *'
+    - cron: '15 */3 1-11 1 *'
+    # Sunday captures at T-4, after the 07:17 New York current refresh, while
+    # the separate paired M10/Sleeper research checkpoint remains at T-6.
+    - cron: '0,30 9-10 * 8-12 0'
+      timezone: America/New_York
+    # DOW stays unrestricted in January because restricted DOM+DOW uses OR.
+    # The schedule resolver writes only when a Sunday-main checkpoint is due.
+    - cron: '0,30 9-10 1-11 1 *'
+      timezone: America/New_York
 
 permissions:
   contents: write
@@ -25,20 +38,56 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: weekly_lineups
   capture:
-    if: github.ref == 'refs/heads/main'
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      - name: Resolve automatic checkpoint
+        id: capture_policy
+        shell: bash
+        env:
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+          CALENDAR_SEASON: ${{ needs.calendar.outputs.season }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            python research/capture_in_season_pr2_lineup_evidence.py \
+              --season "$CALENDAR_SEASON" --schedule-check --github-output >> "$GITHUB_OUTPUT"
+          else
+            echo "capture_allowed=true" >> "$GITHUB_OUTPUT"
+            echo "reason=EXPLICIT_MANUAL_CAPTURE" >> "$GITHUB_OUTPUT"
+            echo "season=$INPUT_SEASON" >> "$GITHUB_OUTPUT"
+            echo "week=$INPUT_WEEK" >> "$GITHUB_OUTPUT"
+            echo "checkpoint_id=MANUAL" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Summarize checkpoint decision
+        env:
+          ALLOWED: ${{ steps.capture_policy.outputs.capture_allowed }}
+          REASON: ${{ steps.capture_policy.outputs.reason }}
+          CHECKPOINT: ${{ steps.capture_policy.outputs.checkpoint_id }}
+          SEASON: ${{ steps.capture_policy.outputs.season }}
+          WEEK: ${{ steps.capture_policy.outputs.week }}
+        run: echo "PR2 lineup capture allowed=$ALLOWED reason=$REASON checkpoint=$CHECKPOINT season=$SEASON week=$WEEK" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Validate exact lineup and capture contracts
+        if: steps.capture_policy.outputs.capture_allowed == 'true'
         run: |
           python -m py_compile research/weekly_lineup_decision_support.py research/weekly_lineup_operational_evidence.py research/in_season_pr2_weekly_lineups.py research/capture_in_season_pr2_lineup_evidence.py
           python research/integrity_weekly_lineup_exact_solver_test.py
@@ -46,22 +95,25 @@ jobs:
           python research/integrity_in_season_pr2_lineup_capture_test.py
 
       - name: Capture immutable provider evidence
+        if: steps.capture_policy.outputs.capture_allowed == 'true'
         shell: bash
         env:
-          INPUT_SEASON: ${{ inputs.season }}
-          INPUT_WEEK: ${{ inputs.week }}
+          INPUT_SEASON: ${{ steps.capture_policy.outputs.season }}
+          INPUT_WEEK: ${{ steps.capture_policy.outputs.week }}
           INPUT_LEAGUE_ID: ${{ inputs.league_id }}
+          INPUT_CHECKPOINT: ${{ steps.capture_policy.outputs.checkpoint_id }}
         run: |
           set -euo pipefail
-          args=(--season "$INPUT_SEASON" --week "$INPUT_WEEK")
+          args=(--season "$INPUT_SEASON" --week "$INPUT_WEEK" --checkpoint-id "$INPUT_CHECKPOINT")
           if [ -n "${INPUT_LEAGUE_ID:-}" ]; then args+=(--league-scope "$INPUT_LEAGUE_ID"); fi
           python research/capture_in_season_pr2_lineup_evidence.py "${args[@]}"
 
       - name: Build captured lineup decision support
+        if: steps.capture_policy.outputs.capture_allowed == 'true'
         shell: bash
         env:
-          INPUT_SEASON: ${{ inputs.season }}
-          INPUT_WEEK: ${{ inputs.week }}
+          INPUT_SEASON: ${{ steps.capture_policy.outputs.season }}
+          INPUT_WEEK: ${{ steps.capture_policy.outputs.week }}
           INPUT_LEAGUE_ID: ${{ inputs.league_id }}
         run: |
           set -euo pipefail
@@ -71,6 +123,7 @@ jobs:
           python research/in_season_pr2_weekly_lineups.py "${args[@]}"
 
       - name: Commit only PR2 lineup research evidence
+        if: steps.capture_policy.outputs.capture_allowed == 'true'
         shell: bash
         run: |
           set -euo pipefail

@@ -59,7 +59,7 @@ def decide(config: dict, purpose: str, as_of: str, *, event: str = 'schedule', r
     if now < start:
         return finish(False, 'BEFORE_KICKOFF_WARMUP', 'NO_DUE')
     mode = 'WARMUP' if now < parse_time(kickoff) else 'SEASON'
-    if purpose in {'trench', 'weekly_actions', 'optimal_waiver'} and mode == 'WARMUP':
+    if purpose in {'trench', 'weekly_actions', 'weekly_lineups', 'optimal_waiver'} and mode == 'WARMUP':
         return finish(False, 'REGULAR_SEASON_OUTPUT_ONLY', 'NO_DUE')
     return finish(True, 'IN_' + mode, mode)
 

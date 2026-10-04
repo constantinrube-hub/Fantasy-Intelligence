@@ -31,6 +31,7 @@ def main():
   run([sys.executable,'research/integrity_waiver_capture_reconciliation_test.py']),
   run([sys.executable,'research/integrity_availability_capture_test.py']),
   run([sys.executable,'research/integrity_workflow_season_calendar_test.py']),
+  run([sys.executable,'research/integrity_in_season_pr2_release_gate.py'],timeout=180),
   run([sys.executable,'research/integrity_m10_sunday_checkpoint_design.py']),
   run([sys.executable,'research/integrity_m10_sunday_paired_checkpoint_test.py'],timeout=180),
   run([sys.executable,'research/integrity_m10_legal_roster_assignment_test.py']),
