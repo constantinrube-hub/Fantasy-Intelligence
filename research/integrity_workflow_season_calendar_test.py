@@ -19,6 +19,7 @@ WRAPPERS = {
     'build-fie-window1d-optimal-waiver': 'optimal_waiver',
     'build-fie-window2a-trench-evidence': 'trench',
     'capture-fie-pr2-weekly-lineups': 'weekly_lineups',
+    'evaluate-fie-pr2-weekly-lineups': 'weekly_lineup_outcomes',
     'capture-fie-availability': 'availability',
     'capture-fie-m10-prospective': 'm10',
     'capture-fie-market': 'weekly_benchmark',
@@ -89,7 +90,7 @@ class CalendarTests(unittest.TestCase):
             self.assertEqual(self.result(purpose, '2026-09-03T00:20:00Z')['mode'], 'WARMUP')
             self.assertEqual(self.result(purpose, '2026-09-10T00:20:00Z')['mode'], 'SEASON')
             self.assertEqual(self.result(purpose, '2027-09-03T00:20:00Z')['reason'], 'FIRST_KICKOFF_UNKNOWN')
-        for purpose in ('trench', 'weekly_actions', 'weekly_lineups', 'optimal_waiver'):
+        for purpose in ('trench', 'weekly_actions', 'weekly_lineups', 'weekly_lineup_outcomes', 'optimal_waiver'):
             self.assertFalse(self.result(purpose, '2026-09-03T00:20:00Z')['allowed'])
     def test_january_closeout_and_preseason_waiver_scope(self):
         self.assertTrue(self.result('weather', '2027-01-11T18:00:00Z')['allowed'])

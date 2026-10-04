@@ -108,7 +108,15 @@
     ],
     "minimum_rows": 300,
     "minimum_temporal_periods": 8,
-    "target_week_realized_stats_excluded": true
+    "target_week_realized_stats_excluded": true,
+    "automatic_initial_revision": {
+      "stabilization_hours_after_latest_kickoff": 12,
+      "capture_selection": "newest immutable pregame portfolio capture for the oldest completed unevaluated week",
+      "attempts_berlin": ["Tuesday 18:45", "Wednesday 08:45", "Thursday 08:45"],
+      "duplicate_policy": "no-op after any lineage-bound outcome exists for the selected capture",
+      "revision_identity": "nflverse-initial-v1-<capture_id>"
+    },
+    "manual_append_only_revision_preserved": true
   },
   "implementation_order": [
     "canonical runtime-contract adapter and exact solver",
@@ -116,7 +124,7 @@
     "availability scenarios and player-level locks",
     "opponent context and advisory risk lineups",
     "portfolio exposure and immutable captures",
-    "manual controlled workflow",
+    "controlled automatic initial outcome workflow with manual append-only revisions",
     "targeted integrity and preservation tests",
     "one deterministic personal release gate",
     "consumer preview smoke before app integration"
@@ -133,4 +141,3 @@
     "app_integration_authorized": false
   }
 }
-

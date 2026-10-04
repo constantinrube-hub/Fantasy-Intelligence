@@ -20,6 +20,18 @@ on:
         description: Immutable, safe completed-week revision label (for example nflverse-final-v1)
         required: true
         type: string
+  schedule:
+    # Primary completed-week attempt, then two bounded retries if provider or
+    # repository availability delays the first run. The resolver no-ops once a
+    # lineage-bound outcome exists and waits 12 hours after the latest kickoff.
+    - cron: '45 18 * 9-12 2'
+      timezone: Europe/Berlin
+    - cron: '45 8 * 9-12 3,4'
+      timezone: Europe/Berlin
+    - cron: '45 18 * 1 2'
+      timezone: Europe/Berlin
+    - cron: '45 8 * 1 3,4'
+      timezone: Europe/Berlin
 
 permissions:
   contents: write
@@ -29,37 +41,80 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: weekly_lineup_outcomes
   evaluate:
-    if: github.ref == 'refs/heads/main'
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install governed research dependencies
-        run: python -m pip install --disable-pip-version-check -r research/requirements.txt
-
-      - name: Validate frozen-identity outcome contracts
-        run: |
-          python -m py_compile research/adapt_in_season_pr2_lineup_outcome_stats.py research/build_in_season_pr2_lineup_outcome.py research/evaluate_in_season_pr2_lineups.py
-          python research/integrity_in_season_pr2_lineup_outcome_adapter_test.py
-          python research/integrity_in_season_pr2_lineup_nflverse_outcome_test.py
-          python research/integrity_in_season_pr2_lineup_outcome_test.py
-          python research/integrity_in_season_pr2_lineup_evaluation_test.py
-
-      - name: Bind, score, and evaluate one immutable capture
+      - name: Resolve automatic completed-week target
+        id: outcome_policy
         shell: bash
         env:
           INPUT_SEASON: ${{ inputs.season }}
           INPUT_WEEK: ${{ inputs.week }}
           INPUT_CAPTURE_PATH: ${{ inputs.capture_path }}
           INPUT_OUTCOME_REVISION_ID: ${{ inputs.outcome_revision_id }}
+          CALENDAR_SEASON: ${{ needs.calendar.outputs.season }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            python research/resolve_in_season_pr2_lineup_outcome_target.py \
+              --season "$CALENDAR_SEASON" --github-output >> "$GITHUB_OUTPUT"
+          else
+            echo "capture_allowed=true" >> "$GITHUB_OUTPUT"
+            echo "reason=EXPLICIT_MANUAL_EVALUATION" >> "$GITHUB_OUTPUT"
+            echo "season=$INPUT_SEASON" >> "$GITHUB_OUTPUT"
+            echo "week=$INPUT_WEEK" >> "$GITHUB_OUTPUT"
+            echo "capture_path=$INPUT_CAPTURE_PATH" >> "$GITHUB_OUTPUT"
+            echo "outcome_revision_id=$INPUT_OUTCOME_REVISION_ID" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Summarize outcome decision
+        env:
+          ALLOWED: ${{ steps.outcome_policy.outputs.capture_allowed }}
+          REASON: ${{ steps.outcome_policy.outputs.reason }}
+          SEASON: ${{ steps.outcome_policy.outputs.season }}
+          WEEK: ${{ steps.outcome_policy.outputs.week }}
+          CAPTURE_PATH: ${{ steps.outcome_policy.outputs.capture_path }}
+          REVISION: ${{ steps.outcome_policy.outputs.outcome_revision_id }}
+        run: echo "PR2 outcome allowed=$ALLOWED reason=$REASON season=$SEASON week=$WEEK capture=$CAPTURE_PATH revision=$REVISION" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install governed research dependencies
+        if: steps.outcome_policy.outputs.capture_allowed == 'true'
+        run: python -m pip install --disable-pip-version-check -r research/requirements.txt
+
+      - name: Validate frozen-identity outcome contracts
+        if: steps.outcome_policy.outputs.capture_allowed == 'true'
+        run: |
+          python -m py_compile research/resolve_in_season_pr2_lineup_outcome_target.py research/adapt_in_season_pr2_lineup_outcome_stats.py research/build_in_season_pr2_lineup_outcome.py research/evaluate_in_season_pr2_lineups.py
+          python research/integrity_in_season_pr2_lineup_outcome_schedule_test.py
+          python research/integrity_in_season_pr2_lineup_outcome_adapter_test.py
+          python research/integrity_in_season_pr2_lineup_nflverse_outcome_test.py
+          python research/integrity_in_season_pr2_lineup_outcome_test.py
+          python research/integrity_in_season_pr2_lineup_evaluation_test.py
+
+      - name: Bind, score, and evaluate one immutable capture
+        if: steps.outcome_policy.outputs.capture_allowed == 'true'
+        shell: bash
+        env:
+          INPUT_SEASON: ${{ steps.outcome_policy.outputs.season }}
+          INPUT_WEEK: ${{ steps.outcome_policy.outputs.week }}
+          INPUT_CAPTURE_PATH: ${{ steps.outcome_policy.outputs.capture_path }}
+          INPUT_OUTCOME_REVISION_ID: ${{ steps.outcome_policy.outputs.outcome_revision_id }}
         run: |
           set -euo pipefail
           prefix="data/research/evaluation/$INPUT_SEASON/weeks/week-$INPUT_WEEK/lineups/"
@@ -76,6 +131,7 @@ jobs:
           python research/evaluate_in_season_pr2_lineups.py --capture "$INPUT_CAPTURE_PATH" --outcome "$output_dir/outcome.json" --output "$output_dir/evaluation.json"
 
       - name: Commit only PR2 lineage-bound outcome evidence
+        if: steps.outcome_policy.outputs.capture_allowed == 'true'
         shell: bash
         run: |
           set -euo pipefail
