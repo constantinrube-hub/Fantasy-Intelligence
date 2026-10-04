@@ -62,6 +62,15 @@ EVENT_WEEKLY_RULES = {
     "kr_yd": "event_kick_return_yards",
     "pr_yd": "event_punt_return_yards",
     "fg_ret_yd": "event_field_goal_return_yards",
+    "pass_cmp_40p": "event_pass_completions_40",
+    "pass_td_40p": "event_pass_tds_40",
+    "pass_td_50p": "event_pass_tds_50",
+    "rush_40p": "event_rushes_40",
+    "rush_td_40p": "event_rush_tds_40",
+    "rush_td_50p": "event_rush_tds_50",
+    "rec_40p": "event_receptions_40",
+    "rec_td_40p": "event_reception_tds_40",
+    "rec_td_50p": "event_reception_tds_50",
 }
 
 POSITION_RECEPTION_RULES = {

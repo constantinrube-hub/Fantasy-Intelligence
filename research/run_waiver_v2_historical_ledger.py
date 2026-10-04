@@ -19,7 +19,7 @@ import pandas as pd
 
 from build_waiver_v2_outcome_ledger import build as build_ledger
 from waiver_v2_source_adapter import adapt
-from waiver_v2_event_ledger import build_e4_event_ledger
+from waiver_v2_event_ledger import build_e5_event_ledger
 
 
 RUN_SCHEMA = "fie-waiver-v2-historical-ledger-run-v1"
@@ -118,7 +118,7 @@ def run(
     )
     event_ledger_receipt = None
     if event_evidence:
-        event_ledger_receipt = build_e4_event_ledger(
+        event_ledger_receipt = build_e5_event_ledger(
             raw_pbp_path=Path(source_snapshot["pbp"]["path"]), identity_path=Path(source_snapshot["identity"]["path"]),
             canonical_player_stats_path=Path(adapter_receipt["outputs"]["player_stats"]["path"]), requested_seasons=requested,
             pbp_source_items=_source_items(source_manager, "pbp", requested),
@@ -154,7 +154,7 @@ def run(
             "This is a research-only historical reconstruction. It cannot transfer legacy M5 validation or activate recommendations.",
             "Coverage and blocker results apply only to the supplied scoring profile and source snapshot hashes.",
             "The player-stats-complete assertion is explicitly recorded and must be independently reviewed before labels can be admitted.",
-            "The shared E4 event ledger remains research-only; only rule families with an exact source receipt may improve exact replay coverage.",
+            "The shared E5 event ledger remains research-only; only rule families with an exact source receipt may improve exact replay coverage.",
         ],
     }
     output_dir.mkdir(parents=True, exist_ok=True)
