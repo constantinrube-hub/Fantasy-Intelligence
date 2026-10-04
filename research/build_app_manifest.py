@@ -86,6 +86,8 @@ COMPONENTS={
  'waiver_v2_historical_runner_integrity':'research/integrity_waiver_v2_historical_runner_test.py',
  'waiver_v2_profile_batch':'research/run_waiver_v2_profile_batch.py',
  'waiver_v2_profile_batch_integrity':'research/integrity_waiver_v2_profile_batch_test.py',
+ 'waiver_v2_exact_scoring_extension_design':'config/offensive-waiver-v2-exact-scoring-extension-design.json',
+ 'waiver_v2_exact_scoring_extension_design_doc':'docs/audits/OFFENSIVE_WAIVER_V2_EXACT_SCORING_EXTENSION_DESIGN.md',
  'waiver_evidence_capture':'research/capture_fie_waivers.py',
  'm10_sunday_checkpoint_design':'config/m10-sunday-paired-checkpoint-design.json',
  'm10_sunday_checkpoint_design_doc':'docs/audits/M10_SUNDAY_PAIRED_CHECKPOINT_DESIGN.md',
