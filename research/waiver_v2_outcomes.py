@@ -55,6 +55,10 @@ EVENT_WEEKLY_RULES = {
     "fum_lost": "event_fumbles_lost",
     "pass_int_td": "event_pass_int_td",
     "bonus_rush_td_qb": "event_bonus_rush_td_qb",
+    "fum_rec_td": "event_fumble_recovery_tds",
+    "st_td": "event_special_teams_tds",
+    "st_ff": "event_special_teams_forced_fumbles",
+    "st_fum_rec": "event_special_teams_fumble_recoveries",
 }
 
 POSITION_RECEPTION_RULES = {
