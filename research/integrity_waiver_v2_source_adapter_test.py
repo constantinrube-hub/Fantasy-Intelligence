@@ -61,6 +61,14 @@ with tempfile.TemporaryDirectory() as raw:
     except ValueError as error:
         assert "unresolved canonical identities" in str(error)
 
+    unresolved_roster = pd.read_csv(roster_path)
+    unresolved_roster.loc[0, "gsis_id"] = None
+    try:
+        normalize_weekly_roster(unresolved_roster, pd.read_csv(identity_path))
+        raise AssertionError("unresolved roster player must still fail closed")
+    except ValueError as error:
+        assert "unresolved canonical identities" in str(error)
+
     missing_team = pd.read_csv(roster_path).query("team != 'BBB'")
     missing_team.to_csv(roster_path, index=False)
     try:

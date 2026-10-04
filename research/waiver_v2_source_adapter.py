@@ -95,7 +95,7 @@ def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> t
     result = result.merge(_identity_map(identity), left_on="_source_gsis_id", right_on="gsis_id", how="left", validate="many_to_one")
     unresolved = result["canonical_player_id"].isna() | result["canonical_player_id"].astype(str).str.strip().isin({"", "nan", "None"})
     if unresolved.any():
-        sample = sorted(result.loc[unresolved, "_source_gsis_id"].astype(str).unique())[:8]
+        sample = sorted({str(value).strip() for value in result.loc[unresolved, "_source_gsis_id"].tolist()})[:8]
         raise ValueError(f"waiver-v2 player stats contain unresolved canonical identities: {sample}")
     result["season"] = pd.to_numeric(result[season_column], errors="raise").astype(int)
     result["week"] = pd.to_numeric(result[week_column], errors="raise").astype(int)
@@ -156,7 +156,7 @@ def normalize_weekly_roster(raw_roster: pd.DataFrame, identity: pd.DataFrame, *,
     result = result.merge(_identity_map(identity), left_on="_source_gsis_id", right_on="gsis_id", how="left", validate="many_to_one")
     unresolved = result["canonical_player_id"].isna() | result["canonical_player_id"].astype(str).str.strip().isin({"", "nan", "None"})
     if unresolved.any():
-        sample = sorted(result.loc[unresolved, "_source_gsis_id"].astype(str).unique())[:8]
+        sample = sorted({str(value).strip() for value in result.loc[unresolved, "_source_gsis_id"].tolist()})[:8]
         raise ValueError(f"waiver-v2 weekly roster contains unresolved canonical identities: {sample}")
     result["season"] = pd.to_numeric(result["season"], errors="raise").astype(int)
     result["week"] = pd.to_numeric(result["week"], errors="raise").astype(int)
