@@ -1,0 +1,333 @@
+{
+  "schema": "fie-offensive-waiver-eligibility-design-v1",
+  "status": "SOL_DESIGN_COMPLETE_TERRA_IMPLEMENTATION_AUTHORIZED",
+  "design_authority": "Sol methodology checkpoint",
+  "purpose": "Replace the ambiguous offensive waiver activation flag with exact-scoring, horizon-correct forecast eligibility and independently governed format, recommendation, and transaction gates.",
+  "scope": {
+    "positions": [
+      "QB",
+      "RB",
+      "WR",
+      "TE"
+    ],
+    "league_formats": [
+      "REDRAFT",
+      "DYNASTY",
+      "REDRAFT_BESTBALL",
+      "DYNASTY_BESTBALL",
+      "CHOPPED",
+      "CHOPPED_BESTBALL"
+    ],
+    "existing_m5_artifacts": "preserve_immutable_diagnostic_only",
+    "production_model": "M9",
+    "transaction_execution": false,
+    "app_integration": false,
+    "automatic_promotion": false
+  },
+  "observed_blockers": {
+    "diagnostic": "data/research/diagnostics/waiver-coverage-2026-10-03.json",
+    "offensive_rows_with_at_least_two_history_games_per_hydrated_snapshot": {
+      "QB": 54,
+      "RB": 101,
+      "WR": 167,
+      "TE": 97,
+      "total": 419
+    },
+    "eligible_offensive_forecasts": 0,
+    "all_leagues_have_position_scoring_blockers": true,
+    "format_gate_conflates_forecast_and_decision_utility": true,
+    "legacy_target_defects": [
+      "groups by player rather than player-season",
+      "uses the next observed player rows rather than the next three scoring weeks",
+      "can skip bye, absence, and zero-opportunity weeks",
+      "can cross a season boundary",
+      "allows one- or two-row partial horizons under a three-game label"
+    ]
+  },
+  "canonical_target": {
+    "name": "fp_next3_weeks_exact",
+    "meaning": "mean exact league fantasy points across the next three NFL regular-season scoring weeks after the decision week",
+    "companion_total": "fp_next3_weeks_total_exact",
+    "horizon": [
+      "decision_week_plus_1",
+      "decision_week_plus_2",
+      "decision_week_plus_3"
+    ],
+    "same_season_only": true,
+    "full_horizon_required_for_training": true,
+    "bye_week_contribution": 0.0,
+    "confirmed_rostered_player_with_complete_outcomes_and_no_scoring_events": 0.0,
+    "unverified_roster_or_incomplete_outcome_source": null,
+    "missing_values_are_zero": false,
+    "player_appearance_row_sequence_forbidden": true,
+    "cross_season_shift_forbidden": true,
+    "runtime_short_horizon_policy": "If fewer than three regular-season weeks remain, require a separately validated one- or two-week horizon model; never relabel a partial horizon as next three weeks.",
+    "required_lineage": [
+      "decision season and week",
+      "three target week identities",
+      "schedule hash",
+      "weekly roster/team identity source hashes",
+      "outcome source hashes",
+      "scoring signature",
+      "scoring contract hash",
+      "label-builder hash"
+    ]
+  },
+  "exact_scoring": {
+    "policy": "Every nonzero rule relevant to the position must be exactly reconstructed before that scoring-signature/position label is eligible. Coverage percentages cannot waive one unsupported rule.",
+    "profile_reuse": "Models may be shared only across byte-equivalent scoring signatures and identical position relevance.",
+    "required_rule_groups": {
+      "weekly_aggregate_candidates": [
+        "fum",
+        "pass_sack"
+      ],
+      "play_level_or_participation_candidates": [
+        "fum_rec_td",
+        "pass_int_td",
+        "fg_ret_yd",
+        "kr_yd",
+        "pr_yd",
+        "st_ff",
+        "st_fum_rec",
+        "st_td",
+        "pass_cmp_40p",
+        "pass_td_40p",
+        "pass_td_50p",
+        "rush_40p",
+        "rush_td_40p",
+        "rush_td_50p",
+        "rec_40p",
+        "rec_td_40p",
+        "rec_td_50p"
+      ],
+      "contract_semantics_required": [
+        "bonus_rush_td_qb"
+      ]
+    },
+    "bonus_rush_td_qb_position": "QB_ONLY_AFTER_SEMANTICS_CONFIRMED",
+    "source_requirements": [
+      "completed-game outcomes only",
+      "canonical player identity",
+      "event attribution and participation when weekly aggregates are insufficient",
+      "no double counting between specific return-touchdown fields and aggregate special-teams fields",
+      "rare-event reconciliation against an independent aggregate or provider result when available",
+      "unknown and incomplete observations remain null"
+    ],
+    "activation_binding": "The direct point forecast binds to its exact scoring signature and label-builder version. It does not depend on the M4 predicted-raw-stat scorer gate at inference time.",
+    "blocked_status": "BLOCKED_UNSUPPORTED_EXACT_SCORING"
+  },
+  "model_validation": {
+    "unit": "scoring_signature_position_horizon",
+    "candidate_model": "Existing Ridge architecture may be the first challenger, but legacy coefficients and promotion results do not transfer to the corrected target.",
+    "temporal_design": "whole-season expanding outer folds with at least two prior training seasons and at least four valid holdout seasons",
+    "selection_design": "features, regularization, imputation, and live coverage thresholds are selected only inside prior-season training data or nested inner folds",
+    "baseline": "same-row fp_prior_4 scored with the same exact league profile",
+    "forecast_metrics": [
+      "MAE",
+      "RMSE",
+      "paired temporal-block improvement confidence interval"
+    ],
+    "ranking_metrics": [
+      "weekly Spearman improvement",
+      "top-quartile precision",
+      "top-one regret"
+    ],
+    "minimum_outer_folds": 4,
+    "feature_coverage": {
+      "legacy_fixed_threshold_alone_is_sufficient": false,
+      "current_default_0_45_is_grandfathered": false,
+      "requirements": [
+        "declare required and optional features per position",
+        "validate live missingness patterns against training support",
+        "report performance by coverage stratum",
+        "lock the selected threshold before outer-fold evaluation",
+        "require fp_prior_4 plus at least one position-relevant opportunity or role feature"
+      ]
+    },
+    "position_policy": "QB, RB, WR, and TE each re-earn eligibility. TE remains blocked unless the corrected exact-target evaluation passes every gate.",
+    "leakage_guards": [
+      "no target-week or future-week features",
+      "no retrospective whole-panel standardization",
+      "no outcome-informed player universe",
+      "no cross-season labels",
+      "no selecting the best candidate on final outer folds"
+    ]
+  },
+  "eligibility_layers": {
+    "forecast": {
+      "field": "waiver_forecast_eligible",
+      "requires": [
+        "exact scoring-signature/position replay",
+        "corrected target model validated",
+        "current model/scoring/label hashes match",
+        "current history and feature coverage pass",
+        "finite forecast"
+      ],
+      "output": "waiver_next3_projection"
+    },
+    "ranking": {
+      "field": "waiver_ranking_eligible",
+      "requires": [
+        "forecast eligible",
+        "same-cutoff candidate set",
+        "outer-fold ranking gates pass"
+      ]
+    },
+    "recommendation": {
+      "field": "waiver_recommendation_eligible",
+      "requires": [
+        "ranking eligible",
+        "format decision domain validated",
+        "legal roster replacement value available",
+        "research/decision_validation_contract.json waiver thresholds met"
+      ]
+    },
+    "transaction": {
+      "field": "waiver_transaction_eligible",
+      "requires": [
+        "recommendation eligible",
+        "cutoff-current free-agent and ownership state",
+        "adds enabled",
+        "verified roster/drop legality",
+        "current FAAB and waiver timing"
+      ],
+      "execution_authorized": false
+    },
+    "legacy": {
+      "field": "waiver_activation_eligible",
+      "meaning": "backward-compatible alias of waiver_recommendation_eligible, never waiver_forecast_eligible",
+      "reason": "legacy planners must not consume forecast-only rows"
+    }
+  },
+  "format_policy": {
+    "REDRAFT": {
+      "forecast": "eligible_when_model_passes",
+      "ranking": "eligible_when_ranking_passes",
+      "recommendation": "eligible_only_after_redraft waiver decision validation and legal replacement evidence",
+      "label_before_validation": "RESEARCH_WATCHLIST"
+    },
+    "DYNASTY": {
+      "forecast": "SHORT_HORIZON_FORECAST_ONLY",
+      "ranking": "short-horizon production ranking only",
+      "recommendation": "blocked until future production, age, asset-market, and multi-season utility are validated",
+      "forbidden_claim": "dynasty add/drop value"
+    },
+    "REDRAFT_BESTBALL": {
+      "forecast": "SHORT_HORIZON_FORECAST_ONLY",
+      "ranking": "mean production ranking only",
+      "recommendation": "blocked until spike distribution, roster fit, and automatic-lineup contribution are validated",
+      "forbidden_claim": "best-ball acquisition utility from mean projection alone"
+    },
+    "DYNASTY_BESTBALL": {
+      "forecast": "SHORT_HORIZON_FORECAST_ONLY",
+      "recommendation": "requires both dynasty and best-ball decision gates",
+      "intersection_required": true
+    },
+    "CHOPPED": {
+      "forecast": "SHORT_HORIZON_FORECAST_ONLY",
+      "ranking": "mean production ranking only unless downside evidence also passes",
+      "recommendation": "blocked until roster-level survival, expected shortfall, and future supply effects are validated",
+      "forbidden_claim": "optimal survival bid from player mean alone"
+    },
+    "CHOPPED_BESTBALL": {
+      "forecast": "SHORT_HORIZON_FORECAST_ONLY",
+      "recommendation": "requires both chopped and best-ball decision gates",
+      "intersection_required": true
+    }
+  },
+  "planner_contract": {
+    "candidate_filter": "waiver_recommendation_eligible must be true; waiver_forecast_eligible alone is insufficient",
+    "drop_comparison": "candidate and drop player require the same scoring signature, horizon, model version, and recommendation domain",
+    "missing_drop_value": "BLOCKED_DROP_VALUE_UNAVAILABLE",
+    "free_agent_universe": "captured cutoff-current Sleeper ownership, not an all-player proxy",
+    "optimal_label": "forbidden until the waiver decision contract is met prospectively",
+    "bid_policy": "Empirical observed winning bids may remain research evidence; sparse or private losing bids cannot be imputed, and a forecast edge alone cannot authorize an optimal FAAB recommendation.",
+    "decision_validation": {
+      "minimum_rows": 200,
+      "minimum_temporal_periods": 6,
+      "metrics": [
+        "next_3_week_gain_vs_replacement",
+        "faab_efficiency",
+        "roster_usefulness"
+      ]
+    }
+  },
+  "runtime_contract": {
+    "required_player_fields": [
+      "waiver_forecast_status",
+      "waiver_forecast_eligible",
+      "waiver_ranking_eligible",
+      "waiver_recommendation_eligible",
+      "waiver_transaction_eligible",
+      "waiver_next3_projection",
+      "waiver_horizon_weeks",
+      "waiver_scoring_signature",
+      "waiver_model_version",
+      "waiver_label_builder_version",
+      "waiver_feature_coverage",
+      "waiver_blocker_codes"
+    ],
+    "statuses": [
+      "FORECAST_READY",
+      "FORECAST_ONLY_FORMAT_UTILITY_BLOCKED",
+      "RESEARCH_WATCHLIST",
+      "RECOMMENDATION_READY",
+      "BLOCKED_UNSUPPORTED_EXACT_SCORING",
+      "BLOCKED_MODEL_NOT_VALIDATED",
+      "BLOCKED_INCOMPLETE_HORIZON",
+      "BLOCKED_FEATURE_COVERAGE",
+      "BLOCKED_IDENTITY_OR_LINEAGE",
+      "BLOCKED_FORMAT_DECISION_EVIDENCE",
+      "BLOCKED_TRANSACTION_STATE"
+    ],
+    "summary_counts": "report each layer by position and format; never summarize non-offensive eligible rows as offensive waiver readiness",
+    "ui_policy": "show forecast-only evidence with its horizon and blocker; hide bid/drop/optimal language unless recommendation eligibility is true"
+  },
+  "implementation_sequence": [
+    "Terra: add failing target-semantics and eligibility-layer contract tests without changing live eligibility",
+    "Terra: build a versioned dense player-week exact outcome ledger and scoring-rule inventory for all enabled scoring signatures",
+    "Terra: implement and reconcile missing offensive scoring components; keep unsupported signature/positions blocked",
+    "Terra: build corrected one-, two-, and three-week labels with same-season and completeness guards",
+    "Terra: retrain and nested-temporally validate M5 waiver challengers per scoring signature and position",
+    "Terra: publish new immutable M5 waiver-v2 artifacts and validators without rewriting legacy M5",
+    "Terra: add layered current-snapshot fields and preserve legacy fail-closed planner behavior",
+    "Terra: update Window 1C/1D diagnostics and make Window 1D require recommendation eligibility",
+    "Terra: accrue prospective free-agent, replacement, bid, and outcome evidence for decision-domain promotion",
+    "Sol: review any promotion request only after the declared sample and temporal thresholds are met"
+  ],
+  "minimum_preservation_tests": [
+    "week 18 never shifts into next season",
+    "bye and confirmed no-stat weeks are retained as explicit zero outcomes",
+    "missing source or unresolved roster identity never becomes zero",
+    "one- and two-week horizons are never labelled next three weeks",
+    "scoring signatures remain isolated under A-to-B-to-A processing",
+    "every nonzero relevant scoring key is supported or produces a typed blocker",
+    "bonus_rush_td_qb is never treated as relevant to RB, WR, or TE",
+    "return and special-teams touchdowns are not double counted",
+    "legacy M5 artifacts remain byte-identical",
+    "forecast-only dynasty, best-ball, and chopped rows cannot enter the recommendation planner",
+    "TE remains blocked when its validation status is diagnostic",
+    "missing live features are not zero-imputed into eligibility",
+    "candidate and drop projections must share horizon and scoring/model lineage",
+    "no transaction mutation is executed"
+  ],
+  "authorization_boundary": {
+    "authorized": [
+      "versioned research outcome ledger and exact scorer",
+      "corrected waiver labels and challenger validation",
+      "layered fail-closed eligibility fields",
+      "diagnostic and research planner integration",
+      "prospective evaluation capture"
+    ],
+    "not_authorized": [
+      "relaxing the current scoring gate without exact labels",
+      "carrying forward legacy M5 promotion statuses",
+      "production M9 change",
+      "canonical ranking change",
+      "automatic model promotion",
+      "app integration",
+      "Sleeper transaction execution",
+      "dynasty, best-ball, or chopped recommendation claims from short-horizon mean forecasts"
+    ]
+  }
+}
