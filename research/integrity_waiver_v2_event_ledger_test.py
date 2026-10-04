@@ -224,6 +224,7 @@ with tempfile.TemporaryDirectory() as raw:
         "lateral_receiver_player_id": None, "lateral_receiving_yards": 0,
         "rush_attempt": 0, "rushing_yards": 0,
         "lateral_rusher_player_id": None, "lateral_rushing_yards": 0,
+        "two_point_conv_attempt": 0,
     }.items():
         e5_pbp[column] = value
     e5_pbp.loc[len(e5_pbp)] = {
@@ -237,7 +238,7 @@ with tempfile.TemporaryDirectory() as raw:
         "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
         "complete_pass": 1, "passing_yards": 55, "pass_touchdown": 1, "receiver_player_id": "00-0000003", "receiving_yards": 55,
         "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 0, "rushing_yards": 0,
-        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0, "two_point_conv_attempt": 0,
     }
     e5_pbp.loc[len(e5_pbp)] = {
         "season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 8, "season_type": "REG", "play_type": "run", "play_deleted": 0,
@@ -250,7 +251,21 @@ with tempfile.TemporaryDirectory() as raw:
         "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
         "complete_pass": 0, "passing_yards": 0, "pass_touchdown": 0, "receiver_player_id": None, "receiving_yards": 0,
         "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 1, "rushing_yards": 51,
-        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0, "two_point_conv_attempt": 0,
+    }
+    # Two-point tries are deliberately excluded from long-play counters and
+    # their null official rush yard field must not create a false blocker.
+    e5_pbp.loc[len(e5_pbp)] = {
+        "season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 9, "season_type": "REG", "play_type": "run", "play_deleted": 0,
+        "fumble": 0, "fumble_lost": 0, "fumbled_1_player_id": None, "fumbled_2_player_id": None,
+        "interception": 0, "return_touchdown": 0, "passer_player_id": None, "rush_touchdown": 0, "rusher_player_id": "00-0000003",
+        "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 2, "touchdown": 0, "special_teams_play": 0,
+        "fumble_forced": 0, "fumble_out_of_bounds": 0, "forced_fumble_player_1_player_id": None, "forced_fumble_player_2_player_id": None,
+        "return_yards": 0, "return_team": None, "kickoff_returner_player_id": None, "lateral_kickoff_returner_player_id": None,
+        "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
+        "complete_pass": 0, "passing_yards": 0, "pass_touchdown": 0, "receiver_player_id": None, "receiving_yards": 0,
+        "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 1, "rushing_yards": None,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": None, "two_point_conv_attempt": 1,
     }
     e5_pbp_path = root / "e5-pbp.csv.gz"
     e5_pbp.to_csv(e5_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
