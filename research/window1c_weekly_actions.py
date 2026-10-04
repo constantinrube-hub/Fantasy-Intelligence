@@ -499,12 +499,81 @@ def waiver_watchlist(
 def prior_evaluation(root: Path, season: int, week: int, league_id: str) -> dict[str, Any] | None:
     if week <= 1:
         return None
-    p = root / f"data/research/evaluation/{season}/weeks/week-{week-1}/league-{league_id}/evaluation-v1.json"
-    x = read_json(p, None)
-    if not isinstance(x, dict):
+    prior_week = week - 1
+    outcome_root = root / f"data/research/evaluation/{season}/weeks/week-{prior_week}/lineups/outcomes"
+    candidates: list[tuple[datetime, str, dict[str, Any]]] = []
+    invalid: list[str] = []
+    for evaluation_path in sorted(outcome_root.glob("*/evaluation.json")):
+        revision = evaluation_path.parent.name
+        outcome_path = evaluation_path.parent / "outcome.json"
+        evaluation = read_json(evaluation_path, None)
+        outcome = read_json(outcome_path, None)
+        if not isinstance(evaluation, dict) or not isinstance(outcome, dict):
+            invalid.append(str(evaluation_path.relative_to(root)))
+            continue
+        valid = (
+            evaluation.get("schema") == "fie-in-season-pr2-lineup-evaluation-v1"
+            and outcome.get("schema") == "fie-in-season-pr2-lineup-outcome-v1"
+            and str(evaluation.get("season") or "") == str(season)
+            and str(evaluation.get("week") or "") == str(prior_week)
+            and str(outcome.get("season") or "") == str(season)
+            and str(outcome.get("week") or "") == str(prior_week)
+            and str(evaluation.get("outcome_revision_id") or "") == revision
+            and str(outcome.get("outcome_revision_id") or "") == revision
+            and evaluation.get("capture_id") == outcome.get("capture_id")
+            and evaluation.get("capture_content_sha256") == outcome.get("capture_content_sha256")
+        )
+        observed = parse_dt(outcome.get("outcome_observed_at"))
+        matches = [row for row in evaluation.get("leagues") or [] if isinstance(row, dict) and str(row.get("league_id") or "") == str(league_id)]
+        if not valid or observed is None or len(matches) != 1:
+            invalid.append(str(evaluation_path.relative_to(root)))
+            continue
+        row = matches[0]
+        metric_keys = (
+            "recommended_realized_points",
+            "submitted_realized_points",
+            "hindsight_best_legal_points",
+            "lineup_regret",
+            "points_lost_vs_hindsight_best_legal_lineup",
+            "submitted_vs_recommended_realized_points",
+            "best_legal_player_hit_rate",
+        )
+        normalized = {
+            "schema": evaluation.get("schema"),
+            "owner": "PR2",
+            "status": row.get("status"),
+            "league_id": str(league_id),
+            "season": season,
+            "week": prior_week,
+            "capture_id": evaluation.get("capture_id"),
+            "outcome_revision_id": revision,
+            "outcome_observed_at": outcome.get("outcome_observed_at"),
+            "metrics": {key: row.get(key) for key in metric_keys if key in row},
+            "detail": row.get("detail"),
+            "source_path": str(evaluation_path.relative_to(root)).replace("\\", "/"),
+        }
+        candidates.append((observed, revision, normalized))
+    if invalid:
+        return {
+            "schema": "fie-window1c-prior-week-evaluation-v1",
+            "owner": "PR2",
+            "status": "BLOCKED_PR2_OUTCOME_LINEAGE_INVALID",
+            "league_id": str(league_id),
+            "season": season,
+            "week": prior_week,
+            "metrics": {},
+            "detail": sorted(invalid),
+        }
+    if candidates:
+        return max(candidates, key=lambda item: (item[0], item[1]))[2]
+
+    # Preserve already-written Window 1B evidence as a read-only fallback.
+    legacy_path = root / f"data/research/evaluation/{season}/weeks/week-{prior_week}/league-{league_id}/evaluation-v1.json"
+    legacy = read_json(legacy_path, None)
+    if not isinstance(legacy, dict):
         return None
-    keep = {k: x.get(k) for k in ("schema", "schema_version", "status", "league_id", "season", "week", "metrics") if k in x}
-    return keep or None
+    keep = {k: legacy.get(k) for k in ("schema", "schema_version", "status", "league_id", "season", "week", "metrics") if k in legacy}
+    return {**keep, "owner": "WINDOW1B_LEGACY", "source_path": str(legacy_path.relative_to(root)).replace("\\", "/")} if keep else None
 
 
 def blocker_report(league_id: str, league_name: str, fmt: str, season: int | None, week: int | None, code: str, detail: Any = None) -> dict[str, Any]:
@@ -779,13 +848,13 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
                 lines.append(f"- **{x.get('player_name')}** ({x.get('position')}) — week {numeric(x.get('weekly_projection')) if numeric(x.get('weekly_projection')) is not None else '—'}{n3t} — {x.get('action')}")
         prior = league.get("prior_week_evaluation")
         if isinstance(prior, dict):
-            lines += ["", f"Prior-week evaluation: **{prior.get('status')}** — `{prior.get('metrics')}`"]
+            lines += ["", f"Prior-week {prior.get('owner') or 'legacy'} evaluation: **{prior.get('status')}** — `{prior.get('metrics')}`"]
         lines.append("")
     lines += [
         "## Interpretation guardrails",
         "",
         "- No missing projection is treated as zero.",
-        "- Sleeper fallback is explicitly labeled and is not counted as a governed FIE prediction for Window 1B evaluation.",
+        "- Sleeper fallback is explicitly labeled and is not counted as governed FIE evidence in the PR2 weekly evaluation.",
         "- Lineup alerts compare the currently submitted lineup with eligible bench alternatives; the production browser lineup optimizer remains authoritative.",
         "- No FAAB bid or optimized add/drop pair is produced in Window 1C.",
     ]

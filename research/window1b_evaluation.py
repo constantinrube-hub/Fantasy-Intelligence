@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Window 1B: deterministic preseason preview and weekly evaluation evidence.
+"""Window 1B: deterministic preseason preview and preserved weekly evidence.
+
+PR2 owns new operational weekly lineup captures and outcome evaluations.  The
+weekly functions remain here only to validate and interpret already-preserved
+Window 1B artifacts; this command-line entry point creates the manual frozen
+season preview only.
 
 This module is intentionally research-only. It does not change rankings, runtime
 contracts, model weights, promotion state, or ADP/market inputs.
@@ -746,17 +751,6 @@ def main() -> int:
     preview.add_argument("--output-json", default="data/research/evaluation/2026/preseason/season-preview-v1.json")
     preview.add_argument("--output-md", default="data/research/evaluation/2026/preseason/season-preview-v1.md")
 
-    snapshot = sub.add_parser("weekly-snapshot")
-    snapshot.add_argument("--current-snapshot", required=True)
-    snapshot.add_argument("--prediction-source")
-    snapshot.add_argument("--cutoff-utc", required=True)
-    snapshot.add_argument("--output", required=True)
-
-    evaluation = sub.add_parser("weekly-evaluate")
-    evaluation.add_argument("--snapshot", required=True)
-    evaluation.add_argument("--outcomes")
-    evaluation.add_argument("--output", required=True)
-
     args = parser.parse_args()
     root = Path(args.repo_root).resolve()
     try:
@@ -768,18 +762,6 @@ def main() -> int:
             md_path.parent.mkdir(parents=True, exist_ok=True)
             md_path.write_text(preview_markdown(payload), encoding="utf-8")
             print(f"Window 1B season preview: READY leagues={len(payload['leagues'])} output={args.output_json}")
-        elif args.command == "weekly-snapshot":
-            current_path = _repo_path(root, args.current_snapshot)
-            prediction_path = _repo_path(root, args.prediction_source) if args.prediction_source else None
-            payload = build_weekly_snapshot(current_path, prediction_path, args.cutoff_utc)
-            result = write_json(_repo_path(root, args.output), payload, immutable=True)
-            print(f"Window 1B weekly snapshot: {payload['status']} first_write={result}")
-        elif args.command == "weekly-evaluate":
-            snapshot_path = _repo_path(root, args.snapshot)
-            outcomes_path = _repo_path(root, args.outcomes) if args.outcomes else None
-            payload = evaluate_weekly(snapshot_path, outcomes_path)
-            write_json(_repo_path(root, args.output), payload)
-            print(f"Window 1B weekly evaluation: {payload['status']}")
     except (EvidenceError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"Window 1B fail-closed: {exc}")
         return 2
