@@ -13,7 +13,7 @@
     "app_core": "resolved and SHA-256 verified through app manifest",
     "player_catalog": "resolved through app core shared.player_catalog",
     "current_snapshot": "data/research/leagues/<league_id>/current/milestone5_current.json",
-    "prior_week_window1b_evaluation": "optional"
+    "prior_week_evaluation": "PR2 canonical when available; preserved Window 1B artifact is read-only fallback"
   },
   "fail_closed_guards": {
     "target_week_realised_stats_excluded_must_be_true": true,
@@ -83,6 +83,7 @@
   "validation": [
     "python research/integrity_window1c_weekly_actions_test.py",
     "python research/integrity_window1b_evaluation_test.py",
+    "python research/integrity_window1b_pr2_ownership_test.py",
     "python research/integrity_15point_completion_test.py"
   ]
 }

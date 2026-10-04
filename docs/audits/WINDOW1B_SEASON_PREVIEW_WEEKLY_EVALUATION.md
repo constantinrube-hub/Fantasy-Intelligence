@@ -1,10 +1,10 @@
-# Window 1B — Season Preview + Weekly Evaluation
+# Window 1B — Manual Season Preview + Preserved Weekly Evaluation
 
 ## Closed implementation scope
 
 Window 1B adds a research-only evaluation layer on top of the immutable 2026 Window 1A baseline. It does not change M9, M10 activation, app/runtime behavior, canonical rankings, ADP treatment, waiver recommendations, or any production decision surface.
 
-The purpose is to preserve what FIE believed before the season and before each eligible game week, then make later prediction-versus-outcome evaluation deterministic and auditable.
+The purpose was to preserve what FIE believed before the season and before each eligible game week, then make later prediction-versus-outcome evaluation deterministic and auditable. PR2 now owns new operational weekly lineup capture and outcome evaluation. Window 1B remains the manual frozen season-preview owner, while its already-written weekly artifacts and validation functions are preserved read-only.
 
 ## 1. Season Preview
 
@@ -44,7 +44,9 @@ Canonical outputs:
 
 The Markdown artifact is intentionally suitable for offline reading.
 
-## 2. Weekly prediction snapshots
+## 2. Preserved weekly prediction snapshots
+
+This section documents the historical Window 1B contract. New operational weekly snapshots are not authorized through Window 1B; PR2 owns them under `data/research/evaluation/<season>/weeks/week-<week>/lineups`.
 
 `weekly-snapshot` creates an immutable, first-write pregame evidence record.
 
@@ -59,7 +61,9 @@ When the current snapshot reports zero weekly activation-eligible predictions, W
 
 At implementation time the frozen Week 1 current snapshots report zero eligible weekly predictions because current-season nflverse player/team/snap history is not yet available. This is therefore an expected typed blocker, not a Window 1B failure.
 
-## 3. Weekly outcome evaluation
+## 3. Preserved weekly outcome evaluation
+
+The Window 1B evaluator remains available as a contract-validation function for existing artifacts, but its command-line and GitHub workflow write paths are closed. New lineup outcome revisions are produced only by PR2.
 
 `weekly-evaluate` joins a ready immutable prediction snapshot to explicitly supplied outcome rows using player identity.
 
@@ -76,13 +80,11 @@ Missing outcomes remain `PENDING_OUTCOME`; they are never treated as zero fantas
 
 `.github/workflows/build-fie-window1b-evaluation.yml` is manual-only and main-only.
 
-It can:
+It can only build the complete frozen Season Preview. The former workflow inputs for `weekly-snapshot` and `weekly-evaluate` have been removed, and its commit allowlist is restricted to the two `season-preview-v1` files.
 
-- build the complete frozen Season Preview,
-- capture a league/week pregame prediction snapshot,
-- evaluate an existing weekly snapshot against an explicit outcomes file.
+The workflow runs the focused Window 1B synthetic integrity contract before output. That contract continues to validate preserved weekly semantics so historical files remain interpretable, but it cannot create new weekly evidence.
 
-The workflow runs the focused Window 1B synthetic integrity contract before any output and commits only `data/research/evaluation/2026/**`.
+Window 1C consumes the latest lineage-valid PR2 prior-week evaluation when available. If no PR2 evaluation exists, it may display a previously written Window 1B `evaluation-v1.json` as an explicitly labelled `WINDOW1B_LEGACY` read-only fallback. It never combines the two metric families.
 
 ## 5. Regression repair included with Window 1B
 

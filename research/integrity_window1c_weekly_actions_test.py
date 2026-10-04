@@ -134,7 +134,20 @@ def test_managed_action_report() -> None:
         setup_root(root)
         league_fixture(root, "111111", fmt="REDRAFT")
         write(root / "data/research/leagues/registry.json", {"leagues": {"111111": {"enabled": True, "format": "REDRAFT", "league_name": "Test Redraft", "profile_fingerprint": "fp-live"}}})
+        # A preserved Window 1B artifact remains readable, but PR2 is the
+        # canonical prior-week owner when both exist.
         write(root / "data/research/evaluation/2026/weeks/week-1/league-111111/evaluation-v1.json", {"schema": "fie-window1b-weekly-evaluation-v1", "status": "READY", "league_id": "111111", "season": 2026, "week": 1, "metrics": {"mae": 3.2}})
+        revision = "nflverse-initial-v1-capture-a"
+        outcome_dir = root / f"data/research/evaluation/2026/weeks/week-1/lineups/outcomes/{revision}"
+        write(outcome_dir / "outcome.json", {
+            "schema": "fie-in-season-pr2-lineup-outcome-v1", "capture_id": "capture-a", "capture_content_sha256": "hash-a",
+            "outcome_revision_id": revision, "season": 2026, "week": 1, "outcome_observed_at": "2026-09-15T12:00:00+00:00",
+        })
+        write(outcome_dir / "evaluation.json", {
+            "schema": "fie-in-season-pr2-lineup-evaluation-v1", "capture_id": "capture-a", "capture_content_sha256": "hash-a",
+            "outcome_revision_id": revision, "season": 2026, "week": 1,
+            "leagues": [{"league_id": "111111", "status": "READY", "lineup_regret": 1.5, "best_legal_player_hit_rate": 0.8}],
+        })
         as_of = datetime(2026, 9, 8, 12, tzinfo=timezone.utc)
         out = w.build_portfolio(root, season=2026, week=2, as_of=as_of)
         assert out["enabled_league_count"] == 1
@@ -156,7 +169,8 @@ def test_managed_action_report() -> None:
         assert all(x.get("bid_recommendation") is None for x in waiver)
         assert all(x.get("drop_recommendation") is None for x in waiver)
         assert all(x.get("action") not in {"CLAIM", "PASS"} for x in waiver)
-        assert league["prior_week_evaluation"]["metrics"]["mae"] == 3.2
+        assert league["prior_week_evaluation"]["owner"] == "PR2"
+        assert league["prior_week_evaluation"]["metrics"]["lineup_regret"] == 1.5
         assert league["governance"]["faab_optimization"] is False
         assert league["governance"]["window_1d_reserved_for_waiver_optimization"] is True
 
@@ -171,6 +185,42 @@ def test_best_ball_disables_start_sit() -> None:
         out = w.build_league_report(root, "222222", reg, username="C0nstant1n", as_of=as_of, target_season=2026, target_week=2)
         assert out["action_status"]["lineup"] == "NOT_APPLICABLE_BEST_BALL"
         assert out["actions"]["lineup"] == []
+
+
+def test_prior_week_legacy_evaluation_remains_read_only_fallback() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        path = root / "data/research/evaluation/2026/weeks/week-1/league-1/evaluation-v1.json"
+        write(path, {"schema": "fie-window1b-weekly-evaluation-v1", "status": "EVALUATED", "league_id": "1", "season": 2026, "week": 1, "metrics": {"mae": 2.5}})
+        result = w.prior_evaluation(root, 2026, 2, "1")
+        assert result["owner"] == "WINDOW1B_LEGACY"
+        assert result["metrics"]["mae"] == 2.5
+
+
+def test_latest_valid_pr2_revision_wins_and_invalid_lineage_blocks() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        for revision, observed, regret in (("initial", "2026-09-15T12:00:00+00:00", 3.0), ("corrected", "2026-09-16T12:00:00+00:00", 1.0)):
+            folder = root / f"data/research/evaluation/2026/weeks/week-1/lineups/outcomes/{revision}"
+            write(folder / "outcome.json", {
+                "schema": "fie-in-season-pr2-lineup-outcome-v1", "capture_id": "capture", "capture_content_sha256": "hash",
+                "outcome_revision_id": revision, "season": 2026, "week": 1, "outcome_observed_at": observed,
+            })
+            write(folder / "evaluation.json", {
+                "schema": "fie-in-season-pr2-lineup-evaluation-v1", "capture_id": "capture", "capture_content_sha256": "hash",
+                "outcome_revision_id": revision, "season": 2026, "week": 1,
+                "leagues": [{"league_id": "1", "status": "READY", "lineup_regret": regret}],
+            })
+        result = w.prior_evaluation(root, 2026, 2, "1")
+        assert result["outcome_revision_id"] == "corrected"
+        assert result["metrics"]["lineup_regret"] == 1.0
+
+        invalid = root / "data/research/evaluation/2026/weeks/week-1/lineups/outcomes/broken"
+        write(invalid / "outcome.json", {"schema": "wrong"})
+        write(invalid / "evaluation.json", {"schema": "wrong"})
+        blocked = w.prior_evaluation(root, 2026, 2, "1")
+        assert blocked["status"] == "BLOCKED_PR2_OUTCOME_LINEAGE_INVALID"
+        assert blocked["metrics"] == {}
 
 
 def test_profile_drift_blocks() -> None:
@@ -263,6 +313,8 @@ def main() -> None:
     tests = [
         test_managed_action_report,
         test_best_ball_disables_start_sit,
+        test_prior_week_legacy_evaluation_remains_read_only_fallback,
+        test_latest_valid_pr2_revision_wins_and_invalid_lineage_blocks,
         test_profile_drift_blocks,
         test_stale_snapshot_blocks,
         test_realized_stats_guard_blocks,

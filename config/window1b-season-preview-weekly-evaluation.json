@@ -17,6 +17,8 @@
   },
   "season_preview": {
     "producer": "research/window1b_evaluation.py",
+    "workflow": ".github/workflows/build-fie-window1b-evaluation.yml",
+    "operation": "manual_only",
     "json_output": "data/research/evaluation/2026/preseason/season-preview-v1.json",
     "markdown_output": "data/research/evaluation/2026/preseason/season-preview-v1.md",
     "managed_lineup_primary_metric": "season_scope_starter_projection_sum",
@@ -32,6 +34,12 @@
     "zero_impute_missing_players": false
   },
   "weekly_evaluation": {
+    "operational_status": "SUPERSEDED_BY_PR2_PRESERVED_READ_ONLY",
+    "canonical_owner": ".github/workflows/capture-fie-pr2-weekly-lineups.yml + .github/workflows/evaluate-fie-pr2-weekly-lineups.yml",
+    "canonical_namespace": "data/research/evaluation/<season>/weeks/week-<week>/lineups",
+    "new_window1b_weekly_writes_authorized": false,
+    "historical_window1b_artifacts_preserved": true,
+    "historical_functions_retained_for_contract_validation": true,
     "prediction_snapshot_schema": "fie-window1b-weekly-prediction-snapshot-v1",
     "evaluation_schema": "fie-window1b-weekly-evaluation-v1",
     "pregame_only": true,
