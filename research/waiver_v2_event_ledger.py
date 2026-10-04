@@ -38,7 +38,10 @@ EVENT_COLUMNS = [
     "source_url", "source_sha256", "source_season", "schema_fingerprint",
     "builder_sha256", "reconciliation_status", "event_status",
 ]
-PBP_REQUIRED_FIELDS = ("season", "week", "game_id", "play_id", "season_type", "play_type", "no_play")
+# nflverse's current CSV PBP release exposes ``play_deleted`` rather than the
+# legacy ``no_play`` flag. A deleted play is an invalidated play and must be
+# excluded before any event family is allowed to score it.
+PBP_REQUIRED_FIELDS = ("season", "week", "game_id", "play_id", "season_type", "play_type", "play_deleted")
 
 
 def _sha256(path: Path) -> str:
@@ -89,8 +92,8 @@ def validate_event_ledger(frame: pd.DataFrame) -> None:
     lineage = ["source_url", "source_sha256", "source_season", "schema_fingerprint", "builder_sha256", "reconciliation_status"]
     if frame[lineage].isna().any().any() or _empty_strings(frame, lineage):
         raise ValueError("waiver-v2 event ledger omits required source lineage")
-    if "no_play" in frame.columns and frame["no_play"].fillna(0).astype(bool).any():
-        raise ValueError("waiver-v2 event ledger contains a penalty/no-play event")
+    if "play_deleted" in frame.columns and frame["play_deleted"].fillna(0).astype(bool).any():
+        raise ValueError("waiver-v2 event ledger contains a deleted/no-play event")
 
 
 def build_source_inventory(
