@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from waiver_v2_event_ledger import (
-    EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_source_inventory,
+    EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_source_inventory,
     validate_event_ledger,
 )
 from run_waiver_v2_historical_ledger import write_source_snapshot
@@ -90,5 +90,40 @@ with tempfile.TemporaryDirectory() as raw:
     )
     assert {"pbp", "participation"} <= set(snapshot)
     assert snapshot["pbp"]["rows"] == len(pbp)
+
+    # E2 derives only rows with exact IDs and reconciles QB sacks against the
+    # published weekly stat. Pick-sixes, all-play fumbles and QB rushing-TD
+    # adjustments all originate in the single shared event ledger.
+    e2_pbp = pd.DataFrame([
+        {"season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 1, "season_type": "REG", "play_type": "pass", "play_deleted": 0,
+         "fumble": 1, "fumble_lost": 1, "fumbled_1_player_id": "00-0000001", "fumbled_2_player_id": None,
+         "interception": 0, "return_touchdown": 0, "passer_player_id": "00-0000001", "rush_touchdown": 0, "rusher_player_id": None,
+         "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 0, "touchdown": 0, "special_teams_play": 0},
+        {"season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 2, "season_type": "REG", "play_type": "pass", "play_deleted": 0,
+         "fumble": 0, "fumble_lost": 0, "fumbled_1_player_id": None, "fumbled_2_player_id": None,
+         "interception": 1, "return_touchdown": 1, "passer_player_id": "00-0000001", "rush_touchdown": 0, "rusher_player_id": None,
+         "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 0, "touchdown": 1, "special_teams_play": 0},
+        {"season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 3, "season_type": "REG", "play_type": "run", "play_deleted": 0,
+         "fumble": 0, "fumble_lost": 0, "fumbled_1_player_id": None, "fumbled_2_player_id": None,
+         "interception": 0, "return_touchdown": 0, "passer_player_id": None, "rush_touchdown": 1, "rusher_player_id": "00-0000001",
+         "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 3, "touchdown": 1, "special_teams_play": 0},
+        {"season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 4, "season_type": "REG", "play_type": "pass", "play_deleted": 0,
+         "fumble": 0, "fumble_lost": 0, "fumbled_1_player_id": None, "fumbled_2_player_id": None,
+         "interception": 0, "return_touchdown": 0, "passer_player_id": "00-0000001", "rush_touchdown": 0, "rusher_player_id": None,
+         "sack": 1, "posteam": "A", "defteam": "B", "yards_gained": -7, "touchdown": 0, "special_teams_play": 0},
+    ])
+    e2_pbp_path, e2_identity_path, e2_stats_path = root / "e2-pbp.csv.gz", root / "e2-identity.csv", root / "e2-stats.csv"
+    e2_pbp.to_csv(e2_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
+    pd.DataFrame([{"gsis_id": "00-0000001", "canonical_player_id": "QB1"}]).to_csv(e2_identity_path, index=False)
+    pd.DataFrame([{"canonical_player_id": "QB1", "season": 2025, "week": 1, "position_model": "QB", "sacks": 1}]).to_csv(e2_stats_path, index=False)
+    e2 = build_e2_event_ledger(
+        raw_pbp_path=e2_pbp_path, identity_path=e2_identity_path, canonical_player_stats_path=e2_stats_path,
+        requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "c" * 64}],
+        output_path=root / "e2" / "events.csv.gz", weekly_stats_output_path=root / "e2" / "weekly.csv.gz", report_path=root / "e2" / "report.json",
+    )
+    assert all(e2["rule_support"][key]["support_status"] == "EXACT_EVENT_READY" for key in ("fum", "fum_lost", "pass_int_td", "bonus_rush_td_qb", "pass_sack"))
+    weekly = pd.read_csv(root / "e2" / "weekly.csv.gz").iloc[0]
+    assert weekly.event_fumbles == 1 and weekly.event_fumbles_lost == 1
+    assert weekly.event_pass_int_td == 1 and weekly.event_bonus_rush_td_qb == 1
 
 print("OK waiver-v2 E1 event-source inventory and adversarial ledger contract")

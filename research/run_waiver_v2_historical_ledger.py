@@ -19,7 +19,7 @@ import pandas as pd
 
 from build_waiver_v2_outcome_ledger import build as build_ledger
 from waiver_v2_source_adapter import adapt
-from waiver_v2_event_ledger import build_e1_event_ledger
+from waiver_v2_event_ledger import build_e2_event_ledger
 
 
 RUN_SCHEMA = "fie-waiver-v2-historical-ledger-run-v1"
@@ -116,6 +116,16 @@ def run(
         identity_path=Path(source_snapshot["identity"]["path"]),
         output_dir=adapted_dir,
     )
+    event_ledger_receipt = None
+    if event_evidence:
+        event_ledger_receipt = build_e2_event_ledger(
+            raw_pbp_path=Path(source_snapshot["pbp"]["path"]), identity_path=Path(source_snapshot["identity"]["path"]),
+            canonical_player_stats_path=Path(adapter_receipt["outputs"]["player_stats"]["path"]), requested_seasons=requested,
+            pbp_source_items=_source_items(source_manager, "pbp", requested),
+            output_path=output_dir / "event-ledger" / "waiver-v2-event-ledger.csv.gz",
+            weekly_stats_output_path=output_dir / "event-ledger" / "event-weekly-stats.csv.gz",
+            report_path=output_dir / "event-ledger" / "waiver-v2-event-ledger-report.json",
+        )
     ledger_dir = output_dir / "ledger"
     ledger_receipt = build_ledger(
         player_stats_path=Path(adapter_receipt["outputs"]["player_stats"]["path"]),
@@ -125,17 +135,9 @@ def run(
         output_path=ledger_dir / "offensive-outcome-ledger.csv.gz",
         report_path=ledger_dir / "offensive-outcome-ledger-report.json",
         player_stats_complete=player_stats_complete,
+        event_weekly_stats_path=(Path(event_ledger_receipt["event_weekly_stats"]["path"]) if event_ledger_receipt else None),
+        event_rule_support=(event_ledger_receipt.get("rule_support") if event_ledger_receipt else None),
     )
-    event_ledger_receipt = None
-    if event_evidence:
-        event_ledger_receipt = build_e1_event_ledger(
-            raw_pbp_path=Path(source_snapshot["pbp"]["path"]), requested_seasons=requested,
-            pbp_source_items=_source_items(source_manager, "pbp", requested),
-            raw_participation_path=(Path(source_snapshot["participation"]["path"]) if participation_evidence else None),
-            participation_source_items=(_source_items(source_manager, "participation", requested) if participation_evidence else None),
-            output_path=output_dir / "event-ledger" / "waiver-v2-event-ledger.csv.gz",
-            report_path=output_dir / "event-ledger" / "waiver-v2-event-ledger-report.json",
-        )
     report = {
         "schema": RUN_SCHEMA,
         "diagnostic_only": True,

@@ -20,7 +20,16 @@ assert qb["ignored_irrelevant_keys"] == ["rec"]
 blocked = build_offensive_scoring_inventory({"pass_yd": 0.04, "pass_int_td": -2}, position="QB", available_columns=columns)
 assert not blocked["exact_replay_eligible"]
 assert blocked["blocked_keys"][0]["key"] == "pass_int_td"
-assert blocked["blocked_keys"][0]["support_status"] == "BLOCKED_UNSUPPORTED_EXACT_SCORING"
+assert blocked["blocked_keys"][0]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
+
+# E2 event values require both the dedicated field and a green event-source
+# receipt. The ordinary interception penalty still stacks independently.
+event_columns = columns | {"event_fumbles", "event_fumbles_lost", "event_pass_int_td", "event_bonus_rush_td_qb", "sacks"}
+event_support = {key: {"support_status": "EXACT_EVENT_READY", "reason": "fixture"} for key in ("fum", "fum_lost", "pass_int_td", "bonus_rush_td_qb")}
+e2_qb = build_offensive_scoring_inventory({"pass_int": -2, "pass_int_td": -2, "pass_sack": -1, "bonus_rush_td_qb": -2}, position="QB", available_columns=event_columns, event_rule_support=event_support)
+assert e2_qb["exact_replay_eligible"] and set(e2_qb["supported_keys"]) == {"pass_int", "pass_int_td", "pass_sack", "bonus_rush_td_qb"}
+e2_rb = build_offensive_scoring_inventory({"bonus_rush_td_qb": -2}, position="RB", available_columns=event_columns, event_rule_support=event_support)
+assert e2_rb["exact_replay_eligible"] and e2_rb["ignored_irrelevant_keys"] == ["bonus_rush_td_qb"]
 
 # Unknown keys are relevant by default and also prevent an exact replay.
 unknown = build_offensive_scoring_inventory({"fictional_bonus": 3}, position="RB", available_columns=columns)

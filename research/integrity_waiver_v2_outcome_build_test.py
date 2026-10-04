@@ -73,4 +73,31 @@ with tempfile.TemporaryDirectory() as raw:
     assert not bool(rb.outcome_complete)
     assert rb.outcome_status == "BLOCKED_PLAYER_STATS_INCOMPLETE"
 
+    # E2 values score only with the companion event receipt. This verifies a
+    # pick-six stacks with the ordinary interception and that a QB-only
+    # rushing-TD adjustment does not become an RB/WR/TE rule.
+    event_weekly = root / "event-weekly.csv"
+    pd.DataFrame([
+        {"canonical_player_id": "qb", "season": 2026, "week": 1, "event_fumbles": 1, "event_fumbles_lost": 1,
+         "event_pass_int_td": 1, "event_bonus_rush_td_qb": 1},
+    ]).to_csv(event_weekly, index=False)
+    pd.DataFrame([
+        {"canonical_player_id": "qb", "season": 2026, "week": 1, "passing_yards": 0, "passing_tds": 0, "passing_interceptions": 1,
+         "rushing_yards": 0, "rushing_tds": 1, "receptions": 0, "sacks": 1},
+        {"canonical_player_id": "wr", "season": 2026, "week": 1, "passing_yards": 0, "passing_tds": 0, "passing_interceptions": 0,
+         "rushing_yards": 0, "rushing_tds": 0, "receptions": 0, "sacks": 0},
+    ]).to_csv(player_stats, index=False)
+    e2_settings = {"pass_int": -2, "pass_int_td": -2, "pass_sack": -1, "rush_td": 6, "bonus_rush_td_qb": -2, "fum": -1, "fum_lost": -2}
+    scoring.write_text(json.dumps({"scoring_settings": e2_settings}), encoding="utf-8")
+    support = {key: {"support_status": "EXACT_EVENT_READY", "reason": "fixture"} for key in ("fum", "fum_lost", "pass_int_td", "bonus_rush_td_qb")}
+    report = build(
+        player_stats_path=player_stats, weekly_roster_path=weekly_roster, team_schedule_path=team_schedule,
+        scoring_path=scoring, output_path=ledger_path, report_path=report_path, player_stats_complete=True,
+        event_weekly_stats_path=event_weekly, event_rule_support=support,
+    )
+    persisted = pd.read_csv(ledger_path)
+    qb = persisted[persisted.canonical_player_id.eq("qb")].iloc[0]
+    assert qb.outcome_status == "COMPLETE_EXACT" and float(qb.fantasy_points_exact) == -4.0
+    assert report["inputs"]["event_weekly_stats"]["sha256"]
+
 print("OK waiver-v2 offline outcome-ledger builder provenance")
