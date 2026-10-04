@@ -29,6 +29,7 @@ assert unknown["unknown_keys"] == ["fictional_bonus"]
 
 roster = pd.DataFrame([
     {"canonical_player_id": "qb", "season": 2026, "week": 1, "team": "A", "position_model": "QB", "roster_complete": True},
+    {"canonical_player_id": "te", "season": 2026, "week": 1, "team": "A", "position_model": "TE", "roster_complete": True},
     {"canonical_player_id": "rb", "season": 2026, "week": 1, "team": "B", "position_model": "RB", "roster_complete": True},
     {"canonical_player_id": "wr", "season": 2026, "week": 1, "team": "C", "position_model": "WR", "roster_complete": True},
 ])
@@ -43,9 +44,11 @@ stats = pd.DataFrame([
 ])
 ledger = build_dense_offensive_outcome_ledger(stats, roster, schedule, core_scoring, scoring_signature="ppr-test", player_stats_complete=True)
 qb_row = ledger[ledger.canonical_player_id.eq("qb")].iloc[0]
+te_row = ledger[ledger.canonical_player_id.eq("te")].iloc[0]
 rb_row = ledger[ledger.canonical_player_id.eq("rb")].iloc[0]
 wr_row = ledger[ledger.canonical_player_id.eq("wr")].iloc[0]
 assert qb_row.outcome_status == "COMPLETE_EXACT" and math.isclose(float(qb_row.fantasy_points_exact), 18.0)
+assert te_row.outcome_status == "COMPLETE_EXACT" and float(te_row.fantasy_points_exact) == 0.0
 assert rb_row.outcome_status == "CONFIRMED_BYE" and float(rb_row.fantasy_points_exact) == 0.0
 assert wr_row.outcome_status == "COMPLETE_EXACT" and float(wr_row.fantasy_points_exact) == 0.0
 assert ledger.outcome_complete.all()

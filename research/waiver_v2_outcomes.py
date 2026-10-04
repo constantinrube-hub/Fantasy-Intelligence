@@ -240,7 +240,9 @@ def build_dense_offensive_outcome_ledger(
     roster = weekly_roster.copy()
     roster["position_model"] = roster["position_model"].map(canonical_position)
     roster = roster[roster["position_model"].isin(OFFENSIVE_POSITIONS)].copy()
-    merged = roster.merge(team_schedule, on=["season", "week", "team"], how="left", validate="one_to_one")
+    # The roster is player-level while the schedule is team-week-level: many
+    # offensive players legitimately inherit one verified team schedule row.
+    merged = roster.merge(team_schedule, on=["season", "week", "team"], how="left", validate="many_to_one")
     stat_value_columns = [column for column in player_stats.columns if column not in identity]
     merged = merged.merge(player_stats, on=identity, how="left", validate="one_to_one", suffixes=("", "_stat"))
 
