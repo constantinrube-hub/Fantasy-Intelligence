@@ -59,6 +59,9 @@ EVENT_WEEKLY_RULES = {
     "st_td": "event_special_teams_tds",
     "st_ff": "event_special_teams_forced_fumbles",
     "st_fum_rec": "event_special_teams_fumble_recoveries",
+    "kr_yd": "event_kick_return_yards",
+    "pr_yd": "event_punt_return_yards",
+    "fg_ret_yd": "event_field_goal_return_yards",
 }
 
 POSITION_RECEPTION_RULES = {

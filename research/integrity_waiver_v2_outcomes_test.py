@@ -31,6 +31,18 @@ assert e2_qb["exact_replay_eligible"] and set(e2_qb["supported_keys"]) == {"pass
 e2_rb = build_offensive_scoring_inventory({"bonus_rush_td_qb": -2}, position="RB", available_columns=event_columns, event_rule_support=event_support)
 assert e2_rb["exact_replay_eligible"] and e2_rb["ignored_irrelevant_keys"] == ["bonus_rush_td_qb"]
 
+# E4 return-yard rules require their own event columns and green independent
+# PBP/player-week reconciliation.  A blocked field-goal-return family cannot
+# be made exact merely because kickoff/punt values are available.
+e4_columns = event_columns | {"event_kick_return_yards", "event_punt_return_yards", "event_field_goal_return_yards"}
+e4_support = {**event_support, "kr_yd": {"support_status": "EXACT_EVENT_READY", "reason": "fixture"},
+              "pr_yd": {"support_status": "EXACT_EVENT_READY", "reason": "fixture"},
+              "fg_ret_yd": {"support_status": "BLOCKED_SOURCE_INCOMPLETE", "reason": "no direct role"}}
+e4_wr = build_offensive_scoring_inventory({"kr_yd": 0.01, "pr_yd": 0.02}, position="WR", available_columns=e4_columns, event_rule_support=e4_support)
+assert e4_wr["exact_replay_eligible"] and set(e4_wr["supported_keys"]) == {"kr_yd", "pr_yd"}
+e4_fg = build_offensive_scoring_inventory({"fg_ret_yd": 0.01}, position="WR", available_columns=e4_columns, event_rule_support=e4_support)
+assert not e4_fg["exact_replay_eligible"] and e4_fg["blocked_keys"][0]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
+
 # Unknown keys are relevant by default and also prevent an exact replay.
 unknown = build_offensive_scoring_inventory({"fictional_bonus": 3}, position="RB", available_columns=columns)
 assert not unknown["exact_replay_eligible"]
