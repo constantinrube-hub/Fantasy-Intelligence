@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,12 @@ DEPARTED_ROSTER_STATUSES = {"CUT", "NWT", "RET", "RFA", "RSR", "TRC", "TRD", "TR
 # `status_description_abbr` states the actual active roster designation. A01
 # is the documented active designation and wins over the transaction code.
 ACTIVE_STATUS_DESCRIPTIONS = {"A01"}
+# An nflverse weekly roster can retain a historical player whose row is absent
+# from today's master player catalogue.  A syntactically exact GSIS ID is still
+# a canonical identity under the repository-wide identity policy, so it can be
+# used only as its own canonical fallback.  Names and other source fields never
+# become identity fallbacks.
+EXACT_GSIS_ID = re.compile(r"^00-\d{7}$")
 # Each fallback is already used in the research pipeline and has a known
 # identical statistical meaning; arbitrary similar names are not accepted.
 EXACT_STAT_RENAMES = {
@@ -75,6 +82,11 @@ def _identity_map(identity: pd.DataFrame) -> pd.DataFrame:
     if result.duplicated("gsis_id").any():
         raise ValueError("waiver-v2 identity source has duplicate gsis_id bindings")
     return result
+
+
+def _missing_source_identity(values: pd.Series) -> pd.Series:
+    normalized = values.astype("string").str.strip()
+    return values.isna() | normalized.isin({"", "nan", "None", "<NA>"})
 
 
 def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
@@ -125,10 +137,12 @@ def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> t
 def normalize_weekly_roster(raw_roster: pd.DataFrame, identity: pd.DataFrame, *, return_audit: bool = False) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, Any]]:
     """Return the complete weekly offensive roster universe, without departures.
 
-    Undocumented statuses are excluded from this dense universe and reported in
-    the audit. This is fail-closed at player level: the adapter emits neither a
-    roster row nor an inferred zero for those players, but it does not discard
-    the otherwise valid historical source snapshot.
+    Undocumented statuses and rows without an exact source identity are
+    excluded from this dense universe and reported in the audit. An exact GSIS
+    ID absent from the current master catalogue binds only to itself. This is
+    fail-closed at player level: the adapter emits neither a roster row nor an
+    inferred zero for unavailable identities, but it does not discard the
+    otherwise valid historical source snapshot.
     """
     source = _regular(raw_roster)
     required = {"season", "week", "team", "position", "gsis_id", "status"}
@@ -155,9 +169,17 @@ def normalize_weekly_roster(raw_roster: pd.DataFrame, identity: pd.DataFrame, *,
     result["_source_gsis_id"] = result["gsis_id"].astype(str).str.strip()
     result = result.merge(_identity_map(identity), left_on="_source_gsis_id", right_on="gsis_id", how="left", validate="many_to_one")
     unresolved = result["canonical_player_id"].isna() | result["canonical_player_id"].astype(str).str.strip().isin({"", "nan", "None"})
+    exact_gsis_fallback = unresolved & result["_source_gsis_id"].map(lambda value: bool(EXACT_GSIS_ID.fullmatch(str(value))))
+    result.loc[exact_gsis_fallback, "canonical_player_id"] = result.loc[exact_gsis_fallback, "_source_gsis_id"]
+    missing_identity = unresolved & _missing_source_identity(result["_source_gsis_id"])
+    unresolved = unresolved & ~(exact_gsis_fallback | missing_identity)
+    audit["exact_source_gsis_fallback_rows"] = int(exact_gsis_fallback.sum())
+    audit["exact_source_gsis_fallback_ids"] = int(result.loc[exact_gsis_fallback, "_source_gsis_id"].nunique())
+    audit["excluded_missing_identity_rows"] = int(missing_identity.sum())
     if unresolved.any():
         sample = sorted({str(value).strip() for value in result.loc[unresolved, "_source_gsis_id"].tolist()})[:8]
         raise ValueError(f"waiver-v2 weekly roster contains unresolved canonical identities: {sample}")
+    result = result[~missing_identity].copy()
     result["season"] = pd.to_numeric(result["season"], errors="raise").astype(int)
     result["week"] = pd.to_numeric(result["week"], errors="raise").astype(int)
     result["team"] = result["team"].astype(str).str.strip().str.upper()
