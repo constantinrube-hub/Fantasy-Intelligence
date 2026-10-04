@@ -82,6 +82,8 @@ COMPONENTS={
  'waiver_v2_outcome_builder_integrity':'research/integrity_waiver_v2_outcome_build_test.py',
  'waiver_v2_source_adapter':'research/waiver_v2_source_adapter.py',
  'waiver_v2_source_adapter_integrity':'research/integrity_waiver_v2_source_adapter_test.py',
+ 'waiver_v2_historical_runner':'research/run_waiver_v2_historical_ledger.py',
+ 'waiver_v2_historical_runner_integrity':'research/integrity_waiver_v2_historical_runner_test.py',
  'waiver_evidence_capture':'research/capture_fie_waivers.py',
  'm10_sunday_checkpoint_design':'config/m10-sunday-paired-checkpoint-design.json',
  'm10_sunday_checkpoint_design_doc':'docs/audits/M10_SUNDAY_PAIRED_CHECKPOINT_DESIGN.md',
