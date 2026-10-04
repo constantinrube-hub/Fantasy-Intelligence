@@ -28,6 +28,11 @@ with tempfile.TemporaryDirectory() as raw:
         # weekly-status description, while E01 remains undocumented.
         {"season": 2025, "week": 1, "game_type": "REG", "team": "AAA", "position": "WR", "gsis_id": "p-active", "status": "RSR", "status_description_abbr": "A01"},
         {"season": 2025, "week": 1, "game_type": "REG", "team": "BBB", "position": "TE", "gsis_id": "p-unknown", "status": "E01", "status_description_abbr": "E01"},
+        # A roster-only historical player can retain an exact GSIS ID after
+        # dropping from the current master catalogue; a missing ID cannot be
+        # converted into a player-week zero.
+        {"season": 2025, "week": 1, "game_type": "REG", "team": "AAA", "position": "WR", "gsis_id": "00-0039999", "status": "ACT"},
+        {"season": 2025, "week": 1, "game_type": "REG", "team": "BBB", "position": "TE", "gsis_id": None, "status": "ACT"},
     ]).to_csv(roster_path, index=False)
     pd.DataFrame([{"season": 2025, "week": 1, "game_type": "REG", "home_team": "AAA", "away_team": "BBB", "home_score": 20, "away_score": 17}]).to_csv(games_path, index=False)
     pd.DataFrame([
@@ -44,12 +49,15 @@ with tempfile.TemporaryDirectory() as raw:
     assert receipt["exact_stat_bindings"]["passing_interceptions"] == "interceptions"
     assert receipt["weekly_roster_status_audit"]["active_description_override_count"] == 1
     assert receipt["weekly_roster_status_audit"]["excluded_undocumented_status_counts"] == {"E01": 1}
+    assert receipt["weekly_roster_status_audit"]["exact_source_gsis_fallback_ids"] == 1
+    assert receipt["weekly_roster_status_audit"]["excluded_missing_identity_rows"] == 1
     assert canonical_stats.loc[canonical_stats.canonical_player_id.eq("QB1"), "passing_interceptions"].iloc[0] == 1
     bye = canonical_schedule[canonical_schedule.team.eq("CCC")].iloc[0]
     assert not bool(bye.team_has_game) and bool(bye.game_complete)
 
     canonical_roster, audit = normalize_weekly_roster(pd.read_csv(roster_path), pd.read_csv(identity_path), return_audit=True)
     assert "WR2" in set(canonical_roster.canonical_player_id)
+    assert "00-0039999" in set(canonical_roster.canonical_player_id)
     assert "TE1" not in set(canonical_roster.canonical_player_id)
     assert audit["excluded_undocumented_status_counts"] == {"E01": 1}
 
@@ -62,7 +70,7 @@ with tempfile.TemporaryDirectory() as raw:
         assert "unresolved canonical identities" in str(error)
 
     unresolved_roster = pd.read_csv(roster_path)
-    unresolved_roster.loc[0, "gsis_id"] = None
+    unresolved_roster.loc[0, "gsis_id"] = "unmapped-gsis"
     try:
         normalize_weekly_roster(unresolved_roster, pd.read_csv(identity_path))
         raise AssertionError("unresolved roster player must still fail closed")
