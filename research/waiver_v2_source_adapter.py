@@ -50,6 +50,10 @@ EXACT_STAT_RENAMES = {
     # value for Sleeper's QB-only pass_sack rule. PBP is retained separately
     # to reconcile the passer/week accounting rather than overwrite it.
     "sacks": ("sacks",),
+    # E4 reconciles individual return yards directly against the published
+    # player-week aggregates; aliases are intentionally not accepted.
+    "kickoff_return_yards": ("kickoff_return_yards",),
+    "punt_return_yards": ("punt_return_yards",),
 }
 
 

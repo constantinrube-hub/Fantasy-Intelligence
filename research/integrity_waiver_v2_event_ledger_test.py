@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from waiver_v2_event_ledger import (
-    EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_e3_event_ledger, build_source_inventory,
+    EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_e3_event_ledger, build_e4_event_ledger, build_source_inventory,
     validate_event_ledger,
 )
 from run_waiver_v2_historical_ledger import write_source_snapshot
@@ -164,5 +164,53 @@ with tempfile.TemporaryDirectory() as raw:
     assert e3_weekly.loc["ST_REC", "event_special_teams_tds"] == 1
     assert e3_weekly.loc["ST_REC", "event_special_teams_fumble_recoveries"] == 1
     assert e3_weekly.loc["ST_FORCE", "event_special_teams_forced_fumbles"] == 1
+
+    # E4 accepts dedicated kickoff/punt returner roles only and reconciles
+    # their PBP yardage to the published player-week aggregates. A non-zero
+    # lateral return has a team total but no player split, so it blocks rather
+    # than being assigned to the first returner.
+    e4_pbp = e3_pbp.copy()
+    for column, value in {
+        "return_yards": 0, "return_team": None, "kickoff_returner_player_id": None,
+        "lateral_kickoff_returner_player_id": None, "punt_returner_player_id": None,
+        "lateral_punt_returner_player_id": None,
+    }.items():
+        e4_pbp[column] = value
+    e4_pbp.loc[len(e4_pbp)] = {
+        "season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 6, "season_type": "REG", "play_type": "kickoff", "play_deleted": 0,
+        "fumble": 0, "fumble_lost": 0, "fumbled_1_player_id": None, "fumbled_2_player_id": None,
+        "interception": 0, "return_touchdown": 0, "passer_player_id": None, "rush_touchdown": 0, "rusher_player_id": None,
+        "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 25, "touchdown": 0, "special_teams_play": 1,
+        "td_player_id": None, "fumble_recovery_1_player_id": None, "fumble_recovery_2_player_id": None,
+        "fumble_forced": 0, "fumble_out_of_bounds": 0, "forced_fumble_player_1_player_id": None, "forced_fumble_player_2_player_id": None,
+        "return_yards": 25, "return_team": "B", "kickoff_returner_player_id": "00-0000003", "lateral_kickoff_returner_player_id": None,
+        "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
+    }
+    e4_pbp_path, e4_stats_path = root / "e4-pbp.csv.gz", root / "e4-stats.csv"
+    e4_pbp.to_csv(e4_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
+    pd.DataFrame([
+        {"canonical_player_id": "QB1", "season": 2025, "week": 1, "position_model": "QB", "sacks": 1, "kickoff_return_yards": 0, "punt_return_yards": 0},
+        {"canonical_player_id": "ST_REC", "season": 2025, "week": 1, "position_model": "WR", "sacks": 0, "kickoff_return_yards": 25, "punt_return_yards": 0},
+    ]).to_csv(e4_stats_path, index=False)
+    e4 = build_e4_event_ledger(
+        raw_pbp_path=e4_pbp_path, identity_path=e3_identity_path, canonical_player_stats_path=e4_stats_path,
+        requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "e" * 64}],
+        output_path=root / "e4" / "events.csv.gz", weekly_stats_output_path=root / "e4" / "weekly.csv.gz", report_path=root / "e4" / "report.json",
+    )
+    assert e4["rule_support"]["kr_yd"]["support_status"] == "EXACT_EVENT_READY"
+    assert e4["rule_support"]["pr_yd"]["support_status"] == "EXACT_EVENT_READY"
+    assert e4["rule_support"]["fg_ret_yd"]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
+    e4_weekly = pd.read_csv(root / "e4" / "weekly.csv.gz").set_index("canonical_player_id")
+    assert e4_weekly.loc["ST_REC", "event_kick_return_yards"] == 25
+    e4_lateral = e4_pbp.copy()
+    e4_lateral.loc[e4_lateral.play_id.eq(6), "lateral_kickoff_returner_player_id"] = "00-0000002"
+    e4_lateral_path = root / "e4-lateral-pbp.csv.gz"
+    e4_lateral.to_csv(e4_lateral_path, index=False, compression={"method": "gzip", "mtime": 0})
+    lateral = build_e4_event_ledger(
+        raw_pbp_path=e4_lateral_path, identity_path=e3_identity_path, canonical_player_stats_path=e4_stats_path,
+        requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "f" * 64}],
+        output_path=root / "e4-lateral" / "events.csv.gz", weekly_stats_output_path=root / "e4-lateral" / "weekly.csv.gz", report_path=root / "e4-lateral" / "report.json",
+    )
+    assert lateral["rule_support"]["kr_yd"]["support_status"] == "BLOCKED_EVENT_SEMANTICS"
 
 print("OK waiver-v2 E1 event-source inventory and adversarial ledger contract")

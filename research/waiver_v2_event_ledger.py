@@ -56,10 +56,15 @@ E3_RULE_FIELDS = {
     "st_ff": ("special_teams_play", "fumble", "fumble_forced", "forced_fumble_player_1_player_id", "forced_fumble_player_2_player_id"),
     "st_fum_rec": ("special_teams_play", "fumble", "fumble_out_of_bounds", "fumble_recovery_1_player_id", "fumble_recovery_2_player_id"),
 }
+E4_RULE_FIELDS = {
+    "kr_yd": ("play_type", "return_yards", "return_team", "kickoff_returner_player_id", "lateral_kickoff_returner_player_id"),
+    "pr_yd": ("play_type", "return_yards", "return_team", "punt_returner_player_id", "lateral_punt_returner_player_id"),
+}
 EVENT_WEEKLY_COLUMNS = (
     "event_fumbles", "event_fumbles_lost", "event_pass_int_td", "event_bonus_rush_td_qb",
     "event_fumble_recovery_tds", "event_special_teams_tds", "event_special_teams_forced_fumbles",
     "event_special_teams_fumble_recoveries",
+    "event_kick_return_yards", "event_punt_return_yards", "event_field_goal_return_yards",
 )
 EXACT_GSIS_ID = re.compile(r"^00-\d{7}$")
 
@@ -251,11 +256,14 @@ def _event_row(
     row: pd.Series, *, event_type: str, canonical_player_id: str, identity_evidence: str,
     source_by_season: Mapping[int, Mapping[str, Any]], schema: str, builder: str,
     fumble: bool = False, fumble_lost: bool = False, special_teams: bool = False,
+    event_team: str | None = None, event_opponent: str | None = None,
 ) -> dict[str, Any]:
     return {
         "season": int(row["season"]), "week": int(row["week"]), "game_id": str(row["game_id"]),
         "play_id": str(row["play_id"]), "event_type": event_type, "canonical_player_id": canonical_player_id,
-        "team": _team(row, "posteam"), "opponent": _team(row, "defteam"), "play_type": _clean_id(row.get("play_type")),
+        "team": event_team if event_team is not None else _team(row, "posteam"),
+        "opponent": event_opponent if event_opponent is not None else _team(row, "defteam"),
+        "play_type": _clean_id(row.get("play_type")),
         "yards": _number(row.get("yards_gained")),
         "touchdown": _flag(row.get("touchdown")), "fumble": fumble, "fumble_lost": fumble_lost,
         "fumble_recovery": False, "special_teams": special_teams,
@@ -282,14 +290,24 @@ def _event_weekly_stats(events: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame(columns=grouping + list(EVENT_WEEKLY_COLUMNS))
     return ready.groupby(grouping, as_index=False).agg(
         event_fumbles=("event_type", lambda value: int((value == "all_play_fumble").sum())),
-        event_fumbles_lost=("fumble_lost", lambda value: int(pd.Series(value).fillna(False).astype(bool).sum())),
+        event_fumbles_lost=("fumble_lost", lambda value: int(pd.Series(value).map(_flag).sum())),
         event_pass_int_td=("event_type", lambda value: int((value == "pass_interception_td").sum())),
         event_bonus_rush_td_qb=("event_type", lambda value: int((value == "qb_rushing_td").sum())),
         event_fumble_recovery_tds=("event_type", lambda value: int((value == "fumble_recovery_td").sum())),
         event_special_teams_tds=("event_type", lambda value: int((value == "special_teams_td").sum())),
         event_special_teams_forced_fumbles=("event_type", lambda value: int((value == "special_teams_forced_fumble").sum())),
         event_special_teams_fumble_recoveries=("event_type", lambda value: int((value == "special_teams_fumble_recovery").sum())),
+        event_kick_return_yards=("yards", lambda value: float(value[ready.loc[value.index, "event_type"].eq("kick_return_yards")].sum())),
+        event_punt_return_yards=("yards", lambda value: float(value[ready.loc[value.index, "event_type"].eq("punt_return_yards")].sum())),
+        event_field_goal_return_yards=("yards", lambda value: float(value[ready.loc[value.index, "event_type"].eq("field_goal_return_yards")].sum())),
     )
+
+
+def _append_event_rows(base_events: pd.DataFrame, additions: list[dict[str, Any]]) -> pd.DataFrame:
+    """Append schema-bound events without dtype-dependent all-null inference."""
+    records = base_events.reindex(columns=EVENT_COLUMNS).to_dict(orient="records")
+    records.extend(additions)
+    return pd.DataFrame.from_records(records, columns=EVENT_COLUMNS)
 
 
 def build_e2_event_ledger(
@@ -561,7 +579,7 @@ def build_e3_event_ledger(
             supports[key] = _support(status, f"{len(relevant)} {event_type} PBP events lack exact scoring attribution")
 
     base_events = pd.read_csv(output_path, low_memory=False)
-    event_frame = pd.concat([base_events, pd.DataFrame(events, columns=EVENT_COLUMNS)], ignore_index=True, sort=False)
+    event_frame = _append_event_rows(base_events, events)
     key = ["season", "week", "game_id", "play_id", "event_type", "canonical_player_id"]
     if not event_frame.empty and event_frame.duplicated(key).any():
         raise ValueError("waiver-v2 E3 event derivation produced duplicate canonical events")
@@ -578,6 +596,144 @@ def build_e3_event_ledger(
         "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted({row["status"] for row in blockers})}, "sample": blockers[:12]},
         "sack_reconciliation": base["sack_reconciliation"],
         "limitations": ["E3 uses direct PBP roles only; a missing or ambiguous individual role blocks the affected rule family.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
+    }
+    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    return report
+
+
+def build_e4_event_ledger(
+    *, raw_pbp_path: Path, identity_path: Path, canonical_player_stats_path: Path,
+    requested_seasons: list[int], pbp_source_items: list[Mapping[str, Any]], output_path: Path,
+    weekly_stats_output_path: Path, report_path: Path,
+) -> dict[str, Any]:
+    """Extend E3 with reconciled, player-attributed kickoff and punt yards.
+
+    nflverse records one total return-yard value per play.  It is scoreable
+    only when the dedicated primary returner ID is present and no lateral
+    returner is recorded.  A team total, generic player slot, or name is not
+    an acceptable fallback.  Field-goal returns deliberately remain blocked
+    unless nflverse publishes an equally dedicated individual role.
+    """
+    base = build_e3_event_ledger(
+        raw_pbp_path=raw_pbp_path, identity_path=identity_path, canonical_player_stats_path=canonical_player_stats_path,
+        requested_seasons=requested_seasons, pbp_source_items=pbp_source_items, output_path=output_path,
+        weekly_stats_output_path=weekly_stats_output_path, report_path=report_path,
+    )
+    pbp = pd.read_csv(raw_pbp_path, low_memory=False)
+    identity = pd.read_csv(identity_path, low_memory=False)
+    stats = pd.read_csv(canonical_player_stats_path, low_memory=False)
+    source_inventory = build_source_inventory(pbp, requested_seasons=requested_seasons, pbp_source_items=pbp_source_items)
+    source_by_season = {int(item["season"]): dict(item) for item in pbp_source_items}
+    builder = _sha256(Path(__file__))
+    source_schema = schema_fingerprint(pbp)
+    regular = _regular(pbp)
+    if "play_deleted" in regular.columns:
+        regular = regular[~regular["play_deleted"].map(_flag)].copy()
+    resolver = _canonical_resolver(identity)
+    supports = dict(base["rule_support"])
+    source_ready = bool(source_inventory["pbp_source_complete"])
+    stat_columns = set(stats.columns)
+    rule_stat_columns = {"kr_yd": "kickoff_return_yards", "pr_yd": "punt_return_yards"}
+    for key, fields in E4_RULE_FIELDS.items():
+        missing = sorted(set(fields) - set(pbp.columns))
+        stat_column = rule_stat_columns[key]
+        ready = source_ready and not missing and stat_column in stat_columns
+        detail = "confirmed E4 direct returner PBP fields and reconciled player-week aggregate available" if ready else (
+            f"missing PBP fields, canonical return aggregate, or incomplete source: {', '.join(missing + ([] if stat_column in stat_columns else [stat_column])) if (missing or stat_column not in stat_columns) else 'season inventory'}"
+        )
+        supports[key] = _support("EXACT_EVENT_READY" if ready else "BLOCKED_SOURCE_INCOMPLETE", detail)
+    # nflverse does not expose a dedicated field-goal-returner ID in the
+    # verified PBP schema.  Do not infer it from a generic return or TD slot.
+    supports["fg_ret_yd"] = _support("BLOCKED_SOURCE_INCOMPLETE", "no dedicated individual field-goal returner ID is confirmed in the canonical PBP schema")
+
+    events: list[dict[str, Any]] = []
+    blockers: list[dict[str, Any]] = []
+
+    def blocked(row: pd.Series, event_type: str, status: str, reason: str) -> None:
+        blockers.append({"season": int(row["season"]), "week": int(row["week"]), "game_id": str(row["game_id"]),
+                         "play_id": str(row["play_id"]), "event_type": event_type, "status": status, "reason": reason})
+
+    def append_return(row: pd.Series, *, event_type: str, primary_field: str, lateral_field: str) -> None:
+        yards = _number(row.get("return_yards"))
+        primary = _clean_id(row.get(primary_field))
+        lateral = _clean_id(row.get(lateral_field))
+        if lateral is not None and yards != 0.0:
+            blocked(row, event_type, "BLOCKED_EVENT_SEMANTICS", "non-zero lateral return lacks player-attributed yardage split")
+            return
+        if primary is None:
+            if yards != 0.0:
+                blocked(row, event_type, "BLOCKED_EVENT_IDENTITY", "non-zero return lacks exact primary returner player ID")
+            return
+        canonical, evidence = resolver(primary)
+        if canonical is None:
+            blocked(row, event_type, "BLOCKED_EVENT_IDENTITY", evidence)
+            return
+        event = _event_row(
+            row, event_type=event_type, canonical_player_id=canonical, identity_evidence=evidence,
+            source_by_season=source_by_season, schema=source_schema, builder=builder, special_teams=True,
+            event_team=_team(row, "return_team"), event_opponent=_team(row, "posteam"),
+        )
+        event["yards"] = yards
+        event["source_player_roles"] = json.dumps({"direct_pbp_role": primary_field, "lateral_role": lateral_field if lateral is not None else None}, sort_keys=True)
+        events.append(event)
+
+    play_type = regular["play_type"].fillna("").astype(str).str.lower()
+    for key, event_type, primary_field, lateral_field, kind in (
+        ("kr_yd", "kick_return_yards", "kickoff_returner_player_id", "lateral_kickoff_returner_player_id", "kickoff"),
+        ("pr_yd", "punt_return_yards", "punt_returner_player_id", "lateral_punt_returner_player_id", "punt"),
+    ):
+        if supports[key]["support_status"] != "EXACT_EVENT_READY":
+            continue
+        for _, row in regular[play_type.eq(kind)].iterrows():
+            append_return(row, event_type=event_type, primary_field=primary_field, lateral_field=lateral_field)
+
+    for key, event_type in (("kr_yd", "kick_return_yards"), ("pr_yd", "punt_return_yards")):
+        relevant = [row for row in blockers if row["event_type"] == event_type]
+        if relevant:
+            status = "BLOCKED_EVENT_IDENTITY" if "BLOCKED_EVENT_IDENTITY" in {row["status"] for row in relevant} else "BLOCKED_EVENT_SEMANTICS"
+            supports[key] = _support(status, f"{len(relevant)} {event_type} PBP events lack exact player-attributed return yards")
+
+    base_events = pd.read_csv(output_path, low_memory=False)
+    event_frame = _append_event_rows(base_events, events)
+    identity_columns = ["season", "week", "game_id", "play_id", "event_type", "canonical_player_id"]
+    if not event_frame.empty and event_frame.duplicated(identity_columns).any():
+        raise ValueError("waiver-v2 E4 event derivation produced duplicate canonical events")
+    validate_event_ledger(event_frame)
+    weekly = _event_weekly_stats(event_frame)
+
+    reconciliation: dict[str, Any] = {}
+    for key, event_type, stat_column, weekly_column in (
+        ("kr_yd", "kick_return_yards", "kickoff_return_yards", "event_kick_return_yards"),
+        ("pr_yd", "punt_return_yards", "punt_return_yards", "event_punt_return_yards"),
+    ):
+        if supports[key]["support_status"] != "EXACT_EVENT_READY":
+            reconciliation[key] = {"status": supports[key]["support_status"], "mismatch_rows": 0}
+            continue
+        pbp_totals = weekly[["canonical_player_id", "season", "week", weekly_column]].rename(columns={weekly_column: "pbp_yards"})
+        stat_totals = stats[["canonical_player_id", "season", "week", stat_column]].copy().rename(columns={stat_column: "stat_yards"})
+        stat_totals["stat_yards"] = pd.to_numeric(stat_totals["stat_yards"], errors="coerce")
+        compared = pbp_totals.merge(stat_totals, on=["canonical_player_id", "season", "week"], how="outer")
+        compared["pbp_yards"] = pd.to_numeric(compared["pbp_yards"], errors="coerce").fillna(0.0)
+        compared["stat_yards"] = pd.to_numeric(compared["stat_yards"], errors="coerce").fillna(0.0)
+        mismatches = compared[~compared.pbp_yards.eq(compared.stat_yards)]
+        if mismatches.empty:
+            reconciliation[key] = {"status": "EXACT_EVENT_READY", "mismatch_rows": 0}
+        else:
+            supports[key] = _support("BLOCKED_RECONCILIATION_MISMATCH", "PBP individual return yards do not match canonical weekly return-yard aggregate")
+            reconciliation[key] = {"status": "BLOCKED_RECONCILIATION_MISMATCH", "mismatch_rows": int(len(mismatches)), "sample": mismatches.head(8).to_dict(orient="records")}
+    reconciliation["fg_ret_yd"] = {"status": "BLOCKED_SOURCE_INCOMPLETE", "mismatch_rows": 0}
+
+    event_frame.to_csv(output_path, index=False, compression={"method": "gzip", "mtime": 0})
+    weekly.to_csv(weekly_stats_output_path, index=False, compression={"method": "gzip", "mtime": 0})
+    report = {
+        "schema": EVENT_LEDGER_SCHEMA, "phase": "E4_RETURN_YARDS", "base_phase": base["phase"],
+        "diagnostic_only": True, "activation_eligible": False, "builder_sha256": builder,
+        "source_inventory": source_inventory, "rule_support": supports,
+        "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
+        "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
+        "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted({row["status"] for row in blockers})}, "sample": blockers[:12]},
+        "sack_reconciliation": base["sack_reconciliation"], "return_yard_reconciliation": reconciliation,
+        "limitations": ["E4 scores only direct kickoff/punt returner roles after player-week reconciliation.", "Field-goal return yards remain blocked without an exact individual source role.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return report
