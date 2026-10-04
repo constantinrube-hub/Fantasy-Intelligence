@@ -59,6 +59,7 @@ def run_batch(
         event_evidence=event_evidence, participation_evidence=participation_evidence,
     )
     adapted = shared["adapter_receipt"]["outputs"]
+    event_receipt = shared.get("event_ledger_receipt") or {}
     entries = []
     for group in groups:
         signature = group["scoring_signature"]
@@ -71,6 +72,8 @@ def run_batch(
             output_path=profile_dir / "offensive-outcome-ledger.csv.gz",
             report_path=profile_dir / "offensive-outcome-ledger-report.json",
             player_stats_complete=player_stats_complete,
+            event_weekly_stats_path=(Path(event_receipt["event_weekly_stats"]["path"]) if event_receipt else None),
+            event_rule_support=(event_receipt.get("rule_support") if event_receipt else None),
         )
         entries.append({
             "scoring_signature": signature,

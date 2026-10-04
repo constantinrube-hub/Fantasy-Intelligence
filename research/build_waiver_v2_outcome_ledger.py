@@ -66,16 +66,29 @@ def build(
     output_path: Path,
     report_path: Path,
     player_stats_complete: bool,
+    event_weekly_stats_path: Path | None = None,
+    event_rule_support: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build ledger and deterministic provenance report from explicit inputs."""
     scoring = _load_scoring(scoring_path)
     signature = scoring_signature(scoring)
     player_stats = pd.read_csv(player_stats_path, low_memory=False)
+    event_weekly_stats = None
+    if event_weekly_stats_path is not None:
+        event_weekly_stats = pd.read_csv(event_weekly_stats_path, low_memory=False)
+        identity = ["canonical_player_id", "season", "week"]
+        missing = [column for column in identity if column not in event_weekly_stats.columns]
+        if missing or event_weekly_stats.duplicated(identity).any():
+            raise ValueError("waiver-v2 event-weekly stats require one row per canonical player-season-week")
+        collisions = sorted((set(player_stats.columns) & set(event_weekly_stats.columns)) - set(identity))
+        if collisions:
+            raise ValueError(f"waiver-v2 event-weekly stats collide with canonical player-stat columns: {', '.join(collisions)}")
+        player_stats = player_stats.merge(event_weekly_stats, on=identity, how="left", validate="one_to_one")
     weekly_roster = pd.read_csv(weekly_roster_path, low_memory=False)
     team_schedule = pd.read_csv(team_schedule_path, low_memory=False)
     inventories = {
         position: build_offensive_scoring_inventory(
-            scoring, position=position, available_columns=set(player_stats.columns)
+            scoring, position=position, available_columns=set(player_stats.columns), event_rule_support=event_rule_support,
         )
         for position in OFFENSIVE_POSITIONS
     }
@@ -86,6 +99,7 @@ def build(
         scoring,
         scoring_signature=signature,
         player_stats_complete=player_stats_complete,
+        event_rule_support=event_rule_support,
     )
     _write_csv(ledger, output_path)
     statuses = ledger["outcome_status"].value_counts(dropna=False).sort_index()
@@ -100,6 +114,7 @@ def build(
             "player_stats": {"path": str(player_stats_path), "sha256": _sha256(player_stats_path), "rows": int(len(player_stats))},
             "weekly_roster": {"path": str(weekly_roster_path), "sha256": _sha256(weekly_roster_path), "rows": int(len(weekly_roster))},
             "team_schedule": {"path": str(team_schedule_path), "sha256": _sha256(team_schedule_path), "rows": int(len(team_schedule))},
+            "event_weekly_stats": ({"path": str(event_weekly_stats_path), "sha256": _sha256(event_weekly_stats_path), "rows": int(len(event_weekly_stats))} if event_weekly_stats_path is not None else None),
             "scoring": {"path": str(scoring_path), "sha256": _sha256(scoring_path), "nonzero_keys": int(sum(1 for value in scoring.values() if _nonzero(value)))},
         },
         "inventories": inventories,
@@ -138,6 +153,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output", required=True, help="Ledger CSV or CSV.GZ output")
     parser.add_argument("--report", required=True, help="Provenance and coverage JSON output")
     parser.add_argument("--player-stats-complete", action="store_true", help="Assert player-stat source completeness for confirmed games")
+    parser.add_argument("--event-weekly-stats", help="Optional shared event-ledger player-week aggregates")
+    parser.add_argument("--event-rule-support-json", help="Optional E2 event-ledger rule-support receipt JSON")
     return parser.parse_args(argv)
 
 
@@ -151,6 +168,8 @@ def main(argv: list[str] | None = None) -> None:
         output_path=Path(args.output),
         report_path=Path(args.report),
         player_stats_complete=bool(args.player_stats_complete),
+        event_weekly_stats_path=(Path(args.event_weekly_stats) if args.event_weekly_stats else None),
+        event_rule_support=(json.loads(Path(args.event_rule_support_json).read_text(encoding="utf-8")).get("rule_support") if args.event_rule_support_json else None),
     )
     ledger = report["ledger"]
     print(f"Wrote {ledger['path']} | rows={ledger['rows']} | complete_exact_rows={ledger['complete_exact_rows']} | activation_eligible=false")

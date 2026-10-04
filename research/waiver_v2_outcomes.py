@@ -43,8 +43,18 @@ EXACT_WEEKLY_STAT_RULES = {
     "rec_tgt": "targets",
     "rec_2pt": "receiving_2pt_conversions",
     "rec_fd": "receiving_first_downs",
-    "fum": "fumbles",
-    "fum_lost": "fumbles_lost",
+    "pass_sack": "sacks",
+}
+
+# E2 is intentionally explicit: these columns are derived from the shared
+# event ledger and may score only when its per-rule source/reconciliation
+# receipt marks the event family exact. Merely having a similarly named CSV
+# column never authorizes a partial replay.
+EVENT_WEEKLY_RULES = {
+    "fum": "event_fumbles",
+    "fum_lost": "event_fumbles_lost",
+    "pass_int_td": "event_pass_int_td",
+    "bonus_rush_td_qb": "event_bonus_rush_td_qb",
 }
 
 POSITION_RECEPTION_RULES = {
@@ -94,7 +104,9 @@ def _require_columns(frame: pd.DataFrame, columns: list[str], label: str) -> Non
         raise ValueError(f"waiver-v2 {label} missing required columns: {', '.join(missing)}")
 
 
-def _rule_inventory_row(key: str, weight: float, position: str, available_columns: set[str]) -> dict[str, Any]:
+def _rule_inventory_row(
+    key: str, weight: float, position: str, available_columns: set[str], event_rule_support: Mapping[str, Any] | None,
+) -> dict[str, Any]:
     metadata = rule_metadata(key)
     row: dict[str, Any] = {
         "key": key,
@@ -122,6 +134,16 @@ def _rule_inventory_row(key: str, weight: float, position: str, available_column
         else:
             row["reason"] = f"canonical weekly player-stat field {column} absent"
         return row
+    if key in EVENT_WEEKLY_RULES:
+        column = EVENT_WEEKLY_RULES[key]
+        support = dict((event_rule_support or {}).get(key) or {})
+        status = str(support.get("support_status") or "BLOCKED_SOURCE_INCOMPLETE")
+        row.update({"required_columns": [column], "source_kind": "shared_event_ledger"})
+        if status == "EXACT_EVENT_READY" and column in available_columns:
+            row.update({"support_status": "EXACT_SOURCE_READY", "reason": "shared event ledger has exact source and reconciliation evidence"})
+        else:
+            row.update({"support_status": status, "reason": str(support.get("reason") or f"shared event-ledger field {column} absent or unverified")})
+        return row
     if key in POSITION_RECEPTION_RULES:
         row.update({"required_columns": ["receptions"], "source_kind": "position_reception"})
         if "receptions" in available_columns:
@@ -145,6 +167,7 @@ def build_offensive_scoring_inventory(
     *,
     position: str,
     available_columns: set[str] | list[str] | tuple[str, ...],
+    event_rule_support: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return a fail-closed, position-specific exact-scoring inventory.
 
@@ -166,7 +189,7 @@ def build_offensive_scoring_inventory(
         if not position_relevant(key, pos):
             ignored.append(key)
             continue
-        relevant.append(_rule_inventory_row(key, float(raw_weight), pos, columns))
+        relevant.append(_rule_inventory_row(key, float(raw_weight), pos, columns, event_rule_support))
     ready = [row["key"] for row in relevant if row["support_status"] == "EXACT_SOURCE_READY"]
     blocked = [row for row in relevant if row["support_status"] != "EXACT_SOURCE_READY"]
     unknown = [row["key"] for row in blocked if row["support_status"] == "UNKNOWN_RULE"]
@@ -193,6 +216,8 @@ def _score_exact_row(row: pd.Series, scoring: Mapping[str, Any], position: str) 
         weight = float(raw_weight)
         if key in EXACT_WEEKLY_STAT_RULES:
             total += float(row[EXACT_WEEKLY_STAT_RULES[key]]) * weight
+        elif key in EVENT_WEEKLY_RULES:
+            total += float(row[EVENT_WEEKLY_RULES[key]]) * weight
         elif key in POSITION_RECEPTION_RULES:
             if position == POSITION_RECEPTION_RULES[key]:
                 total += float(row["receptions"]) * weight
@@ -212,6 +237,7 @@ def build_dense_offensive_outcome_ledger(
     *,
     scoring_signature: str,
     player_stats_complete: bool,
+    event_rule_support: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     """Build explicit player/scoring-week outcomes from complete input evidence.
 
@@ -247,7 +273,7 @@ def build_dense_offensive_outcome_ledger(
     merged = merged.merge(player_stats, on=identity, how="left", validate="one_to_one", suffixes=("", "_stat"))
 
     inventories = {
-        position: build_offensive_scoring_inventory(scoring, position=position, available_columns=stats_columns)
+        position: build_offensive_scoring_inventory(scoring, position=position, available_columns=stats_columns, event_rule_support=event_rule_support)
         for position in OFFENSIVE_POSITIONS
     }
     records: list[dict[str, Any]] = []
