@@ -24,29 +24,34 @@ with tempfile.TemporaryDirectory() as raw:
         {"season": 2025, "week": 1, "game_type": "REG", "team": "AAA", "position": "QB", "gsis_id": "p-qb", "status": "ACT"},
         {"season": 2025, "week": 1, "game_type": "REG", "team": "BBB", "position": "WR", "gsis_id": "p-wr", "status": "ACT"},
         {"season": 2025, "week": 1, "game_type": "REG", "team": "CCC", "position": "RB", "gsis_id": "p-rb", "status": "RES"},
+        # Transaction code RSR is overridden by the documented current active
+        # weekly-status description, while E01 remains undocumented.
+        {"season": 2025, "week": 1, "game_type": "REG", "team": "AAA", "position": "WR", "gsis_id": "p-active", "status": "RSR", "status_description_abbr": "A01"},
+        {"season": 2025, "week": 1, "game_type": "REG", "team": "BBB", "position": "TE", "gsis_id": "p-unknown", "status": "E01", "status_description_abbr": "E01"},
     ]).to_csv(roster_path, index=False)
     pd.DataFrame([{"season": 2025, "week": 1, "game_type": "REG", "home_team": "AAA", "away_team": "BBB", "home_score": 20, "away_score": 17}]).to_csv(games_path, index=False)
     pd.DataFrame([
         {"gsis_id": "p-qb", "canonical_player_id": "QB1"},
         {"gsis_id": "p-wr", "canonical_player_id": "WR1"},
         {"gsis_id": "p-rb", "canonical_player_id": "RB1"},
+        {"gsis_id": "p-active", "canonical_player_id": "WR2"},
+        {"gsis_id": "p-unknown", "canonical_player_id": "TE1"},
     ]).to_csv(identity_path, index=False)
     receipt = adapt(raw_player_stats_path=stats_path, raw_weekly_roster_path=roster_path, raw_games_path=games_path, identity_path=identity_path, output_dir=root / "adapted")
     canonical_stats = pd.read_csv(root / "adapted" / "player-stats.csv.gz")
     canonical_schedule = pd.read_csv(root / "adapted" / "team-schedule.csv.gz")
     assert receipt["activation_eligible"] is False
     assert receipt["exact_stat_bindings"]["passing_interceptions"] == "interceptions"
+    assert receipt["weekly_roster_status_audit"]["active_description_override_count"] == 1
+    assert receipt["weekly_roster_status_audit"]["excluded_undocumented_status_counts"] == {"E01": 1}
     assert canonical_stats.loc[canonical_stats.canonical_player_id.eq("QB1"), "passing_interceptions"].iloc[0] == 1
     bye = canonical_schedule[canonical_schedule.team.eq("CCC")].iloc[0]
     assert not bool(bye.team_has_game) and bool(bye.game_complete)
 
-    bad = pd.read_csv(roster_path)
-    bad.loc[0, "status"] = "MYSTERY"
-    try:
-        normalize_weekly_roster(bad, pd.read_csv(identity_path))
-        raise AssertionError("unknown roster status must fail closed")
-    except ValueError as error:
-        assert "unknown membership" in str(error)
+    canonical_roster, audit = normalize_weekly_roster(pd.read_csv(roster_path), pd.read_csv(identity_path), return_audit=True)
+    assert "WR2" in set(canonical_roster.canonical_player_id)
+    assert "TE1" not in set(canonical_roster.canonical_player_id)
+    assert audit["excluded_undocumented_status_counts"] == {"E01": 1}
 
     unresolved_offense = pd.read_csv(stats_path)
     unresolved_offense.loc[0, "player_id"] = "missing-qb"
