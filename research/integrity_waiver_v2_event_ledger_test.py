@@ -112,16 +112,21 @@ with tempfile.TemporaryDirectory() as raw:
          "interception": 0, "return_touchdown": 0, "passer_player_id": "00-0000001", "rush_touchdown": 0, "rusher_player_id": None,
          "sack": 1, "posteam": "A", "defteam": "B", "yards_gained": -7, "touchdown": 0, "special_teams_play": 0},
     ])
+    non_qb_sack = e2_pbp.iloc[-1].copy()
+    non_qb_sack["play_id"] = 99
+    non_qb_sack["passer_player_id"] = "00-0000002"
+    e2_pbp = pd.concat([e2_pbp, non_qb_sack.to_frame().T], ignore_index=True)
     e2_pbp_path, e2_identity_path, e2_stats_path = root / "e2-pbp.csv.gz", root / "e2-identity.csv", root / "e2-stats.csv"
     e2_pbp.to_csv(e2_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
-    pd.DataFrame([{"gsis_id": "00-0000001", "canonical_player_id": "QB1"}]).to_csv(e2_identity_path, index=False)
-    pd.DataFrame([{"canonical_player_id": "QB1", "season": 2025, "week": 1, "position_model": "QB", "sacks": 1}]).to_csv(e2_stats_path, index=False)
+    pd.DataFrame([{"gsis_id": "00-0000001", "canonical_player_id": "QB1"}, {"gsis_id": "00-0000002", "canonical_player_id": "WR1"}]).to_csv(e2_identity_path, index=False)
+    pd.DataFrame([{"canonical_player_id": "QB1", "season": 2025, "week": 1, "position_model": "QB", "sacks": 1}, {"canonical_player_id": "WR1", "season": 2025, "week": 1, "position_model": "WR", "sacks": 0}]).to_csv(e2_stats_path, index=False)
     e2 = build_e2_event_ledger(
         raw_pbp_path=e2_pbp_path, identity_path=e2_identity_path, canonical_player_stats_path=e2_stats_path,
         requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "c" * 64}],
         output_path=root / "e2" / "events.csv.gz", weekly_stats_output_path=root / "e2" / "weekly.csv.gz", report_path=root / "e2" / "report.json",
     )
     assert all(e2["rule_support"][key]["support_status"] == "EXACT_EVENT_READY" for key in ("fum", "fum_lost", "pass_int_td", "bonus_rush_td_qb", "pass_sack"))
+    assert e2["sack_reconciliation"]["excluded_non_qb_pbp_events"] == 1
     weekly = pd.read_csv(root / "e2" / "weekly.csv.gz").iloc[0]
     assert weekly.event_fumbles == 1 and weekly.event_fumbles_lost == 1
     assert weekly.event_pass_int_td == 1 and weekly.event_bonus_rush_td_qb == 1
@@ -224,7 +229,7 @@ with tempfile.TemporaryDirectory() as raw:
         "lateral_receiver_player_id": None, "lateral_receiving_yards": 0,
         "rush_attempt": 0, "rushing_yards": 0,
         "lateral_rusher_player_id": None, "lateral_rushing_yards": 0,
-        "two_point_conv_attempt": 0,
+        "two_point_attempt": 0,
     }.items():
         e5_pbp[column] = value
     e5_pbp.loc[len(e5_pbp)] = {
@@ -238,7 +243,7 @@ with tempfile.TemporaryDirectory() as raw:
         "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
         "complete_pass": 1, "passing_yards": 55, "pass_touchdown": 1, "receiver_player_id": "00-0000003", "receiving_yards": 55,
         "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 0, "rushing_yards": 0,
-        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0, "two_point_conv_attempt": 0,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0, "two_point_attempt": 0,
     }
     e5_pbp.loc[len(e5_pbp)] = {
         "season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 8, "season_type": "REG", "play_type": "run", "play_deleted": 0,
@@ -251,7 +256,7 @@ with tempfile.TemporaryDirectory() as raw:
         "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
         "complete_pass": 0, "passing_yards": 0, "pass_touchdown": 0, "receiver_player_id": None, "receiving_yards": 0,
         "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 1, "rushing_yards": 51,
-        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0, "two_point_conv_attempt": 0,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0, "two_point_attempt": 0,
     }
     # Two-point tries are deliberately excluded from long-play counters and
     # their null official rush yard field must not create a false blocker.
@@ -265,7 +270,7 @@ with tempfile.TemporaryDirectory() as raw:
         "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
         "complete_pass": 0, "passing_yards": 0, "pass_touchdown": 0, "receiver_player_id": None, "receiving_yards": 0,
         "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 1, "rushing_yards": None,
-        "lateral_rusher_player_id": None, "lateral_rushing_yards": None, "two_point_conv_attempt": 1,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": None, "two_point_attempt": 1,
     }
     e5_pbp_path = root / "e5-pbp.csv.gz"
     e5_pbp.to_csv(e5_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
