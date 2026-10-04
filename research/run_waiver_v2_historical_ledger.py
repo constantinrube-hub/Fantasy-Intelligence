@@ -19,6 +19,7 @@ import pandas as pd
 
 from build_waiver_v2_outcome_ledger import build as build_ledger
 from waiver_v2_source_adapter import adapt
+from waiver_v2_event_ledger import build_e1_event_ledger
 
 
 RUN_SCHEMA = "fie-waiver-v2-historical-ledger-run-v1"
@@ -40,6 +41,7 @@ def _write_csv(frame: pd.DataFrame, path: Path) -> None:
 def write_source_snapshot(
     *, players: pd.DataFrame, player_stats_frames: Iterable[pd.DataFrame], weekly_roster_frames: Iterable[pd.DataFrame],
     games: pd.DataFrame, identity: pd.DataFrame, raw_dir: Path,
+    pbp_frames: Iterable[pd.DataFrame] | None = None, participation_frames: Iterable[pd.DataFrame] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Persist the raw source envelope consumed by the fail-closed adapter."""
     player_stats = pd.concat(list(player_stats_frames), ignore_index=True, sort=False)
@@ -53,17 +55,35 @@ def write_source_snapshot(
     }
     for key, frame in (("players", players), ("player_stats", player_stats), ("weekly_roster", weekly_roster), ("games", games), ("identity", identity)):
         _write_csv(frame, paths[key])
-    return {key: {"path": str(path), "sha256": _sha256(path), "rows": int(len(frame))} for key, path, frame in (
+    snapshots = {key: {"path": str(path), "sha256": _sha256(path), "rows": int(len(frame))} for key, path, frame in (
         ("players", paths["players"], players),
         ("player_stats", paths["player_stats"], player_stats),
         ("weekly_roster", paths["weekly_roster"], weekly_roster),
         ("games", paths["games"], games),
         ("identity", paths["identity"], identity),
     )}
+    for key, frames in (("pbp", pbp_frames), ("participation", participation_frames)):
+        if frames is None:
+            continue
+        frame = pd.concat(list(frames), ignore_index=True, sort=False)
+        path = raw_dir / f"{key}.csv.gz"
+        _write_csv(frame, path)
+        snapshots[key] = {"path": str(path), "sha256": _sha256(path), "rows": int(len(frame))}
+    return snapshots
+
+
+def _source_items(source_manager: Any, source: str, seasons: list[int]) -> list[dict[str, Any]]:
+    """Bind raw source URLs and hashes to each event-source season."""
+    return [{
+        "season": int(season), "url": source_manager.url_for(source, season),
+        "cache_path": str(source_manager.path_for(source, season)),
+        "sha256": _sha256(source_manager.path_for(source, season)),
+    } for season in seasons]
 
 
 def run(
     *, seasons: list[int], cache_dir: Path, scoring_path: Path, output_dir: Path, player_stats_complete: bool,
+    event_evidence: bool = True, participation_evidence: bool = False,
 ) -> dict[str, Any]:
     """Fetch/cache a source snapshot, then build the isolated historical ledger."""
     # Import only for the explicit networked operator path.  The canonical
@@ -80,11 +100,13 @@ def run(
     player_stats_frames = [source_manager.load("player_week", season) for season in requested]
     weekly_roster_frames = [source_manager.load("weekly_rosters", season) for season in requested]
     games = source_manager.load("schedules")
+    pbp_frames = [source_manager.load("pbp", season) for season in requested] if event_evidence else None
+    participation_frames = [source_manager.load("participation", season) for season in requested] if participation_evidence else None
 
     raw_dir = output_dir / "raw"
     source_snapshot = write_source_snapshot(
         players=players, player_stats_frames=player_stats_frames, weekly_roster_frames=weekly_roster_frames,
-        games=games, identity=identity, raw_dir=raw_dir,
+        games=games, identity=identity, raw_dir=raw_dir, pbp_frames=pbp_frames, participation_frames=participation_frames,
     )
     adapted_dir = output_dir / "adapted"
     adapter_receipt = adapt(
@@ -104,6 +126,16 @@ def run(
         report_path=ledger_dir / "offensive-outcome-ledger-report.json",
         player_stats_complete=player_stats_complete,
     )
+    event_ledger_receipt = None
+    if event_evidence:
+        event_ledger_receipt = build_e1_event_ledger(
+            raw_pbp_path=Path(source_snapshot["pbp"]["path"]), requested_seasons=requested,
+            pbp_source_items=_source_items(source_manager, "pbp", requested),
+            raw_participation_path=(Path(source_snapshot["participation"]["path"]) if participation_evidence else None),
+            participation_source_items=(_source_items(source_manager, "participation", requested) if participation_evidence else None),
+            output_path=output_dir / "event-ledger" / "waiver-v2-event-ledger.csv.gz",
+            report_path=output_dir / "event-ledger" / "waiver-v2-event-ledger-report.json",
+        )
     report = {
         "schema": RUN_SCHEMA,
         "diagnostic_only": True,
@@ -115,10 +147,12 @@ def run(
         "source_manager_status": [asdict(status) for status in source_manager.status],
         "adapter_receipt": adapter_receipt,
         "ledger_receipt": ledger_receipt,
+        "event_ledger_receipt": event_ledger_receipt,
         "limitations": [
             "This is a research-only historical reconstruction. It cannot transfer legacy M5 validation or activate recommendations.",
             "Coverage and blocker results apply only to the supplied scoring profile and source snapshot hashes.",
             "The player-stats-complete assertion is explicitly recorded and must be independently reviewed before labels can be admitted.",
+            "The E1 event ledger is source-contract evidence only; it contains no scoreable events and cannot improve exact replay coverage by itself.",
         ],
     }
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -147,6 +181,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--scoring-json", required=True, help="Exact scoring profile JSON")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--player-stats-complete", action="store_true", help="Explicitly assert final player-stat feed completeness")
+    parser.add_argument("--without-event-evidence", action="store_true", help="Do not fetch/snapshot PBP event evidence for this diagnostic run")
+    parser.add_argument("--with-participation", action="store_true", help="Also fetch/snapshot participation for a later role-resolution phase")
     return parser.parse_args(argv)
 
 
@@ -155,6 +191,7 @@ def main(argv: list[str] | None = None) -> None:
     report = run(
         seasons=_parse_seasons(args.seasons), cache_dir=Path(args.cache_dir), scoring_path=Path(args.scoring_json),
         output_dir=Path(args.output_dir), player_stats_complete=bool(args.player_stats_complete),
+        event_evidence=not bool(args.without_event_evidence), participation_evidence=bool(args.with_participation),
     )
     ledger = report["ledger_receipt"]["ledger"]
     print(json.dumps({"run": RUN_SCHEMA, "rows": ledger["rows"], "complete_exact_rows": ledger["complete_exact_rows"], "activation_eligible": False}, indent=2))
