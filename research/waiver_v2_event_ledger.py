@@ -60,11 +60,25 @@ E4_RULE_FIELDS = {
     "kr_yd": ("play_type", "return_yards", "return_team", "kickoff_returner_player_id", "lateral_kickoff_returner_player_id"),
     "pr_yd": ("play_type", "return_yards", "return_team", "punt_returner_player_id", "lateral_punt_returner_player_id"),
 }
+E5_RULE_FIELDS = {
+    "pass_cmp_40p": ("complete_pass", "passing_yards", "passer_player_id"),
+    "pass_td_40p": ("pass_touchdown", "passing_yards", "passer_player_id"),
+    "pass_td_50p": ("pass_touchdown", "passing_yards", "passer_player_id"),
+    "rush_40p": ("rush_attempt", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards"),
+    "rush_td_40p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards"),
+    "rush_td_50p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards"),
+    "rec_40p": ("complete_pass", "receiving_yards", "receiver_player_id", "lateral_receiver_player_id", "lateral_receiving_yards"),
+    "rec_td_40p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards"),
+    "rec_td_50p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards"),
+}
 EVENT_WEEKLY_COLUMNS = (
     "event_fumbles", "event_fumbles_lost", "event_pass_int_td", "event_bonus_rush_td_qb",
     "event_fumble_recovery_tds", "event_special_teams_tds", "event_special_teams_forced_fumbles",
     "event_special_teams_fumble_recoveries",
     "event_kick_return_yards", "event_punt_return_yards", "event_field_goal_return_yards",
+    "event_pass_completions_40", "event_pass_tds_40", "event_pass_tds_50",
+    "event_rushes_40", "event_rush_tds_40", "event_rush_tds_50",
+    "event_receptions_40", "event_reception_tds_40", "event_reception_tds_50",
 )
 EXACT_GSIS_ID = re.compile(r"^00-\d{7}$")
 
@@ -300,6 +314,15 @@ def _event_weekly_stats(events: pd.DataFrame) -> pd.DataFrame:
         event_kick_return_yards=("yards", lambda value: float(value[ready.loc[value.index, "event_type"].eq("kick_return_yards")].sum())),
         event_punt_return_yards=("yards", lambda value: float(value[ready.loc[value.index, "event_type"].eq("punt_return_yards")].sum())),
         event_field_goal_return_yards=("yards", lambda value: float(value[ready.loc[value.index, "event_type"].eq("field_goal_return_yards")].sum())),
+        event_pass_completions_40=("event_type", lambda value: int((value == "pass_completion_40").sum())),
+        event_pass_tds_40=("event_type", lambda value: int((value == "pass_td_40").sum())),
+        event_pass_tds_50=("event_type", lambda value: int((value == "pass_td_50").sum())),
+        event_rushes_40=("event_type", lambda value: int((value == "rush_40").sum())),
+        event_rush_tds_40=("event_type", lambda value: int((value == "rush_td_40").sum())),
+        event_rush_tds_50=("event_type", lambda value: int((value == "rush_td_50").sum())),
+        event_receptions_40=("event_type", lambda value: int((value == "reception_40").sum())),
+        event_reception_tds_40=("event_type", lambda value: int((value == "reception_td_40").sum())),
+        event_reception_tds_50=("event_type", lambda value: int((value == "reception_td_50").sum())),
     )
 
 
@@ -734,6 +757,189 @@ def build_e4_event_ledger(
         "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted({row["status"] for row in blockers})}, "sample": blockers[:12]},
         "sack_reconciliation": base["sack_reconciliation"], "return_yard_reconciliation": reconciliation,
         "limitations": ["E4 scores only direct kickoff/punt returner roles after player-week reconciliation.", "Field-goal return yards remain blocked without an exact individual source role.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
+    }
+    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    return report
+
+
+def build_e5_event_ledger(
+    *, raw_pbp_path: Path, identity_path: Path, canonical_player_stats_path: Path,
+    requested_seasons: list[int], pbp_source_items: list[Mapping[str, Any]], output_path: Path,
+    weekly_stats_output_path: Path, report_path: Path,
+) -> dict[str, Any]:
+    """Extend E4 with exact 40/50-yard offensive play counters and stacking."""
+    base = build_e4_event_ledger(
+        raw_pbp_path=raw_pbp_path, identity_path=identity_path, canonical_player_stats_path=canonical_player_stats_path,
+        requested_seasons=requested_seasons, pbp_source_items=pbp_source_items, output_path=output_path,
+        weekly_stats_output_path=weekly_stats_output_path, report_path=report_path,
+    )
+    pbp = pd.read_csv(raw_pbp_path, low_memory=False)
+    identity = pd.read_csv(identity_path, low_memory=False)
+    source_inventory = build_source_inventory(pbp, requested_seasons=requested_seasons, pbp_source_items=pbp_source_items)
+    source_by_season = {int(item["season"]): dict(item) for item in pbp_source_items}
+    builder = _sha256(Path(__file__))
+    source_schema = schema_fingerprint(pbp)
+    regular = _regular(pbp)
+    if "play_deleted" in regular.columns:
+        regular = regular[~regular["play_deleted"].map(_flag)].copy()
+    resolver = _canonical_resolver(identity)
+    supports = dict(base["rule_support"])
+    source_ready = bool(source_inventory["pbp_source_complete"])
+    for key, fields in E5_RULE_FIELDS.items():
+        missing = sorted(set(fields) - set(pbp.columns))
+        supports[key] = _support(
+            "EXACT_EVENT_READY" if source_ready and not missing else "BLOCKED_SOURCE_INCOMPLETE",
+            "confirmed E5 official PBP play-stat fields and complete seasons available" if source_ready and not missing
+            else f"missing PBP fields or incomplete source: {', '.join(missing) if missing else 'season inventory'}",
+        )
+
+    events: list[dict[str, Any]] = []
+    blockers: list[dict[str, Any]] = []
+
+    def blocked(row: pd.Series, event_type: str, status: str, reason: str) -> None:
+        blockers.append({"season": int(row["season"]), "week": int(row["week"]), "game_id": str(row["game_id"]),
+                         "play_id": str(row["play_id"]), "event_type": event_type, "status": status, "reason": reason})
+
+    def number_or_block(row: pd.Series, field: str, event_type: str | tuple[str, ...]) -> float | None:
+        value = pd.to_numeric(row.get(field), errors="coerce")
+        if pd.isna(value):
+            for item in ((event_type,) if isinstance(event_type, str) else event_type):
+                blocked(row, item, "BLOCKED_SOURCE_INCOMPLETE", f"qualifying candidate lacks official {field} value")
+            return None
+        return float(value)
+
+    def block_lateral_thresholds(row: pd.Series, *, event_40: str, event_50: str | None, yards: float, lateral_yards: float, reason: str) -> None:
+        maximum = max(yards, lateral_yards)
+        if maximum >= 40:
+            blocked(row, event_40, "BLOCKED_EVENT_SEMANTICS", reason)
+        if event_50 and maximum >= 50:
+            blocked(row, event_50, "BLOCKED_EVENT_SEMANTICS", reason)
+
+    def append(row: pd.Series, event_type: str, source_id: Any, yards: float, role: str) -> None:
+        canonical, evidence = resolver(source_id)
+        if canonical is None:
+            blocked(row, event_type, "BLOCKED_EVENT_IDENTITY", evidence)
+            return
+        event = _event_row(row, event_type=event_type, canonical_player_id=canonical, identity_evidence=evidence,
+                           source_by_season=source_by_season, schema=source_schema, builder=builder)
+        event["yards"] = yards
+        event["source_player_roles"] = json.dumps({"direct_pbp_role": role, "official_play_yards": yards}, sort_keys=True)
+        events.append(event)
+
+    def threshold_events(row: pd.Series, *, source_id: Any, yards: float, role: str, event_40: str, event_50: str | None = None) -> None:
+        if yards >= 40:
+            append(row, event_40, source_id, yards, role)
+        if event_50 and yards >= 50:
+            append(row, event_50, source_id, yards, role)
+
+    # Passer events use official passing yards. A 50-yard passing touchdown
+    # emits both TD thresholds as well as the completion threshold event.
+    completed = regular[regular["complete_pass"].map(_flag)]
+    for _, row in completed.iterrows():
+        yards = number_or_block(row, "passing_yards", "pass_completion_40")
+        if yards is None:
+            continue
+        if yards >= 40:
+            append(row, "pass_completion_40", row.get("passer_player_id"), yards, "passer_player_id")
+    pass_tds = regular[regular["pass_touchdown"].map(_flag)]
+    for _, row in pass_tds.iterrows():
+        yards = number_or_block(row, "passing_yards", ("pass_td_40", "pass_td_50"))
+        if yards is None:
+            continue
+        threshold_events(row, source_id=row.get("passer_player_id"), yards=yards, role="passer_player_id", event_40="pass_td_40", event_50="pass_td_50")
+
+    # PBP exposes separate lateral rushing/receiving fields, but the long-play
+    # contract has no independent, provider-confirmed allocation rule for a
+    # qualifying lateral. Any such candidate remains explicitly unresolved.
+    rushes = regular[regular["rush_attempt"].map(_flag)]
+    for _, row in rushes.iterrows():
+        yards = number_or_block(row, "rushing_yards", "rush_40")
+        if yards is None:
+            continue
+        lateral = _clean_id(row.get("lateral_rusher_player_id"))
+        lateral_yards = _number(row.get("lateral_rushing_yards"))
+        if lateral is not None and max(yards, lateral_yards) >= 40:
+            block_lateral_thresholds(row, event_40="rush_40", event_50=None, yards=yards, lateral_yards=lateral_yards, reason="qualifying rushing play contains a lateral without an approved long-play allocation rule")
+            continue
+        threshold_events(row, source_id=row.get("rusher_player_id"), yards=yards, role="rusher_player_id", event_40="rush_40")
+    rush_tds = regular[regular["rush_touchdown"].map(_flag)]
+    for _, row in rush_tds.iterrows():
+        yards = number_or_block(row, "rushing_yards", ("rush_td_40", "rush_td_50"))
+        if yards is None:
+            continue
+        lateral = _clean_id(row.get("lateral_rusher_player_id"))
+        lateral_yards = _number(row.get("lateral_rushing_yards"))
+        if lateral is not None and max(yards, lateral_yards) >= 40:
+            block_lateral_thresholds(row, event_40="rush_td_40", event_50="rush_td_50", yards=yards, lateral_yards=lateral_yards, reason="qualifying rushing touchdown contains a lateral without an approved long-play allocation rule")
+            continue
+        threshold_events(row, source_id=row.get("rusher_player_id"), yards=yards, role="rusher_player_id", event_40="rush_td_40", event_50="rush_td_50")
+
+    receptions = regular[regular["complete_pass"].map(_flag)]
+    for _, row in receptions.iterrows():
+        yards = number_or_block(row, "receiving_yards", "reception_40")
+        if yards is None:
+            continue
+        lateral = _clean_id(row.get("lateral_receiver_player_id"))
+        lateral_yards = _number(row.get("lateral_receiving_yards"))
+        if lateral is not None and max(yards, lateral_yards) >= 40:
+            blocked(row, "reception_40", "BLOCKED_EVENT_SEMANTICS", "qualifying reception contains a lateral without an approved long-play allocation rule")
+            continue
+        threshold_events(row, source_id=row.get("receiver_player_id"), yards=yards, role="receiver_player_id", event_40="reception_40")
+    for _, row in pass_tds.iterrows():
+        yards = number_or_block(row, "receiving_yards", ("reception_td_40", "reception_td_50"))
+        if yards is None:
+            continue
+        lateral = _clean_id(row.get("lateral_receiver_player_id"))
+        lateral_yards = _number(row.get("lateral_receiving_yards"))
+        receiver = _clean_id(row.get("receiver_player_id"))
+        scorer = _clean_id(row.get("td_player_id"))
+        if lateral is not None and max(yards, lateral_yards) >= 40:
+            block_lateral_thresholds(row, event_40="reception_td_40", event_50="reception_td_50", yards=yards, lateral_yards=lateral_yards, reason="qualifying receiving touchdown contains a lateral without an approved long-play allocation rule")
+            continue
+        if yards < 40:
+            continue
+        if scorer is None or receiver is None:
+            blocked(row, "reception_td_40", "BLOCKED_EVENT_IDENTITY", "qualifying receiving touchdown lacks exact receiver or scorer identity")
+            if yards >= 50:
+                blocked(row, "reception_td_50", "BLOCKED_EVENT_IDENTITY", "qualifying receiving touchdown lacks exact receiver or scorer identity")
+            continue
+        if receiver != scorer:
+            blocked(row, "reception_td_40", "BLOCKED_EVENT_SEMANTICS", "receiving-touchdown scorer differs from the primary receiver")
+            if yards >= 50:
+                blocked(row, "reception_td_50", "BLOCKED_EVENT_SEMANTICS", "receiving-touchdown scorer differs from the primary receiver")
+            continue
+        threshold_events(row, source_id=receiver, yards=yards, role="receiver_player_id", event_40="reception_td_40", event_50="reception_td_50")
+
+    event_rules = (
+        ("pass_cmp_40p", "pass_completion_40"), ("pass_td_40p", "pass_td_40"), ("pass_td_50p", "pass_td_50"),
+        ("rush_40p", "rush_40"), ("rush_td_40p", "rush_td_40"), ("rush_td_50p", "rush_td_50"),
+        ("rec_40p", "reception_40"), ("rec_td_40p", "reception_td_40"), ("rec_td_50p", "reception_td_50"),
+    )
+    for key, event_type in event_rules:
+        relevant = [row for row in blockers if row["event_type"] == event_type]
+        if relevant:
+            statuses = {row["status"] for row in relevant}
+            status = "BLOCKED_EVENT_IDENTITY" if "BLOCKED_EVENT_IDENTITY" in statuses else ("BLOCKED_EVENT_SEMANTICS" if "BLOCKED_EVENT_SEMANTICS" in statuses else "BLOCKED_SOURCE_INCOMPLETE")
+            supports[key] = _support(status, f"{len(relevant)} {event_type} PBP events lack exact long-play scoring attribution")
+
+    base_events = pd.read_csv(output_path, low_memory=False)
+    event_frame = _append_event_rows(base_events, events)
+    identity_columns = ["season", "week", "game_id", "play_id", "event_type", "canonical_player_id"]
+    if not event_frame.empty and event_frame.duplicated(identity_columns).any():
+        raise ValueError("waiver-v2 E5 event derivation produced duplicate canonical events")
+    validate_event_ledger(event_frame)
+    weekly = _event_weekly_stats(event_frame)
+    event_frame.to_csv(output_path, index=False, compression={"method": "gzip", "mtime": 0})
+    weekly.to_csv(weekly_stats_output_path, index=False, compression={"method": "gzip", "mtime": 0})
+    report = {
+        "schema": EVENT_LEDGER_SCHEMA, "phase": "E5_LONG_PLAY_COUNTERS", "base_phase": base["phase"],
+        "diagnostic_only": True, "activation_eligible": False, "builder_sha256": builder,
+        "source_inventory": source_inventory, "rule_support": supports,
+        "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
+        "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
+        "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted({row["status"] for row in blockers})}, "sample": blockers[:12]},
+        "sack_reconciliation": base["sack_reconciliation"], "return_yard_reconciliation": base["return_yard_reconciliation"],
+        "limitations": ["E5 counts official PBP play events; it does not infer long-play bonuses from weekly totals.", "A 50-yard touchdown emits the documented 40- and 50-yard bonus events, but ambiguous lateral allocation remains blocked.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return report

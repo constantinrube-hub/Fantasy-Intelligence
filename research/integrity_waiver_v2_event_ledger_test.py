@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from waiver_v2_event_ledger import (
-    EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_e3_event_ledger, build_e4_event_ledger, build_source_inventory,
+    EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_e3_event_ledger, build_e4_event_ledger, build_e5_event_ledger, build_source_inventory,
     validate_event_ledger,
 )
 from run_waiver_v2_historical_ledger import write_source_snapshot
@@ -212,5 +212,57 @@ with tempfile.TemporaryDirectory() as raw:
         output_path=root / "e4-lateral" / "events.csv.gz", weekly_stats_output_path=root / "e4-lateral" / "weekly.csv.gz", report_path=root / "e4-lateral" / "report.json",
     )
     assert lateral["rule_support"]["kr_yd"]["support_status"] == "BLOCKED_EVENT_SEMANTICS"
+
+    # E5 counts individual qualifying events, rather than awarding a single
+    # weekly bonus from aggregate yards. A 55-yard passing touchdown therefore
+    # stacks its completion, 40-yard TD and 50-yard TD counters; the analogous
+    # rushing and receiving counters are independently attributed.
+    e5_pbp = e4_pbp.copy()
+    for column, value in {
+        "complete_pass": 0, "passing_yards": 0, "pass_touchdown": 0,
+        "receiver_player_id": None, "receiving_yards": 0,
+        "lateral_receiver_player_id": None, "lateral_receiving_yards": 0,
+        "rush_attempt": 0, "rushing_yards": 0,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0,
+    }.items():
+        e5_pbp[column] = value
+    e5_pbp.loc[len(e5_pbp)] = {
+        "season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 7, "season_type": "REG", "play_type": "pass", "play_deleted": 0,
+        "fumble": 0, "fumble_lost": 0, "fumbled_1_player_id": None, "fumbled_2_player_id": None,
+        "interception": 0, "return_touchdown": 0, "passer_player_id": "00-0000001", "rush_touchdown": 0, "rusher_player_id": None,
+        "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 55, "touchdown": 1, "special_teams_play": 0,
+        "td_player_id": "00-0000003", "fumble_recovery_1_player_id": None, "fumble_recovery_2_player_id": None,
+        "fumble_forced": 0, "fumble_out_of_bounds": 0, "forced_fumble_player_1_player_id": None, "forced_fumble_player_2_player_id": None,
+        "return_yards": 0, "return_team": None, "kickoff_returner_player_id": None, "lateral_kickoff_returner_player_id": None,
+        "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
+        "complete_pass": 1, "passing_yards": 55, "pass_touchdown": 1, "receiver_player_id": "00-0000003", "receiving_yards": 55,
+        "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 0, "rushing_yards": 0,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0,
+    }
+    e5_pbp.loc[len(e5_pbp)] = {
+        "season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 8, "season_type": "REG", "play_type": "run", "play_deleted": 0,
+        "fumble": 0, "fumble_lost": 0, "fumbled_1_player_id": None, "fumbled_2_player_id": None,
+        "interception": 0, "return_touchdown": 0, "passer_player_id": None, "rush_touchdown": 1, "rusher_player_id": "00-0000003",
+        "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 51, "touchdown": 1, "special_teams_play": 0,
+        "td_player_id": "00-0000003", "fumble_recovery_1_player_id": None, "fumble_recovery_2_player_id": None,
+        "fumble_forced": 0, "fumble_out_of_bounds": 0, "forced_fumble_player_1_player_id": None, "forced_fumble_player_2_player_id": None,
+        "return_yards": 0, "return_team": None, "kickoff_returner_player_id": None, "lateral_kickoff_returner_player_id": None,
+        "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
+        "complete_pass": 0, "passing_yards": 0, "pass_touchdown": 0, "receiver_player_id": None, "receiving_yards": 0,
+        "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 1, "rushing_yards": 51,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0,
+    }
+    e5_pbp_path = root / "e5-pbp.csv.gz"
+    e5_pbp.to_csv(e5_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
+    e5 = build_e5_event_ledger(
+        raw_pbp_path=e5_pbp_path, identity_path=e3_identity_path, canonical_player_stats_path=e4_stats_path,
+        requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "g" * 64}],
+        output_path=root / "e5" / "events.csv.gz", weekly_stats_output_path=root / "e5" / "weekly.csv.gz", report_path=root / "e5" / "report.json",
+    )
+    e5_rules = ("pass_cmp_40p", "pass_td_40p", "pass_td_50p", "rush_40p", "rush_td_40p", "rush_td_50p", "rec_40p", "rec_td_40p", "rec_td_50p")
+    assert all(e5["rule_support"][key]["support_status"] == "EXACT_EVENT_READY" for key in e5_rules)
+    e5_weekly = pd.read_csv(root / "e5" / "weekly.csv.gz").set_index("canonical_player_id")
+    assert e5_weekly.loc["QB1", ["event_pass_completions_40", "event_pass_tds_40", "event_pass_tds_50"]].tolist() == [1, 1, 1]
+    assert e5_weekly.loc["ST_REC", ["event_receptions_40", "event_reception_tds_40", "event_reception_tds_50", "event_rushes_40", "event_rush_tds_40", "event_rush_tds_50"]].tolist() == [1, 1, 1, 1, 1, 1]
 
 print("OK waiver-v2 E1 event-source inventory and adversarial ledger contract")

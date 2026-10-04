@@ -43,6 +43,14 @@ assert e4_wr["exact_replay_eligible"] and set(e4_wr["supported_keys"]) == {"kr_y
 e4_fg = build_offensive_scoring_inventory({"fg_ret_yd": 0.01}, position="WR", available_columns=e4_columns, event_rule_support=e4_support)
 assert not e4_fg["exact_replay_eligible"] and e4_fg["blocked_keys"][0]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
 
+# E5's long-play counters are individual event counts, so 50-yard touchdown
+# rules can stack with their matching 40-yard rules and never use weekly yards
+# as a proxy for the number of qualifying plays.
+e5_columns = e4_columns | {"event_pass_completions_40", "event_pass_tds_40", "event_pass_tds_50"}
+e5_support = {**e4_support, **{key: {"support_status": "EXACT_EVENT_READY", "reason": "fixture"} for key in ("pass_cmp_40p", "pass_td_40p", "pass_td_50p")}}
+e5_qb = build_offensive_scoring_inventory({"pass_cmp_40p": 1, "pass_td_40p": 2, "pass_td_50p": 3}, position="QB", available_columns=e5_columns, event_rule_support=e5_support)
+assert e5_qb["exact_replay_eligible"] and set(e5_qb["supported_keys"]) == {"pass_cmp_40p", "pass_td_40p", "pass_td_50p"}
+
 # Unknown keys are relevant by default and also prevent an exact replay.
 unknown = build_offensive_scoring_inventory({"fictional_bonus": 3}, position="RB", available_columns=columns)
 assert not unknown["exact_replay_eligible"]
