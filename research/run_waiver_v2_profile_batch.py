@@ -9,6 +9,7 @@ from typing import Any
 
 from build_waiver_v2_outcome_ledger import build as build_ledger, scoring_signature
 from run_waiver_v2_historical_ledger import _parse_seasons, run as run_historical
+from waiver_v2_exact_replay_closure import CLOSURE_SCHEMA, build_exact_replay_closure
 
 
 BATCH_SCHEMA = "fie-waiver-v2-profile-batch-v1"
@@ -82,7 +83,10 @@ def run_batch(
             "scoring_profile_path": str(group["scoring_path"]),
             "coverage": receipt["ledger"],
             "position_exact_replay": {position: bool(value["exact_replay_eligible"]) for position, value in receipt["inventories"].items()},
+            "outcome_report": {"path": str(profile_dir / "offensive-outcome-ledger-report.json")},
         })
+    batch_report_path = output_dir / "profile-batch-report.json"
+    closure_path = output_dir / "exact-replay-closure.json"
     report = {
         "schema": BATCH_SCHEMA,
         "diagnostic_only": True,
@@ -92,13 +96,15 @@ def run_batch(
         "league_count": sum(len(entry["league_ids"]) for entry in entries),
         "shared_source_run": shared,
         "profiles": entries,
+        "exact_replay_closure": {"schema": CLOSURE_SCHEMA, "path": str(closure_path)},
         "limitations": [
             "Each signature is isolated; a coverage result for one profile cannot activate another profile.",
             "This batch produces only historical research diagnostics and cannot alter M5, app rankings, recommendations, or transactions.",
         ],
     }
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "profile-batch-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    batch_report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    build_exact_replay_closure(batch_report_path=batch_report_path, output_path=closure_path)
     return report
 
 

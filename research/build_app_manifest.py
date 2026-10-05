@@ -88,6 +88,8 @@ COMPONENTS={
  'waiver_v2_event_ledger_integrity':'research/integrity_waiver_v2_event_ledger_test.py',
  'waiver_v2_profile_batch':'research/run_waiver_v2_profile_batch.py',
  'waiver_v2_profile_batch_integrity':'research/integrity_waiver_v2_profile_batch_test.py',
+ 'waiver_v2_exact_replay_closure':'research/waiver_v2_exact_replay_closure.py',
+ 'waiver_v2_exact_replay_closure_integrity':'research/integrity_waiver_v2_exact_replay_closure_test.py',
  'waiver_v2_exact_scoring_extension_design':'config/offensive-waiver-v2-exact-scoring-extension-design.json',
  'waiver_v2_exact_scoring_extension_design_doc':'docs/audits/OFFENSIVE_WAIVER_V2_EXACT_SCORING_EXTENSION_DESIGN.md',
  'waiver_evidence_capture':'research/capture_fie_waivers.py',
