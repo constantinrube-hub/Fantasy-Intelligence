@@ -35,6 +35,8 @@ jobs:
         run: |
           node research/integrity_editorial_disclosure_test.js
           node research/integrity_editorial_weekly_test.js
+          node research/integrity_editorial_waiver_test.js
+          python research/integrity_editorial_waiver_evidence_test.py
       - name: Install browser QA dependency
         run: |
           npm install --no-save --no-package-lock --prefix "$RUNNER_TEMP/fie-ui-qa" playwright@1.58.2
@@ -49,6 +51,11 @@ jobs:
           FIE_UI_PLAYWRIGHT: ${{ runner.temp }}/fie-ui-qa/node_modules/playwright
           FIE_UI_QA_OUTPUT: ${{ runner.temp }}/editorial-ui-qa/weekly
         run: node candidate/research/editorial_weekly_browser_qa.js candidate/dist
+      - name: Waiver populated fixture review
+        env:
+          FIE_UI_PLAYWRIGHT: ${{ runner.temp }}/fie-ui-qa/node_modules/playwright
+          FIE_UI_QA_OUTPUT: ${{ runner.temp }}/editorial-ui-qa/waivers
+        run: node candidate/research/editorial_waiver_browser_qa.js candidate/dist
       - uses: actions/upload-artifact@v4
         if: always()
         with:

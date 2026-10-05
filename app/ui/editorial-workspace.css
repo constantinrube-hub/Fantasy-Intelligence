@@ -177,3 +177,57 @@ html[data-fie-appearance] .fie-disclosure .fie-expanded {background:var(--fie-ex
   .fie-detail-list dd {margin-bottom:10px;}
   .fie-actions {flex-direction:column;}
 }
+/* Phase 3: the same disclosure grammar, with blue for observed market evidence. */
+.fie-waiver-active #mainArea > #filters,.fie-waiver-active #mainArea > .table-card,
+.fie-waiver-active #mainArea > .list-tools,.fie-waiver-active #waiverRecommendations,
+.fie-waiver-active #fieFaabStrategy {display:none!important;}
+.fie-waiver-lenses {display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px;}
+.fie-waiver-lenses button[aria-pressed="true"] {background:#2f6276;color:#fff;border-color:#2f6276;}
+.fie-waiver-note {font-size:13px;margin:10px 0;line-height:1.5;}
+.fie-waiver-blocker {border-left:3px solid #993e35;padding-left:10px;font-weight:600;}
+.fie-waiver-documents {margin:18px 0;}
+.fie-waiver-documents button {display:block;margin:8px 0;text-align:left;}
+.fie-reader dd {white-space:pre-wrap;overflow-wrap:anywhere;}
+.fie-waiver-active #weeklyControls {padding:10px;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.fie-waiver-active #weeklyControls > div {min-width:0;}
+.fie-waiver-active #weeklyControls select {max-width:100%;width:100%;}
+.fie-waiver-active #weeklyLoadBtn,.fie-waiver-active #weeklyStatus,.fie-waiver-active #fieWeeklySources,
+.fie-waiver-active #riskSelect,.fie-waiver-active #oddsKey {display:none!important;}
+@media(max-width:600px){
+ .fie-waiver-active #sectionHero {display:none;}
+ .fie-waiver-lenses {gap:5px;}
+ .fie-waiver-lenses button {font-size:12px;padding:7px;}
+ .fie-waiver-active .fie-disclosure caption {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;}
+ .fie-waiver-active .fie-disclosure-heading p {font-size:11px;}
+ .fie-waiver-active .fie-disclosure th,.fie-waiver-active .fie-disclosure td {padding:8px;}
+}
+.fie-waiver-active #weeklyControls > div:has(#riskSelect),
+.fie-waiver-active #weeklyControls > div:has(#oddsKey) {display:none!important;}
+.fie-waiver-active #resultText {display:none!important;}
+@media(max-width:600px){
+ .fie-waiver-active .fie-disclosure-heading p {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;}
+ .fie-waiver-active .fie-disclosure-heading {padding:9px 12px;}
+ .fie-waiver-active .fie-disclosure-heading h2 {font-size:19px;margin:0;}
+ .fie-waiver-active #weeklyControls {margin:6px 0;padding:8px 10px;}
+ .fie-waiver-active #weeklyControls .filter-label {font-size:10px;}
+ .fie-waiver-lenses {margin:4px 0 6px;}
+ .fie-waiver-note {margin:6px 0;font-size:12px;}
+}
+/* Mobile evidence cards retain the same semantic table and disclosure controls. */
+@media(max-width:600px){
+ .fie-mobile-cards .fie-table-scroll {overflow:visible;}
+ .fie-mobile-cards table,.fie-mobile-cards tbody {display:block;width:100%;}
+ .fie-mobile-cards thead {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;}
+ .fie-mobile-cards tbody tr:not(.fie-expanded) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-bottom:1px solid var(--line);}
+ .fie-mobile-cards tbody tr[hidden] {display:none!important;}
+ .fie-mobile-cards tbody th,.fie-mobile-cards tbody td {display:block;min-width:0;border:0;white-space:normal;overflow-wrap:anywhere;}
+ .fie-mobile-cards tbody th {grid-column:1/-1;font-size:15px!important;}
+ .fie-mobile-cards tbody td::before {content:attr(data-label);display:block;text-transform:uppercase;letter-spacing:.04em;font-size:10px;color:var(--muted);margin-bottom:4px;text-align:left;}
+ .fie-mobile-cards tbody td:last-child {grid-column:1/-1;}
+ .fie-mobile-cards .fie-numeric {text-align:left;}
+ .fie-mobile-cards .fie-actions {flex-direction:row;}
+ .fie-mobile-cards .fie-expanded {display:block;}
+ .fie-mobile-cards .fie-expanded td::before {content:none;}
+}
+.fie-waiver-workspace .fie-detail-list dd {white-space:pre-wrap;}
+@media(max-width:600px){.fie-waiver-lenses {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}}

@@ -82,6 +82,8 @@ def main():
   run(['node','research/integrity_v93_decision_ui_runtime_test.js']),
   run(['node','research/integrity_editorial_disclosure_test.js']),
   run(['node','research/integrity_editorial_weekly_test.js']),
+  run(['node','research/integrity_editorial_waiver_test.js']),
+  run(['python','research/integrity_editorial_waiver_evidence_test.py']),
   run(['node','research/integrity_value_finder_runtime_test.js']),
   run(['node','research/integrity_top100_optimizer_runtime_test.js']),
  ]

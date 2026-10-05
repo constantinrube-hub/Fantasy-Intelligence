@@ -132,6 +132,7 @@
         if (byId(id)?.value) params.set(key, byId(id).value);
       }
     }
+    if(currentView()==='waivers' && window.FIEWaiverWorkspace) params.set('waiver',window.FIEWaiverWorkspace.lens);
     return params.toString();
   }
   let restoring = false, restorePending = false, queued = false, lastContext = '';
@@ -179,6 +180,7 @@
             if (control.value !== value) { control.value = value; control.dispatchEvent(new Event('change', { bubbles: true })); }
           }
         }
+        if(view==='waivers')window.FIEWaiverWorkspace?.setLens(params.get('waiver'));
         window.activateTab?.(view);
       }
     } finally {
@@ -246,7 +248,7 @@
     if (new URLSearchParams(location.hash.slice(1)).has('view')) restoreRoute(); else syncRoute(true);
   }
   document.documentElement.dataset.fieAppearance = 'light';
-  window.FIEEditorial = Object.freeze({ VERSION: 'editorial-p01', createTable, openReader, closeReader, clearDisclosures });
+  window.FIEEditorial = Object.freeze({ VERSION: 'editorial-p01', createTable, openReader, closeReader, clearDisclosures, syncRoute });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupShell);
   else setupShell();
 })();

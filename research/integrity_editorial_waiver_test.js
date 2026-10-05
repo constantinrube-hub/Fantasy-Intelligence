@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('assert'),fs=require('fs'),vm=require('vm');
+const sandbox={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},getElementById(){return null;}},console,Map,Number,String,JSON};vm.runInNewContext(fs.readFileSync('app/ui/waiver-workspace.js','utf8'),sandbox);const w=sandbox.window.FIEWaiverWorkspace;
+const c={leagueId:'league1',season:2026,week:3,rosterId:'2'};
+const winner={transaction_id:'a',roster_id:1,status:'complete',bid:0,manager_name:'A'};
+const failed={transaction_id:'b',roster_id:2,status:'failed',bid:0,failure_metadata:{notes:'claimed by another owner'},is_explicit_competitive_loss:false};
+const row={player_id:'p',source_league_id:'league1',season:2026,week:3,winning_claim:winner,winning_claims:[winner],managed_user_claims:[winner],other_observed_failed_claims:[failed]};
+assert.equal(w.claims(row).length,2,'Winner duplicate is not counted twice');assert.equal(w.winners(row)[0].bid,0);assert.match(w.outcome(row,'2'),/^0 · Failed/);assert(!w.outcome(row,'2').includes('outbid'));assert.equal(w.outcome(row,'3'),'Claim not observed');
+assert.match(w.outcome({...row,other_observed_failed_claims:[{...failed,is_explicit_competitive_loss:true}]},'2'),/Explicit competitive loss/);
+const data={reports:[{season:2026,week:3,report:{league_id:'league1',status:'BLOCKED',observed_target_week_bid_ledger:{players:[]}}}],history:[{ledger:[row,{...row,season:2025},{...row,source_league_id:'prior-league'},{...row,week:2}]}]};assert.equal(w.selectedReport(data,c).report.status,'BLOCKED');assert.equal(w.ledger(data,c).rows.length,1);assert.equal(w.ledger(data,{...c,leagueId:'other'}).rows.length,0);
+assert.equal(w.winners({...row,winning_claims:[winner,{...winner,transaction_id:'c',roster_id:3,bid:5}]}).length,2);
+assert.equal(w.budget({settings:{waiver_budget_used:0}},0).balance,0);assert.equal(w.budget({settings:{waiver_budget_used:5}},0).balance,-5);assert.equal(w.budget({settings:{}},100).balance,null);assert.equal(w.gate(undefined),'Not supplied');assert.equal(w.gate(false),'Source blocked');assert.match(w.gate(true),/research only/);
+assert.equal(w.failureReason(failed),'claimed by another owner');assert.equal(w.failureReason({}),'Failure reason not supplied');
+console.log('PASS editorial waiver scope, zero values, observed claims, independent gates and budget nulls');
