@@ -61,15 +61,15 @@ E4_RULE_FIELDS = {
     "pr_yd": ("play_type", "return_yards", "return_team", "punt_returner_player_id", "lateral_punt_returner_player_id"),
 }
 E5_RULE_FIELDS = {
-    "pass_cmp_40p": ("complete_pass", "passing_yards", "passer_player_id", "two_point_conv_attempt"),
-    "pass_td_40p": ("pass_touchdown", "passing_yards", "passer_player_id", "two_point_conv_attempt"),
-    "pass_td_50p": ("pass_touchdown", "passing_yards", "passer_player_id", "two_point_conv_attempt"),
-    "rush_40p": ("rush_attempt", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_conv_attempt"),
-    "rush_td_40p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_conv_attempt"),
-    "rush_td_50p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_conv_attempt"),
-    "rec_40p": ("complete_pass", "receiving_yards", "receiver_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_conv_attempt"),
-    "rec_td_40p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_conv_attempt"),
-    "rec_td_50p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_conv_attempt"),
+    "pass_cmp_40p": ("complete_pass", "passing_yards", "passer_player_id", "two_point_attempt"),
+    "pass_td_40p": ("pass_touchdown", "passing_yards", "passer_player_id", "two_point_attempt"),
+    "pass_td_50p": ("pass_touchdown", "passing_yards", "passer_player_id", "two_point_attempt"),
+    "rush_40p": ("rush_attempt", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_attempt"),
+    "rush_td_40p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_attempt"),
+    "rush_td_50p": ("rush_touchdown", "rushing_yards", "rusher_player_id", "lateral_rusher_player_id", "lateral_rushing_yards", "two_point_attempt"),
+    "rec_40p": ("complete_pass", "receiving_yards", "receiver_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_attempt"),
+    "rec_td_40p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_attempt"),
+    "rec_td_50p": ("pass_touchdown", "receiving_yards", "receiver_player_id", "td_player_id", "lateral_receiver_player_id", "lateral_receiving_yards", "two_point_attempt"),
 }
 EVENT_WEEKLY_COLUMNS = (
     "event_fumbles", "event_fumbles_lost", "event_pass_int_td", "event_bonus_rush_td_qb",
@@ -424,8 +424,10 @@ def build_e2_event_ledger(
             status = "BLOCKED_EVENT_IDENTITY" if "BLOCKED_EVENT_IDENTITY" in {row["status"] for row in relevant} else "BLOCKED_EVENT_SEMANTICS"
             supports[key] = _support(status, f"{len(relevant)} {event_type} PBP events lack exact scoring attribution")
 
-    # Reconcile sacks taken independently: the canonical weekly aggregate is
-    # the scoring source, while PBP verifies its player/week accounting.
+    # Reconcile Sleeper's QB-only pass_sack rule independently. The canonical
+    # weekly aggregate is the scoring source, while PBP verifies QB player-week
+    # accounting. Wildcat, receiver, tight-end and punter sack rows are not
+    # QB scoring events and cannot be compared to the QB-only aggregate.
     if "sacks" not in stats.columns:
         supports["pass_sack"] = _support("BLOCKED_SOURCE_INCOMPLETE", "canonical weekly player stats lack sacks")
         sack_reconciliation = {"status": "BLOCKED_SOURCE_INCOMPLETE", "mismatch_rows": 0}
@@ -434,16 +436,25 @@ def build_e2_event_ledger(
     else:
         sack_rows = regular[regular["sack"].map(_flag)]
         pbp_sacks: list[dict[str, Any]] = []
+        qb_player_weeks = {
+            (str(row.canonical_player_id), int(row.season), int(row.week))
+            for row in stats[stats.get("position_model", pd.Series("", index=stats.index)).eq("QB")][["canonical_player_id", "season", "week"]].itertuples(index=False)
+        }
+        excluded_non_qb_pbp_events = 0
         for _, row in sack_rows.iterrows():
             canonical, evidence = resolver(row.get("passer_player_id"))
             if canonical is None:
                 blocked(row, "pass_sack", "BLOCKED_EVENT_IDENTITY", evidence)
                 continue
+            player_week = (canonical, int(row["season"]), int(row["week"]))
+            if player_week not in qb_player_weeks:
+                excluded_non_qb_pbp_events += 1
+                continue
             pbp_sacks.append({"canonical_player_id": canonical, "season": int(row["season"]), "week": int(row["week"]), "pbp_sacks": 1})
         sack_blockers = [row for row in blockers if row["event_type"] == "pass_sack"]
         if sack_blockers:
             supports["pass_sack"] = _support("BLOCKED_EVENT_IDENTITY", "sack play lacks exact passer identity")
-            sack_reconciliation = {"status": "BLOCKED_EVENT_IDENTITY", "mismatch_rows": 0}
+            sack_reconciliation = {"status": "BLOCKED_EVENT_IDENTITY", "mismatch_rows": 0, "excluded_non_qb_pbp_events": excluded_non_qb_pbp_events}
         else:
             pbp_grouped = pd.DataFrame(pbp_sacks).groupby(["canonical_player_id", "season", "week"], as_index=False)["pbp_sacks"].sum() if pbp_sacks else pd.DataFrame(columns=["canonical_player_id", "season", "week", "pbp_sacks"])
             stat_sacks = stats[stats.get("position_model", pd.Series("", index=stats.index)).eq("QB")][["canonical_player_id", "season", "week", "sacks"]].copy()
@@ -451,10 +462,10 @@ def build_e2_event_ledger(
             compared = pbp_grouped.merge(stat_sacks, on=["canonical_player_id", "season", "week"], how="outer").fillna(0.0)
             mismatches = compared[~compared["pbp_sacks"].eq(compared["stat_sacks"])]
             if mismatches.empty:
-                sack_reconciliation = {"status": "EXACT_EVENT_READY", "mismatch_rows": 0}
+                sack_reconciliation = {"status": "EXACT_EVENT_READY", "mismatch_rows": 0, "excluded_non_qb_pbp_events": excluded_non_qb_pbp_events}
             else:
                 supports["pass_sack"] = _support("BLOCKED_RECONCILIATION_MISMATCH", "PBP passer sacks do not match canonical weekly sacks")
-                sack_reconciliation = {"status": "BLOCKED_RECONCILIATION_MISMATCH", "mismatch_rows": int(len(mismatches)),
+                sack_reconciliation = {"status": "BLOCKED_RECONCILIATION_MISMATCH", "mismatch_rows": int(len(mismatches)), "excluded_non_qb_pbp_events": excluded_non_qb_pbp_events,
                                        "sample": mismatches.head(8).to_dict(orient="records")}
 
     weekly = _event_weekly_stats(event_frame)
@@ -786,8 +797,8 @@ def build_e5_event_ledger(
     # bonus counters. nflverse deliberately leaves their official rushing
     # yard field null, so retaining them would turn a correctly excluded play
     # into a false source-incomplete blocker.
-    if "two_point_conv_attempt" in regular.columns:
-        regular = regular[~regular["two_point_conv_attempt"].map(_flag)].copy()
+    if "two_point_attempt" in regular.columns:
+        regular = regular[~regular["two_point_attempt"].map(_flag)].copy()
     resolver = _canonical_resolver(identity)
     supports = dict(base["rule_support"])
     source_ready = bool(source_inventory["pbp_source_complete"])
