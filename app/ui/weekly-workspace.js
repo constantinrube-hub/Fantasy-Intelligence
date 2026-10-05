@@ -307,7 +307,19 @@
     if ($('fieWeeklyWorkspace')) $('fieWeeklyWorkspace').hidden = !on;
     if (on && activeKey !== keyFor(scope())) render();
   }
-  window.FIEWeeklyWorkspace = Object.freeze({ VERSION: 'editorial-p02', render, specialist, refresh: refreshData, period, kickoff, pairing, reportedPlayers, scoring, forecastAvailability });
+  // Read-only summary for Home. The Weekly cache/provider/timing owner remains shared.
+  async function summary(c, latest = false, force = false) {
+    const timing = await loadNFL(force);
+    c = {...c};
+    if (latest) {
+      if(Number(timing?.season)!==Number(c.season)||String(timing?.season_type).toLowerCase()!=='regular'||n(timing?.display_week ?? timing?.week)===null)return {scope:c,error:'Latest completed regular-season week cannot be verified'};
+      c.week=Number(timing.display_week ?? timing.week)-1;
+      if(c.week<1||c.week>18)return {scope:c,error:'No prior regular-season week in this season'};
+    }
+    const record=matchups(c,force);await record.promise;
+    return {scope:c,period:period(c,timing),at:record.at,error:record.error,rows:record.rows,...pairing(record.rows||[],c.rosterId)};
+  }
+  window.FIEWeeklyWorkspace = Object.freeze({ VERSION: 'editorial-p02', render, specialist, refresh: refreshData, summary, period, kickoff, pairing, reportedPlayers, scoring, forecastAvailability });
   window.addEventListener('fie:league-changing', () => { ++serial; activeKey = ''; cache.clear(); window.FIEEditorial?.clearDisclosures(); $('fieWeeklyWorkspace')?.replaceChildren(); });
   window.addEventListener('fie:league-loaded', () => { activeKey = ''; sync(); });
   document.addEventListener('change', e => { if (['seasonSelect', 'weekSelect', 'weeklyRosterPicker'].includes(e.target?.id)) { window.FIEEditorial?.clearDisclosures(); activeKey = ''; clearTimeout(timer); timer = setTimeout(sync, 0); } });

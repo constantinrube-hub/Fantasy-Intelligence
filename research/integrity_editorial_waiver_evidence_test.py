@@ -9,7 +9,7 @@ with tempfile.TemporaryDirectory() as d:
  hp=root/'data/research/evaluation/2026/waivers/history/league-L.json';hp.parent.mkdir(parents=True);good={'source_league_id':'L','season':2026,'week':3,'winning_claim':{'bid':0}}
  hp.write_text(json.dumps({'portfolio_league_id':'L','target_season':2026,'bid_ledger':[good,{**good,'source_league_id':'prior'},{**good,'season':2025}]}))
  dp=root/'docs/audits'/f'{DOCS[0]}.md';dp.parent.mkdir(parents=True);dp.write_text('# Method\n<script>literal</script>')
- index=build(root,dest);data=json.loads((dest/index['leagues']['L']).read_text());assert data['reports'][0]['report']['status']=='BLOCKED_PROFILE_DRIFT';assert data['history'][0]['ledger']==[good];assert data['reporting_only'] is True;assert p.read_bytes()==before
+ index=build(root,dest);assert index['portfolio_reports'][0]['league_statuses']['L']=='BLOCKED_PROFILE_DRIFT';data=json.loads((dest/index['leagues']['L']).read_text());assert data['reports'][0]['report']['status']=='BLOCKED_PROFILE_DRIFT';assert data['history'][0]['ledger']==[good];assert data['reporting_only'] is True;assert p.read_bytes()==before
  assert data['reports'][0]['source']['sha256']==hashlib.sha256(before).hexdigest();first=(dest/index['leagues']['L']).read_bytes();build(root,dest);assert first==(dest/index['leagues']['L']).read_bytes()
- public=Path(d)/'public';pi=build(root,public,'public');assert pi['leagues']=={};assert not(public/'data/ui/waivers/leagues').exists();assert pi['documents'];build(root,dest,'public');assert not(dest/'data/ui/waivers/leagues').exists()
+ public=Path(d)/'public';pi=build(root,public,'public');assert pi['leagues']=={};assert pi['portfolio_reports']==[];assert not(public/'data/ui/waivers/leagues').exists();assert pi['documents'];build(root,dest,'public');assert not(dest/'data/ui/waivers/leagues').exists()
 print('PASS editorial waiver serving: scope, byte bindings, immutable source, deterministic derivative, public exclusion')

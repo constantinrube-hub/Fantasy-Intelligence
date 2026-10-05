@@ -231,3 +231,24 @@ html[data-fie-appearance] .fie-disclosure .fie-expanded {background:var(--fie-ex
 }
 .fie-waiver-workspace .fie-detail-list dd {white-space:pre-wrap;}
 @media(max-width:600px){.fie-waiver-lenses {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}}
+/* Phase 4: quiet summaries above progressively disclosed evidence. */
+.fie-overview-workspace .fie-disclosure {margin:12px 0;}
+.fie-overview-toolbar {display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.fie-overview-toolbar h2 {margin:6px 0;}
+.fie-overview-note {font-size:13px;line-height:1.45;margin:8px 0;}
+.fie-overview-workspace button {background:var(--panel);color:var(--accent);border:1px solid var(--line);border-radius:4px;padding:7px 10px;min-height:36px;cursor:pointer;}
+.fie-overview-workspace input[type="search"] {width:min(100%,320px);padding:8px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--text);}
+.fie-overview-result {border-left:3px solid #366148;padding:10px 14px;background:var(--panel);}
+.fie-overview-result h2 {font-size:22px;margin:0 0 8px;}
+.fie-overview-result strong {font-size:18px;display:block;}
+.fie-overview-result button {margin-right:6px;}
+.fie-overview-workspace .fie-detail-list dd {white-space:pre-wrap;}
+@media(max-width:600px){
+ .fie-overview-home #sectionHero,.fie-overview-portfolio #sectionHero {display:none;}
+ .fie-overview-workspace .fie-disclosure caption,.fie-overview-workspace .fie-disclosure-heading p {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;}
+ .fie-overview-workspace .fie-disclosure-heading {padding:9px 12px;}
+ .fie-overview-workspace .fie-disclosure-heading h2 {font-size:19px;margin:0;}
+ .fie-overview-workspace .fie-actions {flex-wrap:wrap;}
+ .fie-overview-result {padding:10px;}
+ .fie-overview-result h2 {font-size:19px;}
+}

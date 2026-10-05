@@ -10,7 +10,7 @@ def write(path,obj):
 def build(root,dest,mode='personal'):
  root,dest=Path(root),Path(dest);base=dest/'data/ui/waivers'
  if base.exists():shutil.rmtree(base)
- index={'schema':'fie-waiver-ui-report-v1','reporting_only':True,'leagues':{},'documents':[]}
+ index={'schema':'fie-waiver-ui-report-v1','reporting_only':True,'leagues':{},'documents':[],'portfolio_reports':[]}
  for name in DOCS:
   p=root/'docs/audits'/f'{name}.md'
   if p.exists():
@@ -19,6 +19,7 @@ def build(root,dest,mode='personal'):
   bundles={}
   for p in sorted((root/'data/research/evaluation').glob('*/weeks/week-*/waivers/portfolio-latest.json')):
    report=read(p)
+   index['portfolio_reports'].append({'season':report['season'],'week':report['week'],'captured_at':report.get('generated_at'),'status_counts':report.get('status_counts'),'league_count':len(report.get('leagues',[])),'league_ids':[str(x['league_id']) for x in report.get('leagues',[])],'league_statuses':{str(x['league_id']):x.get('status') for x in report.get('leagues',[])},'source':binding(root,p),'research_only':True})
    for row in report.get('leagues',[]):
     lid=str(row['league_id']);b=bundles.setdefault(lid,{'league_id':lid,'reporting_only':True,'reports':[],'history':[]})
     b['reports'].append({'season':report['season'],'week':report['week'],'captured_at':report.get('generated_at'),'capture_id':report.get('capture_id'),'source':binding(root,p),'report':row})

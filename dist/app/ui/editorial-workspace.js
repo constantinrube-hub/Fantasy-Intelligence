@@ -132,6 +132,7 @@
         if (byId(id)?.value) params.set(key, byId(id).value);
       }
     }
+    if(currentView()==='home' && byId('weeklyRosterPicker')?.value) params.set('roster',byId('weeklyRosterPicker').value);
     if(currentView()==='waivers' && window.FIEWaiverWorkspace) params.set('waiver',window.FIEWaiverWorkspace.lens);
     return params.toString();
   }
