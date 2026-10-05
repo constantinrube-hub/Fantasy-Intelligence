@@ -80,6 +80,7 @@ def main():
   run([sys.executable,'research/integrity_tranche1_research_stage_identity.py','--mode','target']),
   run(['node','research/integrity_v93_league_context_runtime_test.js']),
   run(['node','research/integrity_v93_decision_ui_runtime_test.js']),
+  run(['node','research/integrity_editorial_disclosure_test.js']),
   run(['node','research/integrity_value_finder_runtime_test.js']),
   run(['node','research/integrity_top100_optimizer_runtime_test.js']),
  ]

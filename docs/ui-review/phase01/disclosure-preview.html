@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en" data-fie-appearance="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Editorial UI · disclosure review</title>
+  <style>/* Phase 1: shared editorial foundations. Existing surface owners remain intact. */
+html[data-fie-appearance="light"] {
+  --bg:#f5f0df; --panel:#fffdf6; --panel2:#ede5cf; --line:#d8cfb8;
+  --text:#211b12; --muted:#675e50; --accent:#805817; --accent2:#6b5481;
+  --green:#366148; --red:#993e35; --yellow:#875a18; --shadow:none;
+  --fie-expanded:#ede5cf; --fie-research:#6b5481;
+  color-scheme:light;
+}
+html[data-fie-appearance] body {background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+html[data-fie-appearance] .shell {max-width:1600px;padding:18px 24px;}
+html[data-fie-appearance] h1,html[data-fie-appearance] h2,html[data-fie-appearance] h3 {font-family:Georgia,"Times New Roman",serif;color:var(--text);letter-spacing:-.025em;}
+html[data-fie-appearance] .hero {align-items:center;margin-bottom:12px;gap:12px;}
+html[data-fie-appearance] .hero h1 {font-size:24px;margin:0;}
+html[data-fie-appearance] .hero .subtitle {display:none;}
+html[data-fie-appearance] .eyebrow {color:var(--accent);letter-spacing:.1em;font-size:10px;}
+html[data-fie-appearance] .card,html[data-fie-appearance] .sidebar,html[data-fie-appearance] .section-hero {background:var(--panel);border-color:var(--line);border-radius:8px;box-shadow:none;}
+html[data-fie-appearance] .section-hero {padding:14px 16px;border-top:3px solid var(--section-accent,#946821);}
+html[data-fie-appearance] .section-hero.hero-weekly {--section-accent:#366148;}
+html[data-fie-appearance] .section-hero.hero-draft {--section-accent:#946821;}
+html[data-fie-appearance] .section-hero.hero-market {--section-accent:#2f6276;}
+html[data-fie-appearance] .section-hero.hero-lab {--section-accent:#6b5481;}
+html[data-fie-appearance] .section-hero h2 {font-size:28px;}
+html[data-fie-appearance] .section-hero .subtitle {font-size:13px;color:var(--muted);}
+html[data-fie-appearance] .app-layout {grid-template-columns:165px minmax(0,1fr);margin-top:14px;gap:20px;}
+html[data-fie-appearance] .sidebar {padding:10px;top:12px;}
+html[data-fie-appearance] .brand-mini,html[data-fie-appearance] .sidebar-note {display:none;}
+html[data-fie-appearance] .primary-tab,html[data-fie-appearance] .tab,html[data-fie-appearance] .fie-portfolio-launch {color:var(--muted);background:transparent;border:1px solid transparent;box-shadow:none;font-size:13px;font-weight:600;}
+html[data-fie-appearance] .primary-tab.active,html[data-fie-appearance] .tab.active,html[data-fie-appearance] .primary-tab:hover,html[data-fie-appearance] .tab:hover,html[data-fie-appearance] .fie-portfolio-launch.active {background:var(--panel2);border-color:var(--line);color:var(--text);}
+html[data-fie-appearance] .nav-icon {background:transparent;border-color:var(--line);color:var(--accent);}
+html[data-fie-appearance] input,html[data-fie-appearance] select,html[data-fie-appearance] textarea {background:var(--panel);border-color:var(--line);color:var(--text);border-radius:5px;font-size:14px;}
+html[data-fie-appearance] button {font-family:inherit;}
+html[data-fie-appearance] .btn {border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--text);font-size:13px;}
+html[data-fie-appearance] .btn.primary {background:#805817;color:#fffdf6;border-color:#805817;}
+html[data-fie-appearance] .small,html[data-fie-appearance] .subtitle,html[data-fie-appearance] .label,html[data-fie-appearance] .filter-label {color:var(--muted);}
+html[data-fie-appearance] .badge,html[data-fie-appearance] .chip {background:var(--panel2);border-color:var(--line);color:var(--text);}
+html[data-fie-appearance] .badge.good {color:#366148;background:#e6eee1;border-color:#b8ccb2;}
+html[data-fie-appearance] .badge.warn {color:#875a18;background:#f2e6ca;border-color:#d6c396;}
+html[data-fie-appearance] table {font-size:14px;font-variant-numeric:tabular-nums;}
+html[data-fie-appearance] th {background:var(--panel2);color:var(--muted);font-size:12px;}
+html[data-fie-appearance] td {color:var(--text);border-color:var(--line);}
+html[data-fie-appearance] tbody tr:hover {background:var(--panel2);}
+html[data-fie-appearance] .notice {background:var(--panel2);color:var(--text);border-color:var(--line);}
+html[data-fie-appearance] .portfolio-card,html[data-fie-appearance] .portfolio-kpi,html[data-fie-appearance] .portfolio-row,html[data-fie-appearance] .home-card {background:var(--panel);border-color:var(--line);color:var(--text);box-shadow:none;}
+html[data-fie-appearance] .portfolio-card h3,html[data-fie-appearance] .portfolio-kpi .value {color:var(--text);}
+html[data-fie-appearance] .portfolio-card p,html[data-fie-appearance] .portfolio-kpi .label {color:var(--muted);}
+html[data-fie-appearance] .league-portfolio-card,html[data-fie-appearance] .league-rank,html[data-fie-appearance] .league-todo,html[data-fie-appearance] .portfolio-empty {background:var(--panel);border-color:var(--line);border-radius:7px;color:var(--text);}
+html[data-fie-appearance] .league-rank {background:var(--panel2);}
+html[data-fie-appearance] .portfolio-pill,html[data-fie-appearance] .league-todo .tag {color:var(--muted);border-color:var(--line);font-size:11px;}
+html[data-fie-appearance] .portfolio-pill.fresh {color:#366148;border-color:#366148;}
+html[data-fie-appearance] .portfolio-pill.recent {color:#875a18;border-color:#875a18;}
+html[data-fie-appearance] .portfolio-pill.stale {color:#993e35;border-color:#993e35;}
+html[data-fie-appearance] .portfolio-pill.live,html[data-fie-appearance] .league-open {color:#2f6276;}
+html[data-fie-appearance] .league-card-sub,html[data-fie-appearance] .league-card-foot,html[data-fie-appearance] .league-todo small {font-size:12px;}
+html[data-fie-appearance] .league-rank span {font-size:10px;}
+html[data-fie-appearance] .league-todo b,html[data-fie-appearance] .league-todo strong {font-size:13px;}
+html[data-fie-appearance] :focus-visible {outline:3px solid #2f6276;outline-offset:3px;}
+html[data-fie-appearance] a {color:#805817;}
+.fie-context {display:flex;align-items:end;gap:12px;flex-wrap:wrap;padding:10px 0;border-block:1px solid var(--line);}
+.fie-context .field {min-width:180px;flex:1;max-width:460px;}
+.fie-context label,.fie-context .field label {display:block;font-size:11px;color:var(--muted);margin-bottom:3px;}
+.fie-context select {width:100%;min-height:36px;}
+.fie-context button {min-height:36px;}
+.fie-context-name {font-weight:600;margin-right:auto;max-width:35ch;}
+.fie-mobile-nav {display:none;}
+.fie-utility {border:1px solid var(--line);border-radius:6px;background:var(--panel);margin-top:8px;}
+.fie-utility > summary {cursor:pointer;font-size:13px;padding:8px 12px;color:var(--muted);}
+.fie-utility[open] > summary {border-bottom:1px solid var(--line);}
+.fie-utility .connect {margin:0;border:0;padding:12px;}
+.fie-utility .kpis {padding:12px;margin:0;}
+.fie-release {padding:12px;display:flex;gap:8px;flex-wrap:wrap;}
+.fie-context-status {margin:8px 0;font-size:12px;color:var(--muted);overflow-wrap:anywhere;}
+.fie-disclosure {background:var(--panel);border:1px solid var(--line);border-radius:8px;margin:16px 0;overflow:hidden;}
+.fie-disclosure-heading {padding:16px;border-bottom:1px solid var(--line);}
+.fie-disclosure-heading h2 {margin:0 0 4px;}
+.fie-disclosure-heading p {margin:0;color:var(--muted);}
+.fie-table-scroll {overflow:auto;}
+.fie-disclosure table {width:100%;border-collapse:collapse;}
+.fie-disclosure th,.fie-disclosure td {padding:12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;}
+.fie-disclosure tbody th {background:transparent;color:var(--text);font-size:14px;}
+.fie-disclosure .fie-numeric {text-align:right;white-space:nowrap;}
+.fie-disclosure button,.fie-reader button {background:var(--panel);color:var(--accent);border:1px solid var(--line);border-radius:4px;padding:7px 10px;min-height:36px;cursor:pointer;font:inherit;white-space:nowrap;}
+.fie-actions {display:flex;gap:6px;}
+.fie-expanded td {background:var(--fie-expanded);padding:18px 20px;}
+.fie-level {font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px;}
+.fie-status {display:inline-block;font-size:12px;font-weight:600;border:1px solid currentColor;border-radius:4px;padding:2px 6px;}
+.fie-status[data-tone="blocked"] {color:#993e35;background:#f8eae3;}
+.fie-status[data-tone="good"] {color:#366148;background:#e6eee1;}
+.fie-status[data-tone="research"] {color:#6b5481;background:#eee8f0;}
+.fie-detail-list {display:grid;grid-template-columns:minmax(120px,1fr) 2fr;gap:8px 20px;margin:12px 0;}
+.fie-detail-list dt {color:var(--muted);}
+.fie-detail-list dd {margin:0;overflow-wrap:anywhere;}
+.fie-reader {box-sizing:border-box;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px;width:min(700px,calc(100% - 24px));max-height:85vh;overflow:auto;}
+.fie-reader::backdrop {background:rgba(33,27,18,.45);}
+.fie-reader-header {display:flex;justify-content:space-between;gap:16px;align-items:start;border-bottom:1px solid var(--line);padding-bottom:16px;}
+.fie-reader h2 {margin:0;}
+.fie-fixture-banner {background:var(--panel2);padding:12px;border-left:3px solid #875a18;}
+@media(max-width:760px) {
+  html[data-fie-appearance] body {font-size:15px;}
+  html[data-fie-appearance] .shell {padding:12px;}
+  html[data-fie-appearance] .hero h1 {font-size:20px;}
+  html[data-fie-appearance] .hero .eyebrow {display:none;}
+  html[data-fie-appearance] .app-layout {display:block;}
+  html[data-fie-appearance] .sidebar {display:none;}
+  html[data-fie-appearance] .section-hero {padding:12px;}
+  html[data-fie-appearance] .section-hero h2 {font-size:25px;}
+  html[data-fie-appearance] .subnav {flex-wrap:nowrap;overflow:auto;padding:3px;}
+  html[data-fie-appearance] .subnav .tab {white-space:nowrap;min-height:36px;}
+  .fie-context {gap:8px;}
+  .fie-context .field {min-width:0;max-width:none;flex-basis:100%;}
+  .fie-context-name {display:none;}
+  .fie-mobile-nav {display:block;width:100%;margin:10px 0;min-height:40px;}
+  .fie-context .btn {padding-inline:8px;flex:1;}
+  .fie-detail-list {grid-template-columns:1fr;gap:3px;}
+  .fie-detail-list dd {margin-bottom:10px;}
+  .fie-actions {flex-direction:column;}
+}
+</style>
+</head>
+<body>
+  <main class="shell" style="max-width:1100px">
+    <p class="eyebrow">Fantasy Intelligence · Phase 1 review</p>
+    <h1>One clear table. Details when you need them.</h1>
+    <p class="fie-fixture-banner"><strong>Fictional interface fixtures.</strong> Names, points, scoring and evidence below demonstrate presentation only. They are not league results, captured projections, research findings or recommendations.</p>
+    <p>Basic is the table. <strong>Expand</strong> shows one tinted explanation row at a time. <strong>Advanced</strong> opens the same evidence reader directly; Escape closes it and returns keyboard focus. A blocker always stays visible in Basic.</p>
+    <div id="weeklyExample"></div>
+    <div id="waiverExample"></div>
+    <p>Standalone disclosure preview. The full candidate application is in the isolated ui/editorial-p01-shell branch.</p>
+  </main>
+  <script>/* Presentation-only primitives and shell. No scoring or eligibility calculations. */
+(function () {
+  'use strict';
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = String(text);
+    return node;
+  };
+  const byId = id => document.getElementById(id);
+  let reader, previousFocus, serial = 0;
+  const detailList = entries => {
+    const dl = el('dl', 'fie-detail-list');
+    for (const [label, value] of entries || []) {
+      dl.append(el('dt', '', label), el('dd', '', value == null ? 'Unavailable' : value));
+    }
+    return dl;
+  };
+  function closeReader() { if (reader?.open) reader.close(); }
+  function openReader({ title, context, entries, note }, trigger) {
+    if (!reader) {
+      reader = el('dialog', 'fie-reader');
+      reader.id = 'fieEvidenceReader';
+      reader.setAttribute('aria-labelledby', 'fieEvidenceTitle');
+      document.body.append(reader);
+      reader.addEventListener('close', () => {
+        if (previousFocus?.isConnected) previousFocus.focus();
+      });
+    }
+    previousFocus = trigger || document.activeElement;
+    reader.replaceChildren();
+    reader.append(el('p', 'fie-level', 'Advanced · evidence & method'));
+    const header = el('div', 'fie-reader-header');
+    const heading = el('h2', '', title);
+    heading.id = 'fieEvidenceTitle';
+    const close = el('button', '', 'Close');
+    close.type = 'button'; close.autofocus = true;
+    close.addEventListener('click', closeReader);
+    header.append(heading, close); reader.append(header);
+    if (context) reader.append(el('p', '', context));
+    reader.append(detailList(entries));
+    if (note) reader.append(el('p', '', note));
+    if (!reader.open) reader.showModal();
+  }
+  function clearDisclosures() {
+    closeReader();
+    document.querySelectorAll('.fie-expanded').forEach(row => { row.hidden = true; });
+    document.querySelectorAll('[data-fie-expand]').forEach(button => {
+      button.setAttribute('aria-expanded', 'false'); button.textContent = 'Expand';
+    });
+  }
+  function createTable({ title, description, columns, rows, caption }) {
+    const section = el('section', 'fie-disclosure');
+    const header = el('div', 'fie-disclosure-heading');
+    const heading = el('h2', '', title); heading.id = `fie-table-${++serial}`;
+    section.setAttribute('aria-labelledby', heading.id);
+    header.append(heading, el('p', '', description || 'Basic · key information. Expand a row for explanation, or open Advanced for evidence.'));
+    section.append(header);
+    const scroll = el('div', 'fie-table-scroll');
+    scroll.tabIndex = 0; scroll.setAttribute('role', 'region');
+    scroll.setAttribute('aria-label', `${title} table; scroll horizontally for all columns`);
+    const table = el('table');
+    const tableCaption = el('caption', '', caption || title);
+    tableCaption.style.cssText = 'text-align:left;padding:8px 12px;font-size:12px;color:var(--muted)';
+    table.append(tableCaption);
+    const thead = el('thead'), headerRow = el('tr');
+    for (const column of columns) {
+      const th = el('th', column.numeric ? 'fie-numeric' : '', column.label);
+      th.scope = 'col'; headerRow.append(th);
+    }
+    const actionHeading = el('th', '', 'Details'); actionHeading.scope = 'col';
+    headerRow.append(actionHeading); thead.append(headerRow); table.append(thead);
+    const tbody = el('tbody');
+    for (const row of rows) {
+      const tr = el('tr');
+      columns.forEach((column, index) => {
+        const cell = el(index === 0 ? 'th' : 'td', column.numeric ? 'fie-numeric' : '');
+        if (index === 0) cell.scope = 'row';
+        const value = row[column.key];
+        if (value && typeof value === 'object' && 'label' in value) {
+          const status = el('span', 'fie-status', value.label);
+          status.dataset.tone = value.tone || 'research'; cell.append(status);
+        } else cell.textContent = value == null ? 'Unavailable' : String(value);
+        tr.append(cell);
+      });
+      const actionsCell = el('td'), actions = el('div', 'fie-actions');
+      const expand = el('button', '', 'Expand'); expand.type = 'button';
+      const expanded = el('tr', 'fie-expanded'); expanded.hidden = true;
+      expanded.id = `fie-expanded-${++serial}`;
+      expand.dataset.fieExpand = ''; expand.setAttribute('aria-expanded', 'false');
+      expand.setAttribute('aria-controls', expanded.id);
+      expand.setAttribute('aria-label', `Expand ${row.title || row[columns[0].key]}`);
+      const content = el('td'); content.colSpan = columns.length + 1;
+      content.append(el('p', 'fie-level', 'Expanded · explanation'), detailList(row.expanded));
+      expanded.append(content);
+      expand.addEventListener('click', () => {
+        const opening = expanded.hidden;
+        section.querySelectorAll('.fie-expanded').forEach(other => { other.hidden = true; });
+        section.querySelectorAll('[data-fie-expand]').forEach(other => {
+          other.setAttribute('aria-expanded', 'false'); other.textContent = 'Expand';
+        });
+        expanded.hidden = !opening; expand.setAttribute('aria-expanded', String(opening));
+        expand.textContent = opening ? 'Collapse' : 'Expand';
+      });
+      const advanced = el('button', '', 'Advanced'); advanced.type = 'button';
+      advanced.setAttribute('aria-label', `Advanced evidence for ${row.title || row[columns[0].key]}`);
+      advanced.addEventListener('click', () => openReader({
+        title: row.title || String(row[columns[0].key]), context: row.context || caption,
+        entries: row.advanced, note: row.note
+      }, advanced));
+      actions.append(expand, advanced); actionsCell.append(actions); tr.append(actionsCell);
+      tbody.append(tr, expanded);
+    }
+    table.append(tbody); scroll.append(table); section.append(scroll); return section;
+  }
+  function runtimeState() { return typeof state !== 'undefined' ? state : window.state; }
+  function currentView() {
+    const s = runtimeState();
+    return s?.portfolioMode || window.FIEPortfolio?.mode ? 'portfolio' : (s?.activeTab || 'home');
+  }
+  function allowedViews() {
+    const config = window.FIE_WORKSPACE_SECTIONS || {};
+    return new Set(['portfolio', 'home', ...Object.values(config).flatMap(x => [...x.tabs.map(t => t[0]), ...(x.routes || [])])]);
+  }
+  function routeSnapshot() {
+    const s = runtimeState(), params = new URLSearchParams();
+    params.set('view', currentView());
+    if (currentView() !== 'portfolio' && s?.league?.league_id) params.set('league', s.league.league_id);
+    // Period and roster belong to the existing controls; never infer a historical projection.
+    if (['startsit', 'dst', 'kicker', 'matchupsim', 'waivers'].includes(currentView())) {
+      for (const [key, id] of [['season', 'seasonSelect'], ['week', 'weekSelect'], ['roster', 'weeklyRosterPicker']]) {
+        if (byId(id)?.value) params.set(key, byId(id).value);
+      }
+    }
+    return params.toString();
+  }
+  let restoring = false, restorePending = false, queued = false, lastContext = '';
+  function syncRoute(replace = false) {
+    if (restoring) return;
+    const serialized = routeSnapshot();
+    const context = serialized.replace(/(^|&)view=[^&]*/g, '');
+    if (lastContext && lastContext !== context) clearDisclosures();
+    lastContext = context;
+    const name = byId('kLeague')?.textContent || 'All leagues';
+    if (byId('fieContextName')) byId('fieContextName').textContent = currentView() === 'portfolio' ? 'All leagues' : name;
+    const section = window.sectionForTab?.(currentView()) || 'home';
+    if (byId('fieMobileNavigation')) byId('fieMobileNavigation').value = currentView() === 'portfolio' ? 'portfolio' : section;
+    if (location.hash.slice(1) !== serialized) history[replace ? 'replaceState' : 'pushState'](null, '', `#${serialized}`);
+  }
+  function queueSync() {
+    if (queued) return;
+    queued = true;
+    queueMicrotask(() => { queued = false; syncRoute(); });
+  }
+  async function restoreRoute() {
+    if (restoring) { restorePending = true; return; }
+    const params = new URLSearchParams(location.hash.slice(1)), view = params.get('view');
+    if (!allowedViews().has(view)) { syncRoute(true); return; }
+    restoring = true; clearDisclosures();
+    try {
+      const league = params.get('league'), s = runtimeState();
+      if (league && !/^\d{10,25}$/.test(league)) return;
+      if (view === 'portfolio') window.FIEPortfolio?.show?.();
+      else {
+        window.FIEPortfolio?.leave?.();
+        if (league && String(s?.league?.league_id) !== league) {
+          if (byId('leagueInput')) byId('leagueInput').value = league;
+          const saved = byId('savedLeagueSelect');
+          if (saved && Array.from(saved.options).some(option => option.value === league)) saved.value = league;
+          await window.FIELeagueController?.switchLeague(league, { route: view });
+          // A blocked load must not label the previous league with the requested route.
+          if (String(runtimeState()?.league?.league_id) !== league) return;
+        }
+        if (window.FIEPortfolio) window.FIEPortfolio.mode = false;
+        if (runtimeState()) runtimeState().portfolioMode = false;
+        for (const [key, id] of [['season', 'seasonSelect'], ['week', 'weekSelect'], ['roster', 'weeklyRosterPicker']]) {
+          const control = byId(id), value = params.get(key);
+          if (control && value && Array.from(control.options).some(option => option.value === value)) {
+            if (control.value !== value) { control.value = value; control.dispatchEvent(new Event('change', { bubbles: true })); }
+          }
+        }
+        window.activateTab?.(view);
+      }
+    } finally {
+      restoring = false;
+      if (restorePending) { restorePending = false; restoreRoute(); }
+      else syncRoute(true);
+    }
+  }
+  function setupShell() {
+    const shell = document.querySelector('.shell'); if (!shell || !byId('primaryNav')) return;
+    const context = el('div', 'fie-context'); context.setAttribute('aria-label', 'League context');
+    const name = el('span', 'fie-context-name', 'All leagues'); name.id = 'fieContextName'; context.append(name);
+    const saved = byId('savedLeagueSelect');
+    if (saved) {
+      const field = saved.closest('.field');
+      field.querySelector('label')?.setAttribute('for', 'savedLeagueSelect');
+      context.append(field, byId('loadSavedLeagueBtn'));
+    }
+    const manage = el('button', 'btn ghost', 'Manage leagues'); manage.type = 'button';
+    context.append(manage);
+    shell.querySelector('.hero').after(context);
+    const connections = el('details', 'fie-utility'); connections.id = 'fieLeagueManagement';
+    connections.append(el('summary', '', 'League connection & saved settings'), document.querySelector('.connect'));
+    context.after(connections);
+    manage.setAttribute('aria-controls', connections.id); manage.setAttribute('aria-expanded', 'false');
+    connections.addEventListener('toggle', () => manage.setAttribute('aria-expanded', String(connections.open)));
+    manage.addEventListener('click', () => { connections.open = !connections.open; if (connections.open) byId('leagueInput')?.focus(); });
+    const status = byId('status');
+    if (status) { status.classList.add('fie-context-status'); status.setAttribute('role', 'status'); connections.after(status); }
+    // Keep the canonical scoring-health warning visible even when setup is closed.
+    const health = byId('fieDataHealth');
+    if (health) { health.style.fontSize = '12px'; (status || connections).after(health); }
+    document.addEventListener('click', event => {
+      if (event.target.closest('#portfolioAddBtn')) connections.open = true;
+    }, true);
+    const coverage = el('details', 'fie-utility'); coverage.id = 'fieDataCoverage';
+    coverage.append(el('summary', '', 'Data coverage & release information'), document.querySelector('.kpis'));
+    const release = el('div', 'fie-release');
+    document.querySelectorAll('.hero > .badge').forEach(badge => release.append(badge));
+    coverage.append(release); (health || status || connections).after(coverage);
+    const mobile = el('select', 'fie-mobile-nav'); mobile.id = 'fieMobileNavigation';
+    mobile.setAttribute('aria-label', 'Workspace section');
+    const all = el('option', '', 'All leagues'); all.value = 'portfolio'; mobile.append(all);
+    document.querySelectorAll('#primaryNav .primary-tab').forEach(button => {
+      const option = el('option', '', button.querySelector('span:last-child')?.textContent || button.textContent);
+      option.value = button.dataset.section; mobile.append(option);
+    });
+    mobile.addEventListener('change', () => {
+      if (mobile.value === 'portfolio') { window.FIEPortfolio?.show?.(); queueSync(); }
+      else document.querySelector(`#primaryNav [data-section="${mobile.value}"]`)?.click();
+    });
+    byId('appLayoutV82').before(mobile);
+    new MutationObserver(queueSync).observe(document.documentElement, { attributes: true, attributeFilter: ['data-fie-tab'] });
+    const panel = byId('portfolioPanel');
+    if (panel) new MutationObserver(queueSync).observe(panel, { attributes: true, attributeFilter: ['class'] });
+    if (byId('kLeague')) new MutationObserver(queueSync).observe(byId('kLeague'), { childList: true, subtree: true, characterData: true });
+    if (byId('sectionTitle')) new MutationObserver(queueSync).observe(byId('sectionTitle'), { childList: true, subtree: true, characterData: true });
+    document.addEventListener('change', event => { if (['seasonSelect', 'weekSelect', 'weeklyRosterPicker'].includes(event.target.id)) { clearDisclosures(); queueSync(); } });
+    byId('portfolioHomeBtn')?.addEventListener('click', queueSync);
+    window.addEventListener('fie:league-changing', clearDisclosures);
+    window.addEventListener('fie:league-loaded', queueSync);
+    window.addEventListener('popstate', restoreRoute);
+    // Hash edits are supported too; serialize restores so popstate/hashchange cannot overlap.
+    window.addEventListener('hashchange', restoreRoute);
+    if (new URLSearchParams(location.hash.slice(1)).has('view')) restoreRoute(); else syncRoute(true);
+  }
+  document.documentElement.dataset.fieAppearance = 'light';
+  window.FIEEditorial = Object.freeze({ VERSION: 'editorial-p01', createTable, openReader, closeReader, clearDisclosures });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupShell);
+  else setupShell();
+})();
+</script>
+  <script>/* Explicitly fictional fixtures. Never consumed by the application. */
+(function () {
+  'use strict';
+  document.getElementById('weeklyExample').append(FIEEditorial.createTable({
+    title: 'Prior-week matchup · player results',
+    caption: 'Fictional fixture · Example league · Week 3 · completed matchup',
+    description: 'Basic · player, lineup slot and actual points. The completed result leads; projections belong in the explanation.',
+    columns: [{key:'player',label:'Player'}, {key:'slot',label:'Slot'}, {key:'points',label:'Actual points',numeric:true}],
+    rows: [
+      {player:'Alex Turner',slot:'WR',points:'18.40',title:'Alex Turner · Week 3',
+        expanded:[['Scoring breakdown','6 receptions, 94 receiving yards, 1 receiving TD (fictional half-PPR scoring).'],['Pregame projection','Unavailable — no immutable pregame capture in this fixture.'],['Difference from projection','Unavailable; never reconstructed using the completed result.'],['Optimal lineup comparison','Advanced; requires all eligible player outcomes and the exact legal roster.']],
+        advanced:[['Actual-points source','Fictional UI fixture; not a provider capture.'],['Receptions','6 × 0.5 = 3.00 points'],['Receiving yards','94 × 0.1 = 9.40 points'],['Receiving touchdowns','1 × 6 = 6.00 points'],['Projected best lineup','Unavailable — no point-in-time forecast capture.'],['Hindsight optimal lineup','Unavailable — fixture lacks the full roster and slot assignment.']],
+        note:'Projected best and hindsight optimal are separate comparisons. Neither is inferred from this row.'},
+      {player:'Sam Jordan',slot:'RB',points:'9.20',title:'Sam Jordan · Week 3',expanded:[['Actual-points source','Fictional UI fixture.'],['Scoring breakdown','Unavailable in this fixture.'],['Pregame projection','Unavailable — no capture.']],advanced:[['Capture identity','Fictional fixture only'],['Exact scoring replay','Unavailable'],['Projected and optimal lineup','Unavailable']]}
+    ]
+  }));
+  document.getElementById('waiverExample').append(FIEEditorial.createTable({
+    title: 'Waiver evidence · decision gates',
+    caption: 'Fictional fixture · Example league · offensive waiver evidence',
+    description: 'Basic · each independent gate and the material blocker. A research result does not imply a usable recommendation.',
+    columns:[{key:'scope',label:'Scope'},{key:'forecast',label:'Forecast'},{key:'ranking',label:'Ranking'},{key:'recommendation',label:'Recommendation'},{key:'transaction',label:'Transaction'},{key:'blocker',label:'Blocker'}],
+    rows:[{scope:'TE · exact league profile',title:'TE · independent waiver gates',forecast:{label:'Blocked',tone:'blocked'},ranking:{label:'Blocked',tone:'blocked'},recommendation:{label:'Blocked',tone:'blocked'},transaction:{label:'Blocked',tone:'blocked'},blocker:'Exact-scoring evidence incomplete',
+      expanded:[['Why it is blocked','This fictional example lacks complete attributed scoring events.'],['What remains usable','No forecast, ordered ranking, recommendation or execution is authorized by this fixture.'],['What is needed','Complete exact-profile replay and the separate eligibility evidence for each gate.']],
+      advanced:[['Evidence identity','Fictional UI fixture; no research artifact binding.'],['Model authority','No promotion; existing champion is unchanged.'],['Profile / period / source hash','Unavailable in this fixture.'],['Missing attribution','Shown as missing, never treated as zero.'],['Forecast gate','Blocked'],['Ranking gate','Blocked'],['Recommendation gate','Blocked'],['Transaction gate','Blocked']],note:'Real league-specific evidence and overarching research documents will be connected in the approved Waivers / Research phases. This page demonstrates disclosure behavior only.'}]
+  }));
+})();
+</script>
+</body>
+</html>

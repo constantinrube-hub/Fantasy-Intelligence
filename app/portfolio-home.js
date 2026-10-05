@@ -93,6 +93,8 @@ function renderLeagueCard(e){
 }
 
 function renderPortfolio(){
+  // Background metadata refresh must not steal the active league/deep-linked surface.
+  if(!Portfolio.mode&&!state.portfolioMode)return;
   ensureUI();loadCaches();hideForPortfolio();const box=document.getElementById('portfolioSummary');if(!box)return;
   const saved=savedLeagues(),ids=new Set(saved.map(x=>String(x.id)));for(const id of Object.keys(Portfolio.snapshots))if(!ids.has(String(id)))delete Portfolio.snapshots[id];
   const rows=saved.map(e=>({e,s:Portfolio.snapshots[String(e.id)],m:Portfolio.meta[String(e.id)]}));
@@ -129,6 +131,6 @@ function bind(){
   Portfolio.mode=true;state.portfolioMode=true;renderPortfolio();refreshStatuses(false);
 }
 
-Portfolio.captureCurrentLeague=captureCurrentLeague;Portfolio.render=renderPortfolio;Portfolio.show=showPortfolio;Portfolio.openLeague=openLeague;Portfolio.refreshStatuses=refreshStatuses;window.FIEPortfolio=Portfolio;
+Portfolio.captureCurrentLeague=captureCurrentLeague;Portfolio.render=renderPortfolio;Portfolio.show=showPortfolio;Portfolio.leave=leavePortfolio;Portfolio.openLeague=openLeague;Portfolio.refreshStatuses=refreshStatuses;window.FIEPortfolio=Portfolio;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();

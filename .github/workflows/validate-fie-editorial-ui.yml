@@ -1,0 +1,50 @@
+name: Editorial UI candidate comparison
+on:
+  push:
+    branches: ['ui/editorial-*']
+  pull_request:
+    paths:
+      - 'app/ui/**'
+      - 'app/portfolio-home.js'
+      - 'index.html'
+      - 'research/*editorial*'
+      - '.github/workflows/validate-fie-editorial-ui.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: editorial-ui-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+      - uses: actions/checkout@v4
+        with:
+          ref: 1272eed30faf9548c128677a2e45e99bafed819a
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Disclosure contract
+        working-directory: candidate
+        run: node research/integrity_editorial_disclosure_test.js
+      - name: Install browser QA dependency
+        run: |
+          npm install --no-save --no-package-lock --prefix "$RUNNER_TEMP/fie-ui-qa" playwright@1.58.2
+          node "$RUNNER_TEMP/fie-ui-qa/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Compare frozen baseline and candidate
+        env:
+          FIE_UI_PLAYWRIGHT: ${{ runner.temp }}/fie-ui-qa/node_modules/playwright
+          FIE_UI_QA_OUTPUT: ${{ runner.temp }}/editorial-ui-qa
+        run: node candidate/research/editorial_browser_qa.js baseline/dist candidate/dist
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: editorial-ui-comparison
+          path: ${{ runner.temp }}/editorial-ui-qa
+          if-no-files-found: warn

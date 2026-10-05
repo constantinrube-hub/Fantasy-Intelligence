@@ -14,6 +14,12 @@ This directory contains the current operational and architectural documentation 
 - [`SECURITY.md`](SECURITY.md) — security and privacy posture
 - [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) — release operator checklist
 
+## Candidate UI
+
+The user-approved editorial UI candidate boundary and comparison procedure are in
+[`../audits/EDITORIAL_UI_PHASE01.md`](../audits/EDITORIAL_UI_PHASE01.md). This UI
+branch is awaiting user comparison and does not supersede production instructions.
+
 ## Historical references
 
 Historical implementation, patch, upload, and release records are indexed in [`../archive/README.md`](../archive/README.md). They remain useful evidence, but they are not current operating instructions. `V9.3.4A3-SCORE-FIX.md` remains here only because a preserved historical manifest requires its exact path; it is not current guidance.

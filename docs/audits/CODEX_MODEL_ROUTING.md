@@ -32,3 +32,16 @@ Return to Terra after the Sol-only design or reasoning result is documented and 
 12. 7D evidence accrual — operational; 7E checkpoint review returns to Sol High before any model or shadow recommendation.
 
 See `AUDIT_CURRENT_STATE.md` for the active boundary and preservation requirements.
+
+## Editorial UI phases (separately user-approved)
+
+The October 5, 2026 editorial UI approval authorizes display-only work on isolated
+`ui/editorial-*` branches. Recommended routing: GPT-6.1 Sol Medium for shell,
+navigation and shared-component architecture; GPT-6 Luna High for bounded styling,
+fixtures and mechanical migrations; GPT-6.1 Sol High for Weekly and Waivers evidence
+semantics. These are routing recommendations, not a claim that the active session
+has changed models. Do not interrupt a productive implementation solely to downgrade.
+
+This UI scope does not override the audit escalation policy, champion ownership,
+research eligibility, scheduling, promotion or transaction gates. Each phase needs
+source/dist validation and user comparison before a merge or production release.
