@@ -172,6 +172,8 @@ def main():
  for p in (ROOT/'data/research/governance').glob('*.json') if (ROOT/'data/research/governance').exists() else []: copy(p,DIST/p.relative_to(ROOT))
  from build_waiver_ui_evidence import build as build_waiver_evidence
  build_waiver_evidence(ROOT,DIST,a.mode)
+ from build_report_ui_evidence import build as build_report_evidence
+ build_report_evidence(ROOT,DIST,a.mode)
  (DIST/'BUILD_MODE.txt').write_text(a.mode+'\n',encoding='utf-8', newline='\n')
  total=sum(p.stat().st_size for p in DIST.rglob('*') if p.is_file())
  print(f'Built {DIST} mode={a.mode} files={sum(1 for p in DIST.rglob("*") if p.is_file())} bytes={total}')

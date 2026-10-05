@@ -126,7 +126,7 @@
   function routeSnapshot() {
     const s = runtimeState(), params = new URLSearchParams();
     params.set('view', currentView());
-    if (currentView() !== 'portfolio' && s?.league?.league_id) params.set('league', s.league.league_id);
+    if (!['portfolio','reports'].includes(currentView()) && s?.league?.league_id) params.set('league', s.league.league_id);
     // Period and roster belong to the existing controls; never infer a historical projection.
     if (['startsit', 'dst', 'kicker', 'matchupsim', 'waivers'].includes(currentView())) {
       for (const [key, id] of [['season', 'seasonSelect'], ['week', 'weekSelect'], ['roster', 'weeklyRosterPicker']]) {
@@ -145,7 +145,7 @@
     if (lastContext && lastContext !== context) clearDisclosures();
     lastContext = context;
     const name = byId('kLeague')?.textContent || 'All leagues';
-    if (byId('fieContextName')) byId('fieContextName').textContent = currentView() === 'portfolio' ? 'All leagues' : name;
+    if (byId('fieContextName')) byId('fieContextName').textContent = ['portfolio','reports'].includes(currentView()) ? 'All leagues' : name;
     const section = window.sectionForTab?.(currentView()) || 'home';
     if (byId('fieMobileNavigation')) byId('fieMobileNavigation').value = currentView() === 'portfolio' ? 'portfolio' : section;
     if (location.hash.slice(1) !== serialized) history[replace ? 'replaceState' : 'pushState'](null, '', `#${serialized}`);

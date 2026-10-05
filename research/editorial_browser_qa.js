@@ -42,7 +42,7 @@ function serve(root) {
         }));
         results.samples.push({ name, viewport: viewport.width, ...measurement, errors });
         if (name === 'candidate') {
-          assert.strictEqual(measurement.primarySections, 8, 'Every original section must remain reachable');
+          assert.strictEqual(measurement.primarySections, 9, 'Eight original sections plus Reports must remain reachable');
           assert(measurement.documentWidth <= measurement.viewportWidth + 1, 'Candidate shell overflows viewport');
           assert(await page.locator('#savedLeagueSelect').isVisible(), 'League selector must stay visible');
           assert(await page.locator('#fieDataHealth').isVisible(), 'Scoring-health blockers must stay visible');

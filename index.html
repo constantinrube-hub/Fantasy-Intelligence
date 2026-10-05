@@ -221,7 +221,8 @@ tbody tr:hover{background:#162a45}
         <button class="primary-tab" data-section="market"><span class="nav-icon">M</span><span>Market</span></button>
         <button class="primary-tab" data-section="league"><span class="nav-icon">L</span><span>League</span></button>
         <button class="primary-tab" data-section="players"><span class="nav-icon">P</span><span>Players</span></button>
-        <button class="primary-tab" data-section="lab"><span class="nav-icon">⌁</span><span>Lab</span></button>
+        <button class="primary-tab" data-section="reports"><span class="nav-icon">R</span><span>Reports</span></button>
+        <button class="primary-tab" data-section="lab"><span class="nav-icon">⌁</span><span>Research</span></button>
       </nav>
       <div class="sidebar-note">V8.1 League Engine foundation<br><span>+ V8.2 Draft Intelligence</span></div>
     </aside>
@@ -1710,7 +1711,8 @@ const SECTION_CONFIG={
  market:{title:'Market',eyebrow:'Acquisition & trades',desc:'Waivers, acquisition targets and trade economics for this league.',hero:'hero-market',tabs:[['waivers','Waivers'],['targets','Dynasty Targets'],['trades','Trade Center']]},
  league:{title:'League',eyebrow:'Rules & league market',desc:'Strategic format plus independent Sleeper roster/scoring rules and manager behavior.',hero:'hero-league',tabs:[['rules','Rules & Format'],['leagueintel','League Intel']]},
  players:{title:'Players',eyebrow:'Player explorer',desc:'Search and filter the legal NFL universe with exact experience classes.',hero:'hero-players',tabs:[['all','All Players'],['offense','Offense'],['idp','IDP']]},
- lab:{title:'Lab',eyebrow:'Evidence & model governance',desc:'League-scoped research, validation, governed decision evidence and transparent data health.',hero:'hero-lab',tabs:[['laboverview','Overview'],['validation','Validation'],['research5','Decision Evidence'],['research6','Production & Data']],routes:['laboverview','validation','research','research2','research3','research4','research5','research6','features','model'],navGroup:{research:'laboverview',research2:'laboverview',research3:'laboverview',research4:'laboverview',features:'research6',model:'research6'}}
+ reports:{title:'Reports',eyebrow:'Documents & captured evidence',desc:'Shared methodology, league evidence and source-bound inventories.',hero:'hero-lab',tabs:[['reports','Document index']],routes:['reports']},
+ lab:{title:'Research',eyebrow:'Evidence & model governance',desc:'League-scoped research, validation, governed decision evidence and transparent data health.',hero:'hero-lab',tabs:[['laboverview','Overview'],['validation','Validation'],['research5','Decision Evidence'],['research6','Production & Data']],routes:['laboverview','validation','research','research2','research3','research4','research5','research6','features','model'],navGroup:{research:'laboverview',research2:'laboverview',research3:'laboverview',research4:'laboverview',features:'research6',model:'research6'}}
 };
 window.FIE_WORKSPACE_SECTIONS=SECTION_CONFIG;
 function sectionForTab(tab){for(const[k,v]of Object.entries(SECTION_CONFIG))if(k===tab||v.tabs.some(x=>x[0]===tab)||v.routes?.includes(tab))return k;return'home';};
@@ -2152,6 +2154,7 @@ window.FIE89=CORE;
 <script src="app/ui/waiver-workspace.js"></script>
 <script src="app/ui/overview-workspace.js"></script>
 <script src="app/ui/context-workspace.js"></script>
+<script src="app/ui/reports-workspace.js"></script>
 
 </body>
 </html>
