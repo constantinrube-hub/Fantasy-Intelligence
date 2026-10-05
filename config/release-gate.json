@@ -20,7 +20,7 @@
       "cmd": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python research/integrity_v932_build_determinism_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "Normalized 9 deployment/manifest input files to LF before hashing\nNormalized 158 deployment/manifest input files to LF before hashing\nPASS V9.3.2 deterministic build manifest\n",
+      "stdout": "Normalized 9 deployment/manifest input files to LF before hashing\nNormalized 162 deployment/manifest input files to LF before hashing\nPASS V9.3.2 deterministic build manifest\n",
       "stderr": ""
     },
     {
@@ -83,7 +83,7 @@
       "cmd": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python research/integrity_dist_hygiene_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "PASS integrity_dist_hygiene_test files=429\n",
+      "stdout": "PASS integrity_dist_hygiene_test files=430\n",
       "stderr": ""
     },
     {
@@ -153,7 +153,7 @@
       "cmd": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python research/integrity_m10_sunday_paired_checkpoint_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "M10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: /tmp/fie-sunday-m10-stage-tfgkozpq/m10/forecasts/2026/week_05/capture-manifest.json\nM10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: /tmp/fie-sunday-m10-stage-02j1xv83/m10/forecasts/2026/week_05/capture-manifest.json\nPASS Sunday paired checkpoint (timing, cohort, pairing, scoring, drift, first-write, partial-failure, write allowlist)\n",
+      "stdout": "M10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: /tmp/fie-sunday-m10-stage-juku5b1y/m10/forecasts/2026/week_05/capture-manifest.json\nM10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: /tmp/fie-sunday-m10-stage-a6kohu0a/m10/forecasts/2026/week_05/capture-manifest.json\nPASS Sunday paired checkpoint (timing, cohort, pairing, scoring, drift, first-write, partial-failure, write allowlist)\n",
       "stderr": ""
     },
     {
@@ -469,6 +469,13 @@
       "ok": true,
       "code": 0,
       "stdout": "PASS editorial disclosure: visible blockers, missing vs zero, one expansion, direct Advanced, safe text, focus and context reset\n",
+      "stderr": ""
+    },
+    {
+      "cmd": "node research/integrity_editorial_weekly_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS: editorial Weekly outcomes, null/zero/negative points, pairing, timezone and fail-closed forecast semantics\n",
       "stderr": ""
     },
     {

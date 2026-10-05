@@ -94,6 +94,69 @@ html[data-fie-appearance] a {color:#805817;}
 .fie-reader-header {display:flex;justify-content:space-between;gap:16px;align-items:start;border-bottom:1px solid var(--line);padding-bottom:16px;}
 .fie-reader h2 {margin:0;}
 .fie-fixture-banner {background:var(--panel2);padding:12px;border-left:3px solid #875a18;}
+/* Weekly uses the same disclosure vocabulary; actuals stay in Basic. */
+.fie-weekly-active #mainArea > #filters,.fie-weekly-active #mainArea > .table-card,
+.fie-weekly-active #mainArea > .list-tools,.fie-weekly-active #fie93WeeklyPanel {display:none!important;}
+.fie-weekly-workspace {min-width:0;}
+.fie-weekly-heading {display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+.fie-weekly-workspace h2 {font-size:22px;margin:8px 0;}
+.fie-weekly-workspace button,.fie-weekly-details button {font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:4px;color:var(--accent);background:var(--panel);cursor:pointer;min-height:36px;}
+.fie-weekly-result {padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-top:3px solid #366148;border-radius:8px;}
+.fie-weekly-metrics {display:flex;gap:12px 28px;flex-wrap:wrap;margin:10px 0;}
+.fie-weekly-metric {min-width:120px;flex:1;}
+.fie-weekly-metric span {display:block;font-size:12px;color:var(--muted);}
+.fie-weekly-metric strong {display:block;font-size:20px;font-variant-numeric:tabular-nums;}
+.fie-weekly-notice {padding:10px 12px;border-left:3px solid #875a18;background:var(--panel2);font-size:13px;overflow-wrap:anywhere;}
+.fie-weekly-notice[data-tone="context"] {border-color:#2f6276;}
+.fie-weekly-details {background:var(--panel);border:1px solid var(--line);border-radius:6px;margin:10px 0;}
+.fie-weekly-details > summary {padding:12px;cursor:pointer;font-weight:600;}
+.fie-weekly-details > div,.fie-weekly-details > section {margin:12px;}
+.fie-weekly-workspace .fie-disclosure {margin:12px 0;}
+.fie-weekly-workspace .fie-disclosure-heading {padding:12px 14px;}
+.fie-weekly-workspace .fie-disclosure-heading p {font-size:12px;}
+.fie-weekly-workspace .fie-disclosure th,.fie-weekly-workspace .fie-disclosure td {padding:10px;}
+html[data-fie-appearance] .fie-disclosure tbody tr {background:var(--panel);color:var(--text);}
+html[data-fie-appearance] .fie-disclosure tbody tr:hover {background:var(--panel2);}
+html[data-fie-appearance] .fie-disclosure .fie-expanded {background:var(--fie-expanded);}
+.fie-weekly-active #weeklyControls {padding:10px 12px;gap:8px;align-items:center;}
+.fie-weekly-active #weeklyControls {grid-template-columns:repeat(3,minmax(0,1fr));}
+.fie-weekly-active #weeklyControls > details {grid-column:1/-1;}
+.fie-weekly-active #weeklyControls > #weeklyLoadBtn {grid-column:1/-1;}
+.fie-weekly-active #weeklyControls > div {min-width:0;flex:1;}
+.fie-weekly-active #weeklyControls select {max-width:100%;width:100%;}
+.fie-weekly-active #weeklyControls > details {flex-basis:100%;font-size:12px;color:var(--muted);}
+.fie-weekly-active #weeklyControls > details > summary {cursor:pointer;}
+.fie-weekly-active #weeklyControls #weeklyStatus {margin:8px 0;}
+.fie-weekly-active .section-hero .subtitle {display:none;}
+@media(max-width:760px) {
+  .fie-weekly-workspace .fie-disclosure th,.fie-weekly-workspace .fie-disclosure td {padding:7px;font-size:12px;}
+  .fie-weekly-workspace .fie-actions button {padding:5px 7px;font-size:11px;}
+  .fie-weekly-result {padding:10px;}
+  .fie-weekly-metric {min-width:100px;}
+  .fie-weekly-metric strong {font-size:17px;}
+  .fie-weekly-workspace .fie-disclosure-heading h2 {font-size:19px;}
+  .fie-weekly-active #weeklyControls > div {flex-basis:calc(33% - 8px);}
+  .fie-weekly-active #weeklyControls .filter-label {font-size:10px;}
+  .fie-weekly-active #weeklyControls #weeklyLoadBtn {padding:6px 8px;font-size:12px;}
+  .fie-weekly-active .section-hero {padding:8px 10px;display:flex;align-items:center;}
+  .fie-weekly-active #sectionHero {display:none;}
+  .fie-weekly-active .section-hero .eyebrow {display:none;}
+  .fie-weekly-active .section-hero h2 {font-size:21px;}
+  .fie-weekly-active .fie-weekly-metrics {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+  .fie-weekly-active .fie-weekly-metric {min-width:0;}
+  .fie-weekly-active .fie-weekly-metric strong {font-size:14px;}
+  .fie-weekly-active .fie-weekly-metric span {font-size:11px;}
+  .fie-weekly-active .fie-disclosure caption {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;padding:0!important;}
+  .fie-weekly-active .fie-weekly-heading {flex-wrap:nowrap;}
+  .fie-weekly-active .fie-weekly-heading .fie-level {font-size:10px;margin:0;}
+  .fie-weekly-active .fie-weekly-heading button {font-size:11px;padding:5px 7px;}
+  .fie-weekly-active .fie-disclosure-heading p {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;}
+  .fie-weekly-active .fie-disclosure-heading h2 {margin:0;}
+  .fie-weekly-active #weeklyControls {margin:6px 0;padding:8px 10px;}
+  .fie-weekly-active .fie-weekly-result h2 {margin:4px 0;font-size:20px;}
+  .fie-weekly-active .fie-weekly-metrics {margin:6px 0;}
+  .fie-weekly-active .fie-disclosure-heading {padding:9px 12px;}
+}
 @media(max-width:760px) {
   html[data-fie-appearance] body {font-size:15px;}
   html[data-fie-appearance] .shell {padding:12px;}
