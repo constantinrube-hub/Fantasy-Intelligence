@@ -324,6 +324,7 @@ function vfTop100RowHTML(x,i){
   return `<tr data-vf-id="${vfEsc(x.p.sleeperId||x.p.name)}"><td><b>${i+1}</b></td><td><div class="vf-player">${vfEsc(x.p.name)}</div><div class="muted">${vfEsc(x.p.position)} · ${vfEsc(x.p.team)}</div></td><td><b>${fiePos}</b></td><td><b>${marketPos}</b></td><td class="${(x.posEdge||0)>=4?'vf-rankedge':''}"><b>${edge}</b><br><span class="muted">positional spots</span></td><td><b>${vfFmt(x.adp,0)}</b></td><td><b>${cap}</b><br><span class="muted">reach cost ${vfFmt(x.reachCost)} picks</span></td><td><b>${vfFmt(x.waitCost)}</b><br><span class="muted">Estimate · policy cost</span></td><td><span class="vf-state ${vfStateClass(x.optimizerAction)}">${vfEsc(x.optimizerAction)}</span><div class="vf-draft-mini">window ${vfEsc(window)} · next-pick ${x.survive??'—'}${x.survive!==null?'%':''} Estimate</div></td></tr>`;
 }
 function renderTop100Optimizer(){
+  if(window.FIEDraftPreparationWorkspace?.renderFinder?.())return;
   const box=$('valueFinderSummary'),status=$('valueFinderStatus');if(!box||!status)return;
   const all=vfTop100Rows(),ctx=all.context||vfTop100DraftContext(new Map()),f=state.valueFinder;
   let rows=all;if(f.position!=='ALL')rows=rows.filter(x=>x.p.position===f.position);if(f.experience!=='ALL')rows=rows.filter(x=>vfExperience(x.p)===f.experience);if(f.confidence!=='ALL')rows=rows.filter(x=>x.confidence===f.confidence);if(f.availableOnly)rows=rows.filter(x=>vfAvailable(x.p));if(f.undervaluedOnly)rows=rows.filter(x=>(x.overallEdge||0)>=0||x.optimizerAction==='TAKE NOW'||x.optimizerAction==='TARGET');
@@ -401,6 +402,7 @@ function renderValueFinderInner(){
   box.querySelectorAll('th[data-vf-sort]').forEach(th=>{th.style.cursor='pointer';th.onclick=()=>{const key=th.dataset.vfSort,f=state.valueFinder;f.sortDir=f.sortKey===key?-f.sortDir:(key==='player'?1:-1);f.sortKey=key;renderValueFinder();};});
 }
 function renderValueFinder(){
+  if(window.FIEDraftPreparationWorkspace?.renderFinder?.())return;
   try{return renderValueFinderInner();}
   catch(e){
     const box=$('valueFinderSummary'),status=$('valueFinderStatus');

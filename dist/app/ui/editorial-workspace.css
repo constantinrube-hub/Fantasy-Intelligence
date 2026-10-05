@@ -312,3 +312,24 @@ html[data-fie-appearance] .lab-freshness,html[data-fie-appearance] .m1-banner{ba
 /* Phase 7: reversible evidence, keyboard access, narrow/zoom layouts. */
 .fie-skip-link{position:absolute;left:12px;top:-100px;z-index:100;padding:10px 14px;background:var(--panel);border:2px solid #2f6276;border-radius:4px}.fie-skip-link:focus{top:12px}.fie-reader-header>.fie-actions{flex-wrap:wrap;justify-content:flex-end}.fie-reader-header{flex-wrap:wrap}.fie-route-notice{padding:10px 12px;border:1px solid #875a18;border-radius:5px;background:var(--panel2);color:var(--text)}html[data-fie-appearance] .footer{color:var(--muted)}html[data-fie-appearance] .fie-portfolio-launch{color:var(--muted)}.fie-disclosure th,.fie-disclosure td,.fie-context-name{overflow-wrap:anywhere}.fie-weekly-heading,.fie-context-roster{min-width:0}.fie-weekly-heading button{white-space:normal}.fie-disclosure .fie-actions{flex-wrap:wrap}.fie-reader .fie-actions{flex-wrap:wrap}.fie-reader .fie-detail-list{min-width:0}.fie-reader pre{white-space:pre-wrap;overflow-wrap:anywhere}.fie-reader select{max-width:100%}@media(max-width:360px){html[data-fie-appearance] .shell{padding:10px}.fie-context{gap:6px}.fie-context .field{min-width:0;max-width:100%;flex-basis:100%}.fie-context button{flex:1}.fie-disclosure-heading{padding:12px}.fie-detail-list{grid-template-columns:1fr;gap:3px}.fie-detail-list dd{margin-bottom:10px}.fie-reader{padding:14px}.fie-reader-header .fie-actions{width:100%;justify-content:flex-start}}@media(prefers-reduced-motion:reduce){html[data-fie-appearance] *,html[data-fie-appearance] *::before,html[data-fie-appearance] *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media(max-width:760px){.fie-mobile-cards thead{display:table-header-group!important;position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap}}
+
+/* Draft preparation keeps the editorial gold accent and the same disclosure grammar. */
+.fie-draft-preparation{min-width:0;display:grid;gap:14px}
+.fie-draft-preparation[hidden]{display:none}
+.fie-draft-preparation>.fie-disclosure{border-top:3px solid #b99138}
+.fie-draft-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end}
+.fie-draft-controls select{width:100%;min-width:0}
+.fie-draft-controls label{min-width:0}
+.fie-draft-legacy{padding:12px;border-left:3px solid #b99138;background:#fff9e9}
+@media(max-width:700px){.fie-draft-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:360px){.fie-draft-controls{grid-template-columns:1fr}}
+.fie-draft-preparation>.btn{justify-self:start;max-width:100%;white-space:normal}
+html[data-fie-tab="draftassistant"] #draftAssistantStatus,html[data-fie-tab="valuefinder"] #valueFinderStatus{background:#fff9e9;color:#78571c;border-color:#ded2b4}
+
+.fie-draft-board-active #mainArea > .table-card{display:none!important}
+.fie-draft-board-active #filters.fie93-compact{display:flex;flex-wrap:wrap;gap:9px;align-items:end}
+.fie-draft-board-active #filters.fie93-compact>div:not(.fie93-hidden){flex:1 1 120px;min-width:0}
+.fie-draft-board-active #filters.fie93-compact>div:has(#searchFilter){flex:2 1 220px}
+@media(max-width:700px){.fie-draft-board-active #filters.fie93-compact>div:has(#searchFilter){flex-basis:100%}}
+/* Scope is already visible above each preparation table; retain caption semantics without duplicate mobile wrapping. */
+.fie-draft-preparation caption{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
