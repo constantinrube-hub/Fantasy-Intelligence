@@ -37,6 +37,7 @@ jobs:
           node research/integrity_editorial_weekly_test.js
           node research/integrity_editorial_waiver_test.js
           node research/integrity_editorial_overview_test.js
+          node research/integrity_editorial_context_test.js
           python research/integrity_editorial_waiver_evidence_test.py
       - name: Install browser QA dependency
         run: |
@@ -62,6 +63,11 @@ jobs:
           FIE_UI_PLAYWRIGHT: ${{ runner.temp }}/fie-ui-qa/node_modules/playwright
           FIE_UI_QA_OUTPUT: ${{ runner.temp }}/editorial-ui-qa/overviews
         run: node candidate/research/editorial_overview_browser_qa.js candidate/dist
+      - name: Roster, Players, Trades and League populated fixture review
+        env:
+          FIE_UI_PLAYWRIGHT: ${{ runner.temp }}/fie-ui-qa/node_modules/playwright
+          FIE_UI_QA_OUTPUT: ${{ runner.temp }}/editorial-ui-qa/context
+        run: node candidate/research/editorial_context_browser_qa.js candidate/dist
       - uses: actions/upload-artifact@v4
         if: always()
         with:

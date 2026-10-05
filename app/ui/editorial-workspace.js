@@ -17,7 +17,7 @@
     return dl;
   };
   function closeReader() { if (reader?.open) reader.close(); }
-  function openReader({ title, context, entries, note }, trigger) {
+  function openReader({ title, context, entries, note, content, level }, trigger) {
     if (!reader) {
       reader = el('dialog', 'fie-reader');
       reader.id = 'fieEvidenceReader';
@@ -29,7 +29,7 @@
     }
     previousFocus = trigger || document.activeElement;
     reader.replaceChildren();
-    reader.append(el('p', 'fie-level', 'Advanced · evidence & method'));
+    reader.append(el('p', 'fie-level', level || 'Advanced · evidence & method'));
     const header = el('div', 'fie-reader-header');
     const heading = el('h2', '', title);
     heading.id = 'fieEvidenceTitle';
@@ -38,7 +38,8 @@
     close.addEventListener('click', closeReader);
     header.append(heading, close); reader.append(header);
     if (context) reader.append(el('p', '', context));
-    reader.append(detailList(entries));
+    if(content) reader.append(content);
+    else reader.append(detailList(entries));
     if (note) reader.append(el('p', '', note));
     if (!reader.open) reader.showModal();
   }
@@ -132,7 +133,7 @@
         if (byId(id)?.value) params.set(key, byId(id).value);
       }
     }
-    if(currentView()==='home' && byId('weeklyRosterPicker')?.value) params.set('roster',byId('weeklyRosterPicker').value);
+    if(['home','team','myroster'].includes(currentView()) && byId('weeklyRosterPicker')?.value) params.set('roster',byId('weeklyRosterPicker').value);
     if(currentView()==='waivers' && window.FIEWaiverWorkspace) params.set('waiver',window.FIEWaiverWorkspace.lens);
     return params.toString();
   }

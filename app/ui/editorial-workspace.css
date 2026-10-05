@@ -252,3 +252,52 @@ html[data-fie-appearance] .fie-disclosure .fie-expanded {background:var(--fie-ex
  .fie-overview-result {padding:10px;}
  .fie-overview-result h2 {font-size:19px;}
 }
+/* Phase 5: quiet inventory and context, with existing control ownership. */
+.fie-context-browse #mainArea > .table-card {display:none!important;}
+.fie-context-workspace {min-width:0;margin-top:12px;}
+.fie-context-toolbar {display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;}
+.fie-context-control {display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);min-width:0;}
+.fie-context-control select {width:100%;min-width:0;max-width:100%;padding:8px;}
+.fie-context-note {font-size:13px;color:var(--muted);margin:10px 0;overflow-wrap:anywhere;}
+.fie-context-workspace button,.fie-context-reader button {padding:7px 10px;border:1px solid var(--line);border-radius:4px;color:var(--accent);background:var(--panel);cursor:pointer;min-height:36px;font:inherit;}
+.fie-context-trade-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.fie-context-trade-side {padding:14px;border:1px solid var(--line);border-radius:6px;min-width:0;background:var(--panel);}
+.fie-context-trade-side h3 {margin:0 0 10px;}
+.fie-context-chips {display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+.fie-context-chips button {background:var(--panel2);max-width:100%;overflow-wrap:anywhere;}
+.fie-context-reader .fie-detail-list dd {overflow-wrap:anywhere;white-space:pre-wrap;}
+#fieContextRuleOverrides > .rules-grid {margin:12px;}
+html[data-fie-appearance] #teamRosterPicker,html[data-fie-appearance] #leagueFormatSelect {background:var(--panel)!important;color:var(--text)!important;border-color:var(--line)!important;}
+@media(max-width:759px){
+ .fie-context-trade-grid {grid-template-columns:1fr;}
+ .fie-context-toolbar {display:grid;grid-template-columns:1fr;width:100%;}
+ .fie-context-workspace .fie-disclosure-heading p,.fie-context-workspace caption {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;}
+ .fie-context-workspace .fie-disclosure-heading {padding:10px 12px;}
+ .fie-context-workspace .fie-disclosure-heading h2 {font-size:21px;}
+}
+.fie-context-browse #filters > div:has(#minScore) {display:none;}
+.fie-context-browse #rosterNote {display:none;}
+html[data-fie-tab="myroster"] .section-hero {display:none;}
+.fie-context-workspace caption {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;}
+@media(max-width:759px){
+ html:is([data-fie-tab="all"],[data-fie-tab="offense"],[data-fie-tab="idp"],[data-fie-tab="team"],[data-fie-tab="trades"],[data-fie-tab="leagueintel"],[data-fie-tab="rules"],[data-fie-tab="targets"]) .section-hero {display:none;}
+}
+html[data-fie-appearance] #tradeResult {background:var(--panel);border-radius:6px;}
+html[data-fie-appearance] #leagueRulesPanel .format-banner {background:var(--panel2);color:var(--text);border-color:var(--line);}
+html[data-fie-appearance] #leagueRulesPanel .pill {background:var(--panel);color:var(--text);border-color:var(--line);}
+.fie-context-browse #filters.fie93-compact {display:flex;flex-wrap:wrap;gap:8px;align-items:end;}
+.fie-context-browse #filters.fie93-compact > div:not(.fie93-hidden) {flex:1 1 120px;min-width:0;}
+.fie-context-browse #filters.fie93-compact > div:has(#searchFilter) {flex:2 1 220px;}
+@media(max-width:759px){
+ .fie-context-browse #rosterPickerWrap {grid-template-columns:minmax(0,1fr)!important;}
+ .fie-context-browse #filters.fie93-compact > div:has(#searchFilter) {flex-basis:100%;}
+}
+.fie-context-browse #filters.fie93-compact {align-items:stretch;}
+.fie-context-browse #filters > .fie-context-filter-details {flex-basis:100%;margin:0;}
+.fie-context-filter-grid {display:flex;flex-wrap:wrap;gap:8px;align-items:end;}
+.fie-context-filter-grid > div {flex:1 1 120px;min-width:0;}
+.fie-context-filter-grid > div:has(#minScore) {display:none;}
+@media(max-width:759px){
+ .fie-context-toolbar {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+ .fie-context-control select {font-size:12px;}
+}
