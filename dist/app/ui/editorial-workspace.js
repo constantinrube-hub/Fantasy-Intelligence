@@ -8,7 +8,7 @@
     return node;
   };
   const byId = id => document.getElementById(id);
-  let reader, previousFocus, serial = 0;
+  let reader, previousFocus, serial = 0, readerTrail = [];
   const detailList = entries => {
     const dl = el('dl', 'fie-detail-list');
     for (const [label, value] of entries || []) {
@@ -23,11 +23,23 @@
       reader.id = 'fieEvidenceReader';
       reader.setAttribute('aria-labelledby', 'fieEvidenceTitle');
       document.body.append(reader);
+      reader.addEventListener('keydown', event => {
+        if (event.key !== 'Tab') return;
+        const controls = [...reader.querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex]')].filter(x => !x.disabled && x.tabIndex >= 0 && x.getClientRects().length);
+        if (!controls.length) return;
+        const first = controls[0], last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      });
       reader.addEventListener('close', () => {
+        readerTrail = [];
         if (previousFocus?.isConnected) previousFocus.focus();
+        else byId('sectionTitle')?.focus();
       });
     }
-    previousFocus = trigger || document.activeElement;
+    const origin = trigger || document.activeElement;
+    if (reader.open && reader.contains?.(origin)) readerTrail.push({ nodes: [...reader.childNodes], focus: origin, scroll: reader.scrollTop });
+    else { readerTrail = []; previousFocus = origin; }
     reader.replaceChildren();
     reader.append(el('p', 'fie-level', level || 'Advanced · evidence & method'));
     const header = el('div', 'fie-reader-header');
@@ -36,12 +48,23 @@
     const close = el('button', '', 'Close');
     close.type = 'button'; close.autofocus = true;
     close.addEventListener('click', closeReader);
-    header.append(heading, close); reader.append(header);
+    const actions = el('div', 'fie-actions');
+    if (readerTrail.length) {
+      const back = el('button', '', 'Back to previous details'); back.type = 'button';
+      back.addEventListener('click', () => {
+        const frame = readerTrail.pop(); if (!frame) return;
+        reader.replaceChildren(...frame.nodes); reader.scrollTop = frame.scroll;
+        if (frame.focus?.isConnected) frame.focus.focus();
+      }); actions.append(back);
+    }
+    actions.append(close); header.append(heading, actions); reader.append(header);
     if (context) reader.append(el('p', '', context));
     if(content) reader.append(content);
     else reader.append(detailList(entries));
     if (note) reader.append(el('p', '', note));
+    reader.scrollTop = 0;
     if (!reader.open) reader.showModal();
+    close.focus();
   }
   function clearDisclosures() {
     closeReader();
@@ -60,22 +83,23 @@
     const scroll = el('div', 'fie-table-scroll');
     scroll.tabIndex = 0; scroll.setAttribute('role', 'region');
     scroll.setAttribute('aria-label', `${title} table; scroll horizontally for all columns`);
-    const table = el('table');
+    const table = el('table'); table.setAttribute('role', 'table');
     const tableCaption = el('caption', '', caption || title);
     tableCaption.style.cssText = 'text-align:left;padding:8px 12px;font-size:12px;color:var(--muted)';
     table.append(tableCaption);
-    const thead = el('thead'), headerRow = el('tr');
+    const thead = el('thead'), headerRow = el('tr'); thead.setAttribute('role','rowgroup'); headerRow.setAttribute('role','row');
     for (const column of columns) {
       const th = el('th', column.numeric ? 'fie-numeric' : '', column.label);
-      th.scope = 'col'; headerRow.append(th);
+      th.scope = 'col'; th.setAttribute('role','columnheader'); headerRow.append(th);
     }
-    const actionHeading = el('th', '', 'Details'); actionHeading.scope = 'col';
+    const actionHeading = el('th', '', 'Details'); actionHeading.scope = 'col'; actionHeading.setAttribute('role','columnheader');
     headerRow.append(actionHeading); thead.append(headerRow); table.append(thead);
-    const tbody = el('tbody');
+    const tbody = el('tbody'); tbody.setAttribute('role','rowgroup');
     for (const row of rows) {
-      const tr = el('tr');
+      const tr = el('tr'); tr.setAttribute('role','row');
       columns.forEach((column, index) => {
         const cell = el(index === 0 ? 'th' : 'td', column.numeric ? 'fie-numeric' : '');
+        cell.setAttribute('role', index === 0 ? 'rowheader' : 'cell');
         if (index === 0) cell.scope = 'row';
         const value = row[column.key];
         if (value && typeof value === 'object' && 'label' in value) {
@@ -86,12 +110,12 @@
       });
       const actionsCell = el('td'), actions = el('div', 'fie-actions');
       const expand = el('button', '', 'Expand'); expand.type = 'button';
-      const expanded = el('tr', 'fie-expanded'); expanded.hidden = true;
+      const expanded = el('tr', 'fie-expanded'); expanded.setAttribute('role','row'); expanded.hidden = true;
       expanded.id = `fie-expanded-${++serial}`;
       expand.dataset.fieExpand = ''; expand.setAttribute('aria-expanded', 'false');
       expand.setAttribute('aria-controls', expanded.id);
       expand.setAttribute('aria-label', `Expand ${row.title || row[columns[0].key]}`);
-      const content = el('td'); content.colSpan = columns.length + 1;
+      const content = el('td'); content.setAttribute('role','cell'); content.colSpan = columns.length + 1;
       content.append(el('p', 'fie-level', 'Expanded · explanation'), detailList(row.expanded));
       expanded.append(content);
       expand.addEventListener('click', () => {
@@ -137,13 +161,16 @@
     if(currentView()==='waivers' && window.FIEWaiverWorkspace) params.set('waiver',window.FIEWaiverWorkspace.lens);
     return params.toString();
   }
-  let restoring = false, restorePending = false, queued = false, lastContext = '';
+  let restoring = false, restorePending = false, queued = false, lastContext = '', lastView = ''; 
   function syncRoute(replace = false) {
     if (restoring) return;
     const serialized = routeSnapshot();
     const context = serialized.replace(/(^|&)view=[^&]*/g, '');
-    if (lastContext && lastContext !== context) clearDisclosures();
-    lastContext = context;
+    const view = currentView();
+    if ((lastContext && lastContext !== context) || (lastView && lastView !== view)) clearDisclosures();
+    lastContext = context; lastView = view;
+    document.querySelectorAll('#primaryNav button').forEach(b => {if(b.classList.contains('active')) b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+    document.querySelectorAll('#subnav button').forEach(b => {if(b.classList.contains('active')) b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
     const name = byId('kLeague')?.textContent || 'All leagues';
     if (byId('fieContextName')) byId('fieContextName').textContent = ['portfolio','reports'].includes(currentView()) ? 'All leagues' : name;
     const section = window.sectionForTab?.(currentView()) || 'home';
@@ -185,6 +212,9 @@
         if(view==='waivers')window.FIEWaiverWorkspace?.setLens(params.get('waiver'));
         window.activateTab?.(view);
       }
+    } catch (error) {
+      const status = byId('fieRouteNotice');
+      if (status) { status.hidden = false; status.textContent = 'Requested view could not be restored. Review the loaded league and retry with its existing load control.'; }
     } finally {
       restoring = false;
       if (restorePending) { restorePending = false; restoreRoute(); }
@@ -193,6 +223,12 @@
   }
   function setupShell() {
     const shell = document.querySelector('.shell'); if (!shell || !byId('primaryNav')) return;
+    const skip = el('a','fie-skip-link','Skip to workspace content'); skip.href = '#sectionTitle';
+    const heading = byId('sectionTitle'); if(heading)heading.tabIndex = -1;
+    skip.addEventListener('click', event => {event.preventDefault();heading?.focus();heading?.scrollIntoView({block:'start'});});
+    shell.prepend(skip);
+    const routeNotice = el('p','fie-route-notice'); routeNotice.id = 'fieRouteNotice'; routeNotice.hidden = true; routeNotice.setAttribute('role','status');
+    byId('sectionHero')?.before(routeNotice);
     const context = el('div', 'fie-context'); context.setAttribute('aria-label', 'League context');
     const name = el('span', 'fie-context-name', 'All leagues'); name.id = 'fieContextName'; context.append(name);
     const saved = byId('savedLeagueSelect');
@@ -242,15 +278,16 @@
     if (byId('sectionTitle')) new MutationObserver(queueSync).observe(byId('sectionTitle'), { childList: true, subtree: true, characterData: true });
     document.addEventListener('change', event => { if (['seasonSelect', 'weekSelect', 'weeklyRosterPicker'].includes(event.target.id)) { clearDisclosures(); queueSync(); } });
     byId('portfolioHomeBtn')?.addEventListener('click', queueSync);
+    document.addEventListener('click', event => {if(event.target.closest?.('#primaryNav button,#subnav button')){byId('fieRouteNotice').hidden = true;clearDisclosures();queueSync();}});
     window.addEventListener('fie:league-changing', clearDisclosures);
-    window.addEventListener('fie:league-loaded', queueSync);
+    window.addEventListener('fie:league-loaded', () => {if(byId('fieRouteNotice'))byId('fieRouteNotice').hidden = true;queueSync();});
     window.addEventListener('popstate', restoreRoute);
     // Hash edits are supported too; serialize restores so popstate/hashchange cannot overlap.
     window.addEventListener('hashchange', restoreRoute);
     if (new URLSearchParams(location.hash.slice(1)).has('view')) restoreRoute(); else syncRoute(true);
   }
   document.documentElement.dataset.fieAppearance = 'light';
-  window.FIEEditorial = Object.freeze({ VERSION: 'editorial-p01', createTable, openReader, closeReader, clearDisclosures, syncRoute });
+  window.FIEEditorial = Object.freeze({ VERSION: 'editorial-p07', createTable, openReader, closeReader, clearDisclosures, syncRoute });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupShell);
   else setupShell();
 })();

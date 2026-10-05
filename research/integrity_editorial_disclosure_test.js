@@ -7,6 +7,8 @@ class Node {
   get textContent() { return this._text + this.children.map(child => child.textContent).join(''); }
   setAttribute(key, value) { this.attributes[key] = String(value); }
   getAttribute(key) { return this.attributes[key]; }
+  get childNodes() { return this.children; }
+  contains(node) { return node === this || this.children.some(child => child.contains(node)); }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this._text = ''; this.children = children; }
   addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); }
@@ -44,6 +46,15 @@ const dialog = document.body.querySelectorAll('dialog')[0];
 assert(dialog.open, 'Advanced must open directly from Basic');
 assert(dialog.textContent.includes('Unavailable'), 'Advanced missing source must remain typed');
 ui.closeReader(); assert.strictEqual(document.activeElement, advanced, 'Close must restore focus to its trigger');
+const nestedTrigger = document.createElement('button'); nestedTrigger.textContent = 'Inspect source';
+ui.openReader({title:'Outer detail',content:nestedTrigger},advanced);
+ui.openReader({title:'Inner evidence',entries:[['Exact value',0]]},nestedTrigger);
+assert(dialog.textContent.includes('Back to previous details'), 'Nested evidence must have a return path');
+dialog.querySelectorAll('button').find(x=>x.textContent==='Back to previous details').click();
+assert(dialog.textContent.includes('Outer detail')); assert.strictEqual(document.activeElement,nestedTrigger);
+ui.closeReader(); assert.strictEqual(document.activeElement,advanced,'Close returns to outer trigger');
+assert.strictEqual(table.querySelectorAll('table')[0].getAttribute('role'),'table');
+assert.strictEqual(table.querySelectorAll('th')[0].getAttribute('role'),'columnheader');
 buttons[0].click(); advanced.click(); ui.clearDisclosures();
 assert(!dialog.open && rows.every(row => row.hidden), 'Context reset must clear both disclosure levels');
 assert.strictEqual(buttons[0].getAttribute('aria-expanded'), 'false');

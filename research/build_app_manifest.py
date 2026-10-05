@@ -52,6 +52,8 @@ COMPONENTS={
  'league_context':'app/league-context.js',
  'decision_ui':'app/decision-ui.js',
  'decision_ui_css':'app/decision-ui.css',
+ 'editorial_journey_browser_qa':'research/editorial_journey_browser_qa.js',
+ 'editorial_journey_contract':'docs/audits/EDITORIAL_UI_PHASE07.md',
  'editorial_reports_workspace':'app/ui/reports-workspace.js',
  'editorial_reports_builder':'tools/build_report_ui_evidence.py',
  'editorial_reports_test':'research/integrity_editorial_reports_test.py',
