@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('assert'),fs=require('fs'),vm=require('vm');
+const html=fs.readFileSync('index.html','utf8'),start=html.indexOf('async function loadDraftIntel(){'),end=html.indexOf('\nfunction ',start+1),source=html.slice(start,end);
+function fixture(){const pending=[],receipts=[],queued=[],state={league:{league_id:'a',season:'2026'},activeTab:'draft',draftIntel:{selectedDraftId:'d',picks:[],loading:false}};const window={render(){},FIELiveDraftWorkspace:{beginRefresh:(l,id)=>({leagueId:l.league_id,selectedId:id}),readProvider:url=>new Promise((resolve,reject)=>pending.push({url,resolve,reject})),completeRefresh:t=>receipts.push(t)}};const c={state,window,queueMicrotask:fn=>queued.push(fn),renderDraftAssistant(){},populateDraftControls(){},populateTradePicks(){},fetchJSON(){throw Error('unexpected cached read');}};vm.createContext(c);vm.runInContext(source,c);return {c,state,pending,receipts,queued};}
+const tick=()=>new Promise(r=>setImmediate(r));
+(async()=>{
+ let f=fixture(),p=f.c.loadDraftIntel();f.pending[0].resolve([{draft_id:'d'}]);await tick();assert.equal(f.pending.length,4);f.pending[1].resolve({draft_id:'d'});f.pending[2].resolve([{pick_no:1,player_id:'p'}]);f.pending[3].resolve([]);await p;assert.equal(f.state.draftIntel.picks[0].player_id,'p');assert.equal(f.receipts.length,1);assert(!f.state.draftIntel.loading);
+ f=fixture();p=f.c.loadDraftIntel();f.pending[0].resolve([{draft_id:'d'}]);await tick();f.state.league={league_id:'b',season:'2026'};const newer={selectedDraftId:'b',loading:true,picks:[{player_id:'keep'}]};f.state.draftIntel=newer;f.pending[1].resolve({draft_id:'d'});f.pending[2].resolve([{player_id:'old'}]);f.pending[3].resolve([]);await p;assert.equal(newer.picks[0].player_id,'keep');assert(newer.loading);assert.equal(f.receipts.length,0);
+ f=fixture();p=f.c.loadDraftIntel();f.pending[0].resolve([{draft_id:'d'}]);await tick();f.state.draftIntel.selectedDraftId='new';f.pending[1].resolve({draft_id:'d'});f.pending[2].resolve([{player_id:'old'}]);f.pending[3].resolve([]);await p;assert.equal(f.state.draftIntel.picks.length,0);assert.equal(f.queued.length,1);assert.equal(f.receipts.length,0);
+ console.log('Editorial atomic draft refresh / late response contract PASS');
+})().catch(e=>{console.error(e);process.exitCode=1;});

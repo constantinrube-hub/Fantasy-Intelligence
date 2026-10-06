@@ -1,0 +1,15 @@
+'use strict';
+const assert=require('assert'),vm=require('vm'),fs=require('fs');
+const state={league:{league_id:'a',season:'2026'},selectedRoster:1,rosters:[{roster_id:1,owner_id:'one'}],draftIntel:{loaded:true,loading:false,error:null,selectedDraftId:'d',draft:{draft_id:'d',league_id:'a',season:'2026',status:'drafting',slot_to_roster_id:{1:1}},picks:[{pick_no:1,player_id:'p',draft_slot:1,roster_id:1}],tradedPicks:[]}};
+let opts;const window={state,FIEDataClient:{json:(url,o)=>{opts=o;return Promise.resolve([]);}},FIEDraftSequence:{validateObserved:()=>({ok:true}),sequence:()=>[{slot:1},{slot:1},{slot:1}]}};
+vm.runInNewContext(fs.readFileSync('app/ui/live-draft-workspace.js','utf8'),{window,document:{getElementById:()=>null},console,Date});const u=window.FIELiveDraftWorkspace,i=state.draftIntel;
+assert(u.claims('draftassistant'));assert(!u.claims('all'));assert(!u.health().ready);assert.match(u.health().reason,/Refresh required/);
+const token=u.beginRefresh(state.league,'d');u.readProvider('fixture',token);assert.equal(opts.cache,'no-store');assert(u.completeRefresh(token,1000));assert(u.health(state,1000).ready);assert.equal(u.health(state,1000).current,2);assert(!u.health(state,31001).ready);
+i.picks.push({pick_no:3,player_id:'q'});assert(!u.ledger().ok);assert(!u.health(state,1000).ready);i.picks.pop();i.picks.push({pick_no:2,player_id:'p'});assert(!u.ledger().ok);i.picks.pop();
+i.picks[0].roster_id=2;assert(!u.ledger().ok);i.picks[0].roster_id=1;delete i.picks[0].draft_slot;assert(!u.ledger().ok);i.picks[0].draft_slot=1;
+i.draft.status='paused';u.completeRefresh(token,1000);assert.match(u.health(state,1000).reason,/paused/);i.draft.status='drafting';
+i.tradedPicks=[{season:'2026'}];u.completeRefresh(token,1000);assert.match(u.health(state,1000).reason,/ownership/);i.tradedPicks=[{season:'2027'}];u.completeRefresh(token,1000);assert(u.health(state,1000).ready);
+i.loading=true;assert(!u.health(state,1000).bound);i.loading=false;i.error='failed';assert(!u.health(state,1000).bound);i.error=null;
+i.draft.league_id='b';assert(!u.completeRefresh(token));assert(!u.health().bound);i.draft.league_id='a';i.draft.season='2025';assert(!u.health().bound);i.draft.season='2026';i.selectedDraftId='other';assert(!u.health().bound);i.selectedDraftId='d';
+i.draft.slot_to_roster_id={};u.completeRefresh(token,1000);assert.match(u.health(state,1000).reason,/slot unknown/);i.draft.status='complete';assert(!u.claims('draft'));
+console.log('Editorial live draft scope, freshness and ledger contract PASS');
