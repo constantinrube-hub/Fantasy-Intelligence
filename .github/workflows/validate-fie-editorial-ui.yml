@@ -41,6 +41,7 @@ jobs:
           node research/integrity_editorial_draft_preparation_test.js
           node research/integrity_editorial_live_draft_test.js
           node research/integrity_editorial_draft_refresh_test.js
+          node research/integrity_editorial_draft_review_test.js
           python research/integrity_editorial_waiver_evidence_test.py
           python research/integrity_editorial_reports_test.py
       - name: Install browser QA dependency
@@ -96,6 +97,11 @@ jobs:
           FIE_UI_PLAYWRIGHT: ${{ runner.temp }}/fie-ui-qa/node_modules/playwright
           FIE_UI_QA_OUTPUT: ${{ runner.temp }}/editorial-ui-qa/live-draft
         run: node candidate/research/editorial_live_draft_browser_qa.js candidate/dist
+      - name: Post-draft review populated fixture review
+        env:
+          FIE_UI_PLAYWRIGHT: ${{ runner.temp }}/fie-ui-qa/node_modules/playwright
+          FIE_UI_QA_OUTPUT: ${{ runner.temp }}/editorial-ui-qa/draft-review
+        run: node candidate/research/editorial_draft_review_browser_qa.js candidate/dist
       - uses: actions/upload-artifact@v4
         if: always()
         with:

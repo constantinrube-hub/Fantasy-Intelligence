@@ -345,4 +345,15 @@ html[data-fie-tab="draftassistant"] #draftAssistantStatus,html[data-fie-tab="val
 .fie-live-status{border-left:3px solid #b28a36;padding:10px 12px;background:#fbf7ec}
 .fie-live-draft-active #mainArea>.table-card{display:none!important}
 .fie-live-draft-active #draftAssistantStatus,.fie-live-draft-active #valueFinderStatus{display:none}
+.fie-draft-review{display:grid;gap:14px;min-width:0}
+.fie-draft-review>.btn{justify-self:start;max-width:100%;white-space:normal}
+.fie-draft-review caption{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
+.fie-draft-review .fie-disclosure{border-top-color:var(--fie-draft,#b28a36)}
+.fie-draft-review-active .draft-history-toolbar[hidden]{display:none!important}
+.fie-draft-review-active #draftAnalysisStatus{background:#fbf7ec;color:var(--ink,#29271f);border:1px solid #e2d6b9;border-left:3px solid #b28a36}
+.fie-review-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0}
+.fie-review-facts>div{padding:12px;background:#fbf7ec;border:1px solid #e2d6b9;border-radius:8px;min-width:0}
+.fie-review-facts dt{font-size:12px;color:var(--muted)}
+.fie-review-facts dd{margin:5px 0 0;font-weight:700;overflow-wrap:anywhere}
+@media(max-width:700px){.fie-review-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.fie-live-context{grid-template-columns:repeat(2,minmax(0,1fr))}}
