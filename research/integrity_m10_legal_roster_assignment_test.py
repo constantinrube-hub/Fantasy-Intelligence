@@ -47,16 +47,21 @@ def mapping_checks() -> None:
     username = portfolio["sleeper_username"]
     live_identity = repository_identity()
     league_id = "1387106650413887488"  # Complete mapping plus K/D/ST exclusions.
-    ready = _league_roster_state(ROOT, league_id, registry[league_id], live_identity, season=2026, week=4, username=username)
+    # Bind repository-backed fixtures to their snapshots, so weekly rollover
+    # exercises the guards without turning a valid refresh into a failure.
+    current = current_snapshot(ROOT / f"data/research/leagues/{league_id}/current/milestone5_current.json", ROOT)
+    season, week = int(current["season"]), int(current["week"])
+    assert season > 0 and week > 0
+    ready = _league_roster_state(ROOT, league_id, registry[league_id], live_identity, season=season, week=week, username=username)
     assert ready["complete"] is True and ready["legal_canonical_player_ids"]
     assert ready["excluded_non_m10_starter_slots"] == ["K", "DEF"]
     assert ready["m10_roster_positions"] == ["QB", "RB", "RB", "WR", "WR", "TE", "FLEX"]
     assert len(ready["runtime_contract_sha256"]) == 64
 
-    stale = _league_roster_state(ROOT, league_id, registry[league_id], live_identity, season=2026, week=5, username=username)
+    stale = _league_roster_state(ROOT, league_id, registry[league_id], live_identity, season=season, week=week + 1, username=username)
     assert stale["blocker"] == "CURRENT_SNAPSHOT_SEASON_WEEK_MISMATCH"
     drifted = {**registry[league_id], "profile_fingerprint": "0" * 64}
-    drift = _league_roster_state(ROOT, league_id, drifted, live_identity, season=2026, week=4, username=username)
+    drift = _league_roster_state(ROOT, league_id, drifted, live_identity, season=season, week=week, username=username)
     assert drift["blocker"] == "PROFILE_BINDING_MISMATCH_AT_CUTOFF"
     # Remove one offensive binding, not a deliberately excluded K/D/ST row.
     missing_id = next(
@@ -65,11 +70,12 @@ def mapping_checks() -> None:
         if str(row.get("canonical_player_id")) in set(ready["legal_canonical_player_ids"])
     )
     missing = {"players": [row for row in live_identity["players"] if normalize_sleeper_id(row.get("sleeper_id")) != missing_id]}
-    unresolved = _league_roster_state(ROOT, league_id, registry[league_id], missing, season=2026, week=4, username=username)
+    unresolved = _league_roster_state(ROOT, league_id, registry[league_id], missing, season=season, week=week, username=username)
     assert unresolved["blocker"] == "M10_ROSTER_IDENTITY_UNRESOLVED_AT_CUTOFF"
 
     empty_id = "1400561646463672320"
-    empty = _league_roster_state(ROOT, empty_id, registry[empty_id], live_identity, season=2026, week=4, username=username)
+    empty_current = current_snapshot(ROOT / f"data/research/leagues/{empty_id}/current/milestone5_current.json", ROOT)
+    empty = _league_roster_state(ROOT, empty_id, registry[empty_id], live_identity, season=int(empty_current["season"]), week=int(empty_current["week"]), username=username)
     assert empty["blocker"] == "MANAGED_ROSTER_EMPTY_AT_CUTOFF"
 
 

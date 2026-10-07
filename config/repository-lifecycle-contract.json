@@ -9,6 +9,7 @@
     {"path": "docs/current/DEPLOYMENT.md", "role": "current deployment guide"},
     {"path": "docs/current/MODEL_GOVERNANCE.md", "role": "current model governance"},
     {"path": "docs/current/TESTING.md", "role": "current validation guide"},
+    {"path": "docs/current/WEEKLY_OPERATIONS.md", "role": "current weekly orchestration and recovery guide"},
     {"path": "docs/current/SECURITY.md", "role": "current security guide"},
     {"path": "docs/current/RELEASE_CHECKLIST.md", "role": "current release checklist"}
   ],
@@ -47,8 +48,6 @@
   "active_controlled_workflows": [],
   "scheduled_workflows": [
     "build-fie-current.yml",
-    "build-fie-window1c-weekly-actions.yml",
-    "build-fie-window1d-optimal-waiver.yml",
     "build-fie-window2a-trench-evidence.yml",
     "capture-fie-availability.yml",
     "capture-fie-m10-prospective.yml",
@@ -62,6 +61,10 @@
     "report-fie-workflow-usability.yml",
     "control-fie-workflow-calendar.yml"
   ],
+  "completion_triggered_workflows": {
+    "build-fie-window1c-weekly-actions.yml": "Refresh FIE Current Season",
+    "build-fie-window1d-optimal-waiver.yml": "Build FIE Window 1C Weekly Actions"
+  },
   "tranche4_disposition": {
     "standalone_package": false,
     "validated_boundary_head": "e7ec67c0cb0d7fd791201d3b2cb49b5600d7ba47",

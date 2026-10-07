@@ -92,6 +92,7 @@ def classify_emission(
     policy_allowed: str | bool | None = None, policy_reason: str | None = None,
     root: Path = ROOT, initial_sha: str | None = None,
     target_file: Path | None = None, completed_file: Path | None = None,
+    dependency_file: Path | None = None,
 ) -> tuple[str, list[str], dict[str, Any]]:
     status = str(job_status or "unknown").lower()
     if status != "success":
@@ -112,6 +113,25 @@ def classify_emission(
         if set(completed) != set(targets):
             return "PARTIAL", ["CURRENT_REFRESH_PORTFOLIO_INCOMPLETE"], detail
         return "USABLE", ["CURRENT_REFRESH_ALL_TARGETS_COMPLETE"], detail
+
+    if adapter == "weekly-pipeline":
+        if not dependency_file or not dependency_file.is_file():
+            return "BLOCKED", ["WEEKLY_PIPELINE_INPUT_RECEIPT_MISSING"], {}
+        dependency = read_json(dependency_file)
+        if dependency.get("schema") != "fie-weekly-pipeline-inputs-v1":
+            return "BLOCKED", ["WEEKLY_PIPELINE_INPUT_RECEIPT_INVALID"], {}
+        target = dependency.get("target") or {}
+        detail = {"season": target.get("season"), "week": target.get("week"),
+                  "league_count": dependency.get("league_count"), "input_commit": dependency.get("input_commit"),
+                  "upstream": dependency.get("upstream"), "source_refresh": dependency.get("source_refresh")}
+        if dependency.get("status") in {"BLOCKED", "NO_DUE"}:
+            state = "BLOCKED" if dependency["status"] == "BLOCKED" else "NO_OP"
+            return state, dependency.get("reason_codes") or ["WEEKLY_PIPELINE_INPUT_NOT_READY"], detail
+        if dependency.get("status") != "READY":
+            return "BLOCKED", ["WEEKLY_PIPELINE_INPUT_STATUS_UNKNOWN"], detail
+        state, reasons, report_detail = classify_emission(
+            adapter="readiness-index", job_status=job_status, source_file=source_file, root=root)
+        return state, reasons, {**detail, **report_detail}
 
     if adapter == "readiness-index":
         if not source_file or not source_file.is_file():
@@ -431,9 +451,10 @@ def main(argv: list[str] | None = None) -> int:
     emit.add_argument("--workflow-name", required=True)
     emit.add_argument("--run-id", required=True)
     emit.add_argument("--event", required=True)
-    emit.add_argument("--adapter", required=True, choices=("current-refresh", "readiness-index", "waiver-index", "availability-index", "checkpoint-json", "commit", "policy-commit"))
+    emit.add_argument("--adapter", required=True, choices=("current-refresh", "readiness-index", "weekly-pipeline", "waiver-index", "availability-index", "checkpoint-json", "commit", "policy-commit"))
     emit.add_argument("--job-status", required=True)
     emit.add_argument("--source-file", type=Path)
+    emit.add_argument("--dependency-file", type=Path)
     emit.add_argument("--policy-allowed")
     emit.add_argument("--policy-reason")
     emit.add_argument("--initial-sha")
@@ -454,6 +475,7 @@ def main(argv: list[str] | None = None) -> int:
             adapter=args.adapter, job_status=args.job_status, source_file=args.source_file,
             policy_allowed=args.policy_allowed, policy_reason=args.policy_reason,
             initial_sha=args.initial_sha, target_file=args.target_file, completed_file=args.completed_file,
+            dependency_file=args.dependency_file,
         )
         summary = make_summary(
             workflow_path=args.workflow_path, workflow_name=args.workflow_name, run_id=args.run_id,

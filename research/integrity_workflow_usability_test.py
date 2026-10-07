@@ -31,7 +31,7 @@ def test_contract_and_adapters() -> None:
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     assert config["schema"] == "fie-workflow-usability-monitor-v1"
     assert tuple(config["states"]) == STATES
-    assert config["automatic_events"] == ["schedule"]
+    assert config["automatic_events"] == ["schedule", "workflow_run"]
     paths = [row["path"] for row in config["workflows"]]
     assert len(paths) == len(set(paths)) == 13
 

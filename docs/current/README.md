@@ -11,6 +11,7 @@ This directory contains the current operational and architectural documentation 
 - [`DEPLOYMENT.md`](DEPLOYMENT.md) — current build and Cloudflare deployment procedure
 - [`MODEL_GOVERNANCE.md`](MODEL_GOVERNANCE.md) — promotion and fail-closed behavior
 - [`TESTING.md`](TESTING.md) — validation tiers and release gates
+- [`WEEKLY_OPERATIONS.md`](WEEKLY_OPERATIONS.md) — ordered weekly pipeline, evidence receipts and recovery
 - [`SECURITY.md`](SECURITY.md) — security and privacy posture
 - [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) — release operator checklist
 
