@@ -29,7 +29,7 @@ from typing import Any, Iterable
 
 from workflow_decision_context import (
     default_season, input_readiness, projection_coverage, readiness_markdown,
-    resolve_target, summarize_readiness, write_output_index,
+    resolve_target, summarize_readiness, write_output_index, operational_lifecycle,
     waiver_projection_diagnostics, waiver_diagnostics_markdown,
 )
 
@@ -629,6 +629,12 @@ def build_league_report(
     current_path = league_root / "current/milestone5_current.json"
     manifest_path = league_root / "app/manifest.json"
 
+    lifecycle = operational_lifecycle(root, lid, target_season, target_week)
+    if not lifecycle["operational"]:
+        report = blocker_report(lid, league_name, fmt, target_season, target_week, lifecycle["status"])
+        report["lifecycle"] = lifecycle
+        return report
+
     try:
         profile = read_json(profile_path, {}) or {}
         if not current_path.is_file():
@@ -798,8 +804,10 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
         "## Portfolio summary",
         "",
         f"- Enabled leagues: **{report.get('enabled_league_count')}**",
-        f"- Full report evidence: **{report.get('ready_count')}**",
-        f"- Blocked/partial evidence: **{report.get('blocked_count')}**",
+        f"- Ready evidence within reported capabilities: **{report.get('ready_count')}**",
+        f"- Partial evidence: **{report.get('partial_count', 0)}**",
+        f"- Blocked evidence: **{report.get('blocked_count')}**",
+        f"- Unknown evidence: **{report.get('unknown_count', 0)}**",
         f"- Not applicable: **{report.get('not_applicable_count', 0)}**",
         f"- Leagues with alerts (inspect execution guards): **{report.get('action_required_count')}**",
         "",
@@ -918,7 +926,9 @@ def build_portfolio(
         "managed_username": managed_username,
         "enabled_league_count": len(reports),
         "ready_count": readiness["counts"]["ready"],
-        "blocked_count": readiness["counts"]["blocked"] + readiness["counts"]["partial"] + readiness["counts"]["unknown"],
+        "partial_count": readiness["counts"]["partial"],
+        "blocked_count": readiness["counts"]["blocked"],
+        "unknown_count": readiness["counts"]["unknown"],
         "not_applicable_count": readiness["counts"]["not_applicable"],
         "action_required_count": len(action_required),
         "status_counts": dict(sorted(Counter(str(x.get("status") or "UNKNOWN") for x in reports).items())),
@@ -981,7 +991,7 @@ def main(argv: list[str] | None = None) -> int:
         index_path = Path(args.output_index)
         write_output_index(index_path if index_path.is_absolute() else root / index_path,
                            season=report["season"], report_json=json_out, report_markdown=md_out)
-    print(f"Window 1C weekly actions: season={report['season']} week={report['week']} leagues={report['enabled_league_count']} ready={report['ready_count']} blocked={report['blocked_count']} actions={report['action_required_count']}")
+    print(f"Window 1C weekly actions: season={report['season']} week={report['week']} leagues={report['enabled_league_count']} ready={report['ready_count']} partial={report['partial_count']} blocked={report['blocked_count']} unknown={report['unknown_count']} actions={report['action_required_count']}")
     print(json_out)
     print(md_out)
     return 0

@@ -24,7 +24,7 @@ from typing import Any, Iterable
 
 from workflow_decision_context import (
     default_season, input_readiness, projection_coverage, readiness_markdown,
-    resolve_target, summarize_readiness, write_output_index,
+    resolve_target, summarize_readiness, write_output_index, operational_lifecycle,
     waiver_projection_diagnostics, waiver_diagnostics_markdown,
 )
 
@@ -1283,12 +1283,17 @@ def build_portfolio(
             })
             continue
         live_league, rosters, users = live_state[lid]
-        plan = plan_league(
+        lifecycle = operational_lifecycle(root, lid, season, target_week)
+        plan = ({"schema": SCHEMA_LEAGUE, "league_id": lid, "league_name": profile.get("league_name"),
+                 "format": profile.get("format"), "season": season, "week": target_week,
+                 "status": lifecycle["status"], "lifecycle": lifecycle, "recommendations": [],
+                 "research_only": True, "production_model_unchanged": "M9"}
+                if not lifecycle["operational"] else plan_league(
             league_id=lid, profile=profile, current=currents[lid], live_league=live_league,
             rosters=rosters, users=users, username=username, all_history=all_observations,
             target_season=season, target_week=target_week, max_current_age_hours=max_current_age_hours,
             now=as_of,
-        )
+        ))
         hist = histories.get(lid) or {}
         target_ledger = [
             row for row in (hist.get("bid_ledger") or [])
@@ -1320,6 +1325,7 @@ def build_portfolio(
         )
         plan["input_readiness"]["projection_coverage"] = projection_coverage(currents[lid]) if lid in currents else None
         plan["input_readiness"]["waiver_projection_diagnostics"] = waiver_projection_diagnostics(root, lid, currents[lid]) if lid in currents else None
+    leagues.sort(key=lambda plan: 0 if str(plan.get("format")) in CHOPPED_FORMATS else 1)
     readiness = summarize_readiness(leagues)
     counts = Counter(str(x.get("status")) for x in leagues)
     generated = utc_now()
