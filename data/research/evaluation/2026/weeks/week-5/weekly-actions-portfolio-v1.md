@@ -26,7 +26,7 @@ Portfolio readiness is not proof of model activation, complete position coverage
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.636 h**.
+Input week: **4**; target: **5**; snapshot age: **34.209 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -35,7 +35,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.595 h**.
+Input week: **4**; target: **5**; snapshot age: **34.168 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **301**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -44,7 +44,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.554 h**.
+Input week: **4**; target: **5**; snapshot age: **34.127 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **433**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -53,7 +53,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.513 h**.
+Input week: **4**; target: **5**; snapshot age: **34.086 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -62,7 +62,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.474 h**.
+Input week: **4**; target: **5**; snapshot age: **34.047 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **433**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -71,7 +71,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.433 h**.
+Input week: **4**; target: **5**; snapshot age: **34.006 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **433**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -80,7 +80,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.393 h**.
+Input week: **4**; target: **5**; snapshot age: **33.966 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -89,7 +89,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.353 h**.
+Input week: **4**; target: **5**; snapshot age: **33.926 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -98,7 +98,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.312 h**.
+Input week: **4**; target: **5**; snapshot age: **33.885 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -107,7 +107,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.272 h**.
+Input week: **4**; target: **5**; snapshot age: **33.845 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -116,7 +116,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.233 h**.
+Input week: **4**; target: **5**; snapshot age: **33.806 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -125,7 +125,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.194 h**.
+Input week: **4**; target: **5**; snapshot age: **33.767 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -134,7 +134,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.154 h**.
+Input week: **4**; target: **5**; snapshot age: **33.727 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -143,7 +143,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.115 h**.
+Input week: **4**; target: **5**; snapshot age: **33.688 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -152,7 +152,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.073 h**.
+Input week: **4**; target: **5**; snapshot age: **33.646 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **116**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -161,7 +161,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **15.033 h**.
+Input week: **4**; target: **5**; snapshot age: **33.606 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **433**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -170,7 +170,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **14.993 h**.
+Input week: **4**; target: **5**; snapshot age: **33.566 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **301**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -179,7 +179,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **14.953 h**.
+Input week: **4**; target: **5**; snapshot age: **33.526 h**.
 Governed eligible rows — weekly: **397**; next-three-week waiver: **529**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -188,7 +188,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **14.912 h**.
+Input week: **4**; target: **5**; snapshot age: **33.485 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **301**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -197,7 +197,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **14.871 h**.
+Input week: **4**; target: **5**; snapshot age: **33.444 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **433**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -206,7 +206,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **14.83 h**.
+Input week: **4**; target: **5**; snapshot age: **33.403 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **301**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -215,7 +215,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **14.79 h**.
+Input week: **4**; target: **5**; snapshot age: **33.363 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **301**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
@@ -224,7 +224,7 @@ Blocked: `BLOCKED_WEEK_MISMATCH`
 
 Status: **BLOCKED_WEEK_MISMATCH**
 
-Input week: **4**; target: **5**; snapshot age: **14.75 h**.
+Input week: **4**; target: **5**; snapshot age: **33.323 h**.
 Governed eligible rows — weekly: **301**; next-three-week waiver: **301**.
 
 Blocked: `BLOCKED_WEEK_MISMATCH`
