@@ -1,6 +1,6 @@
 # FIE Window 1D Waiver Plan · Week 5
 
-Generated: `2026-10-07T23:11:07.083245+00:00`
+Generated: `2026-10-07T23:59:39.282361+00:00`
 
 Research-only decision support. M9 production and canonical rankings are unchanged.
 
@@ -8,7 +8,9 @@ Research-only decision support. M9 production and canonical rankings are unchang
 
 Target basis: `EXPLICIT_OPERATOR_WEEK`
 
-Evidence status: **PARTIAL** — ready: 1; partial: 0; blocked: 20; not_applicable: 2; unknown: 0
+Evidence status: **PARTIAL** — ready: 0; partial: 1; blocked: 19; not_applicable: 3; unknown: 0
+
+Offensive waiver coverage: `{'NO_ELIGIBLE_ROWS': 23}`
 
 Lineup capabilities: `{}`
 Lineup execution context: `{}`
@@ -16,27 +18,9 @@ Waiver watchlist capabilities: `{}`
 
 Portfolio readiness is not proof of model activation, complete position coverage, or executable lineup changes; inspect the separate capability statuses.
 
-### Stoned Lack Dynasty 29 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
-
-Input week: **5**; target: **5**; snapshot age: **0.545 h**.
-Governed waiver eligible rows: **0**.
-
-Offensive waiver coverage (source rows; current local gate diagnostics):
-
-| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
-|---|---:|---|---|
-| QB | 0 | fum_rec_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| RB | 0 | fum_rec_td, kr_yd, pr_yd, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| WR | 0 | fum_rec_td, kr_yd, pr_yd, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| TE | 0 | fum_rec_td, kr_yd, pr_yd, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-
-Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
-
-No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
-
 ### Chopped - Drive 🏉 Football League · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.524 h**.
+Input week: **5**; target: **5**; snapshot age: **1.343 h**.
 Governed waiver eligible rows: **330**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -69,9 +53,174 @@ Only claims exposed by Sleeper are shown. Missing claims and private bids remain
 
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
+### 🪓 MinusPPR Knockout · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
+
+Input week: **5**; target: **5**; snapshot age: **1.073 h**.
+Governed waiver eligible rows: **121**.
+
+Offensive waiver coverage (source rows; current local gate diagnostics):
+
+| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
+|---|---:|---|---|
+| QB | 0 | fum, fum_rec_td, pass_sack | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+| RB | 0 | fum, fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+| WR | 0 | fum, fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| TE | 0 | fum, fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+
+Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Michael Wilson | — | — | 50.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
+| Sam LaPorta | — | — | 70.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
+| Saquon Barkley | — | — | 5.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
+| Josh Allen | — | — | 55.0 · Davidian, 50.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
+| Jaylen Waddle | — | — | 5.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
+| Parker Washington | 200.0 · JaCKDaNiiELs | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
+No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
+
+### Guillotine - last team standing · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
+
+Input week: **5**; target: **5**; snapshot age: **1.033 h**.
+Governed waiver eligible rows: **330**.
+
+Offensive waiver coverage (source rows; current local gate diagnostics):
+
+| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
+|---|---:|---|---|
+| QB | 0 | fum_rec_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+
+Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
+
+### The Hunger Games · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
+
+Input week: **5**; target: **5**; snapshot age: **0.994 h**.
+Governed waiver eligible rows: **330**.
+
+Offensive waiver coverage (source rows; current local gate diagnostics):
+
+| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
+|---|---:|---|---|
+| QB | 0 | fum_rec_td, pass_int_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+
+Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Ladd McConkey | — | — | 18.0 · Lieni, 26.0 · Lieni | FAILED_CLAIMS_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
+No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
+
+### Ultimate ITN Chopped League · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
+
+Input week: **5**; target: **5**; snapshot age: **0.953 h**.
+Governed waiver eligible rows: **330**.
+
+Offensive waiver coverage (source rows; current local gate diagnostics):
+
+| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
+|---|---:|---|---|
+| QB | 0 | fum_rec_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+
+Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
+
+### 🪓 The Final Cut · CHOPPED · NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY
+
+Input week: **5**; target: **5**; snapshot age: **0.932 h**.
+Governed waiver eligible rows: **330**.
+
+Offensive waiver coverage (source rows; current local gate diagnostics):
+
+| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
+|---|---:|---|---|
+| QB | 0 | fum_rec_td, pass_int_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+
+Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+No bid recommendation produced. Reason: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY`
+
+### 🪓 Among Us Guillotine 3 · CHOPPED_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
+
+Input week: **5**; target: **5**; snapshot age: **0.911 h**.
+Governed waiver eligible rows: **330**.
+
+Offensive waiver coverage (source rows; current local gate diagnostics):
+
+| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
+|---|---:|---|---|
+| QB | 0 | fum_rec_td, pass_int_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+
+Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Will Shipley | — | 5.0 (failed) | 0.0 · jere208 | FAILED_CLAIMS_ONLY_OBSERVED |
+| Kaleb Johnson | — | 0.0 (failed) | — | FAILED_CLAIMS_ONLY_OBSERVED |
+| Mike Evans | — | — | 101.0 · Flosch1006, 77.0 · Haze069 | FAILED_CLAIMS_ONLY_OBSERVED |
+| Tyler Allgeier | — | — | 5.0 · jere208 | FAILED_CLAIMS_ONLY_OBSERVED |
+| James Cook | — | — | 262.0 · Haze069, 132.0 · NFLDirk | FAILED_CLAIMS_ONLY_OBSERVED |
+| Brian Robinson | — | 6.0 (failed) | — | FAILED_CLAIMS_ONLY_OBSERVED |
+| Breece Hall | — | — | 82.0 · Haze069 | FAILED_CLAIMS_ONLY_OBSERVED |
+| Keaton Mitchell | 23.0 · T23Perle | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
+No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
+
+### Stoned Lack Dynasty 29 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
+
+Input week: **5**; target: **5**; snapshot age: **1.364 h**.
+Governed waiver eligible rows: **0**.
+
+Offensive waiver coverage (source rows; current local gate diagnostics):
+
+| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
+|---|---:|---|---|
+| QB | 0 | fum_rec_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| RB | 0 | fum_rec_td, kr_yd, pr_yd, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| WR | 0 | fum_rec_td, kr_yd, pr_yd, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
+| TE | 0 | fum_rec_td, kr_yd, pr_yd, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
+
+Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
+
 ### ReDraft – Pro 🎯 XVI Football  · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.504 h**.
+Input week: **5**; target: **5**; snapshot age: **1.323 h**.
 Governed waiver eligible rows: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -100,7 +249,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Dynasty - Prime 💎 XVI Football  · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.484 h**.
+Input week: **5**; target: **5**; snapshot age: **1.303 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -118,7 +267,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### BestBall - Pro 🎖️XVI League · REDRAFT_BESTBALL · NOT_APPLICABLE_ADDS_DISABLED
 
-Input week: **5**; target: **5**; snapshot age: **0.464 h**.
+Input week: **5**; target: **5**; snapshot age: **1.282 h**.
 Governed waiver eligible rows: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -136,7 +285,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ADDS_DISABLED`
 
 ### BestBall - Prime 🏆 XVI League · REDRAFT_BESTBALL · NOT_APPLICABLE_ADDS_DISABLED
 
-Input week: **5**; target: **5**; snapshot age: **0.442 h**.
+Input week: **5**; target: **5**; snapshot age: **1.261 h**.
 Governed waiver eligible rows: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -154,7 +303,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ADDS_DISABLED`
 
 ### Crazy tryhards · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.42 h**.
+Input week: **5**; target: **5**; snapshot age: **1.239 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -172,7 +321,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Genesis Dynasty - sixteen now & for the future · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.398 h**.
+Input week: **5**; target: **5**; snapshot age: **1.217 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -199,7 +348,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack IDP Dynasty 39 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.377 h**.
+Input week: **5**; target: **5**; snapshot age: **1.196 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -230,7 +379,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball Dynasty 4 · DYNASTY_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.356 h**.
+Input week: **5**; target: **5**; snapshot age: **1.175 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -248,7 +397,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Dynasty 30 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.336 h**.
+Input week: **5**; target: **5**; snapshot age: **1.155 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -278,7 +427,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball Dynasty 3 · DYNASTY_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.315 h**.
+Input week: **5**; target: **5**; snapshot age: **1.134 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -312,7 +461,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball 2 · DYNASTY_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.295 h**.
+Input week: **5**; target: **5**; snapshot age: **1.113 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -342,7 +491,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Genesis NFL GM League Dynasty 2025 4 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.276 h**.
+Input week: **5**; target: **5**; snapshot age: **1.095 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -358,41 +507,9 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
-### 🪓 MinusPPR Knockout · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
-
-Input week: **5**; target: **5**; snapshot age: **0.255 h**.
-Governed waiver eligible rows: **121**.
-
-Offensive waiver coverage (source rows; current local gate diagnostics):
-
-| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
-|---|---:|---|---|
-| QB | 0 | fum, fum_rec_td, pass_sack | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-| RB | 0 | fum, fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-| WR | 0 | fum, fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| TE | 0 | fum, fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-
-Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
-
-#### Observed target-week bid ledger
-
-| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
-|---|---|---|---|---|
-| Michael Wilson | — | — | 50.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
-| Sam LaPorta | — | — | 70.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
-| Saquon Barkley | — | — | 5.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
-| Josh Allen | — | — | 55.0 · Davidian, 50.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
-| Jaylen Waddle | — | — | 5.0 · JaCKDaNiiELs | FAILED_CLAIMS_ONLY_OBSERVED |
-| Parker Washington | 200.0 · JaCKDaNiiELs | — | — | WINNER_ONLY_OBSERVED |
-
-Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
-
-
-No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
-
 ### German Football League · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.234 h**.
+Input week: **5**; target: **5**; snapshot age: **1.053 h**.
 Governed waiver eligible rows: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -408,27 +525,9 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
-### Guillotine - last team standing · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
-
-Input week: **5**; target: **5**; snapshot age: **0.214 h**.
-Governed waiver eligible rows: **330**.
-
-Offensive waiver coverage (source rows; current local gate diagnostics):
-
-| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
-|---|---:|---|---|
-| QB | 0 | fum_rec_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-
-Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
-
-No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
-
 ### SLR2026 - Liga 38 · REDRAFT · READY
 
-Input week: **5**; target: **5**; snapshot age: **0.195 h**.
+Input week: **5**; target: **5**; snapshot age: **1.014 h**.
 Governed waiver eligible rows: **562**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -466,36 +565,9 @@ FAAB remaining: **99.0 / 100.0**
 | Cairo Santos | K | 0.3011 | 1 | 1–2 | 0.916667 | MEDIUM |
 | Chase McLaughlin | K | 0.1137 | 1 | 1–1 | 0.916667 | MEDIUM |
 
-### The Hunger Games · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
-
-Input week: **5**; target: **5**; snapshot age: **0.175 h**.
-Governed waiver eligible rows: **330**.
-
-Offensive waiver coverage (source rows; current local gate diagnostics):
-
-| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
-|---|---:|---|---|
-| QB | 0 | fum_rec_td, pass_int_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-
-Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
-
-#### Observed target-week bid ledger
-
-| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
-|---|---|---|---|---|
-| Ladd McConkey | — | — | 18.0 · Lieni, 26.0 · Lieni | FAILED_CLAIMS_ONLY_OBSERVED |
-
-Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
-
-
-No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
-
 ### AEF - FFLeague · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **5**; target: **5**; snapshot age: **0.155 h**.
+Input week: **5**; target: **5**; snapshot age: **0.974 h**.
 Governed waiver eligible rows: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -508,76 +580,6 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 | TE | 0 | fum_rec_td, kr_yd, pr_yd, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
-
-No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
-
-### Ultimate ITN Chopped League · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
-
-Input week: **5**; target: **5**; snapshot age: **0.134 h**.
-Governed waiver eligible rows: **330**.
-
-Offensive waiver coverage (source rows; current local gate diagnostics):
-
-| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
-|---|---:|---|---|
-| QB | 0 | fum_rec_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-
-Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
-
-No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
-
-### 🪓 The Final Cut · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
-
-Input week: **5**; target: **5**; snapshot age: **0.113 h**.
-Governed waiver eligible rows: **330**.
-
-Offensive waiver coverage (source rows; current local gate diagnostics):
-
-| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
-|---|---:|---|---|
-| QB | 0 | fum_rec_td, pass_int_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-
-Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
-
-No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
-
-### 🪓 Among Us Guillotine 3 · CHOPPED_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
-
-Input week: **5**; target: **5**; snapshot age: **0.092 h**.
-Governed waiver eligible rows: **330**.
-
-Offensive waiver coverage (source rows; current local gate diagnostics):
-
-| Position | Eligible with value | Unsupported scoring keys | Diagnostic reasons |
-|---|---:|---|---|
-| QB | 0 | fum_rec_td, pass_int_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| RB | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| WR | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_FORMAT_GATE_OFF |
-| TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
-
-Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
-
-#### Observed target-week bid ledger
-
-| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
-|---|---|---|---|---|
-| Will Shipley | — | 5.0 (failed) | 0.0 · jere208 | FAILED_CLAIMS_ONLY_OBSERVED |
-| Kaleb Johnson | — | 0.0 (failed) | — | FAILED_CLAIMS_ONLY_OBSERVED |
-| Mike Evans | — | — | 101.0 · Flosch1006, 77.0 · Haze069 | FAILED_CLAIMS_ONLY_OBSERVED |
-| Tyler Allgeier | — | — | 5.0 · jere208 | FAILED_CLAIMS_ONLY_OBSERVED |
-| James Cook | — | — | 262.0 · Haze069, 132.0 · NFLDirk | FAILED_CLAIMS_ONLY_OBSERVED |
-| Brian Robinson | — | 6.0 (failed) | — | FAILED_CLAIMS_ONLY_OBSERVED |
-| Breece Hall | — | — | 82.0 · Haze069 | FAILED_CLAIMS_ONLY_OBSERVED |
-| Keaton Mitchell | 23.0 · T23Perle | — | — | WINNER_ONLY_OBSERVED |
-
-Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
-
 
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
