@@ -16,7 +16,7 @@ import window1c_weekly_actions as actions
 import window1d_optimal_waiver as waivers
 from integrity_window1c_weekly_actions_test import league_fixture, setup_root, write
 from integrity_window1d_optimal_waiver_test import current, live, profile, rosters, users
-from workflow_decision_context import default_season, projection_coverage, resolve_target, summarize_readiness, write_output_index, waiver_projection_diagnostics, waiver_diagnostics_markdown, build_waiver_diagnostic_portfolio
+from workflow_decision_context import default_season, projection_coverage, resolve_target, summarize_readiness, write_output_index, waiver_projection_diagnostics, waiver_diagnostics_markdown, build_waiver_diagnostic_portfolio, operational_lifecycle
 
 UTC = timezone.utc
 
@@ -128,6 +128,16 @@ def test_waivers_use_same_target_and_keep_blocked_diagnostics() -> None:
         assert row["status"] == "BLOCKED_CURRENT_WEEK_MISMATCH"
         assert row["input_readiness"]["current_week"] == 2
         assert result["governance"]["target_week_outcome_leakage_allowed"] is False
+        write(root / "config/league-portfolio.json", {"sleeper_username": "C0nstant1n", "leagues": [{"league_id": lid, "lifecycle": {"state": "ELIMINATED_RESEARCH_ONLY", "season": 2026, "effective_week": 4, "source": "operator"}}]})
+        with patch.object(waivers, "live_profile_matches", return_value=(True, "fp", {})), patch.object(waivers, "plan_league", side_effect=AssertionError("Eliminated league reached planner")):
+            result = waivers.build_portfolio(root=root, season=2026, week=4, league_id=None,
+                max_history_seasons=1, max_current_age_hours=36, fetcher=fetcher,
+                as_of=datetime(2026, 9, 29, 12, tzinfo=UTC), schedule_path=source)
+        row = result["leagues"][0]
+        assert row["status"] == "NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY"
+        assert row["recommendations"] == [] and "observed_target_week_bid_ledger" in row
+        assert lid in result.get("history_by_league", {}) or "waiver_history_sha256" in row["source_bindings"]
+
 
 
 def test_scoring_identity_mismatch_blocks_actions() -> None:
@@ -279,8 +289,32 @@ def test_waiver_diagnostic_portfolio_is_read_only() -> None:
         assert build_waiver_diagnostic_portfolio(root)["leagues"][0]["status"] == "BLOCKED_DIAGNOSTIC_INPUT"
 
 
+def test_partial_coverage_and_explicit_lifecycle() -> None:
+    coverage = projection_coverage({"players": [{"position_model": "K", "waiver_activation_eligible": True}]})
+    report = {"status": "READY", "input_readiness": {"projection_coverage": coverage}}
+    summary = summarize_readiness([report])
+    assert summary["counts"]["partial"] == 1 and summary["counts"]["ready"] == 0
+    assert summary["reason_counts"] == {"OFFENSIVE_WAIVER_NO_ELIGIBLE_ROWS": 1}
+    assert report["status"] == "READY", "Capability reporting must not mutate model/decision status"
+    assert summarize_readiness([{**report, "status": "NOT_APPLICABLE_ADDS_DISABLED"}])["counts"]["not_applicable"] == 1
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        setup_root(root)
+        league_fixture(root, "111111")
+        declaration = {"state": "ELIMINATED_RESEARCH_ONLY", "season": 2026, "effective_week": 4, "source": "operator"}
+        write(root / "config/league-portfolio.json", {"sleeper_username": "C0nstant1n", "leagues": [{"league_id": "111111", "lifecycle": declaration}]})
+        assert operational_lifecycle(root, "111111", 2026, 3)["operational"]
+        assert operational_lifecycle(root, "111111", 2027, 4)["operational"]
+        report = actions.build_league_report(root, "111111", {"format": "CHOPPED"}, username="C0nstant1n", as_of=datetime(2026, 10, 1, tzinfo=UTC), target_season=2026, target_week=4)
+        assert report["status"] == "NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY"
+        assert not any(report["actions"].values()), "Eliminated league must not produce empty-slot or transaction alerts"
+        declaration["state"] = "TYPO"
+        write(root / "config/league-portfolio.json", {"leagues": [{"league_id": "111111", "lifecycle": declaration}]})
+        assert operational_lifecycle(root, "111111", 2026, 4)["status"] == "BLOCKED_LIFECYCLE_DECLARATION_INVALID"
+
+
 def main() -> None:
-    tests = [test_schedule_target_boundaries, test_late_game_and_missing_schedule_fail_closed,
+    tests = [test_partial_coverage_and_explicit_lifecycle, test_schedule_target_boundaries, test_late_game_and_missing_schedule_fail_closed,
              test_explicit_historical_week_never_fetches, test_stale_snapshots_do_not_select_actions_week,
              test_waivers_use_same_target_and_keep_blocked_diagnostics, test_scoring_identity_mismatch_blocks_actions,
              test_coverage_categories_and_exact_output_pointer, test_live_profile_uses_canonical_research_contract,

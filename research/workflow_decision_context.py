@@ -134,6 +134,31 @@ def input_readiness(
     }
 
 
+def operational_lifecycle(root: Path, league_id: str, season: int | None, week: int | None) -> dict[str, Any]:
+    """Explicit operator lifecycle; never infer elimination from an empty roster."""
+    path = root / "config/league-portfolio.json"
+    portfolio = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    entries = portfolio.get("leagues") or []
+    row = next((entry for entry in entries if str(entry.get("league_id")) == str(league_id)), {})
+    declaration = row.get("lifecycle")
+    if declaration is None:
+        return {"state": "ACTIVE", "basis": "NO_OPERATOR_RESTRICTION", "operational": True}
+    valid = {"ACTIVE", "ELIMINATED_RESEARCH_ONLY", "COMPLETED", "ARCHIVED", "REFRESH_ONLY", "RETIRED"}
+    if (not isinstance(declaration, dict) or declaration.get("state") not in valid
+            or type(declaration.get("season")) is not int
+            or type(declaration.get("effective_week")) is not int
+            or not 1 <= declaration["effective_week"] <= 18
+            or not declaration.get("source")):
+        return {"state": "UNKNOWN", "operational": False, "status": "BLOCKED_LIFECYCLE_DECLARATION_INVALID"}
+    if season is None or week is None:
+        return {"state": "UNKNOWN", "operational": False, "status": "BLOCKED_LIFECYCLE_TARGET_UNKNOWN"}
+    if season != declaration["season"] or week < declaration["effective_week"]:
+        return {"state": "ACTIVE", "basis": "OUTSIDE_DECLARED_SEASON_WEEK", "operational": True}
+    state = declaration["state"]
+    return {**declaration, "operational": state == "ACTIVE",
+            "status": None if state == "ACTIVE" else "NOT_APPLICABLE_" + state}
+
+
 def projection_coverage(current: dict[str, Any]) -> dict[str, Any]:
     """Report raw model-position row coverage, not deduplicated player counts."""
     positions: dict[str, dict[str, int]] = {}
@@ -145,7 +170,14 @@ def projection_coverage(current: dict[str, Any]) -> dict[str, Any]:
         counts["rows"] += 1
         counts["weekly_eligible_rows"] += bool(row.get("weekly_activation_eligible"))
         counts["waiver_eligible_rows"] += bool(row.get("waiver_activation_eligible"))
-    return {"unit": "source_rows_before_identity_deduplication", "by_model_position": dict(sorted(positions.items()))}
+    offensive = [position for position in ("QB", "RB", "WR", "TE")
+                 if positions.get(position, {}).get("waiver_eligible_rows", 0)]
+    return {"unit": "source_rows_before_identity_deduplication",
+            "by_model_position": dict(sorted(positions.items())),
+            "offensive_waiver_positions_with_eligible_rows": offensive,
+            "offensive_waiver_coverage": "AVAILABLE_ROWS" if len(offensive) == 4
+            else "PARTIAL_ROWS" if offensive else "NO_ELIGIBLE_ROWS",
+            "coverage_note": "Eligible source rows do not prove available players, roster legality, or complete position coverage."}
 
 
 def waiver_projection_diagnostics(root: Path, league_id: str, current: dict[str, Any]) -> dict[str, Any]:
@@ -259,14 +291,20 @@ def summarize_readiness(reports: list[dict[str, Any]]) -> dict[str, Any]:
     execution: Counter[str] = Counter()
     waivers: Counter[str] = Counter()
     reasons: Counter[str] = Counter()
+    offensive_coverage: Counter[str] = Counter()
     for report in reports:
         status = str(report.get("status") or "UNKNOWN")
         actions = report.get("action_status") or {}
+        coverage = ((report.get("input_readiness") or {}).get("projection_coverage")
+                    or (report.get("evidence") or {}).get("projection_coverage") or {})
+        offensive_state = coverage.get("offensive_waiver_coverage", "UNKNOWN")
+        offensive_coverage[offensive_state] += 1
         if status.startswith("NOT_APPLICABLE"):
             category = "not_applicable"
         elif status.startswith("BLOCKED"):
             category = "blocked"
         elif (status.startswith("PARTIAL")
+              or offensive_state in {"NO_ELIGIBLE_ROWS", "PARTIAL_ROWS"}
               or actions.get("waiver_watchlist") in {"WATCH_ONLY_NO_WAIVER_MODEL", "NO_AVAILABLE_EVIDENCE"}
               or any(str(value).startswith("PARTIAL") for value in
                      (actions.get("lineup"), actions.get("waiver_watchlist")))):
@@ -282,6 +320,8 @@ def summarize_readiness(reports: list[dict[str, Any]]) -> dict[str, Any]:
                 reason = next((str(value) for value in (actions.get("waiver_watchlist"), actions.get("lineup"))
                                if str(value).startswith("PARTIAL") or value in
                                {"WATCH_ONLY_NO_WAIVER_MODEL", "NO_AVAILABLE_EVIDENCE"}), status)
+            if category == "partial" and offensive_state in {"NO_ELIGIBLE_ROWS", "PARTIAL_ROWS"} and reason == status:
+                reason = "OFFENSIVE_WAIVER_" + offensive_state
             reasons[reason] += 1
         if actions:
             lineups[str(actions.get("lineup") or "UNKNOWN")] += 1
@@ -300,6 +340,7 @@ def summarize_readiness(reports: list[dict[str, Any]]) -> dict[str, Any]:
         "status": status,
         "counts": {key: counts[key] for key in ("ready", "partial", "blocked", "not_applicable", "unknown")},
         "reason_counts": dict(sorted(reasons.items())),
+        "offensive_waiver_coverage_counts": dict(sorted(offensive_coverage.items())),
         "lineup_status_counts": dict(sorted(lineups.items())),
         "lineup_execution_status_counts": dict(sorted(execution.items())),
         "waiver_watchlist_status_counts": dict(sorted(waivers.items())),
@@ -311,6 +352,8 @@ def readiness_markdown(summary: dict[str, Any]) -> list[str]:
     counts = summary["counts"]
     return [
         f"Evidence status: **{summary['status']}** — " + "; ".join(f"{key}: {value}" for key, value in counts.items()),
+        "",
+        f"Offensive waiver coverage: `{summary.get('offensive_waiver_coverage_counts', {})}`",
         "",
         f"Lineup capabilities: `{summary['lineup_status_counts']}`",
         f"Lineup execution context: `{summary['lineup_execution_status_counts']}`",

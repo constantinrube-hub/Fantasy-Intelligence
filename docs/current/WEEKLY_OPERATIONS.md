@@ -103,3 +103,9 @@ remains the production champion; this change grants no feature/model promotion
 and executes no Sleeper transactions. Weekly report completeness, league
 lifecycle formalization and recommendation/action/outcome evaluation remain
 separate unfinished P0 work.
+
+## Report coverage and league lifecycle
+
+Window 1C reports ready, partial, blocked, unknown and not-applicable counts separately. Partial evidence is not a blocked workflow. Offensive waiver coverage is reported independently from K/D/ST and is based on eligible source rows, not proof of candidate availability or complete position coverage. A successful specialist recommendation does not establish offensive readiness. Model eligibility and recommendation statuses retain their original owners.
+
+Explicit lifecycle declarations live in `config/league-portfolio.json`, scoped to a season and effective week with an evidence source. `ELIMINATED_RESEARCH_ONLY`, `COMPLETED`, `ARCHIVED`, `REFRESH_ONLY` and `RETIRED` suppress operational advice. Missing declarations preserve existing active behavior; malformed declarations block advice. Elimination is never inferred from an empty roster. The Final Cut is research-only from 2026 Week 4 following the user's Week 3 elimination. Window 1D continues to capture its observable bid history and report ledger while skipping the recommendation planner. Current refresh remains enabled. Later seasons require their own explicit lifecycle decision.
