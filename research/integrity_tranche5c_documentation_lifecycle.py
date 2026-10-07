@@ -18,6 +18,7 @@ CANONICAL_DOCS = (
     "docs/current/DEPLOYMENT.md",
     "docs/current/MODEL_GOVERNANCE.md",
     "docs/current/TESTING.md",
+    "docs/current/WEEKLY_OPERATIONS.md",
     "docs/current/SECURITY.md",
     "docs/current/RELEASE_CHECKLIST.md",
 )
@@ -29,6 +30,7 @@ def workflow_flags(path: Path) -> dict[str, bool]:
         "push": bool(re.search(r"(?m)^  push:", text)),
         "schedule": bool(re.search(r"(?m)^  schedule:", text)),
         "dispatch": bool(re.search(r"(?m)^  workflow_dispatch:", text)),
+        "workflow_run": bool(re.search(r"(?m)^  workflow_run:", text)),
     }
 
 
@@ -150,6 +152,13 @@ def main() -> None:
             )
         expected_scheduled = set(contract.get("scheduled_workflows") or [])
         assert set(scheduled) == expected_scheduled, (scheduled, expected_scheduled)
+        completion = contract.get("completion_triggered_workflows") or {}
+        actual_completion = {name for name, flags in workflows.items() if flags["workflow_run"]}
+        assert actual_completion == set(completion), (actual_completion, completion)
+        for name, upstream in completion.items():
+            text = (workflow_dir / name).read_text(encoding="utf-8")
+            assert f'workflows: ["{upstream}"]' in text and "types: [completed]" in text, name
+            assert workflows[name]["dispatch"] and not workflows[name]["schedule"], name
         rules = contract.get("workflow_classification_rules") or []
         unmatched = [
             name

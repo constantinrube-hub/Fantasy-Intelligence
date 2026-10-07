@@ -24,13 +24,14 @@ on:
         required: true
         default: '0.25'
         type: string
-  schedule:
-    - cron: '7 6 * 9-12 2'
-    - cron: '47 12 * 9-12 2'
-    - cron: '7 6 * 9-12 3'
+  workflow_run:
+    workflows: ["Refresh FIE Current Season"]
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: fie-window1c-weekly-actions-${{ github.ref }}
@@ -43,13 +44,14 @@ jobs:
       purpose: weekly_actions
   weekly-actions:
     needs: calendar
-    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
@@ -63,13 +65,36 @@ jobs:
           python research/integrity_window1b_pr2_ownership_test.py
           python research/integrity_15point_completion_test.py
 
-      - name: Build weekly action portfolio
+      - name: Validate weekly pipeline contract
+        run: python research/integrity_weekly_pipeline_readiness_test.py
+
+      - name: Verify published current inputs
+        id: readiness
         shell: bash
         env:
           INPUT_SEASON: ${{ inputs.season }}
           INPUT_WEEK: ${{ inputs.week }}
           INPUT_LEAGUE_ID: ${{ inputs.league_id }}
           INPUT_AS_OF: ${{ inputs.as_of_utc }}
+          INPUT_AGE: ${{ inputs.max_current_age_hours }}
+        run: |
+          set -euo pipefail
+          args=(--stage actions --archive --event-path "$GITHUB_EVENT_PATH" --max-current-age-hours "${INPUT_AGE:-36}")
+          if [ -n "${INPUT_SEASON:-}" ]; then args+=(--season "$INPUT_SEASON"); fi
+          if [ -n "${INPUT_WEEK:-}" ]; then args+=(--week "$INPUT_WEEK"); fi
+          if [ -n "${INPUT_LEAGUE_ID:-}" ]; then args+=(--league-id "$INPUT_LEAGUE_ID"); fi
+          if [ -n "${INPUT_AS_OF:-}" ]; then args+=(--as-of-utc "$INPUT_AS_OF"); fi
+          python research/weekly_pipeline_readiness.py "${args[@]}"
+          cat .cache/fie-weekly-inputs.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build weekly action portfolio
+        if: steps.readiness.outputs.ready == 'true'
+        shell: bash
+        env:
+          INPUT_SEASON: ${{ steps.readiness.outputs.season }}
+          INPUT_WEEK: ${{ steps.readiness.outputs.week }}
+          INPUT_LEAGUE_ID: ${{ steps.readiness.outputs.league_id }}
+          INPUT_AS_OF: ${{ steps.readiness.outputs.as_of_utc }}
           INPUT_DELTA: ${{ inputs.minimum_lineup_delta }}
         run: |
           set -euo pipefail
@@ -82,6 +107,7 @@ jobs:
           python research/window1c_weekly_actions.py "${args[@]}"
 
       - name: Add latest operational report to workflow summary
+        if: steps.readiness.outputs.ready == 'true'
         shell: bash
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
@@ -92,6 +118,7 @@ jobs:
           PY
 
       - name: Commit only Window 1C evaluation outputs
+        if: steps.readiness.outputs.ready == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -99,6 +126,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           SEASON="$(python -c "import json; print(json.load(open('.cache/window1c-output.json'))['season'])")"
           git add "data/research/evaluation/$SEASON"
+          git add "data/operations/weekly-pipeline/$SEASON"
           if git diff --cached --quiet; then
             echo "No Window 1C weekly-action change"
             exit 0
@@ -112,6 +140,14 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Upload verified weekly input receipt
+        if: always() && hashFiles('.cache/fie-weekly-inputs.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-weekly-inputs
+          path: .cache/fie-weekly-inputs.json
+          retention-days: 21
+
       - name: Emit workflow usability evidence
         if: always()
         env:
@@ -121,7 +157,8 @@ jobs:
             --workflow-path .github/workflows/build-fie-window1c-weekly-actions.yml \
             --workflow-name "Build FIE Window 1C Weekly Actions" \
             --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
-            --job-status "$JOB_STATUS" --adapter readiness-index \
+            --job-status "$JOB_STATUS" --adapter weekly-pipeline \
+            --dependency-file .cache/fie-weekly-inputs.json \
             --source-file .cache/window1c-output.json
 
       - name: Upload workflow usability evidence

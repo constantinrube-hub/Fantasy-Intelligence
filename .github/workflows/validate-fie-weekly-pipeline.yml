@@ -1,0 +1,68 @@
+name: Validate FIE Weekly Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['fix/p0-*']
+  pull_request:
+    paths:
+      - '.github/workflows/build-fie-current.yml'
+      - '.github/workflows/build-fie-window1c-weekly-actions.yml'
+      - '.github/workflows/build-fie-window1d-optimal-waiver.yml'
+      - '.github/workflows/validate-fie-weekly-pipeline.yml'
+      - 'research/weekly_pipeline_readiness.py'
+      - 'research/integrity_weekly_pipeline_readiness_test.py'
+      - 'research/integrity_m10_legal_roster_assignment_test.py'
+      - 'research/workflow_usability.py'
+      - 'research/integrity_workflow_usability_test.py'
+      - 'research/integrity_tranche5c_documentation_lifecycle.py'
+      - 'research/release_gate.py'
+      - 'research/build_app_manifest.py'
+      - 'config/repository-lifecycle-contract.json'
+      - 'config/workflow-usability-monitor.json'
+      - 'docs/current/WEEKLY_OPERATIONS.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-weekly-pipeline-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: research/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install research dependencies
+        run: pip install -r research/requirements.txt
+      - name: Validate focused weekly contracts
+        run: |
+          python research/integrity_m10_legal_roster_assignment_test.py
+          python research/integrity_weekly_pipeline_readiness_test.py
+          python research/integrity_workflow_usability_test.py
+          python research/integrity_workflow_season_calendar_test.py
+          python research/integrity_tranche5c_documentation_lifecycle.py --mode target
+      - name: Deterministic personal release and full integrity gate
+        run: python tools/release_build.py --mode personal
+      - name: Upload validation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-weekly-pipeline-validation
+          path: |
+            config/build-manifest.json
+            config/release-gate.json
+            dist/config/build-manifest.json
+          retention-days: 21
