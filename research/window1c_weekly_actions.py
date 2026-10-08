@@ -824,7 +824,8 @@ def markdown_portfolio(report: dict[str, Any]) -> str:
                       f"Governed eligible rows — weekly: **{context.get('weekly_activation_eligible_total')}**; next-three-week waiver: **{context.get('waiver_activation_eligible_total')}**."]
             lines += waiver_diagnostics_markdown(context.get("waiver_projection_diagnostics") or {})
         if league.get("blocker"):
-            lines += [f"", f"Blocked: `{league['blocker'].get('code')}`", ""]
+            label = "Not applicable" if str(league.get("status", "")).startswith("NOT_APPLICABLE") else "Blocked"
+            lines += ["", f"{label}: `{league['blocker'].get('code')}`", ""]
             continue
         action_status = league.get("action_status") or {}
         evidence = league.get("evidence") or {}
