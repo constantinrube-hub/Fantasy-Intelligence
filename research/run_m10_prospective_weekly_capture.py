@@ -11,6 +11,7 @@ from m10_prospective_capture_contract import ROOT, capture_paths, read_json
 from m10_prospective_operational_capture import create_operational_capture, create_operational_missed_capture
 from m10_prospective_source_bundle import create_bundle
 from m10_prospective_weekly_producer import build_weekly_input, validate_raw_envelope
+from preserve_m10_profile_snapshot import preserve
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -39,6 +40,8 @@ def main(argv: list[str] | None = None) -> int:
         assert prepared["status"] in {"CREATED", "WINDOW_NOT_REACHED"}
         if prepared["status"] == "WINDOW_NOT_REACHED":
             print("NO_WRITE_WINDOW_NOT_REACHED"); return 0
+        profile_path = preserve(Path(prepared["manifest"]), root)
+        print(f"M10_STAGE frozen_profile_snapshot {profile_path}", flush=True)
         print("M10_STAGE immutable_capture_and_profile_replay", flush=True)
         result = create_operational_capture(Path(prepared["manifest"]), root)
     finally:

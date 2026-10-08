@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 from capture_m10_prospective_weekly_raw import main as capture_raw
-from m10_prospective_capture_contract import validate_capture
+from m10_prospective_capture_contract import read_json, sha256_file, validate_capture
 from m10_prospective_activation_guard import validate_write_plan
 from run_m10_prospective_weekly_capture import main as run_capture
 
@@ -19,6 +19,9 @@ def main() -> None:
         assert capture_raw(["--fixture", "--output-dir", str(raw)]) == 0
         assert run_capture(["--raw-envelope", str(raw / "raw" / "raw-envelope.json"), "--output-root", str(output)]) == 0
         assert validate_capture(output, 2026, 5, require_fixture=True)["status"] == "CAPTURED"
+        manifest = read_json(output / "forecasts/2026/week_05/capture-manifest.json")
+        profile = output / "scoring-replay/2026/week_05/profile-snapshot.json"
+        assert sha256_file(profile) == next(row["sha256"] for row in manifest["input_lineage"] if row["role"] == "profile_snapshot")
         validate_write_plan("refs/heads/main", ["data/research/prospective/m10/forecasts/2026/week_05/capture-manifest.json", "data/research/prospective/m10/scoring-replay/2026/week_05/scoring-replay.jsonl.gz", "data/research/prospective/m10/decision-traces/2026/week_05/decision-traces.jsonl.gz"])
         try:
             validate_write_plan("refs/heads/main", ["data/research/league_current_snapshots/2026/5/x.json"])
