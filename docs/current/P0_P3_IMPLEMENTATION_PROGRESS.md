@@ -109,3 +109,7 @@ The continuity batch adds explicit stale ages/limits/recovery instructions and r
 ### Seven-product readiness diagnostics
 
 The report bundle now records product-specific source coverage and blocking reasons without changing its seven incomplete product states. Week 4 player performance identifies 16 games, 32 team entries, 1,110 player-game rows, the single unattributed source row, uncertified official finality and missing snap/route source. Week 5 exposure separately reports captured H2H starters and blocked Chopped field scope. Waiver, lineups, D/ST, kicker and postweek outputs expose their own evidence counts and remaining certification gaps. This is P0 observability; the real product validators and prospective Week 5 captures remain outstanding.
+
+### Chopped field capture
+
+Future immutable PR2 captures now carry a distinct Chopped and Chopped Best Ball matchup field observation. The read-only bundle joins submitted starter IDs to the current canonical portfolio and shows field-player counts separate from direct H2H opponents. Old captures remain untouched. Matchup rows cannot certify active survivors or final Best Ball starters; field exposure stays partial and does not inform a lineup or waiver recommendation. The remaining P0 step is an approved, source-bound active-field lifecycle proof before full Chopped coverage can be certified.

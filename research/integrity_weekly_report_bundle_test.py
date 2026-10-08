@@ -86,10 +86,11 @@ def main():
         assert observed['players'][0]['opponent_start_league_count']==1
         assert observed['capture_sha256']==w.digest(frozen)
         assert 'Observed H2H opponent starter exposure' in w.markdown(integrated)
+        assert 'Observed Chopped matchup field' in w.markdown(integrated)
         readiness = integrated['products']['EXPOSURE']['readiness']
         assert readiness['evidence']['submitted_opponent_player_count'] == 1
         assert readiness['evidence']['chopped_field_blocked_count'] == 1
-        assert 'CHOPPED_ACTIVE_FIELD_NOT_CAPTURED' in readiness['blocking_reasons']
+        assert 'CHOPPED_ACTIVE_FIELD_NOT_CERTIFIED' in readiness['blocking_reasons']
         assert all(row['complete'] is False and row['readiness']['certification'] == 'NOT_CERTIFIED' for row in integrated['products'].values())
         original=frozen.read_bytes()
         bad=dict(pr2);bad['generated_at']='2026-10-08T00:40:00Z';pr2_path.write_text(json.dumps(bad))
