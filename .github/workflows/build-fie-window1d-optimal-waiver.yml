@@ -144,6 +144,17 @@ jobs:
           OUTPUT="data/operations/weekly-pipeline/$INPUT_SEASON/week_$(printf '%02d' "$INPUT_WEEK")/evidence-audit-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
           python research/weekly_evidence_audit.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Publish weekly report coverage bundle
+        if: steps.readiness.outputs.ready == 'true'
+        env:
+          INPUT_SEASON: ${{ steps.readiness.outputs.season }}
+          INPUT_WEEK: ${{ steps.readiness.outputs.week }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUTPUT="data/operations/weekly-pipeline/$INPUT_SEASON/week_$(printf '%02d' "$INPUT_WEEK")/report-bundle-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          python research/weekly_report_bundle.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Commit only Window 1D research outputs
         if: steps.readiness.outputs.ready == 'true'
         shell: bash

@@ -29,6 +29,7 @@ def main():
   run([sys.executable,'research/integrity_current_storage_test.py']),
   run([sys.executable,'research/integrity_workflow_decision_context_test.py']),
   run([sys.executable,'research/integrity_weekly_evidence_audit_test.py']),
+  run([sys.executable,'research/integrity_weekly_report_bundle_test.py']),
   run([sys.executable,'research/integrity_workflow_usability_test.py']),
   run([sys.executable,'research/integrity_waiver_capture_reconciliation_test.py']),
   run([sys.executable,'research/integrity_availability_capture_test.py']),

@@ -8,7 +8,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from point_in_time_capture import canonical_bytes
+from point_in_time_capture import canonical_bytes, validate_envelope
+from capture_in_season_pr2_lineup_evidence import AUTOMATIC_CHECKPOINTS, NEW_YORK, SCHEMA as PR2_SCHEMA
 from m10_prospective_capture_contract import capture_paths, validate_capture
 from capture_fie_sunday_paired_checkpoint import (
     checkpoint_decision, paths as sunday_paths, validate_checkpoint,
@@ -80,6 +81,76 @@ def terminal(root: Path, manifest: Path, missed: Path, validator, timing: dict, 
         return {**row, "status": "BLOCKED_INVALID_EVIDENCE", "reason": f"{type(exc).__name__}:{exc}"}
 
 
+def lineup_checkpoints(root: Path, season: int, week: int, games: list[dict], as_of: datetime) -> list[dict]:
+    """Audit immutable PR2 observations without rebinding them to today's roster."""
+    kickoffs = [stamp(game["kickoff_at"]) for game in games]
+    sunday = [dt for dt in kickoffs if dt.astimezone(NEW_YORK).weekday() == 6
+              and 13 <= dt.astimezone(NEW_YORK).hour < 16]
+    anchors = {"PR2_WEEK_OPEN_T6": min(kickoffs),
+               "PR2_SUNDAY_MAIN_T4": min(sunday) if sunday else None}
+    base = root / f"data/research/evaluation/{season}/weeks/week-{week}/lineups/evidence/captures"
+    rows = []
+    for checkpoint, anchor in anchors.items():
+        row = {"checkpoint": checkpoint, "season": season, "week": week}
+        if anchor is None:
+            rows.append({**row, "status": "NOT_APPLICABLE"})
+            continue
+        policy = AUTOMATIC_CHECKPOINTS[checkpoint]
+        opens = anchor - timedelta(hours=policy["opens_hours_before"])
+        closes = anchor - timedelta(hours=policy["closes_hours_before"])
+        row.update(opens_at=opens.isoformat(), closes_at=closes.isoformat(),
+                   status=window_status(as_of, opens, closes))
+        valid, errors = [], []
+        for path in sorted(base.glob("portfolio-*/operational-evidence.json")):
+            try:
+                evidence = json.loads(path.read_text(encoding="utf-8"))
+                if evidence.get("checkpoint_id") != checkpoint:
+                    continue
+                observed = stamp(evidence["captured_at"])
+                if observed > as_of:
+                    continue
+                if not opens <= observed <= closes:
+                    raise ValueError("PR2_CAPTURE_OUTSIDE_CHECKPOINT_WINDOW")
+                if evidence.get("schema") != PR2_SCHEMA or (evidence.get("season"), evidence.get("week")) != (season, week):
+                    raise ValueError("PR2_SCHEMA_OR_TARGET_MISMATCH")
+                source_path = path.with_name("source-envelope.json")
+                source = json.loads(source_path.read_text(encoding="utf-8"))
+                validate_envelope(source)
+                if stamp(source["observed_at"]) != observed:
+                    raise ValueError("PR2_SOURCE_TIME_MISMATCH")
+                payload = source["payload"]
+                schedule_rows = evidence["schedule_games"]
+                if payload["schedule_games"] != schedule_rows or hashlib.sha256(canonical_bytes(schedule_rows)).hexdigest() != evidence["schedule_games_sha256"]:
+                    raise ValueError("PR2_SCHEDULE_BINDING_MISMATCH")
+                bindings = evidence["league_bindings"]
+                ids = [str(binding["league_id"]) for binding in bindings]
+                if not ids or len(set(ids)) != len(ids) or set(ids) != set(payload["matchup_payloads"]):
+                    raise ValueError("PR2_LEAGUE_SCOPE_MISMATCH")
+                for binding in bindings:
+                    lid = str(binding["league_id"])
+                    matchup = evidence["matchup_evidence_by_league"][lid]
+                    lock = evidence["lock_evidence_by_league"][lid]
+                    if matchup["rows"] != payload["matchup_payloads"][lid] or hashlib.sha256(canonical_bytes(matchup["rows"])).hexdigest() != binding["matchup_payload_sha256"]:
+                        raise ValueError("PR2_MATCHUP_BINDING_MISMATCH")
+                    for item in (matchup, lock):
+                        if (item["season"], item["week"]) != (season, week) or stamp(item["captured_at"]) != observed:
+                            raise ValueError("PR2_LEAGUE_TARGET_OR_TIME_MISMATCH")
+                    if lock["schedule_games_sha256"] != evidence["schedule_games_sha256"]:
+                        raise ValueError("PR2_LOCK_SCHEDULE_MISMATCH")
+                valid.append({"path": path.relative_to(root).as_posix(), "sha256": digest(path),
+                              "source_path": source_path.relative_to(root).as_posix(), "source_sha256": digest(source_path),
+                              "league_ids": sorted(ids), "captured_at": observed.isoformat()})
+            except Exception as exc:
+                errors.append({"path": path.relative_to(root).as_posix(), "reason": f"{type(exc).__name__}:{exc}"})
+        if errors:
+            row.update(status="BLOCKED_INVALID_EVIDENCE", errors=errors)
+        elif valid:
+            row.update(status="CAPTURED_VALIDATED", captures=valid,
+                       validation_scope="Source integrity and captured league scope; not full-portfolio completeness or model eligibility")
+        rows.append(row)
+    return rows
+
+
 def audit(root: Path, season: int, week: int, as_of: datetime) -> dict:
     if as_of.tzinfo is None or not 1 <= week <= 18:
         raise ValueError("AUDIT_TARGET_OR_TIME_INVALID")
@@ -118,6 +189,7 @@ def audit(root: Path, season: int, week: int, as_of: datetime) -> dict:
         return {"status": "MISSED"}
 
     result["checkpoints"].append(terminal(root, sunday["manifest"], sunday["missed"], validate_sunday, timing, as_of))
+    result["checkpoints"].extend(lineup_checkpoints(root, season, week, games, as_of))
     bad = [row for row in result["checkpoints"] if row["status"].startswith("BLOCKED")]
     gaps = [row for row in result["checkpoints"] if row["status"] in {"DUE_MISSING", "MISSED_UNRECORDED", "MISSED_RECORDED"}]
     result["status"] = "BLOCKED" if bad else "ATTENTION" if gaps else "ON_TRACK"
@@ -133,7 +205,7 @@ def markdown(report: dict) -> str:
         lines.append(f"| {row['checkpoint']} | {row['status']} | {row.get('opens_at', '—')} | {row.get('closes_at', '—')} |")
     if report.get("reason"):
         lines += ["", report["reason"]]
-    lines += ["", report["note"], "", "This audit covers M10 week-open and the paired Sunday M10/Sleeper checkpoint. It does not certify all weekly report products, lineup captures, or contextual datasets.", ""]
+    lines += ["", report["note"], "", "This audit covers M10, paired Sunday M10/Sleeper, and PR2 lineup deadlines. Valid PR2 captures retain their captured league scope; this does not certify full-portfolio completeness, report products, or contextual datasets.", ""]
     return "\n".join(lines)
 
 

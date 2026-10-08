@@ -64,6 +64,8 @@ COMPONENTS={
  'current_snapshot_storage':'research/current_snapshot_storage.py',
  'current_snapshot_deduper':'research/deduplicate_current_snapshots.py',
  'current_snapshot_storage_integrity':'research/integrity_current_storage_test.py',
+ 'weekly_report_bundle':'research/weekly_report_bundle.py',
+ 'weekly_report_bundle_integrity':'research/integrity_weekly_report_bundle_test.py',
  'weekly_evidence_audit':'research/weekly_evidence_audit.py',
  'weekly_evidence_audit_integrity':'research/integrity_weekly_evidence_audit_test.py',
  'workflow_decision_context':'research/workflow_decision_context.py',
