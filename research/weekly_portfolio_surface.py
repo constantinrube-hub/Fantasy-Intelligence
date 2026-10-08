@@ -20,7 +20,7 @@ from weekly_pipeline_readiness import verify_inputs, stamp, digest
 from workflow_decision_context import operational_lifecycle
 
 
-def projection(row: dict, season: int, week: int, signature: str) -> dict:
+def projection(row: dict, season: int, week: int, signature: str, artifacts: dict | None = None) -> dict:
     if row.get('season') not in (None,season) or row.get('week') not in (None,week):
         raise ValueError('PROJECTION_ROW_TARGET_MISMATCH')
     fie, baseline = numeric(row.get('fie_weekly_projection')), numeric(row.get('sleeper_weekly_projection'))
@@ -28,6 +28,8 @@ def projection(row: dict, season: int, week: int, signature: str) -> dict:
     interval_state = 'AVAILABLE' if all(value is not None for value in (p10,p50,p90)) else 'PARTIAL' if any(value is not None for value in (p10,p50,p90)) else 'UNAVAILABLE'
     if p10 is not None and p90 is not None and p10 > p90 or p50 is not None and (p10 is not None and p50 < p10 or p90 is not None and p50 > p90):
         raise ValueError('PROJECTION_QUANTILE_ORDER_INVALID')
+    source = forecast_source(fie,artifacts or {})
+    bound = source is not None and source.get('status') == 'BOUND_SOURCE_BUNDLES'
     return {'player_id':canonical_player_id(row), 'sleeper_id':normalize_sleeper_id(row.get('sleeper_id')) or None,
         'player_name':row.get('full_name'), 'team':row.get('team'), 'position':row.get('position_model'),
         'season':season, 'week':week, 'scoring_signature':signature,
@@ -39,7 +41,8 @@ def projection(row: dict, season: int, week: int, signature: str) -> dict:
         'decision_mean':numeric(row.get('decision_weekly_projection')),
         'projection_source':row.get('projection_source'), 'component_stats':row.get('predicted_stats') or {},
         'model_id':row.get('model_id'), 'model_version':row.get('model_version'),
-        'model_identity_status':'BOUND' if row.get('model_id') and row.get('model_version') else 'NOT_DECLARED_BY_CURRENT_OWNER',
+        'model_identity_status':'BOUND' if row.get('model_id') and row.get('model_version') else 'ARTIFACT_BOUND_MODEL_UNDECLARED' if bound else 'NOT_DECLARED_BY_CURRENT_OWNER',
+        'fie_forecast_source':source,
         'confidence':numeric(row.get('confidence')), 'feature_coverage':numeric(row.get('feature_coverage')),
         'status':'GOVERNED_FORECAST' if fie is not None and row.get('weekly_activation_eligible') is True else 'RESEARCH_OR_DIAGNOSTIC' if fie is not None else 'UNSUPPORTED',
         'injury_status':row.get('injury_status')}
@@ -69,9 +72,36 @@ def projection_index(current: dict) -> dict:
     return index
 
 
+def forecast_source(fie: float | None, artifacts: dict) -> dict | None:
+    """Read immutable snapshot-level lineage without duplicating it in player bases."""
+    if fie is None:
+        return None
+    if not artifacts:
+        return {'status':'NOT_DECLARED_BY_CURRENT_OWNER'}
+    if not isinstance(artifacts,dict):
+        raise ValueError('PORTFOLIO_FORECAST_ARTIFACTS_INVALID')
+    labels=('M4','M5','M6')
+    if any(not isinstance(artifacts.get(label),dict) for label in labels):
+        raise ValueError('PORTFOLIO_FORECAST_ARTIFACTS_INVALID')
+    if any(artifacts[label].get('status')!='BOUND' for label in labels):
+        return {'status':'SOURCE_BUNDLES_NOT_BOUND'}
+    if any(artifacts[label].get('artifact')!=label or
+           not isinstance(artifacts[label].get('research_build'),str) or
+           not artifacts[label]['research_build'].strip() or
+           not isinstance(artifacts[label].get('sha256'),str) or
+           len(artifacts[label]['sha256'])!=64 or
+           any(c not in '0123456789abcdef' for c in artifacts[label]['sha256']) for label in labels):
+        raise ValueError('PORTFOLIO_FORECAST_ARTIFACTS_INVALID')
+    return {'status':'BOUND_SOURCE_BUNDLES','primary_artifact':'M4',
+            'm4_sha256':artifacts['M4']['sha256'],
+            'm5_gate_sha256':artifacts['M5']['sha256'],
+            'm6_snapshot_input_sha256':artifacts['M6']['sha256']}
+
+
 def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime, username: str) -> dict:
     base = root / f'data/research/leagues/{lid}'
-    current = load_current_snapshot(base/'current/milestone5_current.json',root=root)
+    current_path = base/'current/milestone5_current.json'
+    current = load_current_snapshot(current_path,root=root)
     core_path, core = verified_core(root,base/'app/manifest.json')
     generated = stamp(core['generated_at'])
     age = (as_of-generated).total_seconds()
@@ -104,7 +134,7 @@ def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime
         if canonical in seen:
             raise ValueError('PORTFOLIO_DUPLICATE_CANONICAL_PLAYER')
         seen.add(canonical)
-        item = projection(row,season,week,current['scoring_signature'])
+        item = projection(row,season,week,current['scoring_signature'],current.get('forecast_artifacts'))
         item.update(owned_by_user=pid in owned, submitted_starter=pid in starters,
                     rostered_in_league=any(pid in valid_ids(r.get('players')) for r in rosters))
         records.append(item)
@@ -114,6 +144,8 @@ def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime
             'season':season, 'week':week, 'status':'PARTIAL_UNRESOLVED_PLAYERS' if unresolved else 'BOUND_CURRENT_ROSTER',
             'as_of_utc':as_of.isoformat(), 'roster_observed_at':core['generated_at'],
             'forecast_observed_at':current['generated_at'], 'profile_fingerprint':current['profile_fingerprint'],
+            'forecast_snapshot_storage_sha256':digest(current_path),
+            'forecast_artifacts':current.get('forecast_artifacts') or {},
             'scoring_signature':current['scoring_signature'], 'lifecycle':lifecycle, 'active_operational_scope':active,
             'managed_roster_id':roster['roster_id'], 'roster_positions':league.get('roster_positions') or [], 'unresolved_sleeper_ids':unresolved,
             'projection_coverage':dict(Counter(item['fie_coverage'] for item in records)),

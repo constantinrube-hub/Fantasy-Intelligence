@@ -160,7 +160,15 @@ def test_monitoring_and_workflow_contract() -> None:
         assert content.index("Verify published current inputs") < content.index("Commit only")
         if stage == "waiver":
             assert "run-id: ${{ github.event.workflow_run.id }}" in content and "actions: read" in content
+            assert "producer.conclusion === 'skipped'" in content
+            assert "needs.upstream.outputs.available == 'true'" in content
+            assert "artifact.name === 'fie-weekly-inputs' && !artifact.expired" in content
+            assert "completed weekly-actions without a live fie-weekly-inputs receipt" in content
+            assert '"status":"NO_DUE"' in content and "Upload expected no-op evidence" in content
     assert "cancel-in-progress: false" in (root / ".github/workflows/build-fie-current.yml").read_text()
+    refresh = (root / ".github/workflows/build-fie-current.yml").read_text()
+    assert refresh.index("git checkout -B main origin/main") < refresh.index("Build league-specific current snapshots")
+    assert "git rebase --abort" in refresh and "generated release artifacts must be rebuilt" in refresh
     with tempfile.TemporaryDirectory() as folder:
         tmp = Path(folder)
         dependency = tmp / "receipt.json"
