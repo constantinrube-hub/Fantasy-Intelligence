@@ -16,6 +16,8 @@ on:
       - 'research/integrity_weekly_player_performance_test.py'
       - 'research/append_m10_real_outcomes.py'
       - 'research/integrity_m10_real_outcomes_test.py'
+      - 'research/weekly_m10_outcome_review.py'
+      - 'research/integrity_weekly_m10_outcome_review_test.py'
       - 'research/preserve_m10_profile_snapshot.py'
       - 'research/integrity_m10_frozen_profile_snapshot_test.py'
       - 'research/run_m10_prospective_weekly_capture.py'
@@ -84,6 +86,7 @@ jobs:
       - name: Validate focused weekly contracts
         run: |
           python research/integrity_m10_real_outcomes_test.py
+          python research/integrity_weekly_m10_outcome_review_test.py
           python research/integrity_m10_frozen_profile_snapshot_test.py
           python research/integrity_m10_prospective_r8c_workflow_test.py
           python research/integrity_m10_legal_roster_assignment_test.py

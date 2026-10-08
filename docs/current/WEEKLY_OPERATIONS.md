@@ -152,6 +152,8 @@ When an immutable PR2 portfolio capture and a current portfolio surface both pas
 
 The coverage bundle now saves Markdown alongside JSON. Target-week player performance and post-week review are `NOT_DUE` until the existing outcome buffer elapses. Previous-week reports retain their own week and are never relabelled. Source-only reports and partial forecast boards do not complete the seven-product contract.
 
+After the buffer, the bundle validates a real M10 prospective outcome revision against its original forecast manifest, counts observed versus missing or mismatched source players, and adds this read-only coverage to the post-week review. Exact paired M9/M10 league metrics require the cutoff's first-written full scoring profile, unchanged scorer version, and numeric source fields for every nonzero scoring key in both the realized and predicted raw components. Week 4 has 358 observed provider rows among 782 forecast identities, but no retained cutoff profile; it therefore reports a typed exact-scoring blocker. Provider standard/PPR totals are not substituted, and one week's descriptive metrics cannot promote M10 or certify the full post-week product. The separate Sunday Sleeper baseline has a different cutoff and requires its own paired review.
+
 ## Decision accountability
 
 `decision-ledger-<run>-<attempt>.json` plus Markdown creates deterministic IDs from the owner, source-report hash, league, target, kind and unchanged recommendation. It preserves explanations/confidence from the owner and keeps blocked/no-op league states separate from recommendations. Research-only lifecycle states receive no new advice objects.
