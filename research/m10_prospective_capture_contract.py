@@ -298,6 +298,13 @@ def validate_capture(root: Path, season: int, week: int, *, require_outcome: boo
     for name, path in ledger_paths.items():
         row = manifest["ledgers"][name]
         assert path.is_file() and row["path"] == path.relative_to(root).as_posix() and row["sha256"] == sha256_file(path)
+    if not manifest["fixture"]:
+        profile = paths["scoring"].parent / "profile-snapshot.json"
+        if profile.exists():
+            lineage = [row for row in manifest.get("input_lineage", []) if row.get("role") == "profile_snapshot"]
+            assert len(lineage) == 1 and sha256_file(profile) == lineage[0]["sha256"]
+            profiles = read_json(profile)["profiles"]
+            assert profiles and all("scoring_settings" in row and "profile_fingerprint" in row and "profile_scoring_signature" in row for row in profiles)
     forecasts = read_jsonl_gzip(paths["forecasts"])
     assert forecasts and {row["model"] for row in forecasts} == set(MODELS)
     paired: dict[str, set[str]] = {}
@@ -337,6 +344,7 @@ def validate_capture(root: Path, season: int, week: int, *, require_outcome: boo
         outcome = read_json(outcome_meta)
         output = paths["outcome_dir"] / "outcomes.jsonl.gz"
         assert outcome["schema"] == OUTCOME_SCHEMA and outcome["append_only"] is True and output.is_file()
+        assert outcome["forecast_manifest_sha256"] == sha256_file(paths["manifest"])
         assert outcome["outcome_sha256"] == sha256_file(output)
         rows = read_jsonl_gzip(output)
         assert {row["forecast_id"] for row in rows} == set(paired)

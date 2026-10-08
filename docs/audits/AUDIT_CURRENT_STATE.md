@@ -1,5 +1,7 @@
 # Audit Current State
 
+The P0 M10 real-outcome block is governed by `M10_REAL_OUTCOME_EVALUATION_DESIGN.md`. The 2026 Week 4 immutable forecast has a separate first-write revision-1 outcome ledger bound to the archived nflverse weekly-performance envelope; it preserves one row per 782 forecast identities, with 358 observed provider rows, 419 missing source-player rows, and five position mismatches. These are retrospective research outcomes, not exact league scores or a model-promotion decision. Future captures first-write the exact cutoff profile snapshot beside scoring replay; Week 4 has no such snapshot and cannot be backfilled from today's settings. Frozen full scoring settings and source-field completeness must be proven before an exact per-league paired review.
+
 ## Authoritative handoff
 
 - Frozen PRE-audit reference: `45cbcff99ba10f4e88130f2441553817fc0d1ccc`

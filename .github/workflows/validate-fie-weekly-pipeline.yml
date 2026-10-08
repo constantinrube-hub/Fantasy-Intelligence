@@ -14,6 +14,15 @@ on:
       - 'research/integrity_weekly_context_audit_test.py'
       - 'research/weekly_player_performance.py'
       - 'research/integrity_weekly_player_performance_test.py'
+      - 'research/append_m10_real_outcomes.py'
+      - 'research/integrity_m10_real_outcomes_test.py'
+      - 'research/preserve_m10_profile_snapshot.py'
+      - 'research/integrity_m10_frozen_profile_snapshot_test.py'
+      - 'research/run_m10_prospective_weekly_capture.py'
+      - 'research/m10_prospective_capture_contract.py'
+      - 'research/integrity_m10_prospective_r8c_workflow_test.py'
+      - 'data/research/prospective/m10/outcomes/**'
+      - 'docs/audits/M10_REAL_OUTCOME_EVALUATION_DESIGN.md'
       - 'research/weekly_portfolio_surface.py'
       - 'research/integrity_weekly_portfolio_surface_test.py'
       - 'research/weekly_decision_ledger.py'
@@ -72,6 +81,9 @@ jobs:
         run: pip install -r research/requirements.txt
       - name: Validate focused weekly contracts
         run: |
+          python research/integrity_m10_real_outcomes_test.py
+          python research/integrity_m10_frozen_profile_snapshot_test.py
+          python research/integrity_m10_prospective_r8c_workflow_test.py
           python research/integrity_m10_legal_roster_assignment_test.py
           python research/integrity_weekly_context_audit_test.py
           python research/integrity_weekly_player_performance_test.py
