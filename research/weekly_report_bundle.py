@@ -18,6 +18,45 @@ PRODUCTS = {
 }
 
 
+def bind_pr2_capture(root: Path, path: Path, value: dict) -> dict:
+    """Replay the existing owner's immutable identity, never a new lineup solve."""
+    from in_season_pr2_weekly_lineups import capture_payload, sha256_value
+    expected = sha256_value(capture_payload(value))
+    if value.get("capture_content_sha256") != expected or value.get("capture_id") != expected[:16]:
+        raise ValueError("PR2_CAPTURE_IDENTITY_MISMATCH")
+    capture = path.parent / "captures" / f"portfolio-{expected[:16]}.json"
+    if not capture.is_file():
+        raise ValueError("PR2_IMMUTABLE_CAPTURE_MISSING")
+    frozen = json.loads(capture.read_text(encoding="utf-8"))
+    if frozen.get("capture_content_sha256") != expected or frozen.get("capture_id") != expected[:16] or sha256_value(capture_payload(frozen)) != expected:
+        raise ValueError("PR2_IMMUTABLE_CAPTURE_REPLAY_MISMATCH")
+    # The established writer may refresh generated_at on an identical payload.
+    # Preserve that allowed volatility; the original publication cannot lie
+    # after the validated latest pointer's generation clock.
+    if stamp(frozen["generated_at"]) > stamp(value["generated_at"]):
+        raise ValueError("PR2_IMMUTABLE_CAPTURE_AFTER_LATEST")
+    return {"capture_id": expected[:16], "capture_content_sha256": expected,
+            "capture_path": capture.relative_to(root).as_posix(), "capture_sha256": digest(capture)}
+
+
+def captured_opponent_contexts(pr2: dict) -> list[dict]:
+    """Display unchanged captured H2H owner context; never infer a field."""
+    rows = []
+    for league in pr2["leagues"]:
+        context = {"league_id": league["league_id"], "league_name": league.get("league_name"),
+                   "season": league["season"], "week": league["week"],
+                   "scoring_signature": (league.get("evidence") or {}).get("scoring_signature"),
+                   "capture_id": pr2["capture_id"], "actionable": False}
+        if league.get("format") == "CHOPPED":
+            rows.append({**context, "kind": "CHOPPED_FIELD", "status": "BLOCKED_CAPTURED_ACTIVE_FIELD_REQUIRED", "owner_context": None})
+            continue
+        owner = league.get("opponent_context")
+        if not isinstance(owner, dict): owner = {"status": "NOT_YET_CAPTURED"}
+        rows.append({**context, "kind": "DIRECT_H2H", "status": owner.get("status", "NOT_YET_CAPTURED"),
+                     "owner_context": owner, "basis": "Unchanged PR2 context. Exact maximum-mean advisory is not an opponent submitted lineup or intention."})
+    return rows
+
+
 def load_owner(root: Path, path: Path, season: int, week: int, as_of: datetime, expected_schema: str | None = None) -> tuple[dict | None, dict]:
     binding = {"path": path.relative_to(root).as_posix()}
     if not path.is_file():
@@ -47,7 +86,8 @@ def load_owner(root: Path, path: Path, season: int, week: int, as_of: datetime, 
         for row in leagues:
             if (row.get("season"), row.get("week")) != (season, week):
                 raise ValueError("REPORT_LEAGUE_TARGET_MISMATCH")
-        return value, {**binding, "status": "AVAILABLE", "observed_at": observed.isoformat(), "generated_at": value.get("generated_at"), "league_ids": sorted(ids)}
+        capture_binding = bind_pr2_capture(root, path, value) if expected_schema == "fie-in-season-pr2-weekly-lineup-portfolio-v1" else {}
+        return value, {**binding, **capture_binding, "status": "AVAILABLE", "observed_at": observed.isoformat(), "generated_at": value.get("generated_at"), "league_ids": sorted(ids)}
     except Exception as exc:
         return None, {**binding, "status": "BLOCKED_INVALID_SOURCE", "reason": f"{type(exc).__name__}:{exc}"}
 
@@ -84,7 +124,7 @@ def bundle(root: Path, season: int, week: int, as_of: datetime, portfolio_surfac
     if pr2:
         intelligence = pr2.get("portfolio_intelligence")
         if isinstance(intelligence, dict) and isinstance(intelligence.get("cross_league_exposure"), list):
-            attach("EXPOSURE", "PR2", intelligence)
+            attach("EXPOSURE", "PR2", {**intelligence, "captured_opponent_contexts": captured_opponent_contexts(pr2)})
         products["START_SIT"]["owner_sources"].append("PR2")
         products["START_SIT"].update(status="PARTIAL_OWNER_OUTPUT", pr2_leagues=pr2["leagues"])
     if portfolio_surface is not None:
@@ -121,6 +161,7 @@ def bundle(root: Path, season: int, week: int, as_of: datetime, portfolio_surfac
             if pr2:
                 products["EXPOSURE"]["owner_sources"].append("PR2")
                 products["EXPOSURE"]["content"]["pr2_intelligence"] = pr2.get("portfolio_intelligence")
+                products["EXPOSURE"]["content"]["captured_opponent_contexts"] = captured_opponent_contexts(pr2)
         except Exception as exc:
             bindings["CURRENT_PORTFOLIO"] = {**binding,"status":"BLOCKED_INVALID_SOURCE","reason":f"{type(exc).__name__}:{exc}"}
     # Outcome products are not due while the target week's postgame buffer is
@@ -171,6 +212,11 @@ def markdown(report: dict) -> str:
     lines += ["", report["note"], "", "### Owner sources", ""]
     for owner, row in report["sources"].items():
         lines.append(f"- {owner}: **{row['status']}** — `{row.get('path', '—')}`" + (f" — {row['reason']}" if row.get("reason") else ""))
+    contexts = (report["products"]["EXPOSURE"].get("content") or {}).get("captured_opponent_contexts", [])
+    if contexts:
+        lines += ["", "### Captured opponent context", "", "| League | Scope | Capture state |", "|---|---|---|"]
+        lines.extend(f"| {row['league_id']} | {row['kind']} | {row['status']} |" for row in contexts)
+        lines += ["", "Opponent maximum-mean advisory is distinct from observed submitted starters. Chopped requires captured active-field evidence; no H2H pairing substitutes for it."]
     return "\n".join(lines) + "\n"
 
 

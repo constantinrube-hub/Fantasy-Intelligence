@@ -155,3 +155,9 @@ The coverage bundle now saves Markdown alongside JSON. Target-week player perfor
 `decision-ledger-<run>-<attempt>.json` plus Markdown creates deterministic IDs from the owner, source-report hash, league, target, kind and unchanged recommendation. It preserves explanations/confidence from the owner and keeps blocked/no-op league states separate from recommendations. Research-only lifecycle states receive no new advice objects.
 
 User adoption, realized outcome, hindsight optimum and ex-ante quality stay unknown. An observed current starter is not proof that the user followed advice. The action-binding API requires a separately hashed `fie-user-action-source-v1` JSON with matching decision/league/season/week, observation time and actual action. It rejects future, pre-issuance, wrong-target and mismatched-source observations. If the recommendation owner did not declare an issuance time, adoption binding is blocked rather than treating its model as-of as publication time. This API observes declared actions; it executes no transaction and assesses no statistical decision quality.
+
+### Immutable PR2 report binding
+
+The weekly bundle replays PR2's existing capture identity against `lineups/captures/portfolio-<capture_id>.json`. Missing archives, altered payloads and impossible publication clocks block that owner. The existing writer's generation-only refresh remains valid. Latest pointers alone do not certify evidence.
+
+Exposure includes unchanged PR2 direct-H2H opponent contexts when available, with the capture and scoring signature retained. Exact maximum-mean opponent lineups are advisory and are never labelled submitted starters or manager intentions. Chopped active-field evidence stays independently blocked until captured; a direct pairing cannot fill that gap. All products remain partial until their complete contracts are satisfied.

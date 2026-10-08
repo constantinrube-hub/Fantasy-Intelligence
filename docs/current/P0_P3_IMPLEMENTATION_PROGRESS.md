@@ -16,9 +16,9 @@ The overnight batch adds operational reports, context integrity, independent pro
 | Ordered refresh/actions/waivers | Merged/live verified | Preserve all input/profile/source-dist guards. |
 | Typed capabilities and lifecycle | Merged/live verified | Add explicit future lifecycle changes only from operator evidence. |
 | M10/Sunday/PR2 deadline audit | Implemented and live verified | Observe due windows and terminal records; no retrospective reconstruction. |
-| Availability/weather/trench audit | Implemented locally | Merge and verify workflow summary; trench raw replay and weather accuracy remain separate. |
-| Player performance | Implemented locally; real Week 4 report | All 16 games/32 teams listed, 1,110 provider player-game rows; one unattributed row remains explicit. Official finality and snap/route coverage remain uncertified. |
-| Exposure | Implemented locally | Active owned/start exposure resolves 260 players; four league views retain unresolved-player gaps. Captured direct-opponent and chopped-field exposure remain to integrate. |
+| Availability/weather/trench audit | Merged/live verified | Merge and verify workflow summary; trench raw replay and weather accuracy remain separate. |
+| Player performance | Merged/live verified; real Week 4 report | All 16 games/32 teams listed, 1,110 provider player-game rows; one unattributed row remains explicit. Official finality and snap/route coverage remain uncertified. |
+| Exposure | Merged/live verified | Active owned/start exposure resolves 260 players; four league views retain unresolved-player gaps. The bundle binds immutable PR2 archives and displays existing direct-H2H contexts; observed opponent starters and chopped-field exposure remain to integrate. |
 | Start/Sit and waivers | Existing owner outputs preserved | Full recommendation coverage depends on eligible projections/model evidence. |
 | D/ST and kicker | Partial current owned/available boards | Validated multi-week hold/stream strategy remains absent; no new strategy is invented. |
 | Post-week comparison | Still open | Real M10 exact-scoring outcomes/comparisons and PR2 capture-bound outcomes are required. |
