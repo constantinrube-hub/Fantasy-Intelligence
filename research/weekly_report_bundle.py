@@ -187,6 +187,21 @@ def bundle(root: Path, season: int, week: int, as_of: datetime, portfolio_surfac
             bindings["POST_WEEK_REVIEW"] = {"status": post_review["status"], "blocked_revisions": post_review["blocked_revisions"]}
             if post_review["revisions"]:
                 attach("POST_WEEK_REVIEW", "PR2_OUTCOME_EVALUATOR", post_review)
+            from weekly_m10_outcome_review import review as m10_review
+            try:
+                m10 = m10_review(root, season, week, as_of)
+                bindings["M10_OUTCOMES"] = {"status": m10["status"],
+                    "forecast_manifest_sha256": m10.get("forecast_manifest_sha256"),
+                    "outcome_manifest_sha256": m10.get("outcome_manifest_sha256"),
+                    "observed_player_count": m10.get("observed_player_count", 0)}
+                if m10.get("observed_player_count", 0):
+                    if products["POST_WEEK_REVIEW"]["content"] is None:
+                        attach("POST_WEEK_REVIEW", "M10_OUTCOMES", {"m10_research": m10})
+                    else:
+                        products["POST_WEEK_REVIEW"]["owner_sources"].append("M10_OUTCOMES")
+                        products["POST_WEEK_REVIEW"]["content"]["m10_research"] = m10
+            except Exception as exc:
+                bindings["M10_OUTCOMES"] = {"status": "BLOCKED_INVALID_OUTCOME_SOURCE", "reason": f"{type(exc).__name__}:{exc}"}
             reports = []
             for path in (root / f"data/operations/weekly-performance/{season}/week_{week:02d}/reports").glob("*.json"):
                 value = json.loads(path.read_text(encoding="utf-8"))
@@ -239,6 +254,13 @@ def markdown(report: dict) -> str:
         if not observed["players"]:
             lines.append("| No bound submitted starters | 0 |")
         lines += ["", "These are captured submitted starters, not final lineups or predicted opponent actions. Chopped-field exposure remains separate."]
+    m10 = (report["products"]["POST_WEEK_REVIEW"].get("content") or {}).get("m10_research")
+    if m10:
+        lines += ["", "### M10 prospective outcome evidence", "",
+                  f"**{m10['status']}** — {m10['observed_player_count']}/{m10['captured_player_count']} captured players have a bound provider row.",
+                  "", "| Outcome state | Players |", "|---|---:|"]
+        lines.extend(f"| {key} | {count} |" for key, count in m10["coverage_counts"].items())
+        lines += ["", "This is research-only evidence. Exact profile scoring and paired comparison remain blocked where frozen settings or required raw fields are unavailable."]
     return "\n".join(lines) + "\n"
 
 
