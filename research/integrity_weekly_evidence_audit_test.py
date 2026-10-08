@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import weekly_evidence_audit as w
-from point_in_time_capture import canonical_bytes
+from point_in_time_capture import canonical_bytes, build_envelope
 
 
 def fixture(root):
@@ -30,7 +30,7 @@ def main():
         with patch.object(w, "validate_capture", side_effect=AssertionError("missing capture cannot be validated")):
             early = w.audit(root, 2026, 5, w.stamp("2026-10-08T00:15:00Z"))
             assert early["status"] == "ON_TRACK"
-            assert [r["status"] for r in early["checkpoints"]] == ["NOT_DUE", "NOT_DUE"]
+            assert [r["status"] for r in early["checkpoints"]] == ["NOT_DUE"] * 4
             due = w.audit(root, 2026, 5, w.stamp("2026-10-08T06:15:00Z"))
             assert due["checkpoints"][0]["status"] == "DUE_MISSING"
             closed = w.audit(root, 2026, 5, w.stamp("2026-10-09T00:15:00Z"))
@@ -39,7 +39,42 @@ def main():
             assert missed["status"] == "ATTENTION" and missed["checkpoints"][0]["status"] == "MISSED_UNRECORDED"
             sunday = w.audit(root, 2026, 5, w.stamp("2026-10-11T11:00:00Z"))
             assert sunday["checkpoints"][1]["status"] == "DUE_MISSING"
+        pr2_due = w.audit(root, 2026, 5, w.stamp("2026-10-08T16:45:00Z"))
+        assert pr2_due["checkpoints"][2]["status"] == "DUE_MISSING"
+        pr2_closed = w.audit(root, 2026, 5, w.stamp("2026-10-08T20:15:01Z"))
+        assert pr2_closed["checkpoints"][2]["status"] == "MISSED_UNRECORDED"
         assert before == {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}, "Audit modified capture evidence"
+        # A source-backed PR2 capture must bind schedule, matchups, league scope,
+        # and checkpoint observation time. Current roster files are unnecessary.
+        capture = root / "data/research/evaluation/2026/weeks/week-5/lineups/evidence/captures/portfolio-test"
+        capture.mkdir(parents=True)
+        observed = "2026-10-08T18:00:00Z"
+        games, _ = w.schedule(root, 2026, 5, w.stamp(observed))
+        schedule_rows = [{"game_id": game["game_id"], "kickoff_utc": game["kickoff_at"]} for game in games]
+        schedule_hash = hashlib.sha256(canonical_bytes(schedule_rows)).hexdigest()
+        matchups = {"league": [{"roster_id": 1, "starters": ["player"]}]}
+        payload = {"schedule_games": schedule_rows, "matchup_payloads": matchups}
+        envelope = build_envelope(capture_id="test", capture_intent="OTHER_GOVERNED", provider="fixture",
+            endpoint="fixture", observed_at=observed, as_of_semantics="fixture", payload=payload)
+        source_path = capture / "source-envelope.json"
+        source_path.write_text(json.dumps(envelope))
+        item = {"season": 2026, "week": 5, "captured_at": observed}
+        evidence = {**item, "schema": w.PR2_SCHEMA, "checkpoint_id": "PR2_WEEK_OPEN_T6",
+            "schedule_games": schedule_rows, "schedule_games_sha256": schedule_hash,
+            "league_bindings": [{"league_id": "league", "matchup_payload_sha256": hashlib.sha256(canonical_bytes(matchups["league"])).hexdigest()}],
+            "lock_evidence_by_league": {"league": {**item, "schedule_games_sha256": schedule_hash}},
+            "matchup_evidence_by_league": {"league": {**item, "rows": matchups["league"]}}}
+        evidence_path = capture / "operational-evidence.json"
+        evidence_path.write_text(json.dumps(evidence))
+        checked = w.audit(root, 2026, 5, w.stamp("2026-10-08T19:00:00Z"))
+        assert checked["checkpoints"][2]["status"] == "CAPTURED_VALIDATED"
+        earlier = w.audit(root, 2026, 5, w.stamp("2026-10-08T17:00:00Z"))
+        assert earlier["checkpoints"][2]["status"] == "DUE_MISSING"
+        evidence["matchup_evidence_by_league"]["league"]["rows"] = []
+        evidence_path.write_text(json.dumps(evidence))
+        tampered = w.audit(root, 2026, 5, w.stamp("2026-10-08T19:00:00Z"))
+        assert tampered["checkpoints"][2]["status"] == "BLOCKED_INVALID_EVIDENCE"
+        assert "MATCHUP_BINDING" in tampered["checkpoints"][2]["errors"][0]["reason"]
         future = w.audit(root, 2026, 5, w.stamp("2026-10-07T11:00:00Z"))
         assert future["status"] == "BLOCKED" and "SCHEDULE_UNAVAILABLE" in future["reason"]
         raw = json.loads(source.read_text())

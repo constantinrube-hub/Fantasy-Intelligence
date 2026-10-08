@@ -116,10 +116,24 @@ Window 1D appends a read-only checkpoint audit to its Actions summary and first-
 
 The audit reuses an already observed, hash-verified weather schedule envelope for the requested season/week, excludes envelopes captured after its as-of time, and delegates terminal evidence validation to the established M10 and Sunday paired-checkpoint owners. No provider calls occur. Missing evidence after a deadline is reported; the audit cannot recreate a forecast or write an official missed-capture manifest. Only the original capture owner may do that.
 
-Current scope: M10 week-open and Sunday paired M10/Sleeper checkpoints. PR2 lineup checkpoints, daily availability, weather, trench evidence, post-week outcomes, and the seven-product weekly report contract still require their separate audits. A past missed checkpoint remains missed even after a later refresh succeeds.
+Current scope: M10 week-open, Sunday paired M10/Sleeper, PR2 week-open T-7.5 through T-4, and PR2 Sunday-main T-4 through T-2.5. PR2 windows are imported from the capture owner, use New York Sunday-main slate identity, and validate source envelopes, schedule/matchup hashes, captured league scope and observation times. Captures after the audit as-of are excluded. A validated capture is not proof of full-portfolio scope or model eligibility. Daily availability, weather, trench evidence and post-week outcomes still require separate audits. A past missed checkpoint remains missed even after a later refresh succeeds.
 
 Manual inspection (choose a new operational output filename each time):
 
 ```powershell
 python research/weekly_evidence_audit.py --season 2026 --week 5 --output .cache/weekly-evidence-audit.json
+```
+
+## Seven-product report coverage bundle
+
+After Window 1D, the workflow first-writes `report-bundle-<run>-<attempt>.json` under the same operational week directory and appends its coverage table to the Actions summary. The bundle includes existing owner outputs for waiver guidance, start/sit alerts and PR2 exposure when available. It retains source paths, SHA-256 hashes and league scope. Waivers appear Chopped-first without changing the planner's decisions.
+
+Every invocation lists all seven required products: player performance, waiver guide, exposure, start/sit, D/ST hold/stream, kicker hold/stream and post-week review. Included owner outputs are explicitly partial; this adapter does not certify any product as complete. Missing standalone products remain blocked with a next action. A missing D/ST or kicker report is not filled using a waiver watchlist, and a prior-week evaluation is not relabeled as the target week's post-week review. Outcome products naturally remain unavailable before outcomes exist.
+
+Sources with a wrong target, duplicate league IDs, unrecognized schema, future observation/generation time or observation age over 36 hours are excluded with typed reasons. The bundle is read-only and executes no transactions, forecasts or model promotion. It provides a reviewable P0 coverage contract; producing and validating the remaining full products is still unfinished work.
+
+Manual inspection (use a new output filename):
+
+```powershell
+python research/weekly_report_bundle.py --season 2026 --week 5 --output .cache/weekly-report-bundle.json
 ```
