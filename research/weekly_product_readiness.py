@@ -55,6 +55,8 @@ def assess(products: dict, sources: dict) -> None:
                 evidence = {"roster_player_count": len(content.get("roster_exposure", [])),
                             "submitted_opponent_player_count": len(observed.get("players", [])),
                             "observed_chopped_field_player_count": len(observed.get("field_players", [])),
+                            "provider_not_eliminated_player_count": len(observed.get("not_eliminated_field_players", [])),
+                            "provider_not_eliminated_league_count": sum(row.get("kind") == "CHOPPED_FIELD" and row.get("active_field_certified") is True for row in observed.get("leagues", [])),
                             "observed_chopped_field_roster_count": sum(row.get("observed_roster_count", 0) for row in observed.get("leagues", []) if row.get("kind") == "CHOPPED_FIELD"),
                             "captured_h2h_context_count": sum(row.get("kind") == "DIRECT_H2H" for row in contexts),
                             "chopped_field_blocked_count": sum(row.get("kind") == "CHOPPED_FIELD" and row.get("status", "").startswith("BLOCKED") for row in contexts),
@@ -65,6 +67,10 @@ def assess(products: dict, sources: dict) -> None:
                     if evidence["observed_chopped_field_roster_count"] == 0:
                         blockers.append("CHOPPED_FIELD_ROWS_NOT_CAPTURED")
                     blockers.append("CHOPPED_ACTIVE_FIELD_NOT_CERTIFIED")
+                if any(row.get("kind") == "CHOPPED_FIELD" and row.get("active_field_certified") is not True for row in observed.get("leagues", [])):
+                    blockers.append("CHOPPED_ACTIVE_FIELD_NOT_CERTIFIED")
+                if any(row.get("kind") == "CHOPPED_FIELD" and row.get("status") == "PARTIAL_PROVIDER_NOT_ELIMINATED_FIELD" for row in observed.get("leagues", [])):
+                    blockers.append("CHOPPED_NOT_ELIMINATED_STARTERS_PARTIAL")
                 if any(key != "BOUND_CURRENT_ROSTER" and count for key, count in evidence["portfolio_league_status_counts"].items()):
                     blockers.append("CURRENT_ROSTER_SCOPE_PARTIAL")
                 blockers.append("ALL_LEAGUE_CANONICAL_EXPOSURE_UNCERTIFIED")

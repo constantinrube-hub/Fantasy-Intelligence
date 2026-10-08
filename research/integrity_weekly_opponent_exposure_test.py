@@ -53,6 +53,28 @@ def main() -> None:
     assert result["field_players"][0]["observed_field_league_count"] == 1
     assert result["leagues"][2]["status"] == "PARTIAL_MATCHUP_FIELD_ACTIVE_UNVERIFIED"
     assert result["leagues"][2]["active_field_certified"] is False
+    certified = deepcopy(captured)
+    certified_field = certified["leagues"][2]["field_context"]
+    certified_field.update(status="CAPTURED_PROVIDER_NOT_ELIMINATED_FIELD", active_field_certified=True,
+                           elimination_source_core_sha256="a" * 64,
+                           elimination_source_observed_at="2026-10-08T09:00:00+00:00",
+                           last_completed_chopped_leg=4, not_eliminated_roster_count=1,
+                           eliminated_matchup_roster_count=1)
+    certified_field["rosters"][0]["provider_elimination_state"] = "NOT_MARKED_ELIMINATED"
+    certified_field["rosters"].append({"roster_id": "3", "player_ids": ["456"],
+                                        "status": "CAPTURED_SUBMITTED_STARTERS", "provider_elimination_state": "ELIMINATED"})
+    certified["leagues"][2]["evidence"]["app_core_sha256"] = "a" * 64
+    current["leagues"][2]["players"].append({"player_id": "gsis-2", "player_name": "Two",
+        "position": "RB", "sleeper_id": "456", "owned_by_user": False, "rostered_in_league": True})
+    result = captured_exposure(certified, current, CAPTURE)
+    assert result["leagues"][2]["status"] == "CAPTURED_PROVIDER_NOT_ELIMINATED_FIELD"
+    assert result["leagues"][2]["active_field_certified"] is True
+    assert {row["player_id"] for row in result["field_players"]} == {"gsis-1", "gsis-2"}
+    assert [row["player_id"] for row in result["not_eliminated_field_players"]] == ["gsis-1"]
+    broken_certified = deepcopy(certified); broken_certified["leagues"][2]["evidence"]["app_core_sha256"] = "b" * 64
+    assert captured_exposure(broken_certified, current, CAPTURE)["leagues"][2]["status"] == "BLOCKED_FIELD_ELIMINATION_SOURCE_MISMATCH"
+    broken_certified = deepcopy(certified); broken_certified["leagues"][2]["field_context"]["not_eliminated_roster_count"] = 2
+    assert captured_exposure(broken_certified, current, CAPTURE)["leagues"][2]["status"] == "BLOCKED_FIELD_ELIMINATION_SCOPE_INVALID"
     broken = deepcopy(captured); broken["leagues"][2]["evidence"]["matchup_evidence_sha256"] = "tampered"
     assert captured_exposure(broken, current, CAPTURE)["leagues"][2]["status"] == "BLOCKED_FIELD_EVIDENCE_HASH_MISMATCH"
     broken = deepcopy(captured); broken["leagues"][2]["field_context"]["captured_at"] = "2026-10-08T13:00:00+00:00"
