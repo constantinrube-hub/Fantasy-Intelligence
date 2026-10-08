@@ -109,3 +109,17 @@ separate unfinished P0 work.
 Window 1C reports ready, partial, blocked, unknown and not-applicable counts separately. Partial evidence is not a blocked workflow. Offensive waiver coverage is reported independently from K/D/ST and is based on eligible source rows, not proof of candidate availability or complete position coverage. A successful specialist recommendation does not establish offensive readiness. Model eligibility and recommendation statuses retain their original owners.
 
 Explicit lifecycle declarations live in `config/league-portfolio.json`, scoped to a season and effective week with an evidence source. `ELIMINATED_RESEARCH_ONLY`, `COMPLETED`, `ARCHIVED`, `REFRESH_ONLY` and `RETIRED` suppress operational advice. Missing declarations preserve existing active behavior; malformed declarations block advice. Elimination is never inferred from an empty roster. The Final Cut is research-only from 2026 Week 4 following the user's Week 3 elimination. Window 1D continues to capture its observable bid history and report ledger while skipping the recommendation planner. Current refresh remains enabled. Later seasons require their own explicit lifecycle decision.
+
+## Prospective checkpoint audit
+
+Window 1D appends a read-only checkpoint audit to its Actions summary and first-writes an operational record named `evidence-audit-<run>-<attempt>.json` alongside that invocation's weekly input receipt. Audit states are `NOT_DUE`, `DUE_MISSING`, `MISSED_UNRECORDED`, `MISSED_RECORDED`, `CAPTURED_VALIDATED`, or an explicit blocker. `ON_TRACK` means only the audited checkpoints have no current gap; it does not certify projection coverage or all report products.
+
+The audit reuses an already observed, hash-verified weather schedule envelope for the requested season/week, excludes envelopes captured after its as-of time, and delegates terminal evidence validation to the established M10 and Sunday paired-checkpoint owners. No provider calls occur. Missing evidence after a deadline is reported; the audit cannot recreate a forecast or write an official missed-capture manifest. Only the original capture owner may do that.
+
+Current scope: M10 week-open and Sunday paired M10/Sleeper checkpoints. PR2 lineup checkpoints, daily availability, weather, trench evidence, post-week outcomes, and the seven-product weekly report contract still require their separate audits. A past missed checkpoint remains missed even after a later refresh succeeds.
+
+Manual inspection (choose a new operational output filename each time):
+
+```powershell
+python research/weekly_evidence_audit.py --season 2026 --week 5 --output .cache/weekly-evidence-audit.json
+```
