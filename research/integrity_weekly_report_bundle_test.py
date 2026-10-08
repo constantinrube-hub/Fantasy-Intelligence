@@ -43,6 +43,37 @@ def main():
             assert source['status'] == 'BLOCKED_INVALID_SOURCE' and reason in source['reason'], source
             assert rejected['products']['WAIVER_GUIDE']['content'] is None
         path.write_text(before.decode())
+        from in_season_pr2_weekly_lineups import capture_payload, sha256_value
+        pr2_path = base / 'lineups/portfolio-latest.json'
+        pr2_path.parent.mkdir(parents=True)
+        opponent = {'status':'CAPTURED_H2H_CONTEXT','opponent_roster_id':2,
+                    'opponent_lineup':{'status':'EXACT_MAX_MEAN_ADVISORY','selected_player_ids':['gsis-x'],'actionable':False}}
+        pr2 = {'schema':'fie-in-season-pr2-weekly-lineup-portfolio-v1', 'generated_at':'2026-10-08T00:30:00Z',
+               'leagues':[{'league_id':'a','season':2026,'week':5,'format':'REDRAFT','opponent_context':opponent},
+                          {'league_id':'z','season':2026,'week':5,'format':'CHOPPED','opponent_context':opponent}],
+               'portfolio_intelligence':{'cross_league_exposure':[]}}
+        content_hash = sha256_value(capture_payload(pr2))
+        pr2.update(capture_id=content_hash[:16],capture_content_sha256=content_hash)
+        frozen = pr2_path.parent / 'captures' / f'portfolio-{content_hash[:16]}.json'
+        frozen.parent.mkdir();frozen.write_text(json.dumps(pr2));pr2_path.write_text(json.dumps(pr2))
+        good = w.bundle(root,2026,5,now)
+        assert good['sources']['PR2']['capture_sha256'] == w.digest(frozen)
+        contexts = good['products']['EXPOSURE']['content']['captured_opponent_contexts']
+        assert contexts[0]['owner_context'] == opponent and not contexts[0]['actionable']
+        assert contexts[1]['kind']=='CHOPPED_FIELD' and contexts[1]['owner_context'] is None
+        assert 'Captured opponent context' in w.markdown(good)
+        original=frozen.read_bytes()
+        bad=dict(pr2);bad['generated_at']='2026-10-08T00:40:00Z';pr2_path.write_text(json.dumps(bad))
+        assert w.bundle(root,2026,5,now)['sources']['PR2']['status']=='AVAILABLE'
+        future=dict(pr2);future['generated_at']='2026-10-08T02:00:00Z';frozen.write_text(json.dumps(future))
+        assert 'AFTER_LATEST' in w.bundle(root,2026,5,now)['sources']['PR2']['reason']
+        frozen.write_bytes(original)
+        bad=dict(pr2);bad['capture_id']='../escape';pr2_path.write_text(json.dumps(bad))
+        assert 'IDENTITY_MISMATCH' in w.bundle(root,2026,5,now)['sources']['PR2']['reason']
+        pr2_path.write_text(json.dumps(pr2));frozen.write_text('{}')
+        assert 'REPLAY_MISMATCH' in w.bundle(root,2026,5,now)['sources']['PR2']['reason']
+        frozen.write_bytes(original);frozen.unlink()
+        assert 'CAPTURE_MISSING' in w.bundle(root,2026,5,now)['sources']['PR2']['reason']
         output = w.markdown(report)
         assert '0/7' in output and 'PARTIAL_OWNER_OUTPUT' in output
     print('PASS weekly report bundle: seven products, honest partial states, Chopped priority, source lineage, target/time/staleness guards, read-only owners')
