@@ -162,6 +162,11 @@ def bundle(root: Path, season: int, week: int, as_of: datetime, portfolio_surfac
                 products["EXPOSURE"]["owner_sources"].append("PR2")
                 products["EXPOSURE"]["content"]["pr2_intelligence"] = pr2.get("portfolio_intelligence")
                 products["EXPOSURE"]["content"]["captured_opponent_contexts"] = captured_opponent_contexts(pr2)
+                from weekly_opponent_exposure import captured_exposure
+                try:
+                    products["EXPOSURE"]["content"]["captured_opponent_exposure"] = captured_exposure(pr2, surface, bindings["PR2"])
+                except Exception as exc:
+                    bindings["OPPONENT_EXPOSURE"] = {"status": "BLOCKED_CAPTURE_JOIN", "reason": f"{type(exc).__name__}:{exc}"}
         except Exception as exc:
             bindings["CURRENT_PORTFOLIO"] = {**binding,"status":"BLOCKED_INVALID_SOURCE","reason":f"{type(exc).__name__}:{exc}"}
             products["EXPOSURE"]["next_action"] = "Inspect CURRENT_PORTFOLIO rejection; for stale core snapshots run Refresh Currentseason, then Window 1C and its automatic Window 1D follow-up. Preserve freshness and profile guards."
@@ -223,6 +228,17 @@ def markdown(report: dict) -> str:
         lines += ["", "### Captured opponent context", "", "| League | Scope | Capture state |", "|---|---|---|"]
         lines.extend(f"| {row['league_id']} | {row['kind']} | {row['status']} |" for row in contexts)
         lines += ["", "Opponent maximum-mean advisory is distinct from observed submitted starters. Chopped requires captured active-field evidence; no H2H pairing substitutes for it."]
+    observed = (report["products"]["EXPOSURE"].get("content") or {}).get("captured_opponent_exposure")
+    if observed:
+        lines += ["", "### Observed H2H opponent starter exposure", "",
+                  "| League | Scope | Join state |", "|---|---|---|"]
+        lines.extend(f"| {row['league_name'] or row['league_id']} | {row['kind']} | {row['status']} |" for row in observed["leagues"])
+        lines += ["",
+                  "| Player | Opponent-start leagues |", "|---|---:|"]
+        lines.extend(f"| {row['player_name'] or row['player_id']} | {row['opponent_start_league_count']} |" for row in observed["players"])
+        if not observed["players"]:
+            lines.append("| No bound submitted starters | 0 |")
+        lines += ["", "These are captured submitted starters, not final lineups or predicted opponent actions. Chopped-field exposure remains separate."]
     return "\n".join(lines) + "\n"
 
 

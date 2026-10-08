@@ -46,10 +46,12 @@ def main():
         from in_season_pr2_weekly_lineups import capture_payload, sha256_value
         pr2_path = base / 'lineups/portfolio-latest.json'
         pr2_path.parent.mkdir(parents=True)
-        opponent = {'status':'CAPTURED_H2H_CONTEXT','opponent_roster_id':2,
+        opponent = {'status':'CAPTURED_H2H_CONTEXT','opponent_roster_id':2, 'captured_at':'2026-10-08T00:20:00Z',
+                    'opponent_submitted_starters':{'status':'CAPTURED_SUBMITTED_STARTER_IDS', 'player_id_namespace':'sleeper', 'player_ids':['123']},
                     'opponent_lineup':{'status':'EXACT_MAX_MEAN_ADVISORY','selected_player_ids':['gsis-x'],'actionable':False}}
         pr2 = {'schema':'fie-in-season-pr2-weekly-lineup-portfolio-v1', 'generated_at':'2026-10-08T00:30:00Z',
-               'leagues':[{'league_id':'a','season':2026,'week':5,'format':'REDRAFT','opponent_context':opponent},
+               'leagues':[{'league_id':'a','season':2026,'week':5,'format':'REDRAFT','opponent_context':opponent,
+                           'evidence':{'scoring_signature':'sig','profile_fingerprint':'profile'}},
                           {'league_id':'z','season':2026,'week':5,'format':'CHOPPED','opponent_context':opponent}],
                'portfolio_intelligence':{'cross_league_exposure':[]}}
         content_hash = sha256_value(capture_payload(pr2))
@@ -62,6 +64,23 @@ def main():
         assert contexts[0]['owner_context'] == opponent and not contexts[0]['actionable']
         assert contexts[1]['kind']=='CHOPPED_FIELD' and contexts[1]['owner_context'] is None
         assert 'Captured opponent context' in w.markdown(good)
+        inputs = root / 'config' / 'frozen.json';inputs.parent.mkdir();inputs.write_text('{}')
+        surface_path = root / 'data/operations/portfolio-surface.json';surface_path.parent.mkdir(parents=True)
+        surface = {'schema':'fie-weekly-portfolio-surface-v1','season':2026,'week':5,
+                   'as_of_utc':'2026-10-08T00:45:00Z','input_hashes':{'config/frozen.json':w.digest(inputs)},
+                   'roster_exposure':[],'league_status_counts':{'BOUND_CURRENT_ROSTER':1},
+                   'specialist_evidence':{},'leagues':[{'league_id':'a','status':'BOUND_CURRENT_ROSTER',
+                       'active_operational_scope':True,'scoring_signature':'sig','profile_fingerprint':'profile',
+                       'players':[{'sleeper_id':'123','player_id':'gsis-1','player_name':'One','team':'AAA',
+                                   'position':'WR','owned_by_user':False,'rostered_in_league':True,
+                                   'fie_mean':None,'sleeper_mean':10}]}]}
+        surface_path.write_text(json.dumps(surface))
+        integrated = w.bundle(root,2026,5,now,portfolio_surface=surface_path)
+        observed = integrated['products']['EXPOSURE']['content']['captured_opponent_exposure']
+        assert observed['players'][0]['player_id']=='gsis-1'
+        assert observed['players'][0]['opponent_start_league_count']==1
+        assert observed['capture_sha256']==w.digest(frozen)
+        assert 'Observed H2H opponent starter exposure' in w.markdown(integrated)
         original=frozen.read_bytes()
         bad=dict(pr2);bad['generated_at']='2026-10-08T00:40:00Z';pr2_path.write_text(json.dumps(bad))
         assert w.bundle(root,2026,5,now)['sources']['PR2']['status']=='AVAILABLE'
