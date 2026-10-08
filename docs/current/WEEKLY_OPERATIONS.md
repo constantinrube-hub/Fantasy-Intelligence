@@ -161,3 +161,11 @@ User adoption, realized outcome, hindsight optimum and ex-ante quality stay unkn
 The weekly bundle replays PR2's existing capture identity against `lineups/captures/portfolio-<capture_id>.json`. Missing archives, altered payloads and impossible publication clocks block that owner. The existing writer's generation-only refresh remains valid. Latest pointers alone do not certify evidence.
 
 Exposure includes unchanged PR2 direct-H2H opponent contexts when available, with the capture and scoring signature retained. Exact maximum-mean opponent lineups are advisory and are never labelled submitted starters or manager intentions. Chopped active-field evidence stays independently blocked until captured; a direct pairing cannot fill that gap. All products remain partial until their complete contracts are satisfied.
+
+### Stale roster recovery and stored postgame review
+
+The portfolio surface retains the existing core freshness limit, typically six hours, even when broader pipeline inputs still pass their 36-hour guard. Stale views display original observation time, age, limit and the Refresh Currentseason recovery action. Run refresh before Window 1C; its successful completion triggers Window 1D. Do not relax freshness to make coverage appear available.
+
+After the established postgame buffer, the bundle inspects stored PR2 evaluation revisions. It validates the immutable capture, provider-source adapter, raw point-in-time envelope, exact scoring replay and unchanged owner evaluation, retaining each file hash. Invalid revisions remain visible. Results are partial owner evaluation, not proof of user adoption or a paired FIE/Sleeper comparison. The provider raw-response hash remains declared by the existing owner rather than independently replayed here. Target-week outcomes remain NOT_DUE before the buffer.
+
+PR2 direct-H2H context now retains submitted opponent starter IDs from the captured matchup response, in the declared Sleeper namespace. Empty slots are counted; an absent starter list stays unknown. These timestamped observations are neither a certified final lineup nor the advisory maximum-mean lineup, and are not joined by display name. Existing immutable captures are not rewritten.

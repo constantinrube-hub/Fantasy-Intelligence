@@ -106,12 +106,22 @@ def head_to_head_context(managed_roster_id: Any, matchup_evidence: dict[str, Any
     if len(opponent) != 1:
         return {"status": "NOT_APPLICABLE_NO_DIRECT_H2H_OPPONENT", "actionable": False, "matchup_id": matchup_id, "evidence_sha256": sha256_value(envelope)}
     row = opponent[0]
+    starters = row.get("starters")
+    submitted = {"status": "NOT_PROVIDED_BY_CAPTURE", "player_id_namespace": "sleeper", "player_ids": None}
+    if isinstance(starters, list):
+        invalid = [value for value in starters if not isinstance(value, (str, int)) or isinstance(value, bool)]
+        submitted = {"status": "BLOCKED_INVALID_STARTER_IDS" if invalid else "CAPTURED_SUBMITTED_STARTER_IDS",
+                     "player_id_namespace": "sleeper",
+                     "player_ids": None if invalid else [str(value) for value in starters if str(value).strip() not in {"", "0"}],
+                     "empty_slot_count": sum(str(value).strip() in {"", "0"} for value in starters),
+                     "observed_at": envelope.get("captured_at"), "final_lineup_certified": False}
     return {
         "status": "CAPTURED_H2H_CONTEXT",
         "actionable": False,
         "matchup_id": matchup_id,
         "opponent_roster_id": row.get("roster_id"),
         "opponent_reported_points": row.get("points"),
+        "opponent_submitted_starters": submitted,
         "captured_at": envelope.get("captured_at"),
         "evidence_sha256": sha256_value(envelope),
         "basis": "captured direct head-to-head pairing only; not a win-probability or max-win lineup recommendation",

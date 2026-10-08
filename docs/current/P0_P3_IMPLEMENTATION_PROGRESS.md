@@ -18,10 +18,10 @@ The overnight batch adds operational reports, context integrity, independent pro
 | M10/Sunday/PR2 deadline audit | Implemented and live verified | Observe due windows and terminal records; no retrospective reconstruction. |
 | Availability/weather/trench audit | Merged/live verified | Merge and verify workflow summary; trench raw replay and weather accuracy remain separate. |
 | Player performance | Merged/live verified; real Week 4 report | All 16 games/32 teams listed, 1,110 provider player-game rows; one unattributed row remains explicit. Official finality and snap/route coverage remain uncertified. |
-| Exposure | Merged/live verified | Active owned/start exposure resolves 260 players; four league views retain unresolved-player gaps. The bundle binds immutable PR2 archives and displays existing direct-H2H contexts; observed opponent starters and chopped-field exposure remain to integrate. |
+| Exposure | Merged/live verified | Active owned/start exposure resolves 260 players; four league views retain unresolved-player gaps. The bundle binds immutable PR2 archives and displays existing direct-H2H contexts; new PR2 captures retain observed opponent starter IDs in the Sleeper namespace; canonical cross-league opponent aggregation and chopped-field exposure remain open. |
 | Start/Sit and waivers | Existing owner outputs preserved | Full recommendation coverage depends on eligible projections/model evidence. |
 | D/ST and kicker | Partial current owned/available boards | Validated multi-week hold/stream strategy remains absent; no new strategy is invented. |
-| Post-week comparison | Still open | Real M10 exact-scoring outcomes/comparisons and PR2 capture-bound outcomes are required. |
+| Post-week comparison | Stored PR2 source/scoring/evaluation replay adapter implemented | Real PR2 outcomes must accrue; paired FIE/Sleeper and M10 exact-scoring outcomes/comparisons remain required. |
 | Seven-product contract | Explicit partial/not-due outputs | The adapter certifies zero complete products; full products need their own validators. |
 | CI and deploy parity | Expanded focused tests/full closure gate | Post-merge workflow checks and browser smoke still required. |
 
@@ -99,3 +99,9 @@ Future model/result batches should be one coherent phase tranche each: a documen
 The repository's `docs/audits/CODEX_MODEL_ROUTING.md` requires a clean handoff before new football-model architecture, statistical methodology, research-completeness scoring, cross-model reasoning or waiver-economics design. That boundary applies to the remaining new Chopped, P2 experiment and calibrated P3 designs. Existing approved owners were reused in this batch; no such new model design or promotion was performed.
 
 P4 remains deferred. Standalone Vegas, college/college-to-NFL, IDP expansion and broad scoring-hardening workstreams remain outside the selected scope. Targeted compatibility fixes for the included pipeline remain allowed.
+
+## 8 October daytime continuity batch
+
+Runs 37773966120 and 37774336604 completed successfully. M10 Week 5 is CAPTURED_VALIDATED and the checkpoint audit is ON_TRACK. Current roster views in that 1D invocation rejected all 23 stale cores under their established six-hour freshness limit; pipeline success did not certify exposure availability. Refresh Currentseason, then Window 1C and its automatic Window 1D follow-up, is the recovery path. Tonight's PR2 evidence remains a separate real checkpoint.
+
+The continuity batch adds explicit stale ages/limits/recovery instructions and read-only postgame PR2 revision replay through the existing source adapter, scoring owner and evaluator. It preserves blocked revisions, partial-product states and model authority. No real outcome is invented, no freshness threshold is relaxed, and no new evaluation method is introduced.

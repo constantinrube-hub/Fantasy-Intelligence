@@ -164,6 +164,7 @@ def bundle(root: Path, season: int, week: int, as_of: datetime, portfolio_surfac
                 products["EXPOSURE"]["content"]["captured_opponent_contexts"] = captured_opponent_contexts(pr2)
         except Exception as exc:
             bindings["CURRENT_PORTFOLIO"] = {**binding,"status":"BLOCKED_INVALID_SOURCE","reason":f"{type(exc).__name__}:{exc}"}
+            products["EXPOSURE"]["next_action"] = "Inspect CURRENT_PORTFOLIO rejection; for stale core snapshots run Refresh Currentseason, then Window 1C and its automatic Window 1D follow-up. Preserve freshness and profile guards."
     # Outcome products are not due while the target week's postgame buffer is
     # still open. Previous-week reports remain distinct artifacts.
     try:
@@ -176,6 +177,11 @@ def bundle(root: Path, season: int, week: int, as_of: datetime, portfolio_surfac
                 products[name].update(status="NOT_DUE", outcomes_eligible_at=outcomes_due.isoformat(),
                                       next_action="Wait for the established postgame stabilization buffer; do not create target-week outcomes early.")
         else:
+            from weekly_lineup_review import review
+            post_review = review(root, season, week, as_of, outcomes_due)
+            bindings["POST_WEEK_REVIEW"] = {"status": post_review["status"], "blocked_revisions": post_review["blocked_revisions"]}
+            if post_review["revisions"]:
+                attach("POST_WEEK_REVIEW", "PR2_OUTCOME_EVALUATOR", post_review)
             reports = []
             for path in (root / f"data/operations/weekly-performance/{season}/week_{week:02d}/reports").glob("*.json"):
                 value = json.loads(path.read_text(encoding="utf-8"))
