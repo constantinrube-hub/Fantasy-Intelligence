@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 import weekly_portfolio_surface as w
+from build_current_snapshot import forecast_artifact_identity
 
 
 def row(**changes):
@@ -21,6 +22,33 @@ def main():
     missing=w.projection(row(fie_weekly_projection=None,sleeper_weekly_projection=0),2026,5,'sig')
     assert missing['fie_mean'] is None and missing['fie_coverage']=='UNSUPPORTED' and missing['sleeper_mean']==0
     assert missing['fie_minus_sleeper'] is None
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td)
+        import json
+        artifacts={}
+        for label in ('M4','M5','M6'):
+            path=root/f'{label}.json'
+            bundle={'research_build':f'{label}-2026'}
+            path.write_text(json.dumps(bundle),encoding='utf-8')
+            artifacts[label]=forecast_artifact_identity(str(path),bundle,label)
+            assert artifacts[label]['status']=='BOUND' and len(artifacts[label]['sha256'])==64
+        bound=w.projection(row(),2026,5,'sig',artifacts)
+        assert bound['model_identity_status']=='ARTIFACT_BOUND_MODEL_UNDECLARED'
+        assert bound['model_id'] is None and bound['fie_forecast_source']['m4_sha256']==artifacts['M4']['sha256']
+        other={**artifacts,'M4':{**artifacts['M4'],'sha256':'f'*64}}
+        assert w.projection(row(),2026,5,'sig',other)['fie_forecast_source']['m4_sha256']=='f'*64
+        assert 'fie_forecast_source' not in row()  # Per-league identity stays out of the shared player base.
+        assert w.forecast_source(None,artifacts) is None
+        assert w.forecast_source(10,{**artifacts,'M6':{'status':'NOT_BOUND'}})['status']=='SOURCE_BUNDLES_NOT_BOUND'
+        assert forecast_artifact_identity(str(root/'M4.json'),{},'M4')['status']=='NOT_BOUND'
+        assert forecast_artifact_identity(str(root/'M4.json'),{'research_build':'replaced'},'M4')['status']=='NOT_BOUND'
+        for bad in ({**artifacts,'M4':{**artifacts['M4'],'sha256':'not-a-digest'}},
+                    {**artifacts,'M4':{**artifacts['M4'],'artifact':'M5'}}):
+            try:
+                w.forecast_source(10,bad)
+                raise AssertionError('Invalid forecast source accepted')
+            except ValueError as exc:
+                assert 'ARTIFACTS_INVALID' in str(exc)
     try:
         w.projection(row(p10=20,p90=10),2026,5,'sig')
         raise AssertionError('Invalid interval accepted')

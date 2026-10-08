@@ -47,6 +47,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Start refresh from current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B main origin/main
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -277,7 +284,11 @@ jobs:
           git commit             -m "Refresh FIE current intelligence and deploy dist"
 
           git fetch origin main
-          git rebase origin/main
+          if ! git rebase origin/main; then
+            git rebase --abort
+            echo 'Concurrent main changes conflict with the validated refresh. Re-run Refresh FIE Current Season from the latest main; generated release artifacts must be rebuilt.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
           git push origin HEAD:main
 
       - name: Emit workflow usability evidence

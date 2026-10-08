@@ -112,7 +112,12 @@ class CalendarTests(unittest.TestCase):
             self.assertIn('uses: ./.github/workflows/_fie-calendar-policy.yml', text)
             self.assertIn('purpose: ' + purpose, text)
             self.assertIn('needs: calendar', text)
-            self.assertIn("if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'", text)
+            if wrapper == 'build-fie-window1d-optimal-waiver':
+                self.assertIn('needs: [calendar, upstream]', text)
+                self.assertIn("if: always() && needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'", text)
+                self.assertIn("needs.upstream.outputs.available == 'true'", text)
+            else:
+                self.assertIn("if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'", text)
         text = (ROOT / CONTROLLER).read_text()
         self.assertIn("cron: '17 20 11 1 *'", text)
         self.assertIn("cron: '17 8 26 4 *'", text)

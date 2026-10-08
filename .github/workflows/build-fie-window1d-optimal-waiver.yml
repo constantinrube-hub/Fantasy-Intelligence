@@ -43,9 +43,65 @@ jobs:
     uses: ./.github/workflows/_fie-calendar-policy.yml
     with:
       purpose: optimal_waiver
-  build:
+  upstream:
     needs: calendar
-    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository))
+    if: needs.calendar.outputs.allowed == 'true' && github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      available: ${{ steps.receipt.outputs.available }}
+    steps:
+      - name: Check this Window 1C run's artifact and job result
+        id: receipt
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run_id = context.payload.workflow_run.id;
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              ...context.repo, run_id, filter: 'latest'
+            });
+            const producer = jobs.find(job => job.name === 'weekly-actions');
+            if (!producer) throw new Error(`Window 1C run ${run_id} has no weekly-actions job`);
+            if (producer.conclusion === 'skipped') {
+              core.setOutput('available', 'false');
+              await core.summary.addRaw(`Window 1C run ${run_id} skipped weekly-actions; Window 1D is not due.\n`).write();
+              return;
+            }
+            if (producer.conclusion !== 'success') {
+              throw new Error(`Window 1C weekly-actions concluded ${producer.conclusion}`);
+            }
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              ...context.repo, run_id
+            });
+            if (!artifacts.some(artifact => artifact.name === 'fie-weekly-inputs' && !artifact.expired)) {
+              throw new Error(`Window 1C run ${run_id} completed weekly-actions without a live fie-weekly-inputs receipt`);
+            }
+            core.setOutput('available', 'true');
+      - uses: actions/checkout@v4
+        if: steps.receipt.outputs.available == 'false'
+        with:
+          ref: main
+      - name: Record expected upstream no-op
+        if: steps.receipt.outputs.available == 'false'
+        shell: bash
+        run: |
+          mkdir -p .cache
+          echo '{"schema":"fie-weekly-pipeline-inputs-v1","status":"NO_DUE","reason_codes":["PIPELINE_UPSTREAM_NOT_DUE"]}' > .cache/fie-weekly-inputs.json
+          python research/workflow_usability.py emit \
+            --workflow-path .github/workflows/build-fie-window1d-optimal-waiver.yml \
+            --workflow-name "Build FIE Window 1D Optimal Waiver" \
+            --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
+            --job-status success --adapter weekly-pipeline \
+            --dependency-file .cache/fie-weekly-inputs.json
+      - name: Upload expected no-op evidence
+        if: steps.receipt.outputs.available == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-workflow-usability
+          path: .cache/fie-workflow-usability.json
+          retention-days: 21
+  build:
+    needs: [calendar, upstream]
+    if: always() && needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || needs.upstream.outputs.available == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:

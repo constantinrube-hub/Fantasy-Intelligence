@@ -70,6 +70,19 @@ def load_json(path: str) -> dict:
     return json.loads(p.read_text()) if p.exists() else {}
 
 
+def forecast_artifact_identity(path: str, bundle: dict, label: str) -> dict:
+    """Identify the exact research bundle read by this snapshot producer."""
+    source = Path(path)
+    version = bundle.get("research_build") if isinstance(bundle, dict) else None
+    if not source.is_file() or not isinstance(version, str) or not version.strip():
+        return {"artifact": label, "status": "NOT_BOUND"}
+    source_bytes = source.read_bytes()
+    if json.loads(source_bytes) != bundle:
+        return {"artifact": label, "status": "NOT_BOUND"}
+    return {"artifact": label, "status": "BOUND", "research_build": version,
+            "sha256": hashlib.sha256(source_bytes).hexdigest()}
+
+
 def stable_scoring(scoring: dict) -> dict:
     out = {}
     for k, v in (scoring or {}).items():
@@ -646,6 +659,10 @@ def inferred_nfl_season(now_utc: Optional[datetime] = None) -> int:
 
 def build_snapshot(args) -> dict:
     m4 = load_json(args.m4_bundle); m5 = load_json(args.m5_bundle); m6 = load_json(args.m6_bundle)
+    forecast_artifacts = {label: forecast_artifact_identity(path, bundle, label)
+                          for label, path, bundle in (("M4", args.m4_bundle, m4),
+                                                       ("M5", args.m5_bundle, m5),
+                                                       ("M6", args.m6_bundle, m6))}
     profile = load_json(getattr(args, "league_profile", None)) if getattr(args, "league_profile", None) else {}
     profile_league_id = str(profile.get("league_id") or "")
     league_id = str(args.league_id or profile_league_id or "") or None
@@ -970,6 +987,7 @@ def build_snapshot(args) -> dict:
     status = "complete" if players else "ready"
     bundle = {
         "schema_version": 3, "m5_build": M5_BUILD, "producer_build": PRODUCER_BUILD,
+        "forecast_artifacts": forecast_artifacts,
         "generated_at": generated, "status": status, "season": season, "week": week,
         "season_type": season_type, "sleeper_state_week": sleeper_week,
         "analysis_week_policy": "explicit --week when supplied; otherwise preseason maps to upcoming regular Week 1",
