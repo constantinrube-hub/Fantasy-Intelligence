@@ -19,6 +19,7 @@ CANONICAL_DOCS = (
     "docs/current/MODEL_GOVERNANCE.md",
     "docs/current/TESTING.md",
     "docs/current/WEEKLY_OPERATIONS.md",
+    "docs/current/P0_P3_IMPLEMENTATION_PROGRESS.md",
     "docs/current/SECURITY.md",
     "docs/current/RELEASE_CHECKLIST.md",
 )

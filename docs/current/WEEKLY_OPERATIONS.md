@@ -137,3 +137,21 @@ Manual inspection (use a new output filename):
 ```powershell
 python research/weekly_report_bundle.py --season 2026 --week 5 --output .cache/weekly-report-bundle.json
 ```
+
+## Context, player-performance and current-portfolio artifacts
+
+The checkpoint audit now includes a separate stored-context audit. Availability validates the original capture contract, raw/normalized hashes and coverage, with an explicit 36-hour freshness observation. Weather validates the stored schedule, provider envelopes, per-game provenance and the original hourly normalization; unavailable forecasts remain missing. Trench evidence validates target, prior-week leakage guards, team counts and research authority. Its raw PBP source hash is declared, not replayed by this adapter. A green checkpoint state does not certify weather accuracy, coordinates, complete context coverage or model value.
+
+Window 1D ensures one report for the newest completed week represented by a stored schedule. It reuses the existing PR2 12-hour postgame buffer. The first invocation captures an immutable nflverse retrospective response and generates a team-by-team player-performance JSON and Markdown report under `data/operations/weekly-performance/<season>/week_<week>/`. Later invocations replay the existing report and no-op. Explicit manual revisions use new source/output identities; they never overwrite a prior report. Player IDs absent in the provider response remain unresolved, and snapshots/routes remain unsupported. Provider standard/PPR fantasy points are diagnostics, not exact league scores. Neither elapsed time nor provider rows certify official game finality. These artifacts cannot enter target-week pregame features.
+
+A current `portfolio-surface-<run>-<attempt>.json` plus Markdown binds all weekly input hashes, source commit, observed roster time, forecast time, scoring/profile identities and producer source hash. It includes independent FIE and Sleeper means, deltas, available intervals, component fields and explicit eligibility/missingness. A mean never becomes a median. Existing numeric CSV-ID normalization is reused, with exact live Sleeper-ID rows taking precedence over historical aliases; their forecasts are not merged. A future or stale core blocks that league. Unresolved players remain typed partial coverage.
+
+Active roster/start exposure is computed from those same records. The eliminated Final Cut remains inspectable but is excluded from active exposure. Best Ball starter observations are labelled automatic, not manual instructions. A current core does not identify this week's direct opponent, so opponent exposure remains blocked until captured matchup evidence is present. D/ST and kicker owned/available forecast boards retain independent values and explicit missing hold/stream strategy; existing Window 1D specialist advice can be included unchanged. These partial boards do not certify a validated strategy.
+
+The coverage bundle now saves Markdown alongside JSON. Target-week player performance and post-week review are `NOT_DUE` until the existing outcome buffer elapses. Previous-week reports retain their own week and are never relabelled. Source-only reports and partial forecast boards do not complete the seven-product contract.
+
+## Decision accountability
+
+`decision-ledger-<run>-<attempt>.json` plus Markdown creates deterministic IDs from the owner, source-report hash, league, target, kind and unchanged recommendation. It preserves explanations/confidence from the owner and keeps blocked/no-op league states separate from recommendations. Research-only lifecycle states receive no new advice objects.
+
+User adoption, realized outcome, hindsight optimum and ex-ante quality stay unknown. An observed current starter is not proof that the user followed advice. The action-binding API requires a separately hashed `fie-user-action-source-v1` JSON with matching decision/league/season/week, observation time and actual action. It rejects future, pre-issuance, wrong-target and mismatched-source observations. If the recommendation owner did not declare an issuance time, adoption binding is blocked rather than treating its model as-of as publication time. This API observes declared actions; it executes no transaction and assesses no statistical decision quality.

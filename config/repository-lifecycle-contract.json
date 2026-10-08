@@ -2,16 +2,50 @@
   "schema": "fie-repository-lifecycle-v1",
   "owner": "repository-audit",
   "canonical_documents": [
-    {"path": "README.md", "role": "repository entry point"},
-    {"path": "CHANGELOG.md", "role": "versioned change history"},
-    {"path": "docs/current/ARCHITECTURE.md", "role": "current architecture"},
-    {"path": "docs/current/DATA_CONTRACTS.md", "role": "current data contracts"},
-    {"path": "docs/current/DEPLOYMENT.md", "role": "current deployment guide"},
-    {"path": "docs/current/MODEL_GOVERNANCE.md", "role": "current model governance"},
-    {"path": "docs/current/TESTING.md", "role": "current validation guide"},
-    {"path": "docs/current/WEEKLY_OPERATIONS.md", "role": "current weekly orchestration and recovery guide"},
-    {"path": "docs/current/SECURITY.md", "role": "current security guide"},
-    {"path": "docs/current/RELEASE_CHECKLIST.md", "role": "current release checklist"}
+    {
+      "path": "README.md",
+      "role": "repository entry point"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "role": "versioned change history"
+    },
+    {
+      "path": "docs/current/ARCHITECTURE.md",
+      "role": "current architecture"
+    },
+    {
+      "path": "docs/current/DATA_CONTRACTS.md",
+      "role": "current data contracts"
+    },
+    {
+      "path": "docs/current/DEPLOYMENT.md",
+      "role": "current deployment guide"
+    },
+    {
+      "path": "docs/current/MODEL_GOVERNANCE.md",
+      "role": "current model governance"
+    },
+    {
+      "path": "docs/current/TESTING.md",
+      "role": "current validation guide"
+    },
+    {
+      "path": "docs/current/WEEKLY_OPERATIONS.md",
+      "role": "current weekly orchestration and recovery guide"
+    },
+    {
+      "path": "docs/current/SECURITY.md",
+      "role": "current security guide"
+    },
+    {
+      "path": "docs/current/RELEASE_CHECKLIST.md",
+      "role": "current release checklist"
+    },
+    {
+      "path": "docs/current/P0_P3_IMPLEMENTATION_PROGRESS.md",
+      "role": "filtered P0\u2013P3 implementation progress and remaining phase handoffs"
+    }
   ],
   "canonical_index": "docs/current/README.md",
   "historical_document_patterns": [
@@ -27,22 +61,86 @@
   "versioned_docs_in_current_policy": "canonical topic guides own current guidance; a versioned document remains in docs/current only when a preserved historical manifest requires that exact path",
   "documentation_cleanup_contract": "config/tranche5d-documentation-cleanup-preflight.json",
   "workflow_classification_rules": [
-    {"pattern": "control-*.yml", "class": "season_calendar_control", "lifecycle": "active_operational"},
-    {"pattern": "_*.yml", "class": "reusable_component", "lifecycle": "retained_for_provenance"},
-    {"pattern": "validate-fie-tranche*.yml", "class": "controlled_audit", "lifecycle": "manual_historical_validation"},
-    {"pattern": "validate-*.yml", "class": "release_validation", "lifecycle": "active_validation"},
-    {"pattern": "build-fie-current.yml", "class": "current_season_refresh", "lifecycle": "active_operational"},
-    {"pattern": "build-*.yml", "class": "research_or_runtime_build", "lifecycle": "active_operational"},
-    {"pattern": "rebuild-*.yml", "class": "release_rebuild", "lifecycle": "active_operational"},
-    {"pattern": "capture-*.yml", "class": "data_capture", "lifecycle": "active_operational"},
-    {"pattern": "evaluate-*.yml", "class": "research_evaluation", "lifecycle": "active_operational"},
-    {"pattern": "bulk-*.yml", "class": "portfolio_operation", "lifecycle": "active_operational"},
-    {"pattern": "migrate-*.yml", "class": "migration", "lifecycle": "active_operational"},
-    {"pattern": "publish-*.yml", "class": "publication", "lifecycle": "active_operational"},
-    {"pattern": "repair-*.yml", "class": "repair", "lifecycle": "active_operational"},
-    {"pattern": "report-*.yml", "class": "operational_reporting", "lifecycle": "active_operational"},
-    {"pattern": "week1-*.yml", "class": "historical_week1_analysis", "lifecycle": "manual_historical_validation"},
-    {"pattern": "apply-*.yml", "class": "historical_application", "lifecycle": "retained_for_provenance"}
+    {
+      "pattern": "control-*.yml",
+      "class": "season_calendar_control",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "_*.yml",
+      "class": "reusable_component",
+      "lifecycle": "retained_for_provenance"
+    },
+    {
+      "pattern": "validate-fie-tranche*.yml",
+      "class": "controlled_audit",
+      "lifecycle": "manual_historical_validation"
+    },
+    {
+      "pattern": "validate-*.yml",
+      "class": "release_validation",
+      "lifecycle": "active_validation"
+    },
+    {
+      "pattern": "build-fie-current.yml",
+      "class": "current_season_refresh",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "build-*.yml",
+      "class": "research_or_runtime_build",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "rebuild-*.yml",
+      "class": "release_rebuild",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "capture-*.yml",
+      "class": "data_capture",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "evaluate-*.yml",
+      "class": "research_evaluation",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "bulk-*.yml",
+      "class": "portfolio_operation",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "migrate-*.yml",
+      "class": "migration",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "publish-*.yml",
+      "class": "publication",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "repair-*.yml",
+      "class": "repair",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "report-*.yml",
+      "class": "operational_reporting",
+      "lifecycle": "active_operational"
+    },
+    {
+      "pattern": "week1-*.yml",
+      "class": "historical_week1_analysis",
+      "lifecycle": "manual_historical_validation"
+    },
+    {
+      "pattern": "apply-*.yml",
+      "class": "historical_application",
+      "lifecycle": "retained_for_provenance"
+    }
   ],
   "controlled_audit_trigger_policy": "completed and in-progress controlled-tranche validators are workflow_dispatch-only except the new tranche preflight/target while it is being introduced",
   "active_controlled_workflows": [],

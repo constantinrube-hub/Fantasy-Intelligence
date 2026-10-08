@@ -3,13 +3,33 @@ name: Validate FIE Weekly Pipeline
 on:
   workflow_dispatch:
   push:
-    branches: ['fix/p0-*']
+    branches: ['fix/p0-*', 'ops/p0-*']
   pull_request:
     paths:
       - '.github/workflows/build-fie-current.yml'
       - '.github/workflows/build-fie-window1c-weekly-actions.yml'
       - '.github/workflows/build-fie-window1d-optimal-waiver.yml'
       - '.github/workflows/validate-fie-weekly-pipeline.yml'
+      - 'research/weekly_context_audit.py'
+      - 'research/integrity_weekly_context_audit_test.py'
+      - 'research/weekly_player_performance.py'
+      - 'research/integrity_weekly_player_performance_test.py'
+      - 'research/weekly_portfolio_surface.py'
+      - 'research/integrity_weekly_portfolio_surface_test.py'
+      - 'research/weekly_decision_ledger.py'
+      - 'research/integrity_weekly_decision_ledger_test.py'
+      - 'config/roadmap-research-registry.json'
+      - 'config/weekly-usage-dictionary.json'
+      - 'research/roadmap_research_inventory.py'
+      - 'research/integrity_roadmap_research_inventory_test.py'
+      - 'research/integrity_draft_worker_lifecycle_test.js'
+      - 'research/weekly_report_bundle.py'
+      - 'research/integrity_weekly_report_bundle_test.py'
+      - 'research/weekly_evidence_audit.py'
+      - 'research/integrity_weekly_evidence_audit_test.py'
+      - 'app/decision-engines.js'
+      - 'app/draft-monte-carlo-worker.js'
+      - 'research/integrity_monte_carlo_worker_test.js'
       - 'research/weekly_pipeline_readiness.py'
       - 'research/integrity_weekly_pipeline_readiness_test.py'
       - 'research/integrity_m10_legal_roster_assignment_test.py'
@@ -50,6 +70,13 @@ jobs:
       - name: Validate focused weekly contracts
         run: |
           python research/integrity_m10_legal_roster_assignment_test.py
+          python research/integrity_weekly_context_audit_test.py
+          python research/integrity_weekly_player_performance_test.py
+          python research/integrity_weekly_portfolio_surface_test.py
+          python research/integrity_weekly_decision_ledger_test.py
+          python research/integrity_roadmap_research_inventory_test.py
+          node research/integrity_monte_carlo_worker_test.js
+          node research/integrity_draft_worker_lifecycle_test.js
           python research/integrity_weekly_pipeline_readiness_test.py
           python research/integrity_workflow_usability_test.py
           python research/integrity_workflow_season_calendar_test.py

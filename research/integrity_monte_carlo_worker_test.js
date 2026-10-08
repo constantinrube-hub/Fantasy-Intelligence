@@ -20,3 +20,17 @@ const u=ctx.rosterUtility([players[0]],{format:'REDRAFT',rosterPositions:['QB'],
 if(Math.abs(u.total-310)>1e-9||u.benchIds.length!==0)throw new Error('starter was double-counted in bench bonus');
 ctx.onmessage({data:{type:'cancel',jobId:'j1'}});
 console.log('OK: Monte Carlo preserves owned rosters, excludes starters from bench value, returns finite batches, and supports cancellation');
+// Missing values must never become an observed zero; explicit zero is valid.
+for(const value of [null,undefined,'', '  ',false,true,[],{}])if(ctx.finite(value)!==null)throw new Error('missing/non-numeric worker value became zero');
+if(ctx.finite(0)!==0||ctx.finite('0')!==0)throw new Error('observed zero was rejected');
+const runFixture=()=>ctx.onmessage({data:{type:'run',jobId:'repeatable',startIndex:0,count:8,candidateIds:['r1','w1'],context}});
+runFixture();const first=JSON.stringify(output.results);runFixture();if(JSON.stringify(output.results)!==first)throw new Error('seeded worker results are not reproducible');
+const broken={...context,players:context.players.map(p=>p.id==='r1'?{...p,mean:null}:p)};
+ctx.onmessage({data:{type:'run',jobId:'missing',startIndex:0,count:8,candidateIds:['r1'],context:broken}});
+if(output.type!=='error'||output.jobId!=='missing'||!output.error.includes('projection is missing'))throw new Error('missing material projection did not produce a run-bound error');
+const duplicate={...context,players:[...context.players,context.players[0]]};
+ctx.onmessage({data:{type:'run',jobId:'duplicate',startIndex:0,count:8,candidateIds:['r1'],context:duplicate}});
+if(output.type!=='error'||!output.error.includes('duplicated'))throw new Error('duplicate player identity accepted');
+ctx.onmessage({data:{type:'run',jobId:'oversized',startIndex:0,count:100000,candidateIds:['r1'],context}});
+if(output.type!=='error'||!output.error.includes('batch size'))throw new Error('unbounded worker batch accepted');
+console.log('OK: null/zero semantics, deterministic seeds, run-bound errors, duplicate identity and bounded batches');

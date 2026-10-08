@@ -193,16 +193,24 @@ def audit(root: Path, season: int, week: int, as_of: datetime) -> dict:
     bad = [row for row in result["checkpoints"] if row["status"].startswith("BLOCKED")]
     gaps = [row for row in result["checkpoints"] if row["status"] in {"DUE_MISSING", "MISSED_UNRECORDED", "MISSED_RECORDED"}]
     result["status"] = "BLOCKED" if bad else "ATTENTION" if gaps else "ON_TRACK"
+    from weekly_context_audit import audit as context_audit
+    result["context_audit"] = context_audit(root, season, week, as_of)
     return result
 
 
 def markdown(report: dict) -> str:
     lines = [f"## Prospective checkpoint audit — {report['season']} Week {report['week']}",
-             f"Status: **{report['status']}**; as of `{report['as_of_utc']}`.", "",
+             f"Checkpoint status: **{report['status']}**; as of `{report['as_of_utc']}`.", "",
              "| Checkpoint | State | Opens (UTC) | Closes (UTC) |",
              "|---|---|---|---|"]
     for row in report["checkpoints"]:
         lines.append(f"| {row['checkpoint']} | {row['status']} | {row.get('opens_at', '—')} | {row.get('closes_at', '—')} |")
+    if report.get("context_audit"):
+        context = report["context_audit"]
+        lines += ["", f"Stored context audit: **{context['status']}**", "",
+                  "| Dataset | State | Scope |", "|---|---|---|"]
+        for name, row in context["datasets"].items():
+            lines.append(f"| {name} | {row['status']} | {row.get('validation_scope') or row.get('reason') or row.get('next_action', '—')} |")
     if report.get("reason"):
         lines += ["", report["reason"]]
     lines += ["", report["note"], "", "This audit covers M10, paired Sunday M10/Sleeper, and PR2 lineup deadlines. Valid PR2 captures retain their captured league scope; this does not certify full-portfolio completeness, report products, or contextual datasets.", ""]

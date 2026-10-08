@@ -1,0 +1,283 @@
+{
+  "schema": "fie-roadmap-research-registry-v1",
+  "plan_source": "FIE_IMPLEMENTATION_PLAN_2026-10-07.md",
+  "phase": "P2",
+  "status_semantics": "Declared work stages and source prerequisites, not research-completeness scores or model validation.",
+  "automatic_promotion": false,
+  "production_model": "M9",
+  "experiments": [
+    {
+      "research_id": "P2_DST_STRATEGY",
+      "label": "D/ST hold versus stream",
+      "hypothesis": "Compare Full Hold, Selected Hold and Full Stream under the same available-player universe.",
+      "owner_module": "research/fie_dst.py",
+      "status": "IDEA",
+      "required_evidence": [
+        "preseason Top-5 identity",
+        "prospective available defenses",
+        "exact league D/ST scoring",
+        "multi-season strategy outcomes"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    },
+    {
+      "research_id": "P2_KICKER_STRATEGY",
+      "label": "Kicker hold versus stream",
+      "hypothesis": "Test whether added kicker complexity improves decisions over simple baselines.",
+      "owner_module": "research/fie_kicker.py",
+      "status": "IDEA",
+      "required_evidence": [
+        "immutable Sleeper kicker forecasts",
+        "prospective available kickers",
+        "exact league kicker scoring",
+        "realized outcomes"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    },
+    {
+      "research_id": "P2_WEATHER",
+      "label": "Pregame weather evidence",
+      "hypothesis": "Test whether weather adds incremental information beyond existing inputs.",
+      "owner_module": "research/capture_fie_weather.py",
+      "status": "FEASIBLE",
+      "required_evidence": [
+        "pregame forecast source envelopes",
+        "realized weather archive",
+        "incremental out-of-sample evaluation"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    },
+    {
+      "research_id": "P2_REST",
+      "label": "Rest and schedule context",
+      "hypothesis": "Test schedule/rest effects before adding any projection adjustment.",
+      "owner_module": "research/window2d_context_foundation.py",
+      "status": "FEASIBLE",
+      "required_evidence": [
+        "observed NFL schedule",
+        "pregame rest context",
+        "out-of-sample effect evaluation"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    },
+    {
+      "research_id": "P2_FIELD_POSITION",
+      "label": "Drive start and field position",
+      "hypothesis": "Describe yards, first downs and TD opportunity by drive start reason and yard line.",
+      "owner_module": null,
+      "status": "IDEA",
+      "required_evidence": [
+        "drive-level PBP",
+        "start reason labels",
+        "field position",
+        "position/team outcomes"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    },
+    {
+      "research_id": "P2_RED_ZONE",
+      "label": "Red-zone usage",
+      "hypothesis": "Distinguish observed roles and opportunity from unvalidated TD corrections.",
+      "owner_module": null,
+      "status": "IDEA",
+      "required_evidence": [
+        "team/player red-zone opportunities",
+        "goal-to-go context",
+        "outcome evaluation"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    },
+    {
+      "research_id": "P2_USAGE",
+      "label": "Player usage database",
+      "hypothesis": "Provide provenance-bound usage rows while unsupported tracking fields remain missing.",
+      "owner_module": "research/weekly_player_performance.py",
+      "status": "FEASIBLE",
+      "required_evidence": [
+        "provider player-week metrics",
+        "snap and route sources",
+        "canonical identity linkage"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    },
+    {
+      "research_id": "P2_ROLE_CHANGE",
+      "label": "Role change detection",
+      "hypothesis": "Detect persistent role changes without fitting a rule to one observed jump.",
+      "owner_module": null,
+      "status": "IDEA",
+      "required_evidence": [
+        "prospective usage history",
+        "minimum opportunity/persistence design",
+        "injury/transaction context"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    },
+    {
+      "research_id": "P2_TEAM_MODEL",
+      "label": "Team opportunity priors",
+      "hypothesis": "Develop coherent team opportunity priors; trench evidence is descriptive research context only.",
+      "owner_module": "research/window2a_trench_evidence.py",
+      "status": "FEASIBLE",
+      "required_evidence": [
+        "prior-week team context",
+        "pace/pass-rate/EPA evidence",
+        "coherent opportunity model design"
+      ],
+      "historical_result": null,
+      "prospective_result": null,
+      "incremental_value_result": null,
+      "production_authorized": false,
+      "new_statistical_design_required": true,
+      "model_handoff": "GPT-5.6 Sol — High",
+      "promotion_requirements": [
+        "documented source feasibility",
+        "leakage review",
+        "approved feature/statistical contract",
+        "historical out-of-sample evidence",
+        "prospective shadow evidence",
+        "incremental value",
+        "stability",
+        "decision impact",
+        "explicit governed promotion"
+      ],
+      "note": "Existing module ownership does not validate this new hypothesis or authorize production use."
+    }
+  ]
+}

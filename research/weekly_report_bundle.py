@@ -18,7 +18,7 @@ PRODUCTS = {
 }
 
 
-def load_owner(root: Path, path: Path, season: int, week: int, as_of: datetime) -> tuple[dict | None, dict]:
+def load_owner(root: Path, path: Path, season: int, week: int, as_of: datetime, expected_schema: str | None = None) -> tuple[dict | None, dict]:
     binding = {"path": path.relative_to(root).as_posix()}
     if not path.is_file():
         return None, {**binding, "status": "MISSING"}
@@ -33,6 +33,8 @@ def load_owner(root: Path, path: Path, season: int, week: int, as_of: datetime) 
             raise ValueError("REPORT_STALE_OVER_36_HOURS")
         if value.get("schema") not in {"fie-window1c-weekly-actions-portfolio-v1", "fie-window1d-optimal-waiver-portfolio-v1", "fie-in-season-pr2-weekly-lineup-portfolio-v1"}:
             raise ValueError("REPORT_SCHEMA_MISMATCH")
+        if expected_schema is not None and value.get("schema") != expected_schema:
+            raise ValueError("REPORT_OWNER_SCHEMA_MISMATCH")
         leagues = value["leagues"]
         if not isinstance(leagues, list) or not leagues:
             raise ValueError("REPORT_EMPTY_LEAGUE_SCOPE")
@@ -45,12 +47,12 @@ def load_owner(root: Path, path: Path, season: int, week: int, as_of: datetime) 
         for row in leagues:
             if (row.get("season"), row.get("week")) != (season, week):
                 raise ValueError("REPORT_LEAGUE_TARGET_MISMATCH")
-        return value, {**binding, "status": "AVAILABLE", "observed_at": observed.isoformat(), "league_ids": sorted(ids)}
+        return value, {**binding, "status": "AVAILABLE", "observed_at": observed.isoformat(), "generated_at": value.get("generated_at"), "league_ids": sorted(ids)}
     except Exception as exc:
         return None, {**binding, "status": "BLOCKED_INVALID_SOURCE", "reason": f"{type(exc).__name__}:{exc}"}
 
 
-def bundle(root: Path, season: int, week: int, as_of: datetime) -> dict:
+def bundle(root: Path, season: int, week: int, as_of: datetime, portfolio_surface: Path | None = None) -> dict:
     if as_of.tzinfo is None or not 1 <= week <= 18:
         raise ValueError("REPORT_TARGET_OR_TIME_INVALID")
     base = root / f"data/research/evaluation/{season}/weeks/week-{week}"
@@ -59,9 +61,10 @@ def bundle(root: Path, season: int, week: int, as_of: datetime) -> dict:
         "WINDOW_1D": base / "waivers/portfolio-latest.json",
         "PR2": base / "lineups/portfolio-latest.json",
     }
+    schemas = {"WINDOW_1C":"fie-window1c-weekly-actions-portfolio-v1", "WINDOW_1D":"fie-window1d-optimal-waiver-portfolio-v1", "PR2":"fie-in-season-pr2-weekly-lineup-portfolio-v1"}
     payloads, bindings = {}, {}
     for owner, path in owners.items():
-        payloads[owner], bindings[owner] = load_owner(root, path, season, week, as_of)
+        payloads[owner], bindings[owner] = load_owner(root, path, season, week, as_of, expected_schema=schemas[owner])
     products = {key: {"status": "BLOCKED_MISSING_PRODUCT", "next_action": action,
                       "complete": False, "owner_sources": [], "content": None}
                 for key, action in PRODUCTS.items()}
@@ -84,6 +87,74 @@ def bundle(root: Path, season: int, week: int, as_of: datetime) -> dict:
             attach("EXPOSURE", "PR2", intelligence)
         products["START_SIT"]["owner_sources"].append("PR2")
         products["START_SIT"].update(status="PARTIAL_OWNER_OUTPUT", pr2_leagues=pr2["leagues"])
+    if portfolio_surface is not None:
+        path = portfolio_surface.resolve()
+        binding = {"path": path.relative_to(root).as_posix(), "sha256": digest(path)}
+        try:
+            surface = json.loads(path.read_text(encoding="utf-8"))
+            if surface.get("schema") != "fie-weekly-portfolio-surface-v1" or (surface.get("season"),surface.get("week")) != (season,week):
+                raise ValueError("PORTFOLIO_SURFACE_TARGET_OR_SCHEMA_MISMATCH")
+            observed = stamp(surface["as_of_utc"])
+            if observed > as_of or as_of-observed > timedelta(hours=36):
+                raise ValueError("PORTFOLIO_SURFACE_FUTURE_OR_STALE")
+            if not any(row.get("status") in {"BOUND_CURRENT_ROSTER","PARTIAL_UNRESOLVED_PLAYERS"} for row in surface.get("leagues",[])):
+                raise ValueError("PORTFOLIO_SURFACE_NO_BOUND_LEAGUES")
+            if not isinstance(surface.get("roster_exposure"),list) or not surface.get("input_hashes"):
+                raise ValueError("PORTFOLIO_SURFACE_LINEAGE_MISSING")
+            for relative, expected in surface["input_hashes"].items():
+                source = (root/relative).resolve()
+                if not source.is_relative_to(root) or digest(source) != expected:
+                    raise ValueError("PORTFOLIO_SURFACE_INPUT_CHANGED")
+            bindings["CURRENT_PORTFOLIO"] = {**binding,"status":"AVAILABLE","observed_at":observed.isoformat()}
+            attach("EXPOSURE","CURRENT_PORTFOLIO",{"roster_exposure":surface["roster_exposure"],
+                "league_status_counts":surface["league_status_counts"],
+                "opponent_exposure":[{"league_id":league["league_id"],**league.get("opponent_exposure",{"status":"BLOCKED_LEAGUE_INPUTS"})} for league in surface["leagues"]], "scope":"Stored active-roster and starter observations; no proposed lineup or opponent inference"})
+            for product, label, positions in [("DST_HOLD_STREAM","DST",{"DEF","DST","D/ST"}),("K_HOLD_STREAM","K",{"K"})]:
+                boards=(surface.get("specialist_evidence") or {}).get(label)
+                if isinstance(boards,list) and boards:
+                    content={"forecast_boards":boards,"hold_stream_strategy_validated":False}
+                    if d:
+                        content["existing_waiver_owner_recommendations"]=[{"league_id":league["league_id"],
+                            "recommendations":[row for row in league.get("recommendations",[]) if row.get("position") in positions]}
+                            for league in d["leagues"]]
+                    attach(product,"CURRENT_PORTFOLIO",content)
+            if pr2:
+                products["EXPOSURE"]["owner_sources"].append("PR2")
+                products["EXPOSURE"]["content"]["pr2_intelligence"] = pr2.get("portfolio_intelligence")
+        except Exception as exc:
+            bindings["CURRENT_PORTFOLIO"] = {**binding,"status":"BLOCKED_INVALID_SOURCE","reason":f"{type(exc).__name__}:{exc}"}
+    # Outcome products are not due while the target week's postgame buffer is
+    # still open. Previous-week reports remain distinct artifacts.
+    try:
+        from weekly_evidence_audit import schedule
+        from resolve_in_season_pr2_lineup_outcome_target import STABILIZATION_HOURS
+        games, _ = schedule(root, season, week, as_of)
+        outcomes_due = max(stamp(game["kickoff_at"]) for game in games) + timedelta(hours=STABILIZATION_HOURS)
+        if as_of < outcomes_due:
+            for name in ("PLAYER_PERFORMANCE", "POST_WEEK_REVIEW"):
+                products[name].update(status="NOT_DUE", outcomes_eligible_at=outcomes_due.isoformat(),
+                                      next_action="Wait for the established postgame stabilization buffer; do not create target-week outcomes early.")
+        else:
+            reports = []
+            for path in (root / f"data/operations/weekly-performance/{season}/week_{week:02d}/reports").glob("*.json"):
+                value = json.loads(path.read_text(encoding="utf-8"))
+                observed = stamp(value["as_of_utc"])
+                if observed <= as_of:
+                    reports.append((observed, path, value))
+            if reports:
+                _, path, value = max(reports, key=lambda row:(row[0],str(row[1])))
+                from weekly_player_performance import build as replay_performance
+                source_path = root / value["source"]["path"]
+                replayed = replay_performance(root, source_path, season, week, stamp(value["as_of_utc"]))
+                from weekly_player_performance import replay_matches
+                if not replay_matches(value, replayed):
+                    raise ValueError("PERFORMANCE_REPORT_REPLAY_MISMATCH")
+                bindings["PLAYER_PERFORMANCE"] = {"path":path.relative_to(root).as_posix(),"sha256":digest(path),"status":"AVAILABLE"}
+                attach("PLAYER_PERFORMANCE","PLAYER_PERFORMANCE",{"report_path":path.relative_to(root).as_posix(),
+                    "game_count":value["game_count"],"player_game_count":value["player_game_count"],"owner_status":value["status"],
+                    "official_game_finality_certified":False})
+    except Exception as exc:
+        bindings["OUTCOME_PRODUCT_TIMING"] = {"status":"BLOCKED_INVALID_SOURCE","reason":f"{type(exc).__name__}:{exc}"}
     return {"schema": "fie-weekly-report-bundle-v1", "season": season, "week": week,
         "as_of_utc": as_of.isoformat(), "status": "INCOMPLETE", "complete_product_count": 0,
         "required_product_count": len(PRODUCTS), "products": products, "sources": bindings,
@@ -99,7 +170,7 @@ def markdown(report: dict) -> str:
     lines.extend(f"| {key} | {row['status']} | {row['next_action']} |" for key, row in report["products"].items())
     lines += ["", report["note"], "", "### Owner sources", ""]
     for owner, row in report["sources"].items():
-        lines.append(f"- {owner}: **{row['status']}** — `{row['path']}`" + (f" — {row['reason']}" if row.get("reason") else ""))
+        lines.append(f"- {owner}: **{row['status']}** — `{row.get('path', '—')}`" + (f" — {row['reason']}" if row.get("reason") else ""))
     return "\n".join(lines) + "\n"
 
 
@@ -110,15 +181,19 @@ def main():
     parser.add_argument("--week", type=int, required=True)
     parser.add_argument("--as-of-utc", default="")
     parser.add_argument("--output", required=True)
+    parser.add_argument("--portfolio-surface", type=Path)
     args = parser.parse_args()
     root = Path(args.root).resolve()
     output = Path(args.output).resolve()
     if output.is_relative_to(root / "data/research"):
         raise ValueError("REPORT_BUNDLE_MUST_NOT_OVERWRITE_RESEARCH_EVIDENCE")
-    report = bundle(root, args.season, args.week, stamp(args.as_of_utc) if args.as_of_utc else datetime.now(timezone.utc))
+    report = bundle(root, args.season, args.week, stamp(args.as_of_utc) if args.as_of_utc else datetime.now(timezone.utc), portfolio_surface=args.portfolio_surface)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("x", encoding="utf-8") as stream:
         stream.write(json.dumps(report, indent=2, sort_keys=True) + "\n")
+    path = output.with_suffix(".md")
+    with path.open("x", encoding="utf-8") as stream:
+        stream.write(markdown(report))
     print(markdown(report))
 
 if __name__ == "__main__":
