@@ -144,6 +144,27 @@ jobs:
           OUTPUT="data/operations/weekly-pipeline/$INPUT_SEASON/week_$(printf '%02d' "$INPUT_WEEK")/evidence-audit-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
           python research/weekly_evidence_audit.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Ensure newest completed-week player performance report
+        if: steps.readiness.outputs.ready == 'true'
+        env:
+          INPUT_SEASON: ${{ steps.readiness.outputs.season }}
+          INPUT_WEEK: ${{ steps.readiness.outputs.week }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/weekly_player_performance.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --ensure-completed >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Capture current roster and independent projection surface
+        if: steps.readiness.outputs.ready == 'true'
+        env:
+          INPUT_SEASON: ${{ steps.readiness.outputs.season }}
+          INPUT_WEEK: ${{ steps.readiness.outputs.week }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUTPUT="data/operations/weekly-pipeline/$INPUT_SEASON/week_$(printf '%02d' "$INPUT_WEEK")/portfolio-surface-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          python research/weekly_portfolio_surface.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Publish weekly report coverage bundle
         if: steps.readiness.outputs.ready == 'true'
         env:
@@ -153,7 +174,19 @@ jobs:
         run: |
           set -euo pipefail
           OUTPUT="data/operations/weekly-pipeline/$INPUT_SEASON/week_$(printf '%02d' "$INPUT_WEEK")/report-bundle-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
-          python research/weekly_report_bundle.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+          SURFACE="data/operations/weekly-pipeline/$INPUT_SEASON/week_$(printf '%02d' "$INPUT_WEEK")/portfolio-surface-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          python research/weekly_report_bundle.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --portfolio-surface "$SURFACE" --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Archive unchanged owner recommendations in decision ledger
+        if: steps.readiness.outputs.ready == 'true'
+        env:
+          INPUT_SEASON: ${{ steps.readiness.outputs.season }}
+          INPUT_WEEK: ${{ steps.readiness.outputs.week }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUTPUT="data/operations/weekly-pipeline/$INPUT_SEASON/week_$(printf '%02d' "$INPUT_WEEK")/decision-ledger-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          python research/weekly_decision_ledger.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Commit only Window 1D research outputs
         if: steps.readiness.outputs.ready == 'true'
@@ -165,6 +198,7 @@ jobs:
           SEASON="$(python -c "import json; print(json.load(open('.cache/window1d-output.json'))['season'])")"
           git add "data/research/evaluation/$SEASON"
           git add "data/operations/weekly-pipeline/$SEASON"
+          if [ -d "data/operations/weekly-performance/$SEASON" ]; then git add "data/operations/weekly-performance/$SEASON"; fi
           if git diff --cached --quiet; then
             echo "No Window 1D evaluation change"
             exit 0

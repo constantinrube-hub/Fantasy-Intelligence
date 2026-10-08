@@ -5,7 +5,7 @@
  */
 'use strict';
 let cancelled=false;
-function finite(x){const v=Number(x);return Number.isFinite(v)?v:null;}
+function finite(x){if(x===null||x===undefined||typeof x==='boolean'||!['number','string'].includes(typeof x)||typeof x==='string'&&!x.trim())return null;const v=Number(x);return Number.isFinite(v)?v:null;}
 function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
 function mean(xs){return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;}
 function hashSeed(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
@@ -29,5 +29,21 @@ function needAdjustment(pool,p,round,ctx){const demand=demandFor(p.position,ctx)
 function managerReach(ctx,rid,p){const uid=String(ctx.rosterOwner?.[rid]||''),m=ctx.history?.managers?.[uid];if(!m)return 0;const vals=[];const pb=(m.posBias||[]).find(x=>x.pos===p.position&&x.n>=2);if(pb&&finite(pb.delta)!==null)vals.push(Number(pb.delta));const canonical=(m.playerBias||[]).find(x=>String(x.playerId||'')===String(p.id)&&x.n>=2);const legacy=!canonical?(m.playerBias||[]).find(x=>String(x.name||'').toLowerCase()===String(p.name||'').toLowerCase()&&x.n>=2):null;const fav=canonical||legacy;if(fav&&finite(fav.delta)!==null)vals.push(Number(fav.delta));return vals.length?clamp(mean(vals),-15,15):0;}
 function bestFromShortlist(sorted,available,limit,scoreFn){let best=null,bestScore=-Infinity,n=0;for(const item of sorted){if(!available.has(item.id))continue;n++;const s=scoreFn(item,item);if(s>bestScore){bestScore=s;best=item;}if(n>=limit)break;}return best;}
 function simulateCandidate(cid,ctx,simIndex){/* Same random world for every candidate. */const rng=rngFor(`${ctx.seed}|${simIndex}`),byId=new Map(ctx.players.map(p=>[String(p.id),p])),available=new Set(ctx.players.filter(p=>p.draftAvailable!==false).map(p=>String(p.id))),rosters={};for(const [k,ids]of Object.entries(ctx.basePools||{})){rosters[k]=(ids||[]).map(id=>byId.get(String(id))).filter(Boolean);if(rosters[k].length!==(ids||[]).length)throw new Error(`worker base roster ${k} could not be reconstructed`);}const candidate=byId.get(String(cid));if(!candidate||!available.has(String(cid)))return null;rosters[ctx.rosterId]=(rosters[ctx.rosterId]||[]).concat(candidate);available.delete(String(cid));const latent=ctx.players.filter(p=>p.draftAvailable!==false).map(p=>{const sigma=clamp(6+Math.max(0,p.market-ctx.startPick)*.035,6,18);return{...p,latent:p.market+normal(rng)*sigma};}).sort((a,b)=>a.latent-b.latent);for(const pick of ctx.seq){if(cancelled)return null;if(pick.pickNo<=ctx.startPick||pick.pickNo>ctx.endPick)continue;const rid=ctx.slotRoster[pick.slot];if(!rid||!available.size)continue;const rp=rosters[rid]||(rosters[rid]=[]);let choice;if(Number(rid)===Number(ctx.rosterId)){choice=bestFromShortlist(latent,available,42,p=>p.decision+needAdjustment(rp,p,pick.round,ctx)*1.4-Math.max(0,p.market-pick.pickNo)*.08);}else{choice=bestFromShortlist(latent,available,28,p=>-p.latent+managerReach(ctx,rid,p)*.75+needAdjustment(rp,p,pick.round,ctx)*.65);}if(!choice)continue;available.delete(choice.id);rp.push(choice);}return rosterUtility(rosters[ctx.rosterId]||[],ctx);}
-function run(msg){cancelled=false;const ctx=msg.context,results=[];for(const cid of msg.candidateIds||[]){const vals=[];for(let i=msg.startIndex;i<msg.startIndex+msg.count;i++){if(cancelled)return;const v=simulateCandidate(String(cid),ctx,i);if(v&&finite(v.total)!==null)vals.push(Number(v.total));}results.push({id:String(cid),values:vals});}postMessage({type:'batch',jobId:msg.jobId,startIndex:msg.startIndex,count:msg.count,results});}
-onmessage=e=>{const m=e.data||{};if(m.type==='cancel'){cancelled=true;return;}if(m.type==='run')run(m);};
+function validateRun(msg){
+  const ctx=msg.context;
+  if(!ctx||!Array.isArray(ctx.players)||!ctx.players.length||typeof ctx.seed!=='string'||!ctx.seed)throw new Error('Draft simulation needs a bound player pool and reproducible seed.');
+  if(!Number.isInteger(msg.startIndex)||msg.startIndex<0||!Number.isInteger(msg.count)||msg.count<1||msg.count>1024)throw new Error('Invalid draft simulation batch size.');
+  const ids=new Set(),caps=ctx.formatCapabilities||{},fmt=String(ctx.format||'REDRAFT').toUpperCase(),required=['mean'];
+  if(caps.chopped||fmt.includes('CHOPPED'))required.push('floor');
+  if(caps.bestBall||fmt.includes('BESTBALL'))required.push('ceiling');
+  if(caps.dynasty||fmt.includes('DYNASTY'))required.push('utility');
+  for(const p of ctx.players){
+    if(!p||typeof p.id!=='string'||!p.id||ids.has(p.id))throw new Error('Draft player identity is missing or duplicated.');
+    ids.add(p.id);
+    for(const key of required)if(finite(p[key])===null)throw new Error(`Required ${key} projection is missing for ${p.name||p.id}.`);
+    if(p.draftAvailable!==false&&(finite(p.market)===null||finite(p.decision)===null))throw new Error(`Draft value evidence is missing for ${p.name||p.id}.`);
+  }
+  if(!Array.isArray(msg.candidateIds)||!msg.candidateIds.length||new Set(msg.candidateIds).size!==msg.candidateIds.length||msg.candidateIds.some(id=>!ids.has(String(id))))throw new Error('Draft candidate identity is unavailable or duplicated.');
+}
+function run(msg){validateRun(msg);cancelled=false;const ctx=msg.context,results=[];for(const cid of msg.candidateIds||[]){const vals=[];for(let i=msg.startIndex;i<msg.startIndex+msg.count;i++){if(cancelled)return;const v=simulateCandidate(String(cid),ctx,i);if(v&&finite(v.total)!==null)vals.push(Number(v.total));}results.push({id:String(cid),values:vals});}postMessage({type:'batch',jobId:msg.jobId,startIndex:msg.startIndex,count:msg.count,results});}
+onmessage=e=>{const m=e.data||{};if(m.type==='cancel'){cancelled=true;return;}if(m.type==='run'){try{run(m);}catch(error){postMessage({type:'error',jobId:m.jobId,error:String(error?.message||error)});}}};

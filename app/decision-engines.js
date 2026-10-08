@@ -7,7 +7,7 @@
 
 const Engine={version:'0.3.1',draftCache:new Map(),lastDraftRun:null,draftJob:null,leagueSimJob:null,leagueSim:{loading:false,error:null,data:null,leagueId:null,week:null}};
 
-function finite(x){const v=Number(x);return Number.isFinite(v)?v:null;}
+function finite(x){if(x===null||x===undefined||typeof x==='boolean'||!['number','string'].includes(typeof x)||typeof x==='string'&&!x.trim())return null;const v=Number(x);return Number.isFinite(v)?v:null;}
 function clampV(x,a,b){return Math.max(a,Math.min(b,x));}
 function qtile(xs,q){const a=xs.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return null;const z=(a.length-1)*q,l=Math.floor(z),h=Math.ceil(z);return l===h?a[l]:a[l]*(h-z)+a[h]*(z-l);}
 function meanV(xs){const a=xs.filter(Number.isFinite);return a.length?a.reduce((s,x)=>s+x,0)/a.length:null;}
@@ -159,8 +159,8 @@ function monteCarloFormat(){
 function workerPlayerRecord(p,ctx){
   const fmt=monteCarloFormat(),fp=window.FIECore?.FormatRegistry?.profile?.(fmt)||{chopped:fmt.includes('CHOPPED'),bestBall:fmt.includes('BESTBALL')},market=ctx.marketOf(p),decision=ctx.decisionMap.get(playerId(p))??50;
   let utility=null;try{utility=finite((window.playerDecisionValue||playerDecisionValue)(p));}catch{}
-  const season=finite(p.engineSeasonProjection)??finite(p.sleeperSeasonProjection)??(finite(p.seasonScore)??0)*2.2;
-  const weekly=finite(p.weeklyProjection)??finite(p.sleeperWeeklyProjection)??season/17;
+  const seasonScore=finite(p.seasonScore),season=finite(p.engineSeasonProjection)??finite(p.sleeperSeasonProjection)??(seasonScore===null?null:seasonScore*2.2);
+  const weekly=finite(p.weeklyProjection)??finite(p.sleeperWeeklyProjection)??(season===null?null:season/17);
   return {id:playerId(p),name:String(p.name||''),position:String(p.position||''),team:String(p.team||''),market:Number.isFinite(market)?market:999,decision:finite(decision)??50,mean:fp.chopped||fp.bestBall?weekly:season,floor:fp.chopped?(finite(p.weeklyFloor)??weekly):season,ceiling:fp.bestBall?(finite(p.weeklyCeiling)??weekly):season,vor:finite(p.projectedVOR)??0,utility:utility??season};
 }
 function monteCarloWorkerContext(ctx){
@@ -178,8 +178,17 @@ function monteCarloWorkerContext(ctx){
   return {seed:String(fingerprint),format:fmt,formatCapabilities,rosterPositions:[...(state.league?.roster_positions||[])],slotEligibility:Object.fromEntries(Object.entries(rosterSlots).map(([k,v])=>[k,[...(v?.positions||[])]])),players,basePools:byRoster,rosterOwner:owners,history:ctx.history||{},seq:ctx.seq.map(x=>({pickNo:Number(x.pickNo),round:Number(x.round),slot:Number(x.slot)})),slotRoster:{...ctx.slotRoster},rosterId:Number(ctx.rosterId),startPick:Number(ctx.startPick),endPick:Number(ctx.endPick)};
 }
 function cancelDraftMonteCarlo(reason='cancelled'){
-  const job=Engine.draftJob;if(!job)return;job.cancelled=true;try{job.worker?.postMessage({type:'cancel',jobId:job.id});job.worker?.terminate();}catch{}Engine.draftJob=null;Engine.draftProgress={status:'cancelled',reason};
+  const job=Engine.draftJob;if(!job)return;job.cancelled=true;job.rejectPending?.(new Error('cancelled'));try{job.worker?.postMessage({type:'cancel',jobId:job.id});job.worker?.terminate();}catch{}Engine.draftJob=null;Engine.draftProgress={status:'cancelled',reason};
 }
+function receiveDraftBatch(worker,job,context,ids,startIndex,count){const jobId=job.id;return new Promise((resolve,reject)=>{
+    const cleanup=()=>{clearTimeout(timeout);worker.removeEventListener('message',listener);worker.removeEventListener('error',failure);if(job.rejectPending===abort)job.rejectPending=null;};
+    const abort=error=>{cleanup();reject(error);};
+    const failure=()=>abort(new Error('Draft simulation could not load or run. Please refresh and retry.'));
+    const listener=e=>{const m=e.data||{};if(m.jobId!==jobId||!['batch','error'].includes(m.type))return;if(m.type==='error'){abort(new Error(m.error||'Draft simulation inputs are unavailable.'));return;}cleanup();resolve(m);};
+    const timeout=setTimeout(()=>abort(new Error('Monte Carlo worker timed out.')),60000);
+    job.rejectPending=abort;worker.addEventListener('message',listener);worker.addEventListener('error',failure);try{worker.postMessage({type:'run',jobId,startIndex,count,candidateIds:ids,context});}catch(error){abort(error);}
+  })}
+
 async function runDraftMonteCarloAsync(rosterId,{candidates=8,batches=[32,64,128]}={}){
   const ctx=simulationContext(rosterId);if(!ctx)return {error:'Draft state is unavailable.'};
   if(!ctx.onClock)return {error:`Roster is not on the clock. Next pick is #${ctx.next?.pickNo??'—'}.`,onClock:false};
@@ -189,7 +198,7 @@ async function runDraftMonteCarloAsync(rosterId,{candidates=8,batches=[32,64,128
   const jobId=`mc-${Date.now()}-${Math.random().toString(36).slice(2)}`,worker=new Worker('app/draft-monte-carlo-worker.js'),samples=new Map(ids.map(id=>[id,[]]));
   const job={id:jobId,worker,cancelled:false,leagueId:String(state.league?.league_id||''),draftId:String(ctx.d.draft_id),pick:ctx.startPick};Engine.draftJob=job;
   const context=monteCarloWorkerContext(ctx),targets=[...new Set((batches||[32,64,128]).map(Number).filter(x=>x>0))].sort((a,b)=>a-b);let done=0;
-  const receiveBatch=(startIndex,count)=>new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error('Monte Carlo worker timed out.')),60000);const listener=e=>{const m=e.data||{};if(m.jobId!==jobId||m.type!=='batch')return;worker.removeEventListener('message',listener);clearTimeout(timeout);resolve(m);};worker.addEventListener('message',listener);worker.postMessage({type:'run',jobId,startIndex,count,candidateIds:ids,context});});
+  const receiveBatch=(startIndex,count)=>receiveDraftBatch(worker,job,context,ids,startIndex,count);
   try{
     for(const target of targets){
       if(job.cancelled)throw new Error('cancelled');
@@ -214,7 +223,7 @@ function draftPanel(){
   const rosterId=selectedRoster(),pick=currentPick(),key=`${state.league?.league_id}|${state.draftIntel.draft.draft_id}|${pick}|${rosterId}`,cached=Engine.draftCache.get(key);
   const next=nextPickForRoster(rosterId,pick),onClock=next&&Number(next.pickNo)===pick;
   if(!cached){
-    const prog=Engine.draftProgress?.status==='running'?`<div class="notice" style="margin-top:10px"><b>Simulating progressively:</b> ${Engine.draftProgress.done}/${Engine.draftProgress.target} paths per candidate complete. You can keep using the app while the worker runs.</div>`:'';
+    const prog=Engine.draftProgress?.status==='error'?`<div class="notice" style="margin-top:10px">Simulation unavailable: ${escV(Engine.draftProgress.error||'Inputs are incomplete.')}</div>`:Engine.draftProgress?.status==='running'?`<div class="notice" style="margin-top:10px"><b>Simulating progressively:</b> ${Engine.draftProgress.done}/${Engine.draftProgress.target} paths per candidate complete. You can keep using the app while the worker runs.</div>`:'';
     panel.innerHTML=`<div class="eyebrow">Remaining-draft simulation</div><h3 style="margin:4px 0 6px">Monte Carlo Draft Strategist <span class="badge">Beta</span></h3><div class="subtitle">Evaluates a pick by the final roster it tends to produce, not only by the player's standalone rank. Simulations use Sleeper ADP uncertainty, roster needs, saved manager/position tendencies when available, and the active league-format utility.</div>${onClock?`${prog}<button id="runFieDraftMonteCarlo" class="btn primary" style="margin-top:10px">Simulate top choices</button>`:`<div class="notice" style="margin-top:10px">Your selected roster is not on the clock. Its next pick is #${next?.pickNo??'—'}. Choice simulation activates when that roster is on the clock.</div>`}`;
   }else{
     const rs=cached.candidates||[];
@@ -577,5 +586,5 @@ function wrapDraftRenderer(){
 function bind(){injectDecisionStyles();wrapDraftRenderer();wrapGlobalRender();ensureMatchupPanel();const prevDrawer=window.openDrawer;if(typeof prevDrawer==='function'&&!prevDrawer.__fieExplainWrapped){const w=function(id){const r=prevDrawer.apply(this,arguments);try{augmentDrawer(id);}catch(e){console.warn('FIE drawer explanation',e);}return r;};w.__fieExplainWrapped=true;window.openDrawer=w;}const tradeBtn=document.getElementById('evaluateTradeBtn'),baseTrade=window.evaluateTrade;if(tradeBtn&&typeof baseTrade==='function'){tradeBtn.onclick=()=>{baseTrade();appendTradeCounterparty();};}try{draftPanel();renderMatchupPanel();renderStrategicWaiverPanel();renderCommandCenter();}catch{} }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 
-Engine.commandCenterItems=commandCenterItems;Engine.portfolioSnapshot=portfolioSnapshot;Engine.runDraftMonteCarlo=runDraftMonteCarlo;Engine.runDraftMonteCarloAsync=runDraftMonteCarloAsync;Engine.cancelDraftMonteCarlo=cancelDraftMonteCarlo;Engine.renderDraftPanel=draftPanel;Engine.runLeagueSimulation=runLeagueSimulation;Engine.cancelLeagueSimulation=cancelLeagueSimulation;Engine.renderMatchupPanel=renderMatchupPanel;Engine.renderStrategicWaiverPanel=renderStrategicWaiverPanel;Engine.renderCommandCenter=renderCommandCenter;Engine.counterpartyTradeFit=counterpartyTradeFit;Engine.lineupSearch=lineupSearch;Engine.simulateRedraftSeason=simulateRedraftSeason;Engine.simulateChopped=simulateChopped;Engine.simulateChoppedProgressive=simulateChoppedProgressive;Engine.__formatInternals={monteCarloFormat,workerPlayerRecord,monteCarloWorkerContext};window.FIEDecisionEngines=Engine;
+Engine.commandCenterItems=commandCenterItems;Engine.portfolioSnapshot=portfolioSnapshot;Engine.runDraftMonteCarlo=runDraftMonteCarlo;Engine.runDraftMonteCarloAsync=runDraftMonteCarloAsync;Engine.cancelDraftMonteCarlo=cancelDraftMonteCarlo;Engine.renderDraftPanel=draftPanel;Engine.runLeagueSimulation=runLeagueSimulation;Engine.cancelLeagueSimulation=cancelLeagueSimulation;Engine.renderMatchupPanel=renderMatchupPanel;Engine.renderStrategicWaiverPanel=renderStrategicWaiverPanel;Engine.renderCommandCenter=renderCommandCenter;Engine.counterpartyTradeFit=counterpartyTradeFit;Engine.lineupSearch=lineupSearch;Engine.simulateRedraftSeason=simulateRedraftSeason;Engine.simulateChopped=simulateChopped;Engine.simulateChoppedProgressive=simulateChoppedProgressive;Engine.__formatInternals={monteCarloFormat,workerPlayerRecord,monteCarloWorkerContext,receiveDraftBatch};window.FIEDecisionEngines=Engine;
 })();
