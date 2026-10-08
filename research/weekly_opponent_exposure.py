@@ -27,7 +27,7 @@ def captured_exposure(pr2: dict, surface: dict, capture_binding: dict) -> dict:
         lid = str(league["league_id"])
         current = indexed.get(lid)
         base = {"league_id": lid, "league_name": league.get("league_name"), "season": season, "week": week,
-                "kind": "CHOPPED_FIELD" if league.get("format") == "CHOPPED" else "DIRECT_H2H",
+                "kind": "CHOPPED_FIELD" if league.get("format") in {"CHOPPED", "CHOPPED_BESTBALL"} else "DIRECT_H2H",
                 "capture_id": capture_binding["capture_id"], "capture_sha256": capture_binding["capture_sha256"],
                 "actionable": False}
         if current is None or current.get("status") not in {"BOUND_CURRENT_ROSTER", "PARTIAL_UNRESOLVED_PLAYERS"}:

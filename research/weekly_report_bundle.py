@@ -47,7 +47,7 @@ def captured_opponent_contexts(pr2: dict) -> list[dict]:
                    "season": league["season"], "week": league["week"],
                    "scoring_signature": (league.get("evidence") or {}).get("scoring_signature"),
                    "capture_id": pr2["capture_id"], "actionable": False}
-        if league.get("format") == "CHOPPED":
+        if league.get("format") in {"CHOPPED", "CHOPPED_BESTBALL"}:
             rows.append({**context, "kind": "CHOPPED_FIELD", "status": "BLOCKED_CAPTURED_ACTIVE_FIELD_REQUIRED", "owner_context": None})
             continue
         owner = league.get("opponent_context")
@@ -219,9 +219,14 @@ def bundle(root: Path, season: int, week: int, as_of: datetime, portfolio_surfac
                 bindings["PLAYER_PERFORMANCE"] = {"path":path.relative_to(root).as_posix(),"sha256":digest(path),"status":"AVAILABLE"}
                 attach("PLAYER_PERFORMANCE","PLAYER_PERFORMANCE",{"report_path":path.relative_to(root).as_posix(),
                     "game_count":value["game_count"],"player_game_count":value["player_game_count"],"owner_status":value["status"],
+                    "reported_team_count":sum(len(game["teams"]) for game in value["games"]),
+                    "missing_team_game_count":len(value["missing_team_games"]),
+                    "unresolved_source_row_count":len(value["unresolved_source_row_indices"]),
                     "official_game_finality_certified":False})
     except Exception as exc:
         bindings["OUTCOME_PRODUCT_TIMING"] = {"status":"BLOCKED_INVALID_SOURCE","reason":f"{type(exc).__name__}:{exc}"}
+    from weekly_product_readiness import assess
+    assess(products, bindings)
     return {"schema": "fie-weekly-report-bundle-v1", "season": season, "week": week,
         "as_of_utc": as_of.isoformat(), "status": "INCOMPLETE", "complete_product_count": 0,
         "required_product_count": len(PRODUCTS), "products": products, "sources": bindings,
@@ -235,7 +240,14 @@ def markdown(report: dict) -> str:
              f"**{report['status']}** — {report['complete_product_count']}/{report['required_product_count']} complete products.", "",
              "| Required product | Coverage | Next action |", "|---|---|---|"]
     lines.extend(f"| {key} | {row['status']} | {row['next_action']} |" for key, row in report["products"].items())
-    lines += ["", report["note"], "", "### Owner sources", ""]
+    lines += ["", report["note"], ""]
+    lines += ["### Product readiness evidence", "",
+              "These diagnostics explain remaining gaps. They do not certify a report as complete.", ""]
+    for name, product in report["products"].items():
+        readiness = product["readiness"]
+        reasons = ", ".join(readiness["blocking_reasons"]) or "Further product validation required"
+        lines.append(f"- **{name}**: {reasons}; evidence `{json.dumps(readiness['evidence'], sort_keys=True)}`")
+    lines += ["", "### Owner sources", ""]
     for owner, row in report["sources"].items():
         lines.append(f"- {owner}: **{row['status']}** — `{row.get('path', '—')}`" + (f" — {row['reason']}" if row.get("reason") else ""))
     contexts = (report["products"]["EXPOSURE"].get("content") or {}).get("captured_opponent_contexts", [])

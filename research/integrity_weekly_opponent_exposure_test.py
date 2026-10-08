@@ -41,6 +41,10 @@ def main() -> None:
     assert result["league_status_counts"] == {"CAPTURED_SUBMITTED_STARTERS": 2, "BLOCKED_CAPTURED_ACTIVE_FIELD_REQUIRED": 1}
     assert result["players"][0]["player_id"] == "gsis-1"  # Max-mean advisory's different ID cannot leak.
     assert result["governance"]["actionable"] is False
+    bestball = deepcopy(pr2); bestball["leagues"][2]["format"] = "CHOPPED_BESTBALL"
+    result = captured_exposure(bestball, current, CAPTURE)
+    assert result["leagues"][2]["kind"] == "CHOPPED_FIELD"
+    assert result["league_status_counts"]["BLOCKED_CAPTURED_ACTIVE_FIELD_REQUIRED"] == 1
 
     altered = deepcopy(pr2); altered["leagues"][0]["opponent_context"]["opponent_submitted_starters"]["player_ids"] = ["missing"]
     result = captured_exposure(altered, current, CAPTURE)
