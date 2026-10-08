@@ -30,7 +30,7 @@ Portfolio readiness is not proof of model activation, complete position coverage
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.707 h**.
+Input week: **5**; target: **5**; snapshot age: **5.931 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -73,7 +73,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.679 h**.
+Input week: **5**; target: **5**; snapshot age: **5.903 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **330**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -109,7 +109,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.651 h**.
+Input week: **5**; target: **5**; snapshot age: **5.874 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -152,7 +152,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.622 h**.
+Input week: **5**; target: **5**; snapshot age: **5.846 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -197,7 +197,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.594 h**.
+Input week: **5**; target: **5**; snapshot age: **5.818 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -235,7 +235,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.566 h**.
+Input week: **5**; target: **5**; snapshot age: **5.79 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -277,7 +277,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.537 h**.
+Input week: **5**; target: **5**; snapshot age: **5.761 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -321,7 +321,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.508 h**.
+Input week: **5**; target: **5**; snapshot age: **5.732 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -366,7 +366,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.48 h**.
+Input week: **5**; target: **5**; snapshot age: **5.704 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -412,7 +412,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.451 h**.
+Input week: **5**; target: **5**; snapshot age: **5.675 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -454,7 +454,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.424 h**.
+Input week: **5**; target: **5**; snapshot age: **5.648 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -496,7 +496,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.396 h**.
+Input week: **5**; target: **5**; snapshot age: **5.62 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -539,7 +539,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.369 h**.
+Input week: **5**; target: **5**; snapshot age: **5.593 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -580,7 +580,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.342 h**.
+Input week: **5**; target: **5**; snapshot age: **5.566 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -625,7 +625,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.313 h**.
+Input week: **5**; target: **5**; snapshot age: **5.537 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **121**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -665,7 +665,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.285 h**.
+Input week: **5**; target: **5**; snapshot age: **5.509 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -706,7 +706,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.257 h**.
+Input week: **5**; target: **5**; snapshot age: **5.481 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **330**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -743,7 +743,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.229 h**.
+Input week: **5**; target: **5**; snapshot age: **5.453 h**.
 Governed eligible rows — weekly: **421**; next-three-week waiver: **562**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -781,7 +781,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.199 h**.
+Input week: **5**; target: **5**; snapshot age: **5.423 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **330**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -817,7 +817,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.171 h**.
+Input week: **5**; target: **5**; snapshot age: **5.395 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **468**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -861,7 +861,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **ACTION_REQUIRED**
 
-Input week: **5**; target: **5**; snapshot age: **0.142 h**.
+Input week: **5**; target: **5**; snapshot age: **5.366 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **330**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -905,7 +905,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY**
 
-Input week: **5**; target: **5**; snapshot age: **0.114 h**.
+Input week: **5**; target: **5**; snapshot age: **5.338 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **330**.
 
 Not applicable: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY`
@@ -914,7 +914,7 @@ Not applicable: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY`
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **5**; target: **5**; snapshot age: **0.086 h**.
+Input week: **5**; target: **5**; snapshot age: **5.31 h**.
 Governed eligible rows — weekly: **327**; next-three-week waiver: **330**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
