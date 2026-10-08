@@ -76,7 +76,7 @@ def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime
     generated = stamp(core['generated_at'])
     age = (as_of-generated).total_seconds()
     if age < 0 or age > min(float(core.get('stale_after_seconds',21600)),36*3600):
-        raise ValueError('PORTFOLIO_CORE_STALE_OR_FUTURE')
+        raise ValueError(f'PORTFOLIO_CORE_STALE_OR_FUTURE observed_at={core["generated_at"]} age_seconds={age:.0f} limit_seconds={min(float(core.get("stale_after_seconds",21600)),36*3600):.0f}; refresh currentseason before rebuilding the surface')
     roster, _ = managed_roster(core,username)
     if roster is None:
         raise ValueError('PORTFOLIO_MANAGED_ROSTER_UNRESOLVED')
@@ -199,6 +199,9 @@ def markdown(report: dict) -> str:
     for row in report['roster_exposure']:
         lines.append(f"| {row['player_name']} | {row['position']} | {row['owned_league_count']} | {row['starting_league_count']} |")
     lines += ['',report['note'],'','### League coverage and owned-player forecasts','']
+    for league in report['leagues']:
+        if league.get('reason'):
+            lines.append(f"- {league['league_id']}: **{league['status']}** — {league['reason']}")
     for league in report['leagues']:
         lines += [f"#### {league.get('league_name') or league['league_id']}", '',
             f"**{league['status']}** — scoring `{league.get('scoring_signature','—')}`; lifecycle `{(league.get('lifecycle') or {}).get('state','UNKNOWN')}`.", '',
