@@ -67,6 +67,35 @@ def test_best_ball_is_not_a_manual_action():
         assert report["primary_lineup"] is None
 
 
+def test_chopped_matchup_field_is_captured_without_active_survivor_claim():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td); setup(root)
+        matchup = {"captured_at": "2026-09-30T10:00:00+00:00", "season": 2026, "week": 4,
+                   "rows": [{"roster_id": 1, "matchup_id": 9, "starters": ["a", "c"]},
+                            {"roster_id": 8, "matchup_id": 9, "starters": ["b", "c"]}]}
+        for lid, fmt in (("10", "CHOPPED"), ("11", "CHOPPED_BESTBALL")):
+            fixture(root, lid, fmt=fmt)
+            report = p.build_league(root, lid, {"league_name": "Field", "format": fmt},
+                                    username="C0nstant1n", as_of=datetime(2026, 9, 30, 11, tzinfo=timezone.utc),
+                                    matchup_evidence=matchup)
+            field = report["field_context"]
+            assert field["status"] == "CAPTURED_FIELD_ROWS_ACTIVE_UNVERIFIED"
+            assert field["rosters"][0]["player_ids"] == ["b", "c"]
+            assert field["observed_roster_count"] == 1 and field["submitted_starter_count"] == 2
+            assert field["active_field_certified"] is False and field["actionable"] is False
+            assert report["evidence"]["matchup_evidence_sha256"] == field["evidence_sha256"]
+            if fmt == "CHOPPED":
+                assert report["opponent_context"]["status"] == "NOT_APPLICABLE_CHOPPED_FIELD"
+            else:
+                assert report["status"] == "NOT_APPLICABLE_AUTOMATIC_LINEUP"
+        from weekly_lineup_operational_evidence import chopped_field_context
+        assert chopped_field_context(1, {**matchup, "week": 5}, season=2026, week=4,
+            as_of=datetime(2026, 9, 30, 11, tzinfo=timezone.utc))["status"] == "BLOCKED_MATCHUP_FIELD_TARGET_OR_TIME_MISMATCH"
+        duplicate = {**matchup, "rows": [matchup["rows"][0], matchup["rows"][1], matchup["rows"][1]]}
+        assert chopped_field_context(1, duplicate, season=2026, week=4,
+            as_of=datetime(2026, 9, 30, 11, tzinfo=timezone.utc))["status"] == "BLOCKED_MATCHUP_FIELD_ROSTER_IDS_INVALID"
+
+
 def test_material_missing_projection_blocks():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td); setup(root); fixture(root, "3", missing=True)
@@ -175,7 +204,7 @@ def test_portfolio_exposure_preserves_scoring_context_and_focus_order():
 
 
 def main() -> None:
-    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_pregame_opponent_context_and_ceiling_stay_advisory, test_immutable_capture_is_pregame_and_idempotent, test_operational_markdown_leads_with_actions_and_preserves_advisory_labels, test_external_evidence_envelope_is_typed_and_target_bound, test_portfolio_exposure_preserves_scoring_context_and_focus_order]
+    tests = [test_exact_primary_and_submitted_delta, test_best_ball_is_not_a_manual_action, test_chopped_matchup_field_is_captured_without_active_survivor_claim, test_material_missing_projection_blocks, test_verified_locks_and_h2h_context_are_evidence_bound, test_after_kickoff_without_player_times_is_review_only, test_pregame_opponent_context_and_ceiling_stay_advisory, test_immutable_capture_is_pregame_and_idempotent, test_operational_markdown_leads_with_actions_and_preserves_advisory_labels, test_external_evidence_envelope_is_typed_and_target_bound, test_portfolio_exposure_preserves_scoring_context_and_focus_order]
     for test in tests:
         test()
     print(f"PASS In-Season PR2 weekly lineup producer ({len(tests)} tests)")

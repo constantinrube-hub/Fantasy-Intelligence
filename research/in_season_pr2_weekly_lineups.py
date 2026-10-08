@@ -39,9 +39,9 @@ except ModuleNotFoundError:  # pragma: no cover - exercised by repository caller
     )
 
 try:
-    from weekly_lineup_operational_evidence import head_to_head_context, player_locks, sha256_value
+    from weekly_lineup_operational_evidence import chopped_field_context, head_to_head_context, player_locks, sha256_value
 except ModuleNotFoundError:  # pragma: no cover - exercised by repository callers
-    from research.weekly_lineup_operational_evidence import head_to_head_context, player_locks, sha256_value
+    from research.weekly_lineup_operational_evidence import chopped_field_context, head_to_head_context, player_locks, sha256_value
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -509,11 +509,16 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
         roster, user = managed_roster(core, username)
         if roster is None:
             return blocker(lid, name, fmt, season, week, "BLOCKED_MANAGED_ROSTER_UNRESOLVED", {"username": username})
+        field = chopped_field_context(roster.get("roster_id"), matchup_evidence, season=season, week=week, as_of=as_of) if fmt in {"CHOPPED", "CHOPPED_BESTBALL"} else None
         if fmt in BEST_BALL:
             return {
                 "schema": SCHEMA_LEAGUE, "league_id": lid, "league_name": name, "format": fmt, "season": season, "week": week,
                 "status": "NOT_APPLICABLE_AUTOMATIC_LINEUP", "managed_roster_id": roster.get("roster_id"),
-                "primary_lineup": None, "governance": governance(),
+                "primary_lineup": None, "field_context": field,
+                "evidence": {"profile_fingerprint": profile.get("profile_fingerprint"),
+                             "scoring_signature": current.get("scoring_signature"),
+                             "matchup_evidence_sha256": (field or {}).get("evidence_sha256")},
+                "governance": governance(),
             }
         player_catalog, index = catalog(root, core), current_index(current)
         unresolved, inactive, active = [], [], []
@@ -581,7 +586,7 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
             root=root,
             managed_total=primary.get("total"),
             lock_state=lock_state,
-        )
+        ) if fmt != "CHOPPED" else {"status": "NOT_APPLICABLE_CHOPPED_FIELD", "actionable": False}
         report = {
             "schema": SCHEMA_LEAGUE,
             "league_id": lid,
@@ -604,7 +609,7 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
                 "runtime_contract_sha256": contract_sha,
                 "schedule_evidence_sha256": lock_state.get("evidence_sha256"),
                 "schedule_games_sha256": lock_state.get("schedule_games_sha256"),
-                "matchup_evidence_sha256": opponent.get("evidence_sha256"),
+                "matchup_evidence_sha256": (field or opponent).get("evidence_sha256"),
                 "as_of_utc": as_of.isoformat(),
                 "target_week_realised_stats_excluded": True,
                 "projection_source_mix_active_roster": {key: int(sources.get(key, 0)) for key in ("FIE_GOVERNED", "SLEEPER_FALLBACK", "EXISTING_DECISION_PROJECTION", "UNAVAILABLE")},
@@ -618,6 +623,7 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
             "survival_floor_advisory": floor_advisory(active, roster_positions, fmt, root, **lock_constraints),
             "ceiling_advisory": ceiling_advisory(active, roster_positions, root, **lock_constraints),
             "opponent_context": opponent,
+            "field_context": field,
             "lock_state": lock_state,
             "governance": governance(),
         }
@@ -701,6 +707,9 @@ def render_portfolio_markdown(portfolio: dict[str, Any], *, season: Any, week: A
         signature = evidence.get("scoring_signature")
         if signature:
             lines.append(f"Scoring signature: `{signature}`")
+        field = report.get("field_context") or {}
+        if field:
+            lines.append(f"Chopped field evidence: **{field['status']}**; observed matchup rosters {field.get('observed_roster_count', 0)}; submitted starters {field.get('submitted_starter_count', 0)}. Active survivors are not certified.")
         if status == "NOT_APPLICABLE_AUTOMATIC_LINEUP":
             lines.append("Manual lineup action: not applicable (automatic Best Ball lineup).")
             continue

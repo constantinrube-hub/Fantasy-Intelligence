@@ -54,13 +54,17 @@ def assess(products: dict, sources: dict) -> None:
                 observed = content.get("captured_opponent_exposure") or {}
                 evidence = {"roster_player_count": len(content.get("roster_exposure", [])),
                             "submitted_opponent_player_count": len(observed.get("players", [])),
+                            "observed_chopped_field_player_count": len(observed.get("field_players", [])),
+                            "observed_chopped_field_roster_count": sum(row.get("observed_roster_count", 0) for row in observed.get("leagues", []) if row.get("kind") == "CHOPPED_FIELD"),
                             "captured_h2h_context_count": sum(row.get("kind") == "DIRECT_H2H" for row in contexts),
                             "chopped_field_blocked_count": sum(row.get("kind") == "CHOPPED_FIELD" and row.get("status", "").startswith("BLOCKED") for row in contexts),
                             "portfolio_league_status_counts": content.get("league_status_counts", {})}
                 if not observed.get("players"):
                     blockers.append("SUBMITTED_OPPONENT_STARTER_EXPOSURE_UNAVAILABLE")
                 if evidence["chopped_field_blocked_count"]:
-                    blockers.append("CHOPPED_ACTIVE_FIELD_NOT_CAPTURED")
+                    if evidence["observed_chopped_field_roster_count"] == 0:
+                        blockers.append("CHOPPED_FIELD_ROWS_NOT_CAPTURED")
+                    blockers.append("CHOPPED_ACTIVE_FIELD_NOT_CERTIFIED")
                 if any(key != "BOUND_CURRENT_ROSTER" and count for key, count in evidence["portfolio_league_status_counts"].items()):
                     blockers.append("CURRENT_ROSTER_SCOPE_PARTIAL")
                 blockers.append("ALL_LEAGUE_CANONICAL_EXPOSURE_UNCERTIFIED")

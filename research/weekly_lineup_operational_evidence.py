@@ -126,3 +126,47 @@ def head_to_head_context(managed_roster_id: Any, matchup_evidence: dict[str, Any
         "evidence_sha256": sha256_value(envelope),
         "basis": "captured direct head-to-head pairing only; not a win-probability or max-win lineup recommendation",
     }
+
+
+def chopped_field_context(managed_roster_id: Any, matchup_evidence: dict[str, Any] | None, *, season: int, week: int, as_of: datetime) -> dict[str, Any]:
+    """Preserve observed field matchup rows without inferring active survivors."""
+    envelope = matchup_evidence if isinstance(matchup_evidence, dict) else {}
+    base = {"actionable": False, "active_field_certified": False,
+            "evidence_sha256": sha256_value(envelope) if envelope else None,
+            "captured_at": envelope.get("captured_at"), "rosters": []}
+    rows = envelope.get("rows")
+    if not isinstance(rows, list):
+        return {**base, "status": "BLOCKED_MATCHUP_FIELD_NOT_CAPTURED"}
+    observed = parse_dt(envelope.get("captured_at"))
+    if (envelope.get("season"), envelope.get("week")) != (season, week) or observed is None or observed > as_of:
+        return {**base, "status": "BLOCKED_MATCHUP_FIELD_TARGET_OR_TIME_MISMATCH"}
+    ids = [str(row.get("roster_id") or "") for row in rows if isinstance(row, dict)]
+    if (len(ids) != len(rows) or not all(ids) or len(set(ids)) != len(ids) or
+        ids.count(str(managed_roster_id)) != 1):
+        return {**base, "status": "BLOCKED_MATCHUP_FIELD_ROSTER_IDS_INVALID"}
+    field, seen_starters = [], set()
+    for row in sorted(rows, key=lambda item: str(item["roster_id"])):
+        rid = str(row["roster_id"])
+        if rid == str(managed_roster_id):
+            continue
+        starters = row.get("starters")
+        if starters is None:
+            field.append({"roster_id": rid, "status": "SUBMITTED_STARTERS_NOT_PROVIDED",
+                          "player_ids": [], "empty_slot_count": 0})
+            continue
+        if not isinstance(starters, list) or any(isinstance(x, bool) or not isinstance(x, (int, str)) for x in starters):
+            return {**base, "status": "BLOCKED_MATCHUP_FIELD_STARTER_IDS_INVALID"}
+        player_ids = [str(pid) for pid in starters if str(pid).strip() not in {"", "0"}]
+        if len(set(player_ids)) != len(player_ids) or seen_starters.intersection(player_ids):
+            return {**base, "status": "BLOCKED_MATCHUP_FIELD_DUPLICATE_STARTER"}
+        seen_starters.update(player_ids)
+        field.append({"roster_id": rid, "status": "CAPTURED_SUBMITTED_STARTERS" if player_ids else "EMPTY_SUBMITTED_STARTERS",
+                      "player_ids": player_ids,
+                      "empty_slot_count": len(starters) - len(player_ids)})
+    if not field:
+        return {**base, "status": "BLOCKED_MATCHUP_FIELD_NO_OTHER_ROSTERS"}
+    complete = all(row["status"] == "CAPTURED_SUBMITTED_STARTERS" for row in field)
+    return {**base, "status": "CAPTURED_FIELD_ROWS_ACTIVE_UNVERIFIED" if complete else "PARTIAL_FIELD_STARTERS_ACTIVE_UNVERIFIED",
+            "rosters": field, "observed_roster_count": len(field),
+            "submitted_starter_count": len(seen_starters),
+            "basis": "Observed Sleeper matchup entries only; eliminated or inactive rosters are not identified by this capture."}

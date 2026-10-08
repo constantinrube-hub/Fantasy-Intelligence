@@ -48,7 +48,16 @@ def captured_opponent_contexts(pr2: dict) -> list[dict]:
                    "scoring_signature": (league.get("evidence") or {}).get("scoring_signature"),
                    "capture_id": pr2["capture_id"], "actionable": False}
         if league.get("format") in {"CHOPPED", "CHOPPED_BESTBALL"}:
-            rows.append({**context, "kind": "CHOPPED_FIELD", "status": "BLOCKED_CAPTURED_ACTIVE_FIELD_REQUIRED", "owner_context": None})
+            field = league.get("field_context") or {}
+            field_status = field.get("status")
+            status = ("BLOCKED_ACTIVE_FIELD_CERTIFICATION_REQUIRED" if field_status in
+                      {"CAPTURED_FIELD_ROWS_ACTIVE_UNVERIFIED", "PARTIAL_FIELD_STARTERS_ACTIVE_UNVERIFIED"}
+                      else field_status or "BLOCKED_CAPTURED_ACTIVE_FIELD_REQUIRED")
+            rows.append({**context, "kind": "CHOPPED_FIELD", "status": status,
+                         "owner_context": None, "captured_field_context": field,
+                         "field_capture_status": field_status or "NOT_YET_CAPTURED",
+                         "observed_roster_count": field.get("observed_roster_count", 0),
+                         "submitted_starter_count": field.get("submitted_starter_count", 0)})
             continue
         owner = league.get("opponent_context")
         if not isinstance(owner, dict): owner = {"status": "NOT_YET_CAPTURED"}
@@ -254,7 +263,7 @@ def markdown(report: dict) -> str:
     if contexts:
         lines += ["", "### Captured opponent context", "", "| League | Scope | Capture state |", "|---|---|---|"]
         lines.extend(f"| {row['league_id']} | {row['kind']} | {row['status']} |" for row in contexts)
-        lines += ["", "Opponent maximum-mean advisory is distinct from observed submitted starters. Chopped requires captured active-field evidence; no H2H pairing substitutes for it."]
+        lines += ["", "Opponent maximum-mean advisory is distinct from observed submitted starters. Chopped matchup entries are observed field rows, not proof of active survivors; no H2H pairing substitutes for the field."]
     observed = (report["products"]["EXPOSURE"].get("content") or {}).get("captured_opponent_exposure")
     if observed:
         lines += ["", "### Observed H2H opponent starter exposure", "",
@@ -266,6 +275,16 @@ def markdown(report: dict) -> str:
         if not observed["players"]:
             lines.append("| No bound submitted starters | 0 |")
         lines += ["", "These are captured submitted starters, not final lineups or predicted opponent actions. Chopped-field exposure remains separate."]
+        field_rows = [row for row in observed["leagues"] if row["kind"] == "CHOPPED_FIELD"]
+        if field_rows:
+            lines += ["", "### Observed Chopped matchup field", "",
+                      "| League | Captured roster entries | Submitted starters | State |", "|---|---:|---:|---|"]
+            lines.extend(f"| {row['league_name'] or row['league_id']} | {row.get('observed_roster_count', 0)} | {row.get('submitted_starter_count', 0)} | {row['status']} |" for row in field_rows)
+            lines += ["", "| Player | Matchup rosters | Leagues |", "|---|---:|---:|"]
+            lines.extend(f"| {row['player_name'] or row['player_id']} | {row['observed_field_roster_count']} | {row['observed_field_league_count']} |" for row in observed.get("field_players", []))
+            if not observed.get("field_players"):
+                lines.append("| No bound field starters | 0 | 0 |")
+            lines += ["", "These are observed matchup rows. Eliminated rosters may still appear; active survivors and final Best Ball lineups are not certified."]
     m10 = (report["products"]["POST_WEEK_REVIEW"].get("content") or {}).get("m10_research")
     if m10:
         lines += ["", "### M10 prospective outcome evidence", "",

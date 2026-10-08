@@ -41,6 +41,24 @@ def main() -> None:
     assert result["league_status_counts"] == {"CAPTURED_SUBMITTED_STARTERS": 2, "BLOCKED_CAPTURED_ACTIVE_FIELD_REQUIRED": 1}
     assert result["players"][0]["player_id"] == "gsis-1"  # Max-mean advisory's different ID cannot leak.
     assert result["governance"]["actionable"] is False
+    field = {"status": "CAPTURED_FIELD_ROWS_ACTIVE_UNVERIFIED", "evidence_sha256": "field-hash",
+             "captured_at": "2026-10-08T10:00:00+00:00", "active_field_certified": False,
+             "rosters": [{"roster_id": "2", "player_ids": ["123"], "status": "CAPTURED_SUBMITTED_STARTERS"}]}
+    captured = deepcopy(pr2)
+    captured["leagues"][2]["field_context"] = field
+    captured["leagues"][2]["evidence"]["matchup_evidence_sha256"] = "field-hash"
+    result = captured_exposure(captured, current, CAPTURE)
+    assert result["players"][0]["opponent_start_league_count"] == 2
+    assert result["field_players"][0]["observed_field_roster_count"] == 1
+    assert result["field_players"][0]["observed_field_league_count"] == 1
+    assert result["leagues"][2]["status"] == "PARTIAL_MATCHUP_FIELD_ACTIVE_UNVERIFIED"
+    assert result["leagues"][2]["active_field_certified"] is False
+    broken = deepcopy(captured); broken["leagues"][2]["evidence"]["matchup_evidence_sha256"] = "tampered"
+    assert captured_exposure(broken, current, CAPTURE)["leagues"][2]["status"] == "BLOCKED_FIELD_EVIDENCE_HASH_MISMATCH"
+    broken = deepcopy(captured); broken["leagues"][2]["field_context"]["captured_at"] = "2026-10-08T13:00:00+00:00"
+    assert captured_exposure(broken, current, CAPTURE)["leagues"][2]["status"] == "BLOCKED_FIELD_CAPTURE_AFTER_SURFACE"
+    broken = deepcopy(captured); broken["leagues"][2]["field_context"]["rosters"].append(deepcopy(field["rosters"][0]))
+    assert captured_exposure(broken, current, CAPTURE)["leagues"][2]["status"] == "BLOCKED_FIELD_ROSTER_SCOPE_INVALID"
     bestball = deepcopy(pr2); bestball["leagues"][2]["format"] = "CHOPPED_BESTBALL"
     result = captured_exposure(bestball, current, CAPTURE)
     assert result["leagues"][2]["kind"] == "CHOPPED_FIELD"
