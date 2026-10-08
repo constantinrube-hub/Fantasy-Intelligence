@@ -24,6 +24,7 @@ def captured_exposure(pr2: dict, surface: dict, capture_binding: dict) -> dict:
     league_rows = []
     exposure: dict[str, dict] = {}
     field_exposure: dict[str, dict] = {}
+    not_eliminated_exposure: dict[str, dict] = {}
     for league in pr2["leagues"]:
         lid = str(league["league_id"])
         current = indexed.get(lid)
@@ -46,7 +47,8 @@ def captured_exposure(pr2: dict, surface: dict, capture_binding: dict) -> dict:
             continue
         if base["kind"] == "CHOPPED_FIELD":
             field = league.get("field_context") or {}
-            if field.get("status") not in {"CAPTURED_FIELD_ROWS_ACTIVE_UNVERIFIED", "PARTIAL_FIELD_STARTERS_ACTIVE_UNVERIFIED"}:
+            certified = field.get("status") == "CAPTURED_PROVIDER_NOT_ELIMINATED_FIELD"
+            if field.get("status") not in {"CAPTURED_FIELD_ROWS_ACTIVE_UNVERIFIED", "PARTIAL_FIELD_STARTERS_ACTIVE_UNVERIFIED", "CAPTURED_PROVIDER_NOT_ELIMINATED_FIELD"}:
                 league_rows.append({**base, "status": field.get("status", "BLOCKED_CAPTURED_ACTIVE_FIELD_REQUIRED"), "players": []})
                 continue
             if not field.get("evidence_sha256") or field["evidence_sha256"] != evidence.get("matchup_evidence_sha256"):
@@ -58,14 +60,33 @@ def captured_exposure(pr2: dict, surface: dict, capture_binding: dict) -> dict:
                 continue
             rosters = field.get("rosters")
             ids = [str(row.get("roster_id") or "") for row in rosters] if isinstance(rosters, list) and all(isinstance(row, dict) for row in rosters) else []
-            if not ids or not all(ids) or len(set(ids)) != len(ids) or field.get("active_field_certified") is not False:
+            if not ids or not all(ids) or len(set(ids)) != len(ids) or field.get("active_field_certified") is not certified:
                 league_rows.append({**base, "status": "BLOCKED_FIELD_ROSTER_SCOPE_INVALID", "players": []})
                 continue
+            if certified:
+                source_at = field.get("elimination_source_observed_at")
+                try:
+                    source_time = stamp(source_at) if source_at else None
+                except (ValueError, TypeError, AttributeError):
+                    source_time = None
+                if (field.get("elimination_source_core_sha256") != evidence.get("app_core_sha256") or
+                    not evidence.get("app_core_sha256") or field.get("last_completed_chopped_leg") != week - 1 or
+                    source_time is None or source_time > stamp(observed) or
+                    (stamp(observed) - source_time).total_seconds() > 6 * 3600):
+                    league_rows.append({**base, "status": "BLOCKED_FIELD_ELIMINATION_SOURCE_MISMATCH", "players": []})
+                    continue
+                states = [row.get("provider_elimination_state") for row in rosters]
+                count = states.count("NOT_MARKED_ELIMINATED")
+                if (set(states) - {"NOT_MARKED_ELIMINATED", "ELIMINATED"} or
+                    count != field.get("not_eliminated_roster_count") or
+                    states.count("ELIMINATED") != field.get("eliminated_matchup_roster_count") or count == 0):
+                    league_rows.append({**base, "status": "BLOCKED_FIELD_ELIMINATION_SCOPE_INVALID", "players": []})
+                    continue
             player_index = {str(row.get("sleeper_id")): row for row in current["players"] if row.get("sleeper_id")}
             if len(player_index) != sum(bool(row.get("sleeper_id")) for row in current["players"]):
                 league_rows.append({**base, "status": "BLOCKED_CURRENT_DUPLICATE_SLEEPER_ID", "players": []})
                 continue
-            entries, unresolved, submitted_ids = [], [], set()
+            entries, not_eliminated_entries, unresolved, submitted_ids = [], [], [], set()
             invalid = False
             for roster in rosters:
                 pids = roster.get("player_ids")
@@ -78,23 +99,39 @@ def captured_exposure(pr2: dict, surface: dict, capture_binding: dict) -> dict:
                     if not player or not player.get("player_id") or player.get("owned_by_user") or not player.get("rostered_in_league"):
                         unresolved.append({"roster_id": roster["roster_id"], "sleeper_id": pid})
                     else:
-                        entries.append({"roster_id": roster["roster_id"], "sleeper_id": pid,
+                        entry = {"roster_id": roster["roster_id"], "sleeper_id": pid,
                                         "player_id": player["player_id"], "player_name": player.get("player_name"),
-                                        "position": player.get("position")})
+                                        "position": player.get("position")}
+                        entries.append(entry)
+                        if certified and roster["provider_elimination_state"] == "NOT_MARKED_ELIMINATED":
+                            not_eliminated_entries.append(entry)
             if invalid:
                 league_rows.append({**base, "status": "BLOCKED_FIELD_SUBMITTED_IDS_INVALID", "players": []})
                 continue
-            league_rows.append({**base, "status": "PARTIAL_MATCHUP_FIELD_ACTIVE_UNVERIFIED" if submitted_ids else "BLOCKED_FIELD_STARTERS_UNAVAILABLE",
+            active_unresolved = any(row["roster_id"] in {r["roster_id"] for r in rosters if r.get("provider_elimination_state") == "NOT_MARKED_ELIMINATED"} for row in unresolved)
+            status = ("CAPTURED_PROVIDER_NOT_ELIMINATED_FIELD" if certified and not active_unresolved and
+                      all(row.get("status") == "CAPTURED_SUBMITTED_STARTERS" for row in rosters if row.get("provider_elimination_state") == "NOT_MARKED_ELIMINATED")
+                      else "PARTIAL_PROVIDER_NOT_ELIMINATED_FIELD" if certified else
+                      "PARTIAL_MATCHUP_FIELD_ACTIVE_UNVERIFIED" if submitted_ids else "BLOCKED_FIELD_STARTERS_UNAVAILABLE")
+            league_rows.append({**base, "status": status,
                                 "observed_at": observed, "observed_roster_count": len(rosters),
                                 "submitted_starter_count": len(submitted_ids), "players": entries,
+                                "not_eliminated_field_players": not_eliminated_entries,
+                                "not_eliminated_roster_count": field.get("not_eliminated_roster_count", 0),
                                 "unresolved_sleeper_ids": unresolved,
-                                "active_field_certified": False, "roster_membership_certified": False})
+                                "active_field_certified": certified, "roster_membership_certified": certified})
             for entry in entries:
                 record = field_exposure.setdefault(entry["player_id"], {"player_id": entry["player_id"],
                     "player_name": entry["player_name"], "position": entry["position"], "contexts": []})
                 record["contexts"].append({"league_id": lid, "roster_id": entry["roster_id"],
                     "capture_id": capture_binding["capture_id"], "observed_at": observed,
                     "scoring_signature": current["scoring_signature"], "profile_fingerprint": current["profile_fingerprint"]})
+            for entry in not_eliminated_entries:
+                record = not_eliminated_exposure.setdefault(entry["player_id"], {"player_id": entry["player_id"],
+                    "player_name": entry["player_name"], "position": entry["position"], "contexts": []})
+                record["contexts"].append({"league_id": lid, "roster_id": entry["roster_id"],
+                    "capture_id": capture_binding["capture_id"], "observed_at": observed,
+                    "app_core_sha256": evidence["app_core_sha256"]})
             continue
         opponent = league.get("opponent_context") or {}
         if opponent.get("status") != "CAPTURED_H2H_CONTEXT":
@@ -150,11 +187,15 @@ def captured_exposure(pr2: dict, surface: dict, capture_binding: dict) -> dict:
     for record in field_exposure.values():
         record["observed_field_roster_count"] = len(record["contexts"])
         record["observed_field_league_count"] = len({row["league_id"] for row in record["contexts"]})
+    for record in not_eliminated_exposure.values():
+        record["not_eliminated_field_roster_count"] = len(record["contexts"])
+        record["not_eliminated_field_league_count"] = len({row["league_id"] for row in record["contexts"]})
     return {"schema": "fie-captured-opponent-exposure-v1", "season": season, "week": week,
         "surface_as_of_utc": surface["as_of_utc"], "capture_path": capture_binding["capture_path"],
         "capture_sha256": capture_binding["capture_sha256"], "capture_id": capture_binding["capture_id"],
         "leagues": league_rows, "players": sorted(exposure.values(), key=lambda row: (-row["opponent_start_league_count"], str(row["player_id"]))),
         "field_players": sorted(field_exposure.values(), key=lambda row: (-row["observed_field_league_count"], str(row["player_id"]))),
+        "not_eliminated_field_players": sorted(not_eliminated_exposure.values(), key=lambda row: (-row["not_eliminated_field_league_count"], str(row["player_id"]))),
         "league_status_counts": dict(Counter(row["status"] for row in league_rows)),
-        "semantics": "Direct H2H submitted opponents and separate Chopped matchup-field rows at PR2 capture time. Chopped active survivors, final lineups and roster membership are not certified; no recommendation or predicted intention.",
+        "semantics": "Direct H2H submitted opponents, raw Chopped matchup rows, and separately source-bound provider not-eliminated roster starters at PR2 capture time. Future survivors and final Best Ball lineups are not certified; no recommendation or predicted intention.",
         "governance": {"read_only": True, "actionable": False, "opponent_lineup_advisory_used": False}}

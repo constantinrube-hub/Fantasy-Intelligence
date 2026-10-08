@@ -39,9 +39,9 @@ except ModuleNotFoundError:  # pragma: no cover - exercised by repository caller
     )
 
 try:
-    from weekly_lineup_operational_evidence import chopped_field_context, head_to_head_context, player_locks, sha256_value
+    from weekly_lineup_operational_evidence import chopped_field_context, verify_chopped_active_field, head_to_head_context, player_locks, sha256_value
 except ModuleNotFoundError:  # pragma: no cover - exercised by repository callers
-    from research.weekly_lineup_operational_evidence import chopped_field_context, head_to_head_context, player_locks, sha256_value
+    from research.weekly_lineup_operational_evidence import chopped_field_context, verify_chopped_active_field, head_to_head_context, player_locks, sha256_value
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -510,6 +510,9 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
         if roster is None:
             return blocker(lid, name, fmt, season, week, "BLOCKED_MANAGED_ROSTER_UNRESOLVED", {"username": username})
         field = chopped_field_context(roster.get("roster_id"), matchup_evidence, season=season, week=week, as_of=as_of) if fmt in {"CHOPPED", "CHOPPED_BESTBALL"} else None
+        if field is not None:
+            field = verify_chopped_active_field(field, core, core_sha256=sha256_file(core_path),
+                                                season=season, week=week, managed_roster_id=roster.get("roster_id"))
         if fmt in BEST_BALL:
             return {
                 "schema": SCHEMA_LEAGUE, "league_id": lid, "league_name": name, "format": fmt, "season": season, "week": week,
@@ -517,6 +520,7 @@ def build_league(root: Path, league_id: str, registry_row: dict[str, Any], *, us
                 "primary_lineup": None, "field_context": field,
                 "evidence": {"profile_fingerprint": profile.get("profile_fingerprint"),
                              "scoring_signature": current.get("scoring_signature"),
+                             "app_core_sha256": sha256_file(core_path),
                              "matchup_evidence_sha256": (field or {}).get("evidence_sha256")},
                 "governance": governance(),
             }
@@ -709,7 +713,7 @@ def render_portfolio_markdown(portfolio: dict[str, Any], *, season: Any, week: A
             lines.append(f"Scoring signature: `{signature}`")
         field = report.get("field_context") or {}
         if field:
-            lines.append(f"Chopped field evidence: **{field['status']}**; observed matchup rosters {field.get('observed_roster_count', 0)}; submitted starters {field.get('submitted_starter_count', 0)}. Active survivors are not certified.")
+            lines.append(f"Chopped field evidence: **{field['status']}**; observed matchup rosters {field.get('observed_roster_count', 0)}; submitted starters {field.get('submitted_starter_count', 0)}; provider not-eliminated rosters {field.get('not_eliminated_roster_count', 0)}. Future survival and final Best Ball starters are not certified.")
         if status == "NOT_APPLICABLE_AUTOMATIC_LINEUP":
             lines.append("Manual lineup action: not applicable (automatic Best Ball lineup).")
             continue

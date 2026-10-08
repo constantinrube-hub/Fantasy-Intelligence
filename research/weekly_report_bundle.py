@@ -263,7 +263,7 @@ def markdown(report: dict) -> str:
     if contexts:
         lines += ["", "### Captured opponent context", "", "| League | Scope | Capture state |", "|---|---|---|"]
         lines.extend(f"| {row['league_id']} | {row['kind']} | {row['status']} |" for row in contexts)
-        lines += ["", "Opponent maximum-mean advisory is distinct from observed submitted starters. Chopped matchup entries are observed field rows, not proof of active survivors; no H2H pairing substitutes for the field."]
+        lines += ["", "Opponent maximum-mean advisory is distinct from observed submitted starters. Chopped matchup entries alone do not prove active membership; no H2H pairing substitutes for the field."]
     observed = (report["products"]["EXPOSURE"].get("content") or {}).get("captured_opponent_exposure")
     if observed:
         lines += ["", "### Observed H2H opponent starter exposure", "",
@@ -284,7 +284,12 @@ def markdown(report: dict) -> str:
             lines.extend(f"| {row['player_name'] or row['player_id']} | {row['observed_field_roster_count']} | {row['observed_field_league_count']} |" for row in observed.get("field_players", []))
             if not observed.get("field_players"):
                 lines.append("| No bound field starters | 0 | 0 |")
-            lines += ["", "These are observed matchup rows. Eliminated rosters may still appear; active survivors and final Best Ball lineups are not certified."]
+            lines += ["", "These are all observed matchup rows; eliminated rosters may still appear. Source-bound provider not-eliminated membership is reported separately, never future survival or final Best Ball starters."]
+            if observed.get("not_eliminated_field_players"):
+                lines += ["", "### Provider not-eliminated Chopped field at capture", "",
+                          "| Player | Not-eliminated rosters | Leagues |", "|---|---:|---:|"]
+                lines.extend(f"| {row['player_name'] or row['player_id']} | {row['not_eliminated_field_roster_count']} | {row['not_eliminated_field_league_count']} |" for row in observed["not_eliminated_field_players"])
+                lines += ["", "This is the observed provider state in the verified earlier app core, not guaranteed later survival or final Best Ball starts."]
     m10 = (report["products"]["POST_WEEK_REVIEW"].get("content") or {}).get("m10_research")
     if m10:
         lines += ["", "### M10 prospective outcome evidence", "",

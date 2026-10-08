@@ -170,3 +170,63 @@ def chopped_field_context(managed_roster_id: Any, matchup_evidence: dict[str, An
             "rosters": field, "observed_roster_count": len(field),
             "submitted_starter_count": len(seen_starters),
             "basis": "Observed Sleeper matchup entries only; eliminated or inactive rosters are not identified by this capture."}
+
+
+def verify_chopped_active_field(field: dict[str, Any], core: dict[str, Any], *, core_sha256: str,
+                                season: int, week: int, managed_roster_id: Any) -> dict[str, Any]:
+    """Bind observed not-eliminated membership to the verified, earlier app core.
+
+    `settings.eliminated` is an observed Chopped provider encoding, not a
+    documented provider guarantee. An absent key means only NOT_MARKED_ELIMINATED
+    in this snapshot; it never predicts future survival.
+    """
+    base = {**field, "active_field_certified": False}
+    if field.get("status") not in {"CAPTURED_FIELD_ROWS_ACTIVE_UNVERIFIED", "PARTIAL_FIELD_STARTERS_ACTIVE_UNVERIFIED"}:
+        return base
+    league = (core.get("sleeper") or {}).get("league") or {}
+    rosters = (core.get("sleeper") or {}).get("rosters")
+    if not core.get("generated_at") or "last_chopped_leg" not in (league.get("settings") or {}):
+        return base  # Legacy/no source proof retains the explicitly unverified field.
+    observed, captured = parse_dt(core.get("generated_at")), parse_dt(field.get("captured_at"))
+    settings = league.get("settings") or {}
+    if (core.get("format") not in {"CHOPPED", "CHOPPED_BESTBALL"} or
+        str(league.get("season")) != str(season) or
+        isinstance(settings.get("last_chopped_leg"), bool) or
+        settings.get("last_chopped_leg") != week - 1 or
+        observed is None or captured is None or observed > captured or
+        (captured - observed).total_seconds() > 6 * 3600 or
+        not isinstance(core_sha256, str) or len(core_sha256) != 64):
+        return {**base, "status": "BLOCKED_CHOPPED_ELIMINATION_SOURCE_TARGET_OR_TIME"}
+    if not isinstance(rosters, list) or not rosters:
+        return {**base, "status": "BLOCKED_CHOPPED_ELIMINATION_ROSTERS_INVALID"}
+    states = {}
+    for roster in rosters:
+        if not isinstance(roster, dict) or not isinstance(roster.get("settings"), dict):
+            return {**base, "status": "BLOCKED_CHOPPED_ELIMINATION_ROSTERS_INVALID"}
+        rid = str(roster.get("roster_id") or "")
+        if not rid or rid in states:
+            return {**base, "status": "BLOCKED_CHOPPED_ELIMINATION_ROSTERS_INVALID"}
+        settings = roster["settings"]
+        if "eliminated" not in settings:
+            states[rid] = "NOT_MARKED_ELIMINATED"
+        else:
+            round_number = settings["eliminated"]
+            if isinstance(round_number, bool) or not isinstance(round_number, int) or not 1 <= round_number <= week - 1:
+                return {**base, "status": "BLOCKED_CHOPPED_ELIMINATION_STATE_INVALID"}
+            states[rid] = "ELIMINATED"
+    managed = str(managed_roster_id)
+    if managed not in states or states[managed] != "NOT_MARKED_ELIMINATED":
+        return {**base, "status": "BLOCKED_CHOPPED_MANAGED_ROSTER_ELIMINATED_OR_MISSING"}
+    field_ids = {str(row["roster_id"]) for row in field["rosters"]}
+    expected = {rid for rid, state in states.items() if state == "NOT_MARKED_ELIMINATED" and rid != managed}
+    if not expected or not expected.issubset(field_ids) or not field_ids.issubset(states):
+        return {**base, "status": "BLOCKED_CHOPPED_NOT_ELIMINATED_MATCHUP_SCOPE_INCOMPLETE"}
+    annotated = [{**row, "provider_elimination_state": states[str(row["roster_id"])]} for row in field["rosters"]]
+    return {**base, "status": "CAPTURED_PROVIDER_NOT_ELIMINATED_FIELD",
+            "active_field_certified": True, "rosters": annotated,
+            "not_eliminated_roster_count": len(expected),
+            "eliminated_matchup_roster_count": len(field_ids - expected),
+            "elimination_source_core_sha256": core_sha256,
+            "elimination_source_observed_at": observed.isoformat(),
+            "last_completed_chopped_leg": week - 1,
+            "basis": "Provider not-eliminated status in verified app core at capture time; not future survival or final Best Ball starters."}

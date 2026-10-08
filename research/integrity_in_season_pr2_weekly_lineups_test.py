@@ -96,6 +96,44 @@ def test_chopped_matchup_field_is_captured_without_active_survivor_claim():
             as_of=datetime(2026, 9, 30, 11, tzinfo=timezone.utc))["status"] == "BLOCKED_MATCHUP_FIELD_ROSTER_IDS_INVALID"
 
 
+def test_chopped_provider_not_eliminated_requires_earlier_verified_core():
+    from weekly_lineup_operational_evidence import verify_chopped_active_field
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td); setup(root); fixture(root, "10", fmt="CHOPPED")
+        core_path = root / "data/research/leagues/10/app/core.json"
+        core = json.loads(core_path.read_text(encoding="utf-8"))
+        core["generated_at"] = "2026-09-30T09:00:00+00:00"
+        core["sleeper"]["league"].update(season="2026", settings={"last_chopped_leg": 3})
+        core["sleeper"]["rosters"][0]["settings"] = {}
+        core["sleeper"]["rosters"][1]["settings"] = {}
+        core["sleeper"]["rosters"].append({"roster_id": 9, "settings": {"eliminated": 2}})
+        write(core_path, core)
+        write(root / "data/research/leagues/10/app/manifest.json", {"core": {"path": "data/research/leagues/10/app/core.json", "sha256": sha(core_path)}})
+        matchup = {"captured_at": "2026-09-30T10:00:00+00:00", "season": 2026, "week": 4,
+                   "rows": [{"roster_id": 1, "starters": ["a"]}, {"roster_id": 8, "starters": ["b"]},
+                            {"roster_id": 9, "starters": ["c"]}]}
+        report = p.build_league(root, "10", {"league_name": "Field", "format": "CHOPPED"},
+                                username="C0nstant1n", as_of=datetime(2026, 9, 30, 11, tzinfo=timezone.utc),
+                                matchup_evidence=matchup)
+        field = report["field_context"]
+        assert field["status"] == "CAPTURED_PROVIDER_NOT_ELIMINATED_FIELD"
+        assert field["active_field_certified"] is True and field["not_eliminated_roster_count"] == 1
+        assert [row["provider_elimination_state"] for row in field["rosters"]] == ["NOT_MARKED_ELIMINATED", "ELIMINATED"]
+        assert field["elimination_source_core_sha256"] == report["evidence"]["app_core_sha256"]
+        without = {**matchup, "rows": matchup["rows"][:1]}
+        blocked = p.build_league(root, "10", {"league_name": "Field", "format": "CHOPPED"},
+                                 username="C0nstant1n", as_of=datetime(2026, 9, 30, 11, tzinfo=timezone.utc),
+                                 matchup_evidence=without)
+        assert blocked["field_context"]["status"] == "BLOCKED_CHOPPED_NOT_ELIMINATED_MATCHUP_SCOPE_INCOMPLETE"
+        changed = json.loads(json.dumps(core)); changed["sleeper"]["rosters"][1]["settings"] = {"eliminated": None}
+        raw_field = {**field, "status": "CAPTURED_FIELD_ROWS_ACTIVE_UNVERIFIED"}
+        assert verify_chopped_active_field(raw_field, changed, core_sha256=sha(core_path), season=2026, week=4,
+                                          managed_roster_id=1)["status"] == "BLOCKED_CHOPPED_ELIMINATION_STATE_INVALID"
+        stale = {**core, "generated_at": "2026-09-29T00:00:00+00:00"}
+        assert verify_chopped_active_field(raw_field, stale, core_sha256=sha(core_path), season=2026, week=4,
+                                          managed_roster_id=1)["status"] == "BLOCKED_CHOPPED_ELIMINATION_SOURCE_TARGET_OR_TIME"
+
+
 def test_material_missing_projection_blocks():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td); setup(root); fixture(root, "3", missing=True)
