@@ -414,6 +414,13 @@ def evaluation_input(active: list[dict[str, Any]], roster_positions: list[Any], 
             "position_model": player_position(row, contract),
             "team": row.get("team"),
             "captured_player_id": canonical_player_id(row),
+            "projection_evidence": {
+                "fie_mean": numeric(row.get("fie_weekly_projection")),
+                "sleeper_mean": numeric(row.get("sleeper_weekly_projection")),
+                "decision_mean": numeric(row.get("decision_weekly_projection")),
+                "decision_source_class": source_class(row),
+                "fie_weekly_activation_eligible": row.get("weekly_activation_eligible") is True,
+            },
         })
     return {
         "schema": "fie-in-season-pr2-lineup-evaluation-input-v1",
@@ -667,6 +674,13 @@ def capture_payload(portfolio: dict[str, Any]) -> dict[str, Any]:
     payload.pop("capture_id", None)
     payload.pop("capture_content_sha256", None)
     return payload
+
+
+def validate_immutable_capture(capture: dict[str, Any]) -> None:
+    """Verify the stored capture body, not only its declared content hash."""
+    actual = sha256_value(capture_payload(capture))
+    if capture.get("capture_content_sha256") != actual or capture.get("capture_id") != actual[:16]:
+        raise LineupEvidenceError("BLOCKED_IMMUTABLE_CAPTURE_CONTENT_MISMATCH")
 
 
 def player_label(report: dict[str, Any], player_id: Any) -> str:

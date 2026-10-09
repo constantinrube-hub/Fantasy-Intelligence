@@ -15,9 +15,11 @@ from typing import Any
 
 try:
     from point_in_time_capture import build_envelope, first_write_json, sha256_bytes, canonical_bytes
+    from in_season_pr2_weekly_lineups import validate_immutable_capture
     from weekly_lineup_decision_support import numeric
 except ModuleNotFoundError:  # pragma: no cover - package import support
     from research.point_in_time_capture import build_envelope, first_write_json, sha256_bytes, canonical_bytes
+    from research.in_season_pr2_weekly_lineups import validate_immutable_capture
     from research.weekly_lineup_decision_support import numeric
 
 
@@ -130,6 +132,7 @@ def build_outcome(capture: dict[str, Any], raw: dict[str, Any], *, outcome_revis
         raise ValueError("raw outcome stats schema invalid")
     if not capture.get("capture_id") or not capture.get("capture_content_sha256"):
         raise ValueError("immutable capture required")
+    validate_immutable_capture(capture)
     stats = raw.get("stats_by_player_id") if isinstance(raw.get("stats_by_player_id"), dict) else {}
     sparse_zero_is_explicit = raw.get("sparse_zero_fields_are_explicit") is True
     values, replay = {}, {}

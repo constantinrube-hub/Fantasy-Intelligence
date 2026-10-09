@@ -120,6 +120,7 @@ def build(
         "inventories": inventories,
         "ledger": {
             "path": str(output_path),
+            "sha256": _sha256(output_path),
             "rows": int(len(ledger)),
             "complete_exact_rows": int(ledger["outcome_complete"].sum()),
             "incomplete_rows": int((~ledger["outcome_complete"]).sum()),
