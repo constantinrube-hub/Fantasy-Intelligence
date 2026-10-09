@@ -10,7 +10,7 @@ import pandas as pd
 
 from waiver_v2_event_ledger import (
     EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_e3_event_ledger, build_e4_event_ledger, build_e5_event_ledger, build_source_inventory,
-    validate_event_ledger,
+    validate_event_ledger, _canonical_resolver, _blocker_receipt,
 )
 from run_waiver_v2_historical_ledger import write_source_snapshot
 
@@ -35,6 +35,22 @@ with tempfile.TemporaryDirectory() as raw:
     assert inventory["pbp_source_complete"]
     assert inventory["participation"]["status"] == "NOT_REQUESTED"
     assert all(row["regular_rows"] == 1 for row in inventory["pbp_by_season"])
+    try:
+        build_source_inventory(pbp, requested_seasons=[2024, 2025], pbp_source_items=source_items + source_items[:1])
+        raise AssertionError("duplicate season source receipts must fail before event derivation")
+    except ValueError as error:
+        assert "duplicate season receipts" in str(error)
+
+    for second_binding in ("PLAYER_ONE", "PLAYER_TWO"):
+        identity_collision = pd.DataFrame([
+            {"gsis_id": "00-0000001", "canonical_player_id": "PLAYER_ONE"},
+            {"gsis_id": "00-0000001", "canonical_player_id": second_binding},
+        ])
+        try:
+            _canonical_resolver(identity_collision)
+            raise AssertionError("duplicate GSIS bindings must fail before dictionary collapse")
+        except ValueError as error:
+            assert "duplicate gsis bindings" in str(error)
 
     missing = pbp.drop(columns=["play_deleted"])
     blocked = build_source_inventory(missing, requested_seasons=[2024, 2025], pbp_source_items=source_items)
@@ -284,5 +300,33 @@ with tempfile.TemporaryDirectory() as raw:
     e5_weekly = pd.read_csv(root / "e5" / "weekly.csv.gz").set_index("canonical_player_id")
     assert e5_weekly.loc["QB1", ["event_pass_completions_40", "event_pass_tds_40", "event_pass_tds_50"]].tolist() == [1, 1, 1]
     assert e5_weekly.loc["ST_REC", ["event_receptions_40", "event_reception_tds_40", "event_reception_tds_50", "event_rushes_40", "event_rush_tds_40", "event_rush_tds_50"]].tolist() == [1, 1, 1, 1, 1, 1]
+
+    # A lost fumble with two different fumblers remains unassigned. The E5
+    # receipt must retain its E2 play-level blocker, including phase and hash.
+    ambiguous_pbp = e5_pbp.copy()
+    ambiguous = ambiguous_pbp.iloc[0].copy()
+    ambiguous["play_id"] = 10
+    ambiguous["fumbled_2_player_id"] = "00-0000002"
+    ambiguous_pbp = pd.concat([ambiguous_pbp, ambiguous.to_frame().T], ignore_index=True)
+    ambiguous_path = root / "e5-ambiguous-pbp.csv.gz"
+    ambiguous_pbp.to_csv(ambiguous_path, index=False, compression={"method": "gzip", "mtime": 0})
+    ambiguous_report = root / "e5-ambiguous" / "report.json"
+    ambiguous_receipt = build_e5_event_ledger(
+        raw_pbp_path=ambiguous_path, identity_path=e3_identity_path, canonical_player_stats_path=e4_stats_path,
+        requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "h" * 64}],
+        output_path=root / "e5-ambiguous" / "events.csv.gz", weekly_stats_output_path=root / "e5-ambiguous" / "weekly.csv.gz", report_path=ambiguous_report,
+    )
+    assert ambiguous_receipt["rule_support"]["fum_lost"]["support_status"] == "BLOCKED_EVENT_SEMANTICS"
+    blocker_receipt = ambiguous_receipt["blockers"]
+    assert blocker_receipt["phase_counts"]["E2"] >= 1 and blocker_receipt["season_counts"]["2025"] >= 1
+    blocker_path = Path(blocker_receipt["path"])
+    preserved = [json.loads(line) for line in blocker_path.read_text(encoding="utf-8").splitlines()]
+    assert any(row["play_id"] == "10" and row["phase"] == "E2" for row in preserved)
+    blocker_path.write_text(blocker_path.read_text(encoding="utf-8") + "{}\n", encoding="utf-8")
+    try:
+        _blocker_receipt(ambiguous_report, [], "E6", ambiguous_receipt)
+        raise AssertionError("changed prior blocker evidence must fail")
+    except ValueError as error:
+        assert "blocker ledger is missing or changed" in str(error)
 
 print("OK waiver-v2 E1 event-source inventory and adversarial ledger contract")

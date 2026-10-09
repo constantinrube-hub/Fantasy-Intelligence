@@ -210,6 +210,16 @@ jobs:
           set -euo pipefail
           python research/weekly_player_performance.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --ensure-completed >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Preserve retrospective usage table from the completed report
+        if: steps.readiness.outputs.ready == 'true'
+        env:
+          INPUT_SEASON: ${{ steps.readiness.outputs.season }}
+          INPUT_WEEK: ${{ steps.readiness.outputs.week }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/weekly_usage_table.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Capture current roster and independent projection surface
         if: steps.readiness.outputs.ready == 'true'
         env:
@@ -255,6 +265,7 @@ jobs:
           git add "data/research/evaluation/$SEASON"
           git add "data/operations/weekly-pipeline/$SEASON"
           if [ -d "data/operations/weekly-performance/$SEASON" ]; then git add "data/operations/weekly-performance/$SEASON"; fi
+          if [ -d "data/operations/weekly-usage/$SEASON" ]; then git add "data/operations/weekly-usage/$SEASON"; fi
           if git diff --cached --quiet; then
             echo "No Window 1D evaluation change"
             exit 0

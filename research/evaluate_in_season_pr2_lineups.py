@@ -16,9 +16,11 @@ from typing import Any
 
 try:
     from point_in_time_capture import first_write_json
+    from in_season_pr2_weekly_lineups import validate_immutable_capture
     from weekly_lineup_decision_support import LineupEvidenceError, canonical_player_id, exact_lineup, numeric
 except ModuleNotFoundError:  # pragma: no cover - package import support
     from research.point_in_time_capture import first_write_json
+    from research.in_season_pr2_weekly_lineups import validate_immutable_capture
     from research.weekly_lineup_decision_support import LineupEvidenceError, canonical_player_id, exact_lineup, numeric
 
 
@@ -86,6 +88,32 @@ def evaluate_league(report: dict[str, Any], outcome: dict[str, Any], *, root: Pa
     hindsight_total = float(hindsight["total"])
     hindsight_ids = set(hindsight.get("selected_player_ids") or [])
     hit_count = len(set(recommended) & hindsight_ids)
+    paired_projection_rows = []
+    projection_coverage = {"candidate_rows": len(candidates), "fie_mean_rows": 0, "sleeper_mean_rows": 0,
+                           "paired_mean_rows": 0, "governed_fie_mean_rows": 0}
+    for candidate in candidates:
+        evidence = candidate.get("projection_evidence") or {}
+        fie_mean = numeric(evidence.get("fie_mean"))
+        sleeper_mean = numeric(evidence.get("sleeper_mean"))
+        if fie_mean is not None:
+            projection_coverage["fie_mean_rows"] += 1
+            if evidence.get("fie_weekly_activation_eligible") is True:
+                projection_coverage["governed_fie_mean_rows"] += 1
+        if sleeper_mean is not None:
+            projection_coverage["sleeper_mean_rows"] += 1
+        if fie_mean is None or sleeper_mean is None:
+            continue
+        player_id = str(candidate["captured_player_id"])
+        paired_projection_rows.append({
+            "captured_player_id": player_id,
+            "position_model": candidate.get("position_model"),
+            "fie_mean": fie_mean,
+            "sleeper_mean": sleeper_mean,
+            "realized_points": realized[player_id],
+            "fie_weekly_activation_eligible": evidence.get("fie_weekly_activation_eligible") is True,
+            "decision_source_class": evidence.get("decision_source_class"),
+        })
+    projection_coverage["paired_mean_rows"] = len(paired_projection_rows)
     return {
         "league_id": league_id,
         "league_name": report.get("league_name"),
@@ -106,6 +134,8 @@ def evaluate_league(report: dict[str, Any], outcome: dict[str, Any], *, root: Pa
         "recommended_player_count": len(recommended),
         "hindsight_player_count": len(hindsight_ids),
         "hindsight_assignment": hindsight.get("assignment"),
+        "projection_coverage": projection_coverage,
+        "paired_projection_rows": paired_projection_rows,
     }
 
 
@@ -116,9 +146,14 @@ def evaluate_capture(capture: dict[str, Any], outcome: dict[str, Any], *, root: 
         raise ValueError("outcome schema invalid")
     if outcome.get("capture_id") != capture.get("capture_id") or outcome.get("capture_content_sha256") != capture.get("capture_content_sha256"):
         raise ValueError("outcome is not bound to this immutable capture")
+    validate_immutable_capture(capture)
     reports = [evaluate_league(report, outcome, root=root) for report in capture.get("leagues") or [] if isinstance(report, dict)]
     ready = [row for row in reports if row.get("status") == "READY"]
     status_counts = Counter(str(row.get("status")) for row in reports)
+    projection_coverage = {key: sum(row["projection_coverage"][key] for row in ready)
+                           for key in ("candidate_rows", "fie_mean_rows", "sleeper_mean_rows", "paired_mean_rows", "governed_fie_mean_rows")}
+    paired_by_position = Counter(str(pair.get("position_model") or "UNKNOWN")
+                                 for row in ready for pair in row["paired_projection_rows"])
     return {
         "schema": SCHEMA,
         "capture_id": capture["capture_id"],
@@ -129,6 +164,10 @@ def evaluate_capture(capture: dict[str, Any], outcome: dict[str, Any], *, root: 
         "league_count": len(reports),
         "ready_league_count": len(ready),
         "status_counts": dict(sorted(status_counts.items())),
+        "ready_league_counts_by_format": dict(sorted(Counter(str(row.get("format") or "UNKNOWN") for row in ready).items())),
+        "projection_coverage": projection_coverage,
+        "paired_mean_rows_by_position": dict(sorted(paired_by_position.items())),
+        "projection_evidence_note": "Paired rows reproduce pregame means stored in the immutable capture and the league's exact outcome values. Scoring comparability and forecast validation require a separate review. Missing captures and blocked leagues are excluded from paired counts.",
         "aggregate": {
             "recommended_realized_points": round(sum(float(row["recommended_realized_points"]) for row in ready), 6),
             "submitted_realized_points": round(sum(float(row["submitted_realized_points"]) for row in ready), 6),

@@ -68,6 +68,8 @@ COMPONENTS={
  'weekly_context_audit_integrity':'research/integrity_weekly_context_audit_test.py',
  'weekly_player_performance':'research/weekly_player_performance.py',
  'weekly_player_performance_integrity':'research/integrity_weekly_player_performance_test.py',
+ 'weekly_usage_table':'research/weekly_usage_table.py',
+ 'weekly_usage_table_integrity':'research/integrity_weekly_usage_table_test.py',
  'weekly_portfolio_surface':'research/weekly_portfolio_surface.py',
  'weekly_portfolio_surface_integrity':'research/integrity_weekly_portfolio_surface_test.py',
  'weekly_decision_ledger':'research/weekly_decision_ledger.py',
