@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -142,6 +143,8 @@ def build_source_inventory(
     """Return a per-season, field-level receipt for future event derivation."""
     seasons = sorted({int(season) for season in requested_seasons})
     source_by_season = {int(item["season"]): dict(item) for item in pbp_source_items}
+    if len(source_by_season) != len(pbp_source_items):
+        raise ValueError("waiver-v2 source inventory has duplicate season receipts")
     missing_fields = sorted(set(PBP_REQUIRED_FIELDS) - set(pbp.columns))
     season_values = pd.to_numeric(pbp.get("season", pd.Series(dtype="float64")), errors="coerce")
     rows: list[dict[str, Any]] = []
@@ -227,13 +230,15 @@ def _canonical_resolver(identity: pd.DataFrame):
     required = {"gsis_id", "canonical_player_id"}
     if not required <= set(identity.columns):
         raise ValueError("waiver-v2 event ledger identity source requires gsis_id and canonical_player_id")
-    bindings = {
-        _clean_id(row.gsis_id): _clean_id(row.canonical_player_id)
-        for row in identity[["gsis_id", "canonical_player_id"]].itertuples(index=False)
-        if _clean_id(row.gsis_id) and _clean_id(row.canonical_player_id)
-    }
-    if len(bindings) != len({key for key in bindings}):
-        raise ValueError("waiver-v2 event ledger identity source has duplicate gsis bindings")
+    bindings: dict[str, str] = {}
+    for row in identity[["gsis_id", "canonical_player_id"]].itertuples(index=False):
+        gsis_id = _clean_id(row.gsis_id)
+        canonical_id = _clean_id(row.canonical_player_id)
+        if not gsis_id or not canonical_id:
+            continue
+        if gsis_id in bindings:
+            raise ValueError("waiver-v2 event ledger identity source has duplicate gsis bindings")
+        bindings[gsis_id] = canonical_id
 
     def resolve(value: Any) -> tuple[str | None, str]:
         source_id = _clean_id(value)
@@ -291,6 +296,29 @@ def _support(status: str, reason: str, column: str | None = None) -> dict[str, A
     return {
         "support_status": status, "reason": reason,
         "required_columns": [column] if column else [],
+    }
+
+
+def _blocker_receipt(report_path: Path, blockers: list[dict[str, Any]], phase: str, base: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Preserve every earlier phase's unresolved play with a content-bound receipt."""
+    path = report_path.with_name(report_path.stem + "-blockers.jsonl")
+    previous: list[dict[str, Any]] = []
+    if base is not None:
+        prior = base.get("blockers") or {}
+        if str(prior.get("path")) != str(path) or not path.is_file() or _sha256(path) != prior.get("sha256"):
+            raise ValueError("waiver-v2 previous event blocker ledger is missing or changed")
+        previous = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+        if len(previous) != prior.get("rows"):
+            raise ValueError("waiver-v2 previous event blocker count changed")
+    rows = previous + [{**row, "phase": phase} for row in blockers]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("".join(json.dumps(row, sort_keys=True, separators=(",", ":")) + "\n" for row in rows), encoding="utf-8", newline="\n")
+    return {
+        "path": str(path), "sha256": _sha256(path), "rows": len(rows),
+        "status_counts": dict(sorted(Counter(row["status"] for row in rows).items())),
+        "phase_counts": dict(sorted(Counter(row["phase"] for row in rows).items())),
+        "season_counts": {str(season): count for season, count in sorted(Counter(int(row["season"]) for row in rows).items())},
+        "sample": rows[:12],
     }
 
 
@@ -379,6 +407,7 @@ def build_e2_event_ledger(
             lost = _flag(row.get("fumble_lost"))
             if lost and len(identifiers) != 1:
                 supports["fum_lost"] = _support("BLOCKED_EVENT_SEMANTICS", "lost fumble cannot be assigned when one play has multiple fumblers")
+                blocked(row, "all_play_fumble_lost", "BLOCKED_EVENT_SEMANTICS", "lost fumble cannot be assigned when one play has multiple fumblers")
             for source_id in identifiers:
                 canonical, evidence = resolver(source_id)
                 if canonical is None:
@@ -416,7 +445,6 @@ def build_e2_event_ledger(
     if not event_frame.empty and event_frame.duplicated(["season", "week", "game_id", "play_id", "event_type", "canonical_player_id"]).any():
         raise ValueError("waiver-v2 E2 event derivation produced duplicate canonical events")
     validate_event_ledger(event_frame)
-    blocker_statuses = {row["status"] for row in blockers}
     for key, event_type in (("fum", "all_play_fumble"), ("fum_lost", "all_play_fumble"),
                             ("pass_int_td", "pass_interception_td"), ("bonus_rush_td_qb", "qb_rushing_td")):
         relevant = [row for row in blockers if row["event_type"] == event_type]
@@ -478,7 +506,7 @@ def build_e2_event_ledger(
         "activation_eligible": False, "builder_sha256": builder, "source_inventory": source_inventory,
         "rule_support": supports, "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
-        "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted(blocker_statuses)}, "sample": blockers[:12]},
+        "blockers": _blocker_receipt(report_path, blockers, "E2"),
         "sack_reconciliation": sack_reconciliation,
         "limitations": ["Only E2 event families are represented.", "Blocked event attribution prevents exact rule replay; it is never converted to zero.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
@@ -627,7 +655,7 @@ def build_e3_event_ledger(
         "source_inventory": source_inventory, "rule_support": supports,
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
-        "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted({row["status"] for row in blockers})}, "sample": blockers[:12]},
+        "blockers": _blocker_receipt(report_path, blockers, "E3", base),
         "sack_reconciliation": base["sack_reconciliation"],
         "limitations": ["E3 uses direct PBP roles only; a missing or ambiguous individual role blocks the affected rule family.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
@@ -765,7 +793,7 @@ def build_e4_event_ledger(
         "source_inventory": source_inventory, "rule_support": supports,
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
-        "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted({row["status"] for row in blockers})}, "sample": blockers[:12]},
+        "blockers": _blocker_receipt(report_path, blockers, "E4", base),
         "sack_reconciliation": base["sack_reconciliation"], "return_yard_reconciliation": reconciliation,
         "limitations": ["E4 scores only direct kickoff/punt returner roles after player-week reconciliation.", "Field-goal return yards remain blocked without an exact individual source role.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
@@ -954,7 +982,7 @@ def build_e5_event_ledger(
         "source_inventory": source_inventory, "rule_support": supports,
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
-        "blockers": {"rows": int(len(blockers)), "status_counts": {status: sum(row["status"] == status for row in blockers) for status in sorted({row["status"] for row in blockers})}, "sample": blockers[:12]},
+        "blockers": _blocker_receipt(report_path, blockers, "E5", base),
         "sack_reconciliation": base["sack_reconciliation"], "return_yard_reconciliation": base["return_yard_reconciliation"],
         "limitations": ["E5 counts official PBP play events; it does not infer long-play bonuses from weekly totals.", "A 50-yard touchdown emits the documented 40- and 50-yard bonus events, but ambiguous lateral allocation remains blocked.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
