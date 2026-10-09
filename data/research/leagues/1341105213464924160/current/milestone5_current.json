@@ -22,7 +22,7 @@
       "sha256": "ac4d54f37fab3768e97493f04fa15203b36c573a3b5ac3a17a3e6be2860f1863"
     }
   },
-  "generated_at": "2026-10-09T00:10:13.713813+00:00",
+  "generated_at": "2026-10-09T03:26:36.628416+00:00",
   "status": "complete",
   "season": 2026,
   "week": 5,
@@ -421,46 +421,29 @@
     ]
   },
   "sleeper_archive": {
-    "capture_policy_version": 2,
-    "capture_window_hours": 18.0,
-    "captured_at": "2026-10-08T06:39:50.658139+00:00",
-    "first_kickoff_utc": "2026-10-09T00:15:00+00:00",
-    "first_write_policy": true,
-    "hours_before_kickoff": 17.586624,
-    "path": "data/research/market/sleeper/2026/week_05.jsonl.gz",
-    "point_in_time_metadata": {
-      "as_of_semantics": "provider response observed and immutably first-written at captured_at; never reconstructed later",
-      "capture_intent": "prospective_weekly_market_benchmark",
-      "release_cadence": "verified pregame scheduled capture",
-      "revision_metadata_status": "NOT_EXPOSED_BY_PROVIDER",
-      "schema": "fie-point-in-time-source-metadata-v1",
-      "source_endpoint": "https://api.sleeper.com/projections/nfl/2026/5?season_type=regular",
-      "source_release_identifier": null,
-      "source_revision_identifier": null
-    },
-    "pregame_eligible": true,
-    "reason": "timing_verified",
-    "rows": 9420,
-    "season": 2026,
-    "season_type": "regular",
-    "sha256": "d6135505f98b71861304d0f46531821b7c3a5cefcea77c6503ef9f68541fae58",
-    "source": "Sleeper projection endpoint",
-    "week": 5,
     "written": false,
-    "first_write": true,
-    "manifest": "data/research/market/sleeper/manifest.json"
+    "skipped": true,
+    "season": 2026,
+    "week": 5,
+    "pregame_eligible": false,
+    "capture_policy_version": 2,
+    "season_type": "regular",
+    "capture_window_hours": 18.0,
+    "first_kickoff_utc": "2026-10-09T00:15:00+00:00",
+    "hours_before_kickoff": -3.193538,
+    "reason": "kickoff_already_started"
   },
   "kickoff": {
     "first_kickoff_utc": "2026-10-09T00:15:00+00:00",
-    "capture_pregame_eligible": true,
+    "capture_pregame_eligible": false,
     "capture_policy": {
       "capture_policy_version": 2,
       "season_type": "regular",
       "capture_window_hours": 18.0,
       "first_kickoff_utc": "2026-10-09T00:15:00+00:00",
-      "hours_before_kickoff": 0.079483,
-      "pregame_eligible": true,
-      "reason": "timing_verified"
+      "hours_before_kickoff": -3.193538,
+      "pregame_eligible": false,
+      "reason": "kickoff_already_started"
     }
   },
   "guardrails": [
@@ -478,7 +461,7 @@
   "storage": {
     "format": "fie-current-split-v1",
     "player_base": "data/research/shared/current/player_base.4354354d595bdd48.json",
-    "scoring_overlay": "data/research/shared/current/scoring/fec2fca13ae53e1d.663ce316f9cfe498.json",
+    "scoring_overlay": "data/research/shared/current/scoring/fec2fca13ae53e1d.d08c3ddd8f9b5ee7.json",
     "player_count": 10479,
     "excluded_player_ids": [
       "17",
