@@ -21,15 +21,21 @@ def test_exact_hindsight_is_bound_to_the_immutable_capture():
         for row in current["players"]:
             if row["canonical_player_id"] in {"a", "b", "c"}:
                 row["sleeper_weekly_projection"] = {"a": 21, "b": 17, "c": 15}[row["canonical_player_id"]]
+                row["model_id"] = "fixture-m4"
+                row["model_version"] = "v1"
+        current["forecast_artifacts"] = {label: {"status": "BOUND", "artifact": label, "sha256": "a" * 64}
+                                         for label in ("M4", "M5", "M6")}
         write(current_path, current)
         write(root / "data/research/leagues/registry.json", {"leagues": {"1": {"enabled": True, "league_name": "Alpha", "format": "REDRAFT", "priority": "HIGH"}}})
         portfolio = p.build_portfolio(root, season=2026, week=4, as_of=datetime(2026, 9, 30, tzinfo=timezone.utc))
         paths = p.write_canonical_pregame_capture(root, portfolio)
         capture = json.loads(paths["capture"].read_text(encoding="utf-8"))
         candidates = capture["leagues"][0]["evaluation_input"]["active_candidates"]
+        assert capture["leagues"][0]["evaluation_input"]["fie_forecast_artifacts"] == current["forecast_artifacts"]
         assert next(row for row in candidates if row["captured_player_id"] == "canonical:a")["projection_evidence"] == {
             "fie_mean": 20.0, "sleeper_mean": 21.0, "decision_mean": 20.0,
             "decision_source_class": "FIE_GOVERNED", "fie_weekly_activation_eligible": True,
+            "model_id": "fixture-m4", "model_version": "v1", "projection_source": None,
         }
         outcome = {
             "schema": e.OUTCOME_SCHEMA,
