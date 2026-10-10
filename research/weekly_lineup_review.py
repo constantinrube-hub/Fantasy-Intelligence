@@ -56,6 +56,7 @@ def review(root: Path, season: int, week: int, as_of, eligible_at) -> dict:
     from adapt_in_season_pr2_lineup_outcome_stats import adapt_source
     from build_in_season_pr2_lineup_outcome import build_outcome
     from evaluate_in_season_pr2_lineups import evaluate_capture
+    from weekly_pr2_baseline_archive import audit as audit_baseline_archive
     base = root / f"data/research/evaluation/{season}/weeks/week-{week}/lineups"
     records, errors = [], []
     for path in sorted((base / 'outcomes').glob('*/evaluation.json')):
@@ -93,6 +94,7 @@ def review(root: Path, season: int, week: int, as_of, eligible_at) -> dict:
             records.append({'observed_at':observed.isoformat(),'capture_binding':binding,
                             'source_bindings':[{'path':p.relative_to(root).as_posix(),'sha256':digest(p)} for p in files],
                             'evaluation':evaluation,'paired_projection_readiness':paired_projection_readiness(capture,evaluation),
+                            'sleeper_baseline_archive':audit_baseline_archive(root,capture,evaluation),
                             'validation_scope':'Stored provider payload through exact scoring and existing evaluation; provider raw response hash is declared, not independently replayed.'})
         except Exception as exc:
             errors.append({'path':path.relative_to(root).as_posix(),'status':'BLOCKED_INVALID_REVIEW','reason':f'{type(exc).__name__}:{exc}'})
