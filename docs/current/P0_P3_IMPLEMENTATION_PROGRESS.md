@@ -92,6 +92,22 @@ ID, and none were ambiguous. The remaining work is a governed, historical
 crosswalk source and separately bound snaps/routes; this diagnostic does not
 claim usage/opportunity model completion.
 
+### Source-backed historical identity continuation
+
+The retrospective usage crosswalk can now select the latest verified Sleeper
+availability response observed before each game's kickoff. Each selected
+archive replays its immutable compact rows against the full stored response,
+and the output binds the archive, sidecar and response hashes. This is distinct
+from the later compact catalog: early games without a source-backed archive
+remain blocked, and exact GSIS collisions remain ambiguous. The source proves
+only the observed Sleeper ID candidate at that time; realized usage is still
+retrospective and the canonical ID remains unset.
+
+The read-only Week 4 replay covers 15 of 16 games with pregame source-backed
+archives: 237 exact matches, 804 unmatched GSIS IDs, one ambiguous GSIS ID,
+one missing source ID and 67 Thursday player rows blocked for lack of an
+earlier source-backed response. Snaps/routes and model evaluation remain open.
+
 ## P3: simulation, opponents and draft
 
 The existing remaining-draft Monte Carlo worker has been hardened: strict null/zero handling, missing-material-input and duplicate-ID rejection, reproducible seeded tests, bounded batches, immediate run-bound errors, stale-job isolation and cancellation/timeout/load/clone cleanup. It still simulates the existing remaining-draft utility model. This is not a calibrated weekly NFL score simulator and must not be relabelled as one.
