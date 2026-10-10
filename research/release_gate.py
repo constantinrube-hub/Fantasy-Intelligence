@@ -35,6 +35,7 @@ def main():
   run([sys.executable,'research/integrity_weekly_player_performance_test.py']),
   run([sys.executable,'research/integrity_weekly_usage_table_test.py']),
   run([sys.executable,'research/integrity_weekly_usage_identity_crosswalk_test.py']),
+  run([sys.executable,'research/integrity_weekly_usage_historical_identity_test.py']),
   run([sys.executable,'research/integrity_weekly_portfolio_surface_test.py']),
   run([sys.executable,'research/integrity_weekly_decision_ledger_test.py']),
   run([sys.executable,'research/integrity_roadmap_research_inventory_test.py']),

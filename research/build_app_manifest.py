@@ -72,6 +72,8 @@ COMPONENTS={
  'weekly_usage_table_integrity':'research/integrity_weekly_usage_table_test.py',
  'weekly_usage_identity_crosswalk':'research/weekly_usage_identity_crosswalk.py',
  'weekly_usage_identity_crosswalk_integrity':'research/integrity_weekly_usage_identity_crosswalk_test.py',
+ 'weekly_usage_historical_identity':'research/weekly_usage_historical_identity.py',
+ 'weekly_usage_historical_identity_integrity':'research/integrity_weekly_usage_historical_identity_test.py',
  'weekly_portfolio_surface':'research/weekly_portfolio_surface.py',
  'weekly_portfolio_surface_integrity':'research/integrity_weekly_portfolio_surface_test.py',
  'weekly_decision_ledger':'research/weekly_decision_ledger.py',
