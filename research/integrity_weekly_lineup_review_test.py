@@ -39,6 +39,7 @@ def main():
         good=review(root,2026,4,now,due)
         assert len(good['revisions'])==1 and not good['blocked_revisions'] and not good['complete']
         assert good['paired_fie_sleeper_comparison']=='NOT_PROVIDED_BY_THIS_OWNER'
+        assert good['revisions'][0]['sleeper_baseline_archive']['reason']=='ARCHIVE_OR_SIDECAR_MISSING'
         readiness=good['revisions'][0]['paired_projection_readiness']
         assert readiness['status']=='BLOCKED_PAIRED_FORECAST_VALIDATION'
         assert 'NO_PAIRED_FORECAST_ROWS' in readiness['blockers']

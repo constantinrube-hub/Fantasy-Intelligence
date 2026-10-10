@@ -86,6 +86,8 @@ COMPONENTS={
  'weekly_lineup_operational_evidence':'research/weekly_lineup_operational_evidence.py',
  'weekly_lineup_review':'research/weekly_lineup_review.py',
  'weekly_lineup_review_integrity':'research/integrity_weekly_lineup_review_test.py',
+ 'weekly_pr2_baseline_archive':'research/weekly_pr2_baseline_archive.py',
+ 'weekly_pr2_baseline_archive_integrity':'research/integrity_weekly_pr2_baseline_archive_test.py',
  'weekly_report_bundle':'research/weekly_report_bundle.py',
  'weekly_report_bundle_integrity':'research/integrity_weekly_report_bundle_test.py',
  'weekly_evidence_audit':'research/weekly_evidence_audit.py',

@@ -31,6 +31,7 @@ def main():
   run([sys.executable,'research/integrity_weekly_evidence_audit_test.py']),
   run([sys.executable,'research/integrity_weekly_report_bundle_test.py']),
   run([sys.executable,'research/integrity_weekly_lineup_review_test.py']),
+  run([sys.executable,'research/integrity_weekly_pr2_baseline_archive_test.py']),
   run([sys.executable,'research/integrity_weekly_context_audit_test.py']),
   run([sys.executable,'research/integrity_weekly_player_performance_test.py']),
   run([sys.executable,'research/integrity_weekly_usage_table_test.py']),
