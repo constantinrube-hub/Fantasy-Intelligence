@@ -75,6 +75,23 @@ P1 exit remains independent FIE evidence, real automatic evaluation, stored/eval
 
 Each result batch must preserve RAW → NORMALIZED → DERIVED → FORECAST → DECISION → OUTCOME → EVALUATION lineage. No P2 hypothesis enters production automatically. P2 is not complete until the formal results exist; neither module presence nor a declared `FEASIBLE` stage proves a predictive feature.
 
+### 10 October usage identity continuation
+
+The retrospective weekly usage table now has a separate exact GSIS-to-Sleeper
+catalog crosswalk report. It replays the original player-performance evidence,
+binds the report, dictionary, and stored catalog hashes, and preserves
+unmatched, ambiguous, and missing provider IDs. It does not fill the canonical
+player ID, backdate the later catalog observation, or grant target-week
+pregame-feature eligibility. The catalog has no archived raw provider response,
+so this join is a coverage diagnostic and not a frozen identity receipt.
+
+A read-only replay of the 2026 Week 4 report against the catalog observed on
+10 October found 252 exact Sleeper ID candidates among 1,110 player-game rows:
+857 source GSIS IDs did not match that catalog, one provider row had no GSIS
+ID, and none were ambiguous. The remaining work is a governed, historical
+crosswalk source and separately bound snaps/routes; this diagnostic does not
+claim usage/opportunity model completion.
+
 ## P3: simulation, opponents and draft
 
 The existing remaining-draft Monte Carlo worker has been hardened: strict null/zero handling, missing-material-input and duplicate-ID rejection, reproducible seeded tests, bounded batches, immediate run-bound errors, stale-job isolation and cancellation/timeout/load/clone cleanup. It still simulates the existing remaining-draft utility model. This is not a calibrated weekly NFL score simulator and must not be relabelled as one.
