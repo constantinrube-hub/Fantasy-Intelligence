@@ -7,7 +7,7 @@ from adapt_in_season_pr2_lineup_outcome_stats import SOURCE_SCHEMA, adapt_source
 from build_in_season_pr2_lineup_outcome import build_outcome, write_outcome
 from evaluate_in_season_pr2_lineups import evaluate_capture
 from weekly_evidence_audit import stamp
-from weekly_lineup_review import review
+from weekly_lineup_review import review, paired_projection_readiness
 
 
 def main():
@@ -39,6 +39,18 @@ def main():
         good=review(root,2026,4,now,due)
         assert len(good['revisions'])==1 and not good['blocked_revisions'] and not good['complete']
         assert good['paired_fie_sleeper_comparison']=='NOT_PROVIDED_BY_THIS_OWNER'
+        readiness=good['revisions'][0]['paired_projection_readiness']
+        assert readiness['status']=='BLOCKED_PAIRED_FORECAST_VALIDATION'
+        assert 'NO_PAIRED_FORECAST_ROWS' in readiness['blockers']
+        scored={'leagues':[{'league_id':'1','status':'READY','capture_evidence':{'scoring_signature':'score-a'},
+                'paired_projection_rows':[{'captured_player_id':'canonical:a','fie_weekly_activation_eligible':True}]}]}
+        with_source={'leagues':[{'league_id':'1','evaluation_input':{'fie_forecast_artifacts':{
+                     label:{'status':'BOUND','sha256':'a'*64} for label in ('M4','M5','M6')},
+                     'active_candidates':[{'captured_player_id':'canonical:a','projection_evidence':{'model_id':'m4','model_version':'v1'}}]}}]}
+        source_ready=paired_projection_readiness(with_source,scored)
+        assert source_ready['paired_league_player_rows']==1 and source_ready['governed_fie_paired_rows']==1
+        assert source_ready['fie_artifact_bound_leagues']==1 and source_ready['fie_model_identity_rows']==1
+        assert source_ready['blockers']==['SLEEPER_BASELINE_SOURCE_AND_SCORING_UNVERIFIED']
         before=evaluation_path.read_bytes();bad=json.loads(before);bad['aggregate']['lineup_regret']=999
         evaluation_path.write_text(json.dumps(bad))
         assert 'EVALUATION_REPLAY_MISMATCH' in review(root,2026,4,now,due)['blocked_revisions'][0]['reason']
