@@ -4,7 +4,7 @@ from pathlib import Path
 from weekly_evidence_audit import stamp, digest
 
 
-def paired_projection_readiness(capture: dict, evaluation: dict) -> dict:
+def paired_projection_readiness(capture: dict, evaluation: dict, baseline_archive: dict | None = None) -> dict:
     """Audit comparison inputs without treating league-scored rows as a validated forecast test."""
     reports = {str(row.get('league_id')): row for row in capture.get('leagues', []) if isinstance(row, dict)}
     pairs = 0
@@ -40,9 +40,12 @@ def paired_projection_readiness(capture: dict, evaluation: dict) -> dict:
         blockers.append('FIE_FORECAST_ARTIFACTS_UNBOUND')
     if declared_models < pairs:
         blockers.append('FIE_MODEL_IDENTITY_INCOMPLETE')
-    # The current capture has no independent Sleeper baseline receipt or proof
-    # that its mean uses the exact frozen league scoring settings.
-    blockers.append('SLEEPER_BASELINE_SOURCE_AND_SCORING_UNVERIFIED')
+    if baseline_archive is None:
+        blockers.append('SLEEPER_BASELINE_SOURCE_AND_SCORING_UNVERIFIED')
+    else:
+        if baseline_archive.get('refresh_source_bound_leagues', 0) < len(ready):
+            blockers.append('SLEEPER_BASELINE_SOURCE_UNVERIFIED')
+        blockers.append('SLEEPER_BASELINE_SCORING_UNVERIFIED')
     return {'status': 'BLOCKED_PAIRED_FORECAST_VALIDATION', 'ready_leagues': len(ready),
             'paired_league_player_rows': pairs, 'governed_fie_paired_rows': governed_pairs,
             'fie_model_identity_rows': declared_models, 'fie_artifact_bound_leagues': bound_fie_leagues,
@@ -91,10 +94,11 @@ def review(root: Path, season: int, week: int, as_of, eligible_at) -> dict:
             if evaluate_capture(capture,outcome,root=root) != evaluation:
                 raise ValueError('REVIEW_EVALUATION_REPLAY_MISMATCH')
             files = (source_path,raw_path,envelope_path,outcome_path,path)
+            baseline_archive = audit_baseline_archive(root,capture,evaluation)
             records.append({'observed_at':observed.isoformat(),'capture_binding':binding,
                             'source_bindings':[{'path':p.relative_to(root).as_posix(),'sha256':digest(p)} for p in files],
-                            'evaluation':evaluation,'paired_projection_readiness':paired_projection_readiness(capture,evaluation),
-                            'sleeper_baseline_archive':audit_baseline_archive(root,capture,evaluation),
+                            'evaluation':evaluation,'paired_projection_readiness':paired_projection_readiness(capture,evaluation,baseline_archive),
+                            'sleeper_baseline_archive':baseline_archive,
                             'validation_scope':'Stored provider payload through exact scoring and existing evaluation; provider raw response hash is declared, not independently replayed.'})
         except Exception as exc:
             errors.append({'path':path.relative_to(root).as_posix(),'status':'BLOCKED_INVALID_REVIEW','reason':f'{type(exc).__name__}:{exc}'})

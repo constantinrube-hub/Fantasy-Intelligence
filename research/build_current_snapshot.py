@@ -389,6 +389,58 @@ def archive_sleeper_projection(rows: List[dict], season: int, week: int, identit
     return register(out, meta, written=True)
 
 
+def sleeper_baseline_source_receipt(rows: List[dict], season: int, week: int, output_root: Path, scoring_sig: str) -> dict:
+    """Bind the fetched projection stats used by this refresh to a verified first-write archive."""
+    archive = output_root / str(season) / f"week_{week:02d}.jsonl.gz"
+    sidecar = Path(str(archive) + ".meta.json")
+    receipt = {"schema": "fie-sleeper-baseline-source-receipt-v1", "season": season, "week": week,
+               "source_observed_at": utc_now(), "scoring_signature": scoring_sig,
+               "status": "ARCHIVE_MISSING"}
+
+    def projection_stats(items: List[dict], *, archived: bool = False) -> dict:
+        result = {}
+        for row in items:
+            if not isinstance(row, dict):
+                raise ValueError("invalid projection row")
+            player = row.get("player") or {}
+            sid = str(row.get("sleeper_id") if archived else (row.get("player_id") or player.get("player_id")) or "")
+            stats = row.get("stats") or row
+            if not sid or sid in result or not isinstance(stats, dict):
+                raise ValueError("invalid projection identity or stats")
+            result[sid] = stats
+        if not result:
+            raise ValueError("empty projection response")
+        return result
+
+    if not archive.is_file() or not sidecar.is_file():
+        return receipt
+    try:
+        meta = json.loads(sidecar.read_text(encoding="utf-8"))
+        digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+        captured = datetime.fromisoformat(str(meta["captured_at"]).replace("Z", "+00:00"))
+        kickoff = datetime.fromisoformat(str(meta["first_kickoff_utc"]).replace("Z", "+00:00"))
+        if ((meta.get("season"), meta.get("week")) != (season, week)
+                or meta.get("pregame_eligible") is not True or not captured < kickoff
+                or meta.get("sha256") != digest):
+            raise ValueError("invalid archive sidecar or time")
+        with gzip.open(archive, "rt", encoding="utf-8") as stream:
+            stored_rows = [json.loads(line) for line in stream if line.strip()]
+        if len(stored_rows) != meta.get("rows") or any(
+                (row.get("season"), row.get("week"), row.get("captured_at"), row.get("pregame_eligible"))
+                != (season, week, meta["captured_at"], True) for row in stored_rows):
+            raise ValueError("invalid archive rows")
+        stored_stats = projection_stats(stored_rows, archived=True)
+        live_stats = projection_stats(rows)
+        stored_hash = sha256_json(stored_stats)
+        live_hash = sha256_json(live_stats)
+        return {**receipt, "status": "ARCHIVED_PROJECTION_STATS_MATCH" if stored_hash == live_hash else "ARCHIVED_PROJECTION_STATS_DIFFER",
+                "archive_sha256": digest, "archive_captured_at": meta["captured_at"],
+                "archive_stats_sha256": stored_hash, "refresh_stats_sha256": live_hash,
+                "archive_player_count": len(stored_stats), "refresh_player_count": len(live_stats)}
+    except (OSError, ValueError, TypeError, KeyError, OverflowError, json.JSONDecodeError):
+        return {**receipt, "status": "ARCHIVE_OR_RESPONSE_INVALID"}
+
+
 def current_observed_frame(season: int, target_week: int, scoring: dict, cache_dir: Path) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
     sm = SourceManager(cache_dir)
     players = sm.load("players", required=True)
@@ -761,6 +813,7 @@ def build_snapshot(args) -> dict:
             "written": False, "skipped": True, "season": season, "week": week,
             "pregame_eligible": False, **capture_decision,
         }
+    baseline_source_receipt = sleeper_baseline_source_receipt(srows, season, week, Path(args.sleeper_archive), sig)
     sid_to_cid, sp = sleeper_identity_maps(identity, sp)
     proj_by_sid = {}
     for r in srows:
@@ -1016,6 +1069,7 @@ def build_snapshot(args) -> dict:
             "kicker": {"enabled": bool(kicker_meta.get("kicker_enabled")), "starter_slots": int(kicker_meta.get("kicker_starter_slots") or 0), "entities": len(kicker_rows), "weekly_active": sum(bool(r.get("weekly_activation_eligible")) for r in kicker_rows), "waiver_active": sum(bool(r.get("waiver_activation_eligible")) for r in kicker_rows), "scoring_signature": kicker_meta.get("kicker_scoring_signature")},
         },
         "source_health": source_meta, "sleeper_archive": archive_meta,
+        "sleeper_baseline_receipt": baseline_source_receipt,
         "kickoff": {
             "first_kickoff_utc": kickoff.isoformat() if kickoff else None,
             "capture_pregame_eligible": pregame_eligible,

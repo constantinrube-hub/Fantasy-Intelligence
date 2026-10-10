@@ -52,6 +52,10 @@ def main():
         assert source_ready['paired_league_player_rows']==1 and source_ready['governed_fie_paired_rows']==1
         assert source_ready['fie_artifact_bound_leagues']==1 and source_ready['fie_model_identity_rows']==1
         assert source_ready['blockers']==['SLEEPER_BASELINE_SOURCE_AND_SCORING_UNVERIFIED']
+        bound=paired_projection_readiness(with_source,scored,{'refresh_source_bound_leagues':1})
+        assert bound['blockers']==['SLEEPER_BASELINE_SCORING_UNVERIFIED']
+        unbound=paired_projection_readiness(with_source,scored,{'refresh_source_bound_leagues':0})
+        assert unbound['blockers']==['SLEEPER_BASELINE_SOURCE_UNVERIFIED','SLEEPER_BASELINE_SCORING_UNVERIFIED']
         before=evaluation_path.read_bytes();bad=json.loads(before);bad['aggregate']['lineup_regret']=999
         evaluation_path.write_text(json.dumps(bad))
         assert 'EVALUATION_REPLAY_MISMATCH' in review(root,2026,4,now,due)['blocked_revisions'][0]['reason']
