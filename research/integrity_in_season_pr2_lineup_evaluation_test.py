@@ -25,6 +25,7 @@ def test_exact_hindsight_is_bound_to_the_immutable_capture():
                 row["model_version"] = "v1"
         current["forecast_artifacts"] = {label: {"status": "BOUND", "artifact": label, "sha256": "a" * 64}
                                          for label in ("M4", "M5", "M6")}
+        current["sleeper_baseline_receipt"] = {"status": "ARCHIVED_PROJECTION_STATS_MATCH", "archive_sha256": "b" * 64}
         write(current_path, current)
         write(root / "data/research/leagues/registry.json", {"leagues": {"1": {"enabled": True, "league_name": "Alpha", "format": "REDRAFT", "priority": "HIGH"}}})
         portfolio = p.build_portfolio(root, season=2026, week=4, as_of=datetime(2026, 9, 30, tzinfo=timezone.utc))
@@ -32,6 +33,7 @@ def test_exact_hindsight_is_bound_to_the_immutable_capture():
         capture = json.loads(paths["capture"].read_text(encoding="utf-8"))
         candidates = capture["leagues"][0]["evaluation_input"]["active_candidates"]
         assert capture["leagues"][0]["evaluation_input"]["fie_forecast_artifacts"] == current["forecast_artifacts"]
+        assert capture["leagues"][0]["evaluation_input"]["sleeper_baseline_receipt"] == current["sleeper_baseline_receipt"]
         assert next(row for row in candidates if row["captured_player_id"] == "canonical:a")["projection_evidence"] == {
             "fie_mean": 20.0, "sleeper_mean": 21.0, "decision_mean": 20.0,
             "decision_source_class": "FIE_GOVERNED", "fie_weekly_activation_eligible": True,
@@ -67,6 +69,13 @@ def test_exact_hindsight_is_bound_to_the_immutable_capture():
         try:
             e.evaluate_capture(changed, outcome, root=root)
             raise AssertionError("altered capture values accepted under the original hash")
+        except e.LineupEvidenceError as exc:
+            assert "CAPTURE_CONTENT_MISMATCH" in str(exc)
+        changed = json.loads(json.dumps(capture))
+        changed["leagues"][0]["evaluation_input"]["sleeper_baseline_receipt"]["archive_sha256"] = "c" * 64
+        try:
+            e.evaluate_capture(changed, outcome, root=root)
+            raise AssertionError("altered Sleeper receipt accepted under the original capture hash")
         except e.LineupEvidenceError as exc:
             assert "CAPTURE_CONTENT_MISMATCH" in str(exc)
         try:
