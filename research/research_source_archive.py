@@ -13,11 +13,12 @@ from point_in_time_capture import first_write_json, sha256_bytes
 from weekly_evidence_audit import digest, stamp
 
 ENDPOINTS = {
+    'identity': 'https://github.com/nflverse/nflverse-data/releases/download/players/players.csv',
     'pbp': 'https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv',
     'snaps': 'https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_{season}.csv',
     'schedule': 'https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv',
 }
-HEADERS = {'pbp': {'game_id','play_id','season','week','posteam'},
+HEADERS = {'identity': {'gsis_id','pfr_id'}, 'pbp': {'game_id','play_id','season','week','posteam'},
            'snaps': {'game_id','season','week','pfr_player_id','team','offense_snaps'},
            'schedule': {'game_id','season','week','home_team','away_team','gameday','gametime'}}
 
@@ -39,7 +40,7 @@ def archive(root: Path, kind: str, season: int, raw: bytes, observed_at: str) ->
         raise ValueError('RESEARCH_SOURCE_TARGET_INVALID')
     observed = stamp(observed_at)
     rows = parse(raw, kind)
-    if not any(row['season'] == str(season) for row in rows):
+    if kind != 'identity' and not any(row['season'] == str(season) for row in rows):
         raise ValueError('RESEARCH_SOURCE_SEASON_ABSENT')
     sha = sha256_bytes(raw)
     base = root.resolve() / f'data/research/feature-lab/raw/{kind}/{season}/{observed.strftime("%Y%m%dT%H%M%S%fZ")}-{sha[:16]}'
