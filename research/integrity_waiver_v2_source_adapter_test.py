@@ -59,6 +59,39 @@ with tempfile.TemporaryDirectory() as raw:
     bye = canonical_schedule[canonical_schedule.team.eq("CCC")].iloc[0]
     assert not bool(bye.team_has_game) and bool(bye.game_complete)
 
+    cb_stats = pd.concat([pd.read_csv(stats_path), pd.DataFrame([{
+        "season": 2025, "week": 1, "season_type": "REG", "player_id": "p-cb",
+        "recent_team": "AAA", "position": "CB", "kickoff_return_yards": 54,
+        "punt_return_yards": 0}])], ignore_index=True)
+    cb_identity = pd.concat([pd.read_csv(identity_path), pd.DataFrame([
+        {"gsis_id": "p-cb", "canonical_player_id": "CB1"}])], ignore_index=True)
+    assert "CB1" not in set(normalize_player_stats(cb_stats, cb_identity)[0].canonical_player_id)
+    all_positions = normalize_player_stats(cb_stats, cb_identity, offensive_only=False)[0]
+    assert all_positions.loc[all_positions.canonical_player_id.eq("CB1"), "kickoff_return_yards"].iloc[0] == 54
+    missing_cb = cb_stats.copy()
+    missing_cb.loc[missing_cb.player_id.eq("p-cb"), "player_id"] = None
+    try:
+        normalize_player_stats(missing_cb, cb_identity, offensive_only=False)
+        raise AssertionError("missing defensive returner identity was silently dropped")
+    except ValueError as error:
+        assert "unresolved canonical identities" in str(error)
+    missing_aggregate = cb_stats.copy()
+    missing_aggregate.loc[missing_aggregate.position.eq("TEAM"), "kickoff_return_yards"] = 1
+    try:
+        normalize_player_stats(missing_aggregate, cb_identity, offensive_only=False)
+        raise AssertionError("team-only return yards were silently attributed")
+    except ValueError as error:
+        assert "aggregate return yards lack player identity" in str(error)
+    cb_stats.to_csv(root / "all-position-stats.csv", index=False)
+    cb_identity.to_csv(root / "all-position-identity.csv", index=False)
+    all_receipt = adapt(raw_player_stats_path=root / "all-position-stats.csv",
+        raw_weekly_roster_path=roster_path, raw_games_path=games_path,
+        identity_path=root / "all-position-identity.csv", output_dir=root / "all-position-adapter",
+        include_return_reconciliation=True)
+    assert all_receipt["return_reconciliation_scope"] == "ALL_POSITION_PLAYERS_RECONCILIATION_ONLY"
+    assert all_receipt["outputs"]["player_stats"]["rows"] == 2
+    assert all_receipt["outputs"]["return_reconciliation_stats"]["rows"] == 3
+
     canonical_roster, audit = normalize_weekly_roster(pd.read_csv(roster_path), pd.read_csv(identity_path), return_audit=True)
     assert "WR2" in set(canonical_roster.canonical_player_id)
     assert "00-0039999" in set(canonical_roster.canonical_player_id)

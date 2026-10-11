@@ -234,6 +234,41 @@ with tempfile.TemporaryDirectory() as raw:
     )
     assert lateral["rule_support"]["kr_yd"]["support_status"] == "BLOCKED_EVENT_SEMANTICS"
 
+    cb_pbp = e4_pbp.copy()
+    cb_event = e4_pbp[e4_pbp.play_id.eq(6)].iloc[0].copy()
+    cb_event["play_id"] = 7
+    cb_event["kickoff_returner_player_id"] = "00-0000010"
+    cb_event["return_yards"] = 11
+    cb_pbp.loc[len(cb_pbp)] = cb_event
+    cb_pbp_path = root / "cb-pbp.csv.gz"
+    cb_pbp.to_csv(cb_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
+    return_stats = pd.concat([pd.read_csv(e4_stats_path), pd.DataFrame([{
+        "canonical_player_id": "00-0000010", "season": 2025, "week": 1,
+        "position_model": "CB", "sacks": 0, "kickoff_return_yards": 11, "punt_return_yards": 0}])], ignore_index=True)
+    return_stats_path = root / "all-position-return-stats.csv"
+    def cb_review(label, return_path=None):
+        return build_e4_event_ledger(raw_pbp_path=cb_pbp_path, identity_path=e3_identity_path,
+            canonical_player_stats_path=e4_stats_path, canonical_return_stats_path=return_path,
+            requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp.csv", "sha256": "a"*64}],
+            output_path=root / label / "events.csv.gz", weekly_stats_output_path=root / label / "weekly.csv.gz",
+            report_path=root / label / "report.json")
+    assert cb_review("cb-legacy")["rule_support"]["kr_yd"]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
+    return_stats.to_csv(return_stats_path, index=False)
+    assert cb_review("cb-exact", return_stats_path)["rule_support"]["kr_yd"]["support_status"] == "EXACT_EVENT_READY"
+    changed = return_stats.copy()
+    changed.loc[changed.position_model.eq("CB"), "kickoff_return_yards"] = 12
+    changed.to_csv(return_stats_path, index=False)
+    assert cb_review("cb-mismatch", return_stats_path)["return_yard_reconciliation"]["kr_yd"]["mismatch_rows"] == 1
+    changed.loc[changed.position_model.eq("CB"), "kickoff_return_yards"] = None
+    changed.to_csv(return_stats_path, index=False)
+    assert cb_review("cb-null", return_stats_path)["rule_support"]["kr_yd"]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
+    pd.concat([return_stats, return_stats.iloc[[0]]], ignore_index=True).to_csv(return_stats_path, index=False)
+    try:
+        cb_review("cb-duplicate", return_stats_path)
+        raise AssertionError("duplicate return aggregate was accepted")
+    except ValueError as error:
+        assert "duplicate player-season-week" in str(error)
+
     # E5 counts individual qualifying events, rather than awarding a single
     # weekly bonus from aggregate yards. A 55-yard passing touchdown therefore
     # stacks its completion, 40-yard TD and 50-yard TD counters; the analogous
@@ -288,18 +323,45 @@ with tempfile.TemporaryDirectory() as raw:
         "lateral_receiver_player_id": None, "lateral_receiving_yards": 0, "rush_attempt": 1, "rushing_yards": None,
         "lateral_rusher_player_id": None, "lateral_rushing_yards": None, "two_point_attempt": 1,
     }
+    # Official primary and last-lateral receiving fields are attributed to
+    # their own players only after the combined player-week yard accounting
+    # reconciles to the published aggregates.
+    e5_pbp.loc[len(e5_pbp)] = {
+        "season": 2025, "week": 1, "game_id": "2025_01_A_B", "play_id": 11, "season_type": "REG", "play_type": "pass", "play_deleted": 0,
+        "fumble": 0, "fumble_lost": 0, "fumbled_1_player_id": None, "fumbled_2_player_id": None,
+        "interception": 0, "return_touchdown": 0, "passer_player_id": "00-0000001", "rush_touchdown": 0, "rusher_player_id": None,
+        "sack": 0, "posteam": "A", "defteam": "B", "yards_gained": 82, "touchdown": 1, "special_teams_play": 0,
+        "td_player_id": "00-0000002", "fumble_recovery_1_player_id": None, "fumble_recovery_2_player_id": None,
+        "fumble_forced": 0, "fumble_out_of_bounds": 0, "forced_fumble_player_1_player_id": None, "forced_fumble_player_2_player_id": None,
+        "return_yards": 0, "return_team": None, "kickoff_returner_player_id": None, "lateral_kickoff_returner_player_id": None,
+        "punt_returner_player_id": None, "lateral_punt_returner_player_id": None,
+        "complete_pass": 1, "passing_yards": 82, "pass_touchdown": 1, "receiver_player_id": "00-0000003", "receiving_yards": 2,
+        "lateral_receiver_player_id": "00-0000002", "lateral_receiving_yards": 80, "rush_attempt": 0, "rushing_yards": 0,
+        "lateral_rusher_player_id": None, "lateral_rushing_yards": 0, "two_point_attempt": 0,
+    }
     e5_pbp_path = root / "e5-pbp.csv.gz"
     e5_pbp.to_csv(e5_pbp_path, index=False, compression={"method": "gzip", "mtime": 0})
+    e5_stats = pd.read_csv(e4_stats_path)
+    e5_stats["receiving_yards"] = 0
+    e5_stats.loc[e5_stats.canonical_player_id.eq("ST_REC"), "receiving_yards"] = 57
+    e5_stats = pd.concat([e5_stats, pd.DataFrame([{
+        "canonical_player_id": "ST_FORCE", "season": 2025, "week": 1, "position_model": "WR",
+        "sacks": 0, "kickoff_return_yards": 0, "punt_return_yards": 0, "receiving_yards": 80,
+    }])], ignore_index=True)
+    e5_stats_path = root / "e5-stats.csv"
+    e5_stats.to_csv(e5_stats_path, index=False)
     e5 = build_e5_event_ledger(
-        raw_pbp_path=e5_pbp_path, identity_path=e3_identity_path, canonical_player_stats_path=e4_stats_path,
+        raw_pbp_path=e5_pbp_path, identity_path=e3_identity_path, canonical_player_stats_path=e5_stats_path,
         requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "g" * 64}],
         output_path=root / "e5" / "events.csv.gz", weekly_stats_output_path=root / "e5" / "weekly.csv.gz", report_path=root / "e5" / "report.json",
     )
     e5_rules = ("pass_cmp_40p", "pass_td_40p", "pass_td_50p", "rush_40p", "rush_td_40p", "rush_td_50p", "rec_40p", "rec_td_40p", "rec_td_50p")
     assert all(e5["rule_support"][key]["support_status"] == "EXACT_EVENT_READY" for key in e5_rules)
     e5_weekly = pd.read_csv(root / "e5" / "weekly.csv.gz").set_index("canonical_player_id")
-    assert e5_weekly.loc["QB1", ["event_pass_completions_40", "event_pass_tds_40", "event_pass_tds_50"]].tolist() == [1, 1, 1]
+    assert e5_weekly.loc["QB1", ["event_pass_completions_40", "event_pass_tds_40", "event_pass_tds_50"]].tolist() == [2, 2, 2]
     assert e5_weekly.loc["ST_REC", ["event_receptions_40", "event_reception_tds_40", "event_reception_tds_50", "event_rushes_40", "event_rush_tds_40", "event_rush_tds_50"]].tolist() == [1, 1, 1, 1, 1, 1]
+    assert e5_weekly.loc["ST_FORCE", ["event_receptions_40", "event_reception_tds_40", "event_reception_tds_50"]].tolist() == [1, 1, 1]
+    assert e5["receiving_yard_reconciliation"]["status"] == "EXACT_EVENT_READY"
 
     # A lost fumble with two different fumblers remains unassigned. The E5
     # receipt must retain its E2 play-level blocker, including phase and hash.
@@ -312,7 +374,7 @@ with tempfile.TemporaryDirectory() as raw:
     ambiguous_pbp.to_csv(ambiguous_path, index=False, compression={"method": "gzip", "mtime": 0})
     ambiguous_report = root / "e5-ambiguous" / "report.json"
     ambiguous_receipt = build_e5_event_ledger(
-        raw_pbp_path=ambiguous_path, identity_path=e3_identity_path, canonical_player_stats_path=e4_stats_path,
+        raw_pbp_path=ambiguous_path, identity_path=e3_identity_path, canonical_player_stats_path=e5_stats_path,
         requested_seasons=[2025], pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "h" * 64}],
         output_path=root / "e5-ambiguous" / "events.csv.gz", weekly_stats_output_path=root / "e5-ambiguous" / "weekly.csv.gz", report_path=ambiguous_report,
     )
@@ -328,5 +390,68 @@ with tempfile.TemporaryDirectory() as raw:
         raise AssertionError("changed prior blocker evidence must fail")
     except ValueError as error:
         assert "blocker ledger is missing or changed" in str(error)
+
+    fumble_totals = pd.DataFrame([
+        {"canonical_player_id": "QB1", "season": 2025, "week": 1, "fumbles_lost_total": 2},
+        {"canonical_player_id": "ST_FUM", "season": 2025, "week": 1, "fumbles_lost_total": 1},
+        {"canonical_player_id": "ST_FORCE", "season": 2025, "week": 1, "fumbles_lost_total": 0},
+    ])
+    fumble_totals_path = root / "all-position-fumble-stats.csv"
+    fumble_totals.to_csv(fumble_totals_path, index=False)
+    resolved = build_e2_event_ledger(
+        raw_pbp_path=ambiguous_path, identity_path=e3_identity_path, canonical_player_stats_path=e5_stats_path,
+        canonical_event_stats_path=fumble_totals_path, requested_seasons=[2025],
+        pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "i" * 64}],
+        output_path=root / "e2-resolved" / "events.csv.gz", weekly_stats_output_path=root / "e2-resolved" / "weekly.csv.gz",
+        report_path=root / "e2-resolved" / "report.json",
+    )
+    assert resolved["fumble_lost_reconciliation"]["status"] == "EXACT_EVENT_READY"
+    assert resolved["fumble_lost_reconciliation"]["resolved_plays"] == 1
+    resolved_weekly = pd.read_csv(root / "e2-resolved" / "weekly.csv.gz").set_index("canonical_player_id")
+    assert resolved_weekly.loc["QB1", "event_fumbles_lost"] == 2
+    assert resolved_weekly.loc["ST_FORCE", "event_fumbles_lost"] == 0
+
+    pd.concat([fumble_totals, fumble_totals.iloc[[0]]], ignore_index=True).to_csv(fumble_totals_path, index=False)
+    try:
+        build_e2_event_ledger(
+            raw_pbp_path=ambiguous_path, identity_path=e3_identity_path, canonical_player_stats_path=e5_stats_path,
+            canonical_event_stats_path=fumble_totals_path, requested_seasons=[2025],
+            pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "k" * 64}],
+            output_path=root / "e2-fumble-duplicate" / "events.csv.gz", weekly_stats_output_path=root / "e2-fumble-duplicate" / "weekly.csv.gz",
+            report_path=root / "e2-fumble-duplicate" / "report.json",
+        )
+        raise AssertionError("duplicate fumble aggregate was accepted")
+    except ValueError as error:
+        assert "duplicate player-season-week" in str(error)
+    null_totals = fumble_totals.copy()
+    null_totals.loc[null_totals.canonical_player_id.eq("QB1"), "fumbles_lost_total"] = None
+    null_totals.to_csv(fumble_totals_path, index=False)
+    null_receipt = build_e2_event_ledger(
+        raw_pbp_path=ambiguous_path, identity_path=e3_identity_path, canonical_player_stats_path=e5_stats_path,
+        canonical_event_stats_path=fumble_totals_path, requested_seasons=[2025],
+        pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "l" * 64}],
+        output_path=root / "e2-fumble-null" / "events.csv.gz", weekly_stats_output_path=root / "e2-fumble-null" / "weekly.csv.gz",
+        report_path=root / "e2-fumble-null" / "report.json",
+    )
+    assert null_receipt["rule_support"]["fum_lost"]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
+
+    two_way_pbp = ambiguous_pbp.copy()
+    second_ambiguous = ambiguous.copy()
+    second_ambiguous["play_id"] = 12
+    two_way_pbp = pd.concat([two_way_pbp, second_ambiguous.to_frame().T], ignore_index=True)
+    two_way_path = root / "e2-two-way-pbp.csv.gz"
+    two_way_pbp.to_csv(two_way_path, index=False, compression={"method": "gzip", "mtime": 0})
+    two_way_totals = fumble_totals.copy()
+    two_way_totals.loc[two_way_totals.canonical_player_id.eq("ST_FORCE"), "fumbles_lost_total"] = 1
+    two_way_totals.to_csv(fumble_totals_path, index=False)
+    two_way = build_e2_event_ledger(
+        raw_pbp_path=two_way_path, identity_path=e3_identity_path, canonical_player_stats_path=e5_stats_path,
+        canonical_event_stats_path=fumble_totals_path, requested_seasons=[2025],
+        pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "j" * 64}],
+        output_path=root / "e2-two-way" / "events.csv.gz", weekly_stats_output_path=root / "e2-two-way" / "weekly.csv.gz",
+        report_path=root / "e2-two-way" / "report.json",
+    )
+    assert two_way["fumble_lost_reconciliation"]["status"] == "BLOCKED_EVENT_SEMANTICS"
+    assert two_way["fumble_lost_reconciliation"]["resolved_plays"] == 0
 
 print("OK waiver-v2 E1 event-source inventory and adversarial ledger contract")

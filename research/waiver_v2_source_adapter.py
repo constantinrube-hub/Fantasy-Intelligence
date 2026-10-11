@@ -99,8 +99,9 @@ def _missing_source_identity(values: pd.Series) -> pd.Series:
     return values.isna() | normalized.isin({"", "nan", "None", "<NA>"})
 
 
-def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
-    """Return canonical regular-season player stats and exact rename receipt."""
+def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame, *,
+                           offensive_only: bool = True) -> tuple[pd.DataFrame, dict[str, str]]:
+    """Normalize exact stats; all-position mode is reconciliation-only."""
     source = _regular(raw_stats)
     id_column = _first(source, ("gsis_id", "player_id", "nflverse_id"), "player identity")
     season_column = _first(source, ("season",), "season")
@@ -112,7 +113,15 @@ def normalize_player_stats(raw_stats: pd.DataFrame, identity: pd.DataFrame) -> t
     # are outside the offensive-player ledger universe and may not carry a
     # player ID. Filter them before requiring canonical PlayerIdentity.
     result["position_model"] = result[position_column].map(canonical_position)
-    result = result[result.position_model.isin(OFFENSIVE_POSITIONS)].copy()
+    if offensive_only:
+        result = result[result.position_model.isin(OFFENSIVE_POSITIONS)].copy()
+    else:
+        aggregate = _missing_source_identity(result[id_column]) & (
+            result[position_column].isna() | result.position_model.isin({"", "TEAM"}))
+        for column in ("kickoff_return_yards", "kick_return_yards", "punt_return_yards"):
+            if column in result and (aggregate & pd.to_numeric(result[column], errors="coerce").fillna(0).ne(0)).any():
+                raise ValueError("waiver-v2 aggregate return yards lack player identity")
+        result = result[~aggregate].copy()
     result["_source_gsis_id"] = result[id_column].astype(str).str.strip()
     result = result.merge(_identity_map(identity), left_on="_source_gsis_id", right_on="gsis_id", how="left", validate="many_to_one")
     unresolved = result["canonical_player_id"].isna() | result["canonical_player_id"].astype(str).str.strip().isin({"", "nan", "None"})
@@ -249,9 +258,9 @@ def normalize_team_schedule(raw_games: pd.DataFrame, weekly_roster: pd.DataFrame
 
 def adapt(
     *, raw_player_stats_path: Path, raw_weekly_roster_path: Path, raw_games_path: Path,
-    identity_path: Path, output_dir: Path,
+    identity_path: Path, output_dir: Path, include_return_reconciliation: bool = False,
 ) -> dict[str, Any]:
-    """Write three canonical source tables and a deterministic receipt."""
+    """Write offensive inputs and optional all-position return reconciliation."""
     stats = pd.read_csv(raw_player_stats_path, low_memory=False)
     roster = pd.read_csv(raw_weekly_roster_path, low_memory=False)
     games = pd.read_csv(raw_games_path, low_memory=False)
@@ -265,7 +274,12 @@ def adapt(
         "weekly_roster": output_dir / "weekly-roster.csv.gz",
         "team_schedule": output_dir / "team-schedule.csv.gz",
     }
-    for key, frame in (("player_stats", canonical_stats), ("weekly_roster", canonical_roster), ("team_schedule", canonical_schedule)):
+    tables = [("player_stats", canonical_stats), ("weekly_roster", canonical_roster), ("team_schedule", canonical_schedule)]
+    if include_return_reconciliation:
+        return_stats, _ = normalize_player_stats(stats, identity, offensive_only=False)
+        paths["return_reconciliation_stats"] = output_dir / "return-reconciliation-stats.csv.gz"
+        tables.append(("return_reconciliation_stats", return_stats))
+    for key, frame in tables:
         frame.to_csv(paths[key], index=False, compression={"method": "gzip", "mtime": 0})
     receipt = {
         "schema_version": 1,
@@ -279,11 +293,8 @@ def adapt(
         },
         "exact_stat_bindings": stat_bindings,
         "weekly_roster_status_audit": roster_audit,
-        "outputs": {key: {"path": str(path), "sha256": _sha256(path), "rows": int(len(frame))} for key, path, frame in (
-            ("player_stats", paths["player_stats"], canonical_stats),
-            ("weekly_roster", paths["weekly_roster"], canonical_roster),
-            ("team_schedule", paths["team_schedule"], canonical_schedule),
-        )},
+        "return_reconciliation_scope": "ALL_POSITION_PLAYERS_RECONCILIATION_ONLY" if include_return_reconciliation else "NOT_REQUESTED",
+        "outputs": {key: {"path": str(paths[key]), "sha256": _sha256(paths[key]), "rows": int(len(frame))} for key, frame in tables},
         "limitations": [
             "This adapter only prepares research inputs; it cannot activate M5, recommendations, transactions, or the app.",
             "Undocumented roster statuses are excluded player-by-player with a typed audit; scheduled teams absent from the roster source fail closed.",
