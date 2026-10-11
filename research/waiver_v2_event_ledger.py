@@ -13,6 +13,7 @@ import hashlib
 import json
 import re
 from collections import Counter
+from itertools import combinations
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -425,7 +426,7 @@ def build_e2_event_ledger(
                 else:
                     blocked(row, "all_play_fumble_lost", "BLOCKED_EVENT_IDENTITY", "multi-fumbler lost play has an unresolved canonical fumbler")
 
-    # A play-level lost flag cannot identify one player on a multi-fumbler
+    # A play-level lost flag cannot identify the lost subset on a multi-fumbler
     # play. Resolve those plays only when complete published player-week totals
     # admit exactly one assignment. PBP recovery slot ordinals and narrative
     # text are deliberately not treated as pairing evidence.
@@ -465,9 +466,9 @@ def build_e2_event_ledger(
                     unresolved: list[dict[str, Any]] = []
                     for (season, week), items in grouped.items():
                         candidates = [[str(event["canonical_player_id"]) for event in item["events"]] for item in items]
-                        solutions: list[list[str]] = []
+                        solutions: list[list[tuple[str, ...]]] = []
 
-                        def visit(index: int, chosen: list[str], additions: Counter[str]) -> None:
+                        def visit(index: int, chosen: list[tuple[str, ...]], additions: Counter[str]) -> None:
                             if len(solutions) > 1:
                                 return
                             if index == len(candidates):
@@ -475,22 +476,29 @@ def build_e2_event_ledger(
                                 if all(known[(player, season, week)] + additions[player] == expected.get((player, season, week), -1) for player in involved):
                                     solutions.append(list(chosen))
                                 return
-                            for player in candidates[index]:
-                                target = expected.get((player, season, week))
-                                if target is None or known[(player, season, week)] + additions[player] + 1 > target:
-                                    continue
-                                additions[player] += 1
-                                chosen.append(player)
-                                visit(index + 1, chosen, additions)
-                                chosen.pop()
-                                additions[player] -= 1
+                            # The play flag means at least one fumble was lost;
+                            # it does not limit the count to one. Enumerate all
+                            # nonempty subsets and require one global solution.
+                            group = candidates[index]
+                            for size in range(1, len(group) + 1):
+                                for subset in combinations(group, size):
+                                    if any(expected.get((player, season, week)) is None or
+                                           known[(player, season, week)] + additions[player] + 1 > expected[(player, season, week)]
+                                           for player in subset):
+                                        continue
+                                    additions.update(subset)
+                                    chosen.append(subset)
+                                    visit(index + 1, chosen, additions)
+                                    chosen.pop()
+                                    additions.subtract(subset)
 
                         visit(0, [], Counter())
                         if len(solutions) != 1:
                             unresolved.extend(items)
                             continue
-                        for item, player in zip(items, solutions[0]):
-                            next(event for event in item["events"] if str(event["canonical_player_id"]) == player)["fumble_lost"] = True
+                        for item, subset in zip(items, solutions[0]):
+                            for event in item["events"]:
+                                event["fumble_lost"] = str(event["canonical_player_id"]) in subset
                     for item in unresolved:
                         blocked(item["row"], "all_play_fumble_lost", "BLOCKED_EVENT_SEMANTICS", "player-week fumbles_lost_total admits zero or multiple multi-fumbler assignments")
 

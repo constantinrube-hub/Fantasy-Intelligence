@@ -93,6 +93,8 @@ COMPONENTS={
  'integrity_joint_scenario_engine_test':'research/integrity_joint_scenario_engine_test.py',
  'research_source_archive':'research/research_source_archive.py',
  'research_feature_tables':'research/research_feature_tables.py',
+ 'research_snap_identity':'research/research_snap_identity.py',
+ 'research_snap_identity_integrity':'research/integrity_research_snap_identity_test.py',
  'research_rest_context':'research/research_rest_context.py',
  'research_experiment_runner':'research/research_experiment_runner.py',
  'research_strategy_replay':'research/research_strategy_replay.py',

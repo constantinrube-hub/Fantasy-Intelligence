@@ -411,6 +411,24 @@ with tempfile.TemporaryDirectory() as raw:
     assert resolved_weekly.loc["QB1", "event_fumbles_lost"] == 2
     assert resolved_weekly.loc["ST_FORCE", "event_fumbles_lost"] == 0
 
+    # Both source fumblers can lose possession during one play. The binary
+    # play flag cannot impose a one-loss cap; exact aggregates select both.
+    both_totals = fumble_totals.copy()
+    both_totals.loc[both_totals.canonical_player_id.eq("ST_FORCE"), "fumbles_lost_total"] = 1
+    both_path = root / "both-lost-fumble-stats.csv"
+    both_totals.to_csv(both_path, index=False)
+    both = build_e2_event_ledger(
+        raw_pbp_path=ambiguous_path, identity_path=e3_identity_path, canonical_player_stats_path=e5_stats_path,
+        canonical_event_stats_path=both_path, requested_seasons=[2025],
+        pbp_source_items=[{"season": 2025, "url": "https://example.test/pbp-2025.csv", "sha256": "m" * 64}],
+        output_path=root / "e2-both-lost" / "events.csv.gz", weekly_stats_output_path=root / "e2-both-lost" / "weekly.csv.gz",
+        report_path=root / "e2-both-lost" / "report.json",
+    )
+    assert both["fumble_lost_reconciliation"]["status"] == "EXACT_EVENT_READY"
+    both_events = pd.read_csv(root / "e2-both-lost" / "events.csv.gz")
+    losses = both_events[(both_events.event_type == "all_play_fumble") & (both_events.play_id == 10)]
+    assert len(losses) == 2 and losses.fumble_lost.all()
+
     pd.concat([fumble_totals, fumble_totals.iloc[[0]]], ignore_index=True).to_csv(fumble_totals_path, index=False)
     try:
         build_e2_event_ledger(
