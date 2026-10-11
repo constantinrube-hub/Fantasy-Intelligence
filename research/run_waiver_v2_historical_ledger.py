@@ -115,12 +115,14 @@ def run(
         raw_games_path=Path(source_snapshot["games"]["path"]),
         identity_path=Path(source_snapshot["identity"]["path"]),
         output_dir=adapted_dir,
+        include_return_reconciliation=event_evidence,
     )
     event_ledger_receipt = None
     if event_evidence:
         event_ledger_receipt = build_e5_event_ledger(
             raw_pbp_path=Path(source_snapshot["pbp"]["path"]), identity_path=Path(source_snapshot["identity"]["path"]),
             canonical_player_stats_path=Path(adapter_receipt["outputs"]["player_stats"]["path"]), requested_seasons=requested,
+            canonical_return_stats_path=Path(adapter_receipt["outputs"]["return_reconciliation_stats"]["path"]),
             pbp_source_items=_source_items(source_manager, "pbp", requested),
             output_path=output_dir / "event-ledger" / "waiver-v2-event-ledger.csv.gz",
             weekly_stats_output_path=output_dir / "event-ledger" / "event-weekly-stats.csv.gz",

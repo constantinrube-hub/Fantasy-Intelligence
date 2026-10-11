@@ -364,7 +364,7 @@ def _append_event_rows(base_events: pd.DataFrame, additions: list[dict[str, Any]
 def build_e2_event_ledger(
     *, raw_pbp_path: Path, identity_path: Path, canonical_player_stats_path: Path,
     requested_seasons: list[int], pbp_source_items: list[Mapping[str, Any]], output_path: Path,
-    weekly_stats_output_path: Path, report_path: Path,
+    weekly_stats_output_path: Path, report_path: Path, canonical_event_stats_path: Path | None = None,
 ) -> dict[str, Any]:
     """Derive E2 PBP events and rule-ready weekly aggregates fail-closed."""
     pbp = pd.read_csv(raw_pbp_path, low_memory=False)
@@ -389,6 +389,7 @@ def build_e2_event_ledger(
 
     events: list[dict[str, Any]] = []
     blockers: list[dict[str, Any]] = []
+    ambiguous_lost_plays: list[dict[str, Any]] = []
 
     def blocked(row: pd.Series, event_type: str, status: str, reason: str) -> None:
         blockers.append({"season": int(row["season"]), "week": int(row["week"]), "game_id": str(row["game_id"]),
@@ -405,19 +406,110 @@ def build_e2_event_ledger(
                 blocked(row, "all_play_fumble", "BLOCKED_EVENT_SEMANTICS", "same fumbler is repeated on one PBP play")
                 continue
             lost = _flag(row.get("fumble_lost"))
-            if lost and len(identifiers) != 1:
-                supports["fum_lost"] = _support("BLOCKED_EVENT_SEMANTICS", "lost fumble cannot be assigned when one play has multiple fumblers")
-                blocked(row, "all_play_fumble_lost", "BLOCKED_EVENT_SEMANTICS", "lost fumble cannot be assigned when one play has multiple fumblers")
+            play_events: list[dict[str, Any]] = []
             for source_id in identifiers:
                 canonical, evidence = resolver(source_id)
                 if canonical is None:
                     blocked(row, "all_play_fumble", "BLOCKED_EVENT_IDENTITY", evidence)
                     continue
-                events.append(_event_row(row, event_type="all_play_fumble", canonical_player_id=canonical,
-                                         identity_evidence=evidence, source_by_season=source_by_season,
-                                         schema=source_schema, builder=builder, fumble=True,
-                                         fumble_lost=lost and len(identifiers) == 1,
-                                         special_teams=_flag(row.get("special_teams_play"))))
+                event = _event_row(row, event_type="all_play_fumble", canonical_player_id=canonical,
+                                   identity_evidence=evidence, source_by_season=source_by_season,
+                                   schema=source_schema, builder=builder, fumble=True,
+                                   fumble_lost=lost and len(identifiers) == 1,
+                                   special_teams=_flag(row.get("special_teams_play")))
+                events.append(event)
+                play_events.append(event)
+            if lost and len(identifiers) != 1:
+                if len(play_events) == len(identifiers):
+                    ambiguous_lost_plays.append({"row": row, "events": play_events})
+                else:
+                    blocked(row, "all_play_fumble_lost", "BLOCKED_EVENT_IDENTITY", "multi-fumbler lost play has an unresolved canonical fumbler")
+
+    # A play-level lost flag cannot identify one player on a multi-fumbler
+    # play. Resolve those plays only when complete published player-week totals
+    # admit exactly one assignment. PBP recovery slot ordinals and narrative
+    # text are deliberately not treated as pairing evidence.
+    fumble_reconciliation: dict[str, Any] = {
+        "status": "NOT_REQUIRED" if not ambiguous_lost_plays else "BLOCKED_SOURCE_INCOMPLETE",
+        "ambiguous_plays": len(ambiguous_lost_plays), "resolved_plays": 0, "mismatch_rows": 0,
+    }
+    if ambiguous_lost_plays:
+        if canonical_event_stats_path is None:
+            for item in ambiguous_lost_plays:
+                blocked(item["row"], "all_play_fumble_lost", "BLOCKED_EVENT_SEMANTICS", "multi-fumbler lost play requires exact player-week fumbles_lost_total reconciliation")
+        else:
+            event_stats = pd.read_csv(canonical_event_stats_path, low_memory=False)
+            required = {"canonical_player_id", "season", "week", "fumbles_lost_total"}
+            missing = sorted(required - set(event_stats.columns))
+            if missing:
+                for item in ambiguous_lost_plays:
+                    blocked(item["row"], "all_play_fumble_lost", "BLOCKED_SOURCE_INCOMPLETE", f"fumble reconciliation lacks fields: {', '.join(missing)}")
+            else:
+                keys = ["canonical_player_id", "season", "week"]
+                source_weeks = regular[["season", "week"]].drop_duplicates()
+                totals = event_stats[keys + ["fumbles_lost_total"]].merge(source_weeks, on=["season", "week"], how="inner")
+                if totals.duplicated(keys).any():
+                    raise ValueError("waiver-v2 fumble reconciliation has duplicate player-season-week rows")
+                totals["expected"] = pd.to_numeric(totals["fumbles_lost_total"], errors="coerce")
+                invalid = totals.expected.isna() | totals.expected.lt(0) | totals.expected.mod(1).ne(0)
+                if invalid.any():
+                    for item in ambiguous_lost_plays:
+                        blocked(item["row"], "all_play_fumble_lost", "BLOCKED_SOURCE_INCOMPLETE", "fumble reconciliation requires explicit non-negative integer totals")
+                else:
+                    expected = {(str(r.canonical_player_id), int(r.season), int(r.week)): int(r.expected) for r in totals.itertuples(index=False)}
+                    known = Counter((str(event["canonical_player_id"]), int(event["season"]), int(event["week"])) for event in events if event["event_type"] == "all_play_fumble" and bool(event["fumble_lost"]))
+                    grouped: dict[tuple[int, int], list[dict[str, Any]]] = {}
+                    for item in ambiguous_lost_plays:
+                        key = (int(item["row"]["season"]), int(item["row"]["week"]))
+                        grouped.setdefault(key, []).append(item)
+                    unresolved: list[dict[str, Any]] = []
+                    for (season, week), items in grouped.items():
+                        candidates = [[str(event["canonical_player_id"]) for event in item["events"]] for item in items]
+                        solutions: list[list[str]] = []
+
+                        def visit(index: int, chosen: list[str], additions: Counter[str]) -> None:
+                            if len(solutions) > 1:
+                                return
+                            if index == len(candidates):
+                                involved = {player for group in candidates for player in group}
+                                if all(known[(player, season, week)] + additions[player] == expected.get((player, season, week), -1) for player in involved):
+                                    solutions.append(list(chosen))
+                                return
+                            for player in candidates[index]:
+                                target = expected.get((player, season, week))
+                                if target is None or known[(player, season, week)] + additions[player] + 1 > target:
+                                    continue
+                                additions[player] += 1
+                                chosen.append(player)
+                                visit(index + 1, chosen, additions)
+                                chosen.pop()
+                                additions[player] -= 1
+
+                        visit(0, [], Counter())
+                        if len(solutions) != 1:
+                            unresolved.extend(items)
+                            continue
+                        for item, player in zip(items, solutions[0]):
+                            next(event for event in item["events"] if str(event["canonical_player_id"]) == player)["fumble_lost"] = True
+                    for item in unresolved:
+                        blocked(item["row"], "all_play_fumble_lost", "BLOCKED_EVENT_SEMANTICS", "player-week fumbles_lost_total admits zero or multiple multi-fumbler assignments")
+
+                    assigned = Counter((str(event["canonical_player_id"]), int(event["season"]), int(event["week"])) for event in events if event["event_type"] == "all_play_fumble" and bool(event["fumble_lost"]))
+                    relevant = {key for key, value in expected.items() if value != 0} | set(assigned)
+                    mismatches = [{"canonical_player_id": key[0], "season": key[1], "week": key[2], "pbp_fumbles_lost": assigned[key], "stat_fumbles_lost": expected.get(key)} for key in sorted(relevant) if expected.get(key) is None or assigned[key] != expected[key]]
+                    if unresolved:
+                        fumble_reconciliation["status"] = "BLOCKED_EVENT_SEMANTICS"
+                    elif mismatches:
+                        fumble_reconciliation["status"] = "BLOCKED_RECONCILIATION_MISMATCH"
+                    else:
+                        fumble_reconciliation["status"] = "EXACT_EVENT_READY"
+                    fumble_reconciliation.update({
+                        "resolved_plays": len(ambiguous_lost_plays) - len(unresolved),
+                        "mismatch_rows": len(mismatches), "sample": mismatches[:8],
+                        "input": {"path": str(canonical_event_stats_path), "sha256": _sha256(canonical_event_stats_path), "scope": "EXPLICIT_ALL_POSITION_SOURCE"},
+                    })
+                    if mismatches:
+                        supports["fum_lost"] = _support("BLOCKED_RECONCILIATION_MISMATCH", "PBP assigned fumbles lost do not match canonical player-week totals")
 
     if supports["pass_int_td"]["support_status"] == "EXACT_EVENT_READY":
         picks = regular[regular["interception"].map(_flag) & regular["return_touchdown"].map(_flag)]
@@ -445,6 +537,11 @@ def build_e2_event_ledger(
     if not event_frame.empty and event_frame.duplicated(["season", "week", "game_id", "play_id", "event_type", "canonical_player_id"]).any():
         raise ValueError("waiver-v2 E2 event derivation produced duplicate canonical events")
     validate_event_ledger(event_frame)
+    lost_blockers = [row for row in blockers if row["event_type"] == "all_play_fumble_lost"]
+    if lost_blockers and supports["fum_lost"]["support_status"] == "EXACT_EVENT_READY":
+        statuses = {row["status"] for row in lost_blockers}
+        status = "BLOCKED_EVENT_IDENTITY" if "BLOCKED_EVENT_IDENTITY" in statuses else ("BLOCKED_SOURCE_INCOMPLETE" if "BLOCKED_SOURCE_INCOMPLETE" in statuses else "BLOCKED_EVENT_SEMANTICS")
+        supports["fum_lost"] = _support(status, f"{len(lost_blockers)} multi-fumbler lost plays lack unique source-bound attribution")
     for key, event_type in (("fum", "all_play_fumble"), ("fum_lost", "all_play_fumble"),
                             ("pass_int_td", "pass_interception_td"), ("bonus_rush_td_qb", "qb_rushing_td")):
         relevant = [row for row in blockers if row["event_type"] == event_type]
@@ -507,7 +604,7 @@ def build_e2_event_ledger(
         "rule_support": supports, "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
         "blockers": _blocker_receipt(report_path, blockers, "E2"),
-        "sack_reconciliation": sack_reconciliation,
+        "sack_reconciliation": sack_reconciliation, "fumble_lost_reconciliation": fumble_reconciliation,
         "limitations": ["Only E2 event families are represented.", "Blocked event attribution prevents exact rule replay; it is never converted to zero.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -518,7 +615,7 @@ def build_e2_event_ledger(
 def build_e3_event_ledger(
     *, raw_pbp_path: Path, identity_path: Path, canonical_player_stats_path: Path,
     requested_seasons: list[int], pbp_source_items: list[Mapping[str, Any]], output_path: Path,
-    weekly_stats_output_path: Path, report_path: Path,
+    weekly_stats_output_path: Path, report_path: Path, canonical_event_stats_path: Path | None = None,
 ) -> dict[str, Any]:
     """Extend E2 with exact individual recovery and special-teams event roles.
 
@@ -532,6 +629,7 @@ def build_e3_event_ledger(
         raw_pbp_path=raw_pbp_path, identity_path=identity_path, canonical_player_stats_path=canonical_player_stats_path,
         requested_seasons=requested_seasons, pbp_source_items=pbp_source_items, output_path=output_path,
         weekly_stats_output_path=weekly_stats_output_path, report_path=report_path,
+        canonical_event_stats_path=canonical_event_stats_path,
     )
     pbp = pd.read_csv(raw_pbp_path, low_memory=False)
     identity = pd.read_csv(identity_path, low_memory=False)
@@ -656,7 +754,7 @@ def build_e3_event_ledger(
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
         "blockers": _blocker_receipt(report_path, blockers, "E3", base),
-        "sack_reconciliation": base["sack_reconciliation"],
+        "sack_reconciliation": base["sack_reconciliation"], "fumble_lost_reconciliation": base["fumble_lost_reconciliation"],
         "limitations": ["E3 uses direct PBP roles only; a missing or ambiguous individual role blocks the affected rule family.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
@@ -666,7 +764,7 @@ def build_e3_event_ledger(
 def build_e4_event_ledger(
     *, raw_pbp_path: Path, identity_path: Path, canonical_player_stats_path: Path,
     requested_seasons: list[int], pbp_source_items: list[Mapping[str, Any]], output_path: Path,
-    weekly_stats_output_path: Path, report_path: Path,
+    weekly_stats_output_path: Path, report_path: Path, canonical_return_stats_path: Path | None = None,
 ) -> dict[str, Any]:
     """Extend E3 with reconciled, player-attributed kickoff and punt yards.
 
@@ -680,10 +778,12 @@ def build_e4_event_ledger(
         raw_pbp_path=raw_pbp_path, identity_path=identity_path, canonical_player_stats_path=canonical_player_stats_path,
         requested_seasons=requested_seasons, pbp_source_items=pbp_source_items, output_path=output_path,
         weekly_stats_output_path=weekly_stats_output_path, report_path=report_path,
+        canonical_event_stats_path=canonical_return_stats_path,
     )
     pbp = pd.read_csv(raw_pbp_path, low_memory=False)
     identity = pd.read_csv(identity_path, low_memory=False)
-    stats = pd.read_csv(canonical_player_stats_path, low_memory=False)
+    return_stats_path = canonical_return_stats_path or canonical_player_stats_path
+    stats = pd.read_csv(return_stats_path, low_memory=False)
     source_inventory = build_source_inventory(pbp, requested_seasons=requested_seasons, pbp_source_items=pbp_source_items)
     source_by_season = {int(item["season"]): dict(item) for item in pbp_source_items}
     builder = _sha256(Path(__file__))
@@ -771,10 +871,19 @@ def build_e4_event_ledger(
         if supports[key]["support_status"] != "EXACT_EVENT_READY":
             reconciliation[key] = {"status": supports[key]["support_status"], "mismatch_rows": 0}
             continue
-        pbp_totals = weekly[["canonical_player_id", "season", "week", weekly_column]].rename(columns={weekly_column: "pbp_yards"})
+        returns = event_frame[event_frame.event_type.eq(event_type)]
+        pbp_totals = returns.groupby(["canonical_player_id", "season", "week"], as_index=False)["yards"].sum().rename(columns={"yards": "pbp_yards"})
         stat_totals = stats[["canonical_player_id", "season", "week", stat_column]].copy().rename(columns={stat_column: "stat_yards"})
         stat_totals["stat_yards"] = pd.to_numeric(stat_totals["stat_yards"], errors="coerce")
+        if stat_totals.duplicated(["canonical_player_id", "season", "week"]).any():
+            raise ValueError("waiver-v2 return reconciliation has duplicate player-season-week rows")
         compared = pbp_totals.merge(stat_totals, on=["canonical_player_id", "season", "week"], how="outer")
+        missing_aggregate = compared.stat_yards.isna()
+        if missing_aggregate.any():
+            supports[key] = _support("BLOCKED_SOURCE_INCOMPLETE", "return reconciliation lacks an explicit numeric player-week aggregate")
+            reconciliation[key] = {"status": "BLOCKED_SOURCE_INCOMPLETE", "mismatch_rows": 0,
+                                   "missing_aggregate_rows": int(missing_aggregate.sum())}
+            continue
         compared["pbp_yards"] = pd.to_numeric(compared["pbp_yards"], errors="coerce").fillna(0.0)
         compared["stat_yards"] = pd.to_numeric(compared["stat_yards"], errors="coerce").fillna(0.0)
         mismatches = compared[~compared.pbp_yards.eq(compared.stat_yards)]
@@ -794,7 +903,10 @@ def build_e4_event_ledger(
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
         "blockers": _blocker_receipt(report_path, blockers, "E4", base),
-        "sack_reconciliation": base["sack_reconciliation"], "return_yard_reconciliation": reconciliation,
+        "sack_reconciliation": base["sack_reconciliation"], "fumble_lost_reconciliation": base["fumble_lost_reconciliation"],
+        "return_yard_reconciliation": reconciliation,
+        "return_reconciliation_input": {"path": str(return_stats_path), "sha256": _sha256(return_stats_path),
+                                        "scope": "EXPLICIT_ALL_POSITION_SOURCE" if canonical_return_stats_path else "LEGACY_CANONICAL_PLAYER_STATS"},
         "limitations": ["E4 scores only direct kickoff/punt returner roles after player-week reconciliation.", "Field-goal return yards remain blocked without an exact individual source role.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
@@ -804,16 +916,18 @@ def build_e4_event_ledger(
 def build_e5_event_ledger(
     *, raw_pbp_path: Path, identity_path: Path, canonical_player_stats_path: Path,
     requested_seasons: list[int], pbp_source_items: list[Mapping[str, Any]], output_path: Path,
-    weekly_stats_output_path: Path, report_path: Path,
+    weekly_stats_output_path: Path, report_path: Path, canonical_return_stats_path: Path | None = None,
 ) -> dict[str, Any]:
     """Extend E4 with exact 40/50-yard offensive play counters and stacking."""
     base = build_e4_event_ledger(
         raw_pbp_path=raw_pbp_path, identity_path=identity_path, canonical_player_stats_path=canonical_player_stats_path,
         requested_seasons=requested_seasons, pbp_source_items=pbp_source_items, output_path=output_path,
         weekly_stats_output_path=weekly_stats_output_path, report_path=report_path,
+        canonical_return_stats_path=canonical_return_stats_path,
     )
     pbp = pd.read_csv(raw_pbp_path, low_memory=False)
     identity = pd.read_csv(identity_path, low_memory=False)
+    stats = pd.read_csv(canonical_player_stats_path, low_memory=False)
     source_inventory = build_source_inventory(pbp, requested_seasons=requested_seasons, pbp_source_items=pbp_source_items)
     source_by_season = {int(item["season"]): dict(item) for item in pbp_source_items}
     builder = _sha256(Path(__file__))
@@ -853,12 +967,12 @@ def build_e5_event_ledger(
             return None
         return float(value)
 
-    def block_lateral_thresholds(row: pd.Series, *, event_40: str, event_50: str | None, yards: float, lateral_yards: float, reason: str) -> None:
+    def block_lateral_thresholds(row: pd.Series, *, event_40: str, event_50: str | None, yards: float, lateral_yards: float, reason: str, status: str = "BLOCKED_EVENT_SEMANTICS") -> None:
         maximum = max(yards, lateral_yards)
         if maximum >= 40:
-            blocked(row, event_40, "BLOCKED_EVENT_SEMANTICS", reason)
+            blocked(row, event_40, status, reason)
         if event_50 and maximum >= 50:
-            blocked(row, event_50, "BLOCKED_EVENT_SEMANTICS", reason)
+            blocked(row, event_50, status, reason)
 
     def append(row: pd.Series, event_type: str, source_id: Any, yards: float, role: str) -> None:
         canonical, evidence = resolver(source_id)
@@ -876,6 +990,53 @@ def build_e5_event_ledger(
             append(row, event_40, source_id, yards, role)
         if event_50 and yards >= 50:
             append(row, event_50, source_id, yards, role)
+
+    # nflfastR attributes primary and last-lateral receiving yards separately.
+    # Admit the lateral role only after their combined player-week accounting
+    # exactly matches the published receiving-yard aggregate.
+    receiving_reconciliation: dict[str, Any]
+    if "receiving_yards" not in stats.columns:
+        receiving_reconciliation = {"status": "BLOCKED_SOURCE_INCOMPLETE", "mismatch_rows": 0, "missing_aggregate_rows": 0}
+    else:
+        receiving_records: list[dict[str, Any]] = []
+        receiving_identity_blocked = False
+        receiving_value_blocked = False
+        source_weeks = regular[["season", "week"]].drop_duplicates()
+        stat_totals = stats[["canonical_player_id", "season", "week", "receiving_yards"]].copy()
+        stat_totals = stat_totals.merge(source_weeks, on=["season", "week"], how="inner")
+        if stat_totals.duplicated(["canonical_player_id", "season", "week"]).any():
+            raise ValueError("waiver-v2 receiving reconciliation has duplicate player-season-week rows")
+        stat_keys = {(str(row.canonical_player_id), int(row.season), int(row.week)) for row in stat_totals.itertuples(index=False)}
+        excluded_out_of_scope_rows = 0
+        for role, yard_field in (("receiver_player_id", "receiving_yards"), ("lateral_receiver_player_id", "lateral_receiving_yards")):
+            candidates = regular[regular["complete_pass"].map(_flag) & regular[role].map(_clean_id).notna()]
+            for _, row in candidates.iterrows():
+                canonical, _ = resolver(row.get(role))
+                value = pd.to_numeric(row.get(yard_field), errors="coerce")
+                if canonical is None:
+                    receiving_identity_blocked = True
+                    continue
+                if pd.isna(value):
+                    receiving_value_blocked = True
+                    continue
+                if (canonical, int(row["season"]), int(row["week"])) not in stat_keys:
+                    excluded_out_of_scope_rows += 1
+                    continue
+                receiving_records.append({"canonical_player_id": canonical, "season": int(row["season"]), "week": int(row["week"]), "pbp_yards": float(value)})
+        pbp_totals = pd.DataFrame(receiving_records).groupby(["canonical_player_id", "season", "week"], as_index=False)["pbp_yards"].sum() if receiving_records else pd.DataFrame(columns=["canonical_player_id", "season", "week", "pbp_yards"])
+        stat_totals["stat_yards"] = pd.to_numeric(stat_totals.pop("receiving_yards"), errors="coerce")
+        compared = pbp_totals.merge(stat_totals, on=["canonical_player_id", "season", "week"], how="outer")
+        missing_aggregate = compared.stat_yards.isna()
+        compared["pbp_yards"] = pd.to_numeric(compared.pbp_yards, errors="coerce").fillna(0.0)
+        mismatches = compared[~missing_aggregate & ~compared.pbp_yards.eq(compared.stat_yards)]
+        if receiving_identity_blocked:
+            receiving_reconciliation = {"status": "BLOCKED_EVENT_IDENTITY", "mismatch_rows": int(len(mismatches)), "missing_aggregate_rows": int(missing_aggregate.sum())}
+        elif receiving_value_blocked or missing_aggregate.any():
+            receiving_reconciliation = {"status": "BLOCKED_SOURCE_INCOMPLETE", "mismatch_rows": int(len(mismatches)), "missing_aggregate_rows": int(missing_aggregate.sum())}
+        elif not mismatches.empty:
+            receiving_reconciliation = {"status": "BLOCKED_RECONCILIATION_MISMATCH", "mismatch_rows": int(len(mismatches)), "missing_aggregate_rows": 0, "sample": mismatches.head(8).to_dict(orient="records")}
+        else:
+            receiving_reconciliation = {"status": "EXACT_EVENT_READY", "mismatch_rows": 0, "missing_aggregate_rows": 0, "rows": int(len(compared)), "excluded_out_of_scope_pbp_rows": excluded_out_of_scope_rows}
 
     # Passer events use official passing yards. A 50-yard passing touchdown
     # emits both TD thresholds as well as the completion threshold event.
@@ -925,35 +1086,40 @@ def build_e5_event_ledger(
         if yards is None:
             continue
         lateral = _clean_id(row.get("lateral_receiver_player_id"))
-        lateral_yards = _number(row.get("lateral_receiving_yards"))
-        if lateral is not None and max(yards, lateral_yards) >= 40:
-            blocked(row, "reception_40", "BLOCKED_EVENT_SEMANTICS", "qualifying reception contains a lateral without an approved long-play allocation rule")
-            continue
         threshold_events(row, source_id=row.get("receiver_player_id"), yards=yards, role="receiver_player_id", event_40="reception_40")
+        if lateral is not None:
+            lateral_value = pd.to_numeric(row.get("lateral_receiving_yards"), errors="coerce")
+            if pd.isna(lateral_value):
+                blocked(row, "reception_40", "BLOCKED_SOURCE_INCOMPLETE", "lateral receiver lacks official lateral_receiving_yards")
+            elif float(lateral_value) >= 40:
+                if receiving_reconciliation["status"] != "EXACT_EVENT_READY":
+                    blocked(row, "reception_40", receiving_reconciliation["status"], "lateral receiving yards lack exact player-week aggregate reconciliation")
+                else:
+                    threshold_events(row, source_id=lateral, yards=float(lateral_value), role="lateral_receiver_player_id", event_40="reception_40")
     for _, row in pass_tds.iterrows():
         yards = number_or_block(row, "receiving_yards", ("reception_td_40", "reception_td_50"))
         if yards is None:
             continue
         lateral = _clean_id(row.get("lateral_receiver_player_id"))
-        lateral_yards = _number(row.get("lateral_receiving_yards"))
         receiver = _clean_id(row.get("receiver_player_id"))
         scorer = _clean_id(row.get("td_player_id"))
-        if lateral is not None and max(yards, lateral_yards) >= 40:
-            block_lateral_thresholds(row, event_40="reception_td_40", event_50="reception_td_50", yards=yards, lateral_yards=lateral_yards, reason="qualifying receiving touchdown contains a lateral without an approved long-play allocation rule")
+        if scorer is None:
+            if max(yards, _number(row.get("lateral_receiving_yards"))) >= 40:
+                blocked(row, "reception_td_40", "BLOCKED_EVENT_IDENTITY", "qualifying receiving touchdown lacks exact scorer identity")
             continue
-        if yards < 40:
-            continue
-        if scorer is None or receiver is None:
-            blocked(row, "reception_td_40", "BLOCKED_EVENT_IDENTITY", "qualifying receiving touchdown lacks exact receiver or scorer identity")
-            if yards >= 50:
-                blocked(row, "reception_td_50", "BLOCKED_EVENT_IDENTITY", "qualifying receiving touchdown lacks exact receiver or scorer identity")
-            continue
-        if receiver != scorer:
-            blocked(row, "reception_td_40", "BLOCKED_EVENT_SEMANTICS", "receiving-touchdown scorer differs from the primary receiver")
-            if yards >= 50:
-                blocked(row, "reception_td_50", "BLOCKED_EVENT_SEMANTICS", "receiving-touchdown scorer differs from the primary receiver")
-            continue
-        threshold_events(row, source_id=receiver, yards=yards, role="receiver_player_id", event_40="reception_td_40", event_50="reception_td_50")
+        if receiver == scorer:
+            threshold_events(row, source_id=receiver, yards=yards, role="receiver_player_id", event_40="reception_td_40", event_50="reception_td_50")
+        elif lateral == scorer:
+            lateral_value = pd.to_numeric(row.get("lateral_receiving_yards"), errors="coerce")
+            if pd.isna(lateral_value):
+                blocked(row, "reception_td_40", "BLOCKED_SOURCE_INCOMPLETE", "lateral touchdown scorer lacks official lateral_receiving_yards")
+            elif float(lateral_value) >= 40:
+                if receiving_reconciliation["status"] != "EXACT_EVENT_READY":
+                    block_lateral_thresholds(row, event_40="reception_td_40", event_50="reception_td_50", yards=0.0, lateral_yards=float(lateral_value), reason="lateral touchdown yards lack exact player-week aggregate reconciliation", status=receiving_reconciliation["status"])
+                else:
+                    threshold_events(row, source_id=lateral, yards=float(lateral_value), role="lateral_receiver_player_id", event_40="reception_td_40", event_50="reception_td_50")
+        elif max(yards, _number(row.get("lateral_receiving_yards"))) >= 40:
+            blocked(row, "reception_td_40", "BLOCKED_EVENT_SEMANTICS", "receiving-touchdown scorer is neither the primary nor lateral receiver")
 
     event_rules = (
         ("pass_cmp_40p", "pass_completion_40"), ("pass_td_40p", "pass_td_40"), ("pass_td_50p", "pass_td_50"),
@@ -964,7 +1130,7 @@ def build_e5_event_ledger(
         relevant = [row for row in blockers if row["event_type"] == event_type]
         if relevant:
             statuses = {row["status"] for row in relevant}
-            status = "BLOCKED_EVENT_IDENTITY" if "BLOCKED_EVENT_IDENTITY" in statuses else ("BLOCKED_EVENT_SEMANTICS" if "BLOCKED_EVENT_SEMANTICS" in statuses else "BLOCKED_SOURCE_INCOMPLETE")
+            status = "BLOCKED_EVENT_IDENTITY" if "BLOCKED_EVENT_IDENTITY" in statuses else ("BLOCKED_EVENT_SEMANTICS" if "BLOCKED_EVENT_SEMANTICS" in statuses else ("BLOCKED_RECONCILIATION_MISMATCH" if "BLOCKED_RECONCILIATION_MISMATCH" in statuses else "BLOCKED_SOURCE_INCOMPLETE"))
             supports[key] = _support(status, f"{len(relevant)} {event_type} PBP events lack exact long-play scoring attribution")
 
     base_events = pd.read_csv(output_path, low_memory=False)
@@ -983,8 +1149,11 @@ def build_e5_event_ledger(
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
         "blockers": _blocker_receipt(report_path, blockers, "E5", base),
-        "sack_reconciliation": base["sack_reconciliation"], "return_yard_reconciliation": base["return_yard_reconciliation"],
-        "limitations": ["E5 counts official PBP play events; it does not infer long-play bonuses from weekly totals.", "A 50-yard touchdown emits the documented 40- and 50-yard bonus events, but ambiguous lateral allocation remains blocked.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
+        "sack_reconciliation": base["sack_reconciliation"], "fumble_lost_reconciliation": base["fumble_lost_reconciliation"],
+        "return_yard_reconciliation": base["return_yard_reconciliation"],
+        "receiving_yard_reconciliation": receiving_reconciliation,
+        "return_reconciliation_input": base["return_reconciliation_input"],
+        "limitations": ["E5 counts official PBP play events; it does not infer long-play bonuses from weekly totals.", "A 50-yard touchdown emits the documented 40- and 50-yard bonus events; lateral receiving yards require exact player-week aggregate reconciliation.", "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."],
     }
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return report
