@@ -36,7 +36,8 @@ def main():
         result = audit(root, capture, evaluation)
         assert result['status_counts'] == {'VALUE_REPRODUCED_FROM_ARCHIVE': 1}
         assert result['refresh_source_bound_leagues'] == 1
-        assert result['scoring_comparability_certified'] is False
+        assert result['scoring_comparability_certified'] is True
+        assert result['strict_scoring_rows'][0]['points'] == 10
         assert result['archive']['sha256'] == receipt['sha256']
         with patch.object(current, 'utc_now', return_value='2026-10-01T08:00:00Z'):
             changed = current.sleeper_baseline_source_receipt(

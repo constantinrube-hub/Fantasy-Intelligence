@@ -9,6 +9,7 @@ from pathlib import Path
 
 from league_profile import sha256_json
 from weekly_evidence_audit import digest, stamp
+from strict_sleeper_baseline import audit_score, finite
 
 
 def audit(root: Path, capture: dict, evaluation: dict) -> dict:
@@ -51,6 +52,7 @@ def audit(root: Path, capture: dict, evaluation: dict) -> dict:
 
     reports = {str(item.get('league_id')): item for item in capture.get('leagues', []) if isinstance(item, dict)}
     counts = Counter()
+    strict_rows = []
     source_bindings = []
     archived_stats_hash = sha256_json({sid: row.get('stats') for sid, row in archived.items()})
     for league in evaluation.get('leagues', []):
@@ -88,6 +90,15 @@ def audit(root: Path, capture: dict, evaluation: dict) -> dict:
         for pair in league.get('paired_projection_rows', []):
             candidate = candidates.get(str(pair.get('captured_player_id'))) or {}
             row = archived.get(str(candidate.get('sleeper_id') or ''))
+            strict = audit_score(row.get('stats'), scoring, candidate.get('position_model')) if row else {
+                'status': 'ARCHIVE_PLAYER_MISSING', 'exact': False, 'points': None, 'keys': []}
+            if row and row.get('position_model') and row['position_model'] != candidate.get('position_model'):
+                strict = {'status': 'ARCHIVE_POSITION_MISMATCH', 'exact': False, 'points': None, 'keys': []}
+            captured_value = finite(pair.get('sleeper_mean'))
+            strict_rows.append({**strict, 'league_id': str(league.get('league_id')),
+                                'captured_player_id': pair.get('captured_player_id'),
+                                'captured_value_reproduced': strict['exact'] and captured_value is not None and
+                                round(strict['points'], 4) == round(captured_value, 4)})
             if row is None:
                 counts['ARCHIVE_PLAYER_MISSING'] += 1
             elif row.get('position_model') and row['position_model'] != candidate.get('position_model'):
@@ -110,5 +121,8 @@ def audit(root: Path, capture: dict, evaluation: dict) -> dict:
             'paired_rows': count, 'status_counts': dict(sorted(counts.items())),
             'refresh_source_bindings': source_bindings,
             'refresh_source_bound_leagues': sum(row['status'] == 'REFRESH_PROJECTION_STATS_BOUND_TO_ARCHIVE' for row in source_bindings),
-            'scoring_comparability_certified': False,
-            'note': 'This replays the existing Sleeper scoring function on stored archive stats. A bound refresh receipt proves the fetched projection stats matched the archived projection stats, but does not prove every scoring key was supported or that independent league-player rows exist.'}
+            'strict_scoring_rows': strict_rows,
+            'scoring_comparability_certified': bool(strict_rows) and
+                all(row['exact'] and row['captured_value_reproduced'] for row in strict_rows) and
+                all(row['status'] == 'REFRESH_PROJECTION_STATS_BOUND_TO_ARCHIVE' for row in source_bindings),
+            'note': 'Strict certification covers supported linear scoring inputs and captured-value reproduction only. Missing or nonlinear rules block each affected row. League-player observations remain dependent; this is not promotion evidence.'}

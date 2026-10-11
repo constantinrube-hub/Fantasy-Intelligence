@@ -45,8 +45,9 @@ def paired_projection_readiness(capture: dict, evaluation: dict, baseline_archiv
     else:
         if baseline_archive.get('refresh_source_bound_leagues', 0) < len(ready):
             blockers.append('SLEEPER_BASELINE_SOURCE_UNVERIFIED')
-        blockers.append('SLEEPER_BASELINE_SCORING_UNVERIFIED')
-    return {'status': 'BLOCKED_PAIRED_FORECAST_VALIDATION', 'ready_leagues': len(ready),
+        if baseline_archive.get('scoring_comparability_certified') is not True:
+            blockers.append('SLEEPER_BASELINE_SCORING_UNVERIFIED')
+    return {'status': 'BLOCKED_PAIRED_FORECAST_VALIDATION' if blockers else 'INPUTS_READY_FOR_DESCRIPTIVE_EVALUATION', 'ready_leagues': len(ready),
             'paired_league_player_rows': pairs, 'governed_fie_paired_rows': governed_pairs,
             'fie_model_identity_rows': declared_models, 'fie_artifact_bound_leagues': bound_fie_leagues,
             'scoring_signatures': sorted(scoring_signatures), 'blockers': blockers,
@@ -60,6 +61,7 @@ def review(root: Path, season: int, week: int, as_of, eligible_at) -> dict:
     from build_in_season_pr2_lineup_outcome import build_outcome
     from evaluate_in_season_pr2_lineups import evaluate_capture
     from weekly_pr2_baseline_archive import audit as audit_baseline_archive
+    from paired_forecast_metrics import compare
     base = root / f"data/research/evaluation/{season}/weeks/week-{week}/lineups"
     records, errors = [], []
     for path in sorted((base / 'outcomes').glob('*/evaluation.json')):
@@ -99,6 +101,7 @@ def review(root: Path, season: int, week: int, as_of, eligible_at) -> dict:
                             'source_bindings':[{'path':p.relative_to(root).as_posix(),'sha256':digest(p)} for p in files],
                             'evaluation':evaluation,'paired_projection_readiness':paired_projection_readiness(capture,evaluation,baseline_archive),
                             'sleeper_baseline_archive':baseline_archive,
+                            'paired_forecast_metrics':compare(capture,evaluation,baseline_archive),
                             'validation_scope':'Stored provider payload through exact scoring and existing evaluation; provider raw response hash is declared, not independently replayed.'})
         except Exception as exc:
             errors.append({'path':path.relative_to(root).as_posix(),'status':'BLOCKED_INVALID_REVIEW','reason':f'{type(exc).__name__}:{exc}'})
