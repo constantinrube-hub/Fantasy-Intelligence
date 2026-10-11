@@ -20,3 +20,9 @@ whole HTTP response, complete support for every league scoring rule, calibrated
 forecast performance, or independent paired observations. The P1 paired
 forecast validation gate therefore retains `SLEEPER_BASELINE_SCORING_UNVERIFIED`
 even when every league has a source-bound receipt. No model is promoted.
+
+The weekly portfolio projection surface displays the current refresh's receipt
+status next to its league scoring signature. This is the snapshot's declared
+observation; only the postgame archive review checks the archived bytes against
+the frozen PR2 capture. The display always labels scoring as unverified and
+does not change player means, recommendations or eligibility.

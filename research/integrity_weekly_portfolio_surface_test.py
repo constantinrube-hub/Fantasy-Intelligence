@@ -19,6 +19,20 @@ def main():
     assert player['fie_mean']==10 and player['sleeper_mean']==12 and player['fie_minus_sleeper']==-2
     assert player['p50'] is None and player['fie_median'] is None and player['interval_coverage']=='PARTIAL'
     assert player['status']=='RESEARCH_OR_DIAGNOSTIC' and player['decision_mean']==12
+    assert w.baseline_source({'scoring_signature':'sig'},2026,5)['status']=='NOT_DECLARED_BY_CURRENT_OWNER'
+    receipt={'season':2026,'week':5,'scoring_signature':'sig','status':'ARCHIVED_PROJECTION_STATS_MATCH',
+             'archive_sha256':'a'*64,'source_observed_at':'2026-10-08T12:00:00Z'}
+    baseline=w.baseline_source({'scoring_signature':'sig','sleeper_baseline_receipt':receipt},2026,5)
+    assert baseline['status']=='ARCHIVED_PROJECTION_STATS_MATCH'
+    assert baseline['scoring_comparability_certified'] is False
+    assert w.baseline_source({'scoring_signature':'sig','sleeper_baseline_receipt':{**receipt,'status':'ARCHIVED_PROJECTION_STATS_DIFFER'}},2026,5)['status']=='ARCHIVED_PROJECTION_STATS_DIFFER'
+    for bad in ({**receipt,'week':4},{**receipt,'scoring_signature':'other'},
+                {**receipt,'status':'FABRICATED'}):
+        try:
+            w.baseline_source({'scoring_signature':'sig','sleeper_baseline_receipt':bad},2026,5)
+            raise AssertionError('Invalid baseline source receipt accepted')
+        except ValueError:
+            pass
     missing=w.projection(row(fie_weekly_projection=None,sleeper_weekly_projection=0),2026,5,'sig')
     assert missing['fie_mean'] is None and missing['fie_coverage']=='UNSUPPORTED' and missing['sleeper_mean']==0
     assert missing['fie_minus_sleeper'] is None
@@ -76,6 +90,11 @@ def main():
     counts=w.exposure([active,eliminated])
     assert counts[0]['owned_league_count']==1 and counts[0]['starting_league_count']==1
     assert counts[0]['owned_contexts'][0]['scoring_signature']=='a'
+    displayed=w.markdown({'season':2026,'week':5,'status':'PARTIAL','roster_exposure':[],
+                          'note':'Source and scoring are distinct.',
+                          'leagues':[{'league_id':'1','status':'BOUND_CURRENT_ROSTER','scoring_signature':'sig',
+                                      'sleeper_baseline_source':baseline,'players':[]}]})
+    assert 'ARCHIVED_PROJECTION_STATS_MATCH' in displayed and '(scoring unverified)' in displayed
     with tempfile.TemporaryDirectory() as td:
         # Test freshness failure through the real league path before identity resolution.
         import json

@@ -98,6 +98,27 @@ def forecast_source(fie: float | None, artifacts: dict) -> dict | None:
             'm6_snapshot_input_sha256':artifacts['M6']['sha256']}
 
 
+def baseline_source(current: dict, season: int, week: int) -> dict:
+    """Display the refresh's frozen source receipt without certifying scoring."""
+    receipt = current.get('sleeper_baseline_receipt') or {}
+    if not isinstance(receipt, dict):
+        raise ValueError('PORTFOLIO_BASELINE_RECEIPT_INVALID')
+    if not receipt:
+        return {'status':'NOT_DECLARED_BY_CURRENT_OWNER','scoring_comparability_certified':False}
+    if ((receipt.get('season'),receipt.get('week')) != (season,week) or
+            receipt.get('scoring_signature') != current.get('scoring_signature')):
+        raise ValueError('PORTFOLIO_BASELINE_RECEIPT_TARGET_OR_SCORING_MISMATCH')
+    status = receipt.get('status')
+    allowed = {'ARCHIVED_PROJECTION_STATS_MATCH','ARCHIVED_PROJECTION_STATS_DIFFER',
+               'ARCHIVE_MISSING','ARCHIVE_OR_RESPONSE_INVALID'}
+    if status not in allowed:
+        raise ValueError('PORTFOLIO_BASELINE_RECEIPT_STATUS_INVALID')
+    return {'status':status, 'archive_sha256':receipt.get('archive_sha256'),
+            'source_observed_at':receipt.get('source_observed_at'),
+            'scoring_comparability_certified':False,
+            'note':'Source stats match is a refresh observation; postgame review verifies the archived bytes and scoring support remains unverified.'}
+
+
 def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime, username: str) -> dict:
     base = root / f'data/research/leagues/{lid}'
     current_path = base/'current/milestone5_current.json'
@@ -146,6 +167,7 @@ def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime
             'forecast_observed_at':current['generated_at'], 'profile_fingerprint':current['profile_fingerprint'],
             'forecast_snapshot_storage_sha256':digest(current_path),
             'forecast_artifacts':current.get('forecast_artifacts') or {},
+            'sleeper_baseline_source':baseline_source(current,season,week),
             'scoring_signature':current['scoring_signature'], 'lifecycle':lifecycle, 'active_operational_scope':active,
             'managed_roster_id':roster['roster_id'], 'roster_positions':league.get('roster_positions') or [], 'unresolved_sleeper_ids':unresolved,
             'projection_coverage':dict(Counter(item['fie_coverage'] for item in records)),
@@ -236,7 +258,7 @@ def markdown(report: dict) -> str:
             lines.append(f"- {league['league_id']}: **{league['status']}** — {league['reason']}")
     for league in report['leagues']:
         lines += [f"#### {league.get('league_name') or league['league_id']}", '',
-            f"**{league['status']}** — scoring `{league.get('scoring_signature','—')}`; lifecycle `{(league.get('lifecycle') or {}).get('state','UNKNOWN')}`.", '',
+            f"**{league['status']}** — scoring `{league.get('scoring_signature','—')}`; lifecycle `{(league.get('lifecycle') or {}).get('state','UNKNOWN')}`; Sleeper source `{(league.get('sleeper_baseline_source') or {}).get('status','UNKNOWN')}` (scoring unverified).", '',
             '| Player | FIE mean | Sleeper mean | Delta | P10 / P50 / P90 | Eligibility |', '|---|---|---|---|---|---|']
         def show(value):return '—' if value is None else f'{value:.2f}'
         for player in league.get('players',[]):
