@@ -12,6 +12,14 @@ on:
       - 'research/build_waiver_v2_label_batch.py'
       - 'research/integrity_waiver_v2_label_batch_test.py'
       - 'research/waiver_v2_validation.py'
+      - 'research/waiver_v2_population.py'
+      - 'research/waiver_v2_corrected_challenger.py'
+      - 'research/validate_waiver_v2_population.py'
+      - 'research/integrity_waiver_v2_population_test.py'
+      - 'config/waiver-v2-zero-outcome-contract.json'
+      - 'config/waiver-v2-global-identity-outcome-extension.json'
+      - 'config/waiver-v2-corrected-label-challenger.json'
+      - 'data/research/waiver-v2/population/**'
       - 'research/validate_waiver_v2_validation.py'
       - 'research/integrity_waiver_v2_validation_test.py'
       - 'config/waiver-v2-statistical-methodology.json'
@@ -131,6 +139,7 @@ jobs:
           python research/integrity_m10_real_outcomes_test.py
           python research/integrity_waiver_v2_label_batch_test.py
           python research/integrity_waiver_v2_validation_test.py
+          python research/integrity_waiver_v2_population_test.py
           python research/integrity_weekly_m10_outcome_review_test.py
           python research/integrity_m10_frozen_profile_snapshot_test.py
           python research/integrity_m10_prospective_r8c_workflow_test.py
@@ -164,6 +173,13 @@ jobs:
           python research/validate_waiver_v2_validation.py
           --validation-report data/research/waiver-v2/model-validation/2026-10-12/revision-1/validation-report.json
           --expected-sha256 941b9c902c86753ceef020f50b770227412f3654ed6aaae058656c75de104107
+      - name: Replay source population and corrected research challenger
+        run: >-
+          python research/validate_waiver_v2_population.py
+          --population-report data/research/waiver-v2/population/2026-10-12/revision-1/population-report.json
+          --expected-sha256 07d9e99ff622b5072e0dc8799aab5f7e3195864ca03a0efb29c86e5997745cd9
+          --corrected-report data/research/waiver-v2/population/2026-10-12/revision-1/corrected-challenger/corrected-challenger-report.json
+          --corrected-sha256 6f2474cfc5b25b5cd03b266d31c40c96ffc80f8c52f78bf830ced09e858901d4
       - name: Upload validation results
         if: always()
         uses: actions/upload-artifact@v4
