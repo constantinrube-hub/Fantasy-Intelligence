@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from copy import deepcopy
 from datetime import datetime,timezone
 from pathlib import Path
 from point_in_time_capture import canonical_bytes
@@ -87,6 +88,38 @@ def observe_action(root: Path,ledger: dict,observation: dict,as_of: datetime) ->
             'quality_classification':'NOT_ASSESSED','transaction_execution':False}
 
 
+def presentation_views(row: dict) -> dict:
+    """Progressive evidence disclosure from one unchanged frozen decision."""
+    inputs={'owner':row['owner'],'source_sha256':row['source']['sha256'],
+            'league_id':str(row['league_id']),'season':row['season'],'week':row['week'],
+            'kind':row['kind'],'recommendation':row['recommendation']}
+    if row.get('schema') != 'fie-weekly-decision-v1' or hashlib.sha256(canonical_bytes(inputs)).hexdigest()!=row['decision_id']:
+        raise ValueError('LEDGER_VIEW_DECISION_ID_MISMATCH')
+    recommendation=row['recommendation']
+    impact={key:deepcopy(recommendation[key]) for key in
+            ('projection_delta','add_drop','value_components','next3_delta','submitted_lineup_week_delta')
+            if key in recommendation}
+    common={'decision_id':row['decision_id'],'owner':row['owner'],'kind':row['kind'],
+            'league_id':row['league_id'],'season':row['season'],'week':row['week'],
+            'recommendation':deepcopy(recommendation),
+            'confidence':recommendation.get('confidence'),
+            'impact':impact or None,'impact_status':'OWNER_DECLARED' if impact else 'NOT_DECLARED_BY_OWNER',
+            'user_action':deepcopy(row['user_action']),'outcome':deepcopy(row['outcome']),
+            'governance':deepcopy(row['governance'])}
+    expanded={**deepcopy(common),'explanation':deepcopy(row['explanation']),
+              'alternatives':deepcopy(row['alternatives']),
+              'recommendation_as_of':row['recommendation_as_of'],
+              'issued_at':row['issued_at'],'issued_at_status':row['issued_at_status']}
+    advanced={**deepcopy(expanded),'source':deepcopy(row['source']),
+              'input_bindings':deepcopy(row['input_bindings']),
+              'scoring_signature':row['scoring_signature'],'profile_fingerprint':row['profile_fingerprint'],
+              'ex_ante_quality':row['ex_ante_quality'],'ex_post_result':row['ex_post_result'],
+              'hindsight_optimum':deepcopy(row['hindsight_optimum'])}
+    return {'schema':'fie-decision-presentation-views-v1','decision_id':row['decision_id'],
+            'basic':deepcopy(common),'expanded':expanded,'advanced':advanced,
+            'synthesized_drivers':False,'confidence_calibration_assessed':False}
+
+
 def markdown(report: dict) -> str:
     lines=[f"## Decision ledger — {report['season']} Week {report['week']}",f"{report['decision_count']} durable owner recommendations; **{report['status']}**.",'',report['note'],'',
            '| League | Kind | Decision ID | User action | Outcome |','|---|---|---|---|---|']
@@ -98,10 +131,14 @@ def markdown(report: dict) -> str:
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--root',default=str(Path(__file__).resolve().parents[1]))
     parser.add_argument('--season',type=int,required=True);parser.add_argument('--week',type=int,required=True)
-    parser.add_argument('--output',type=Path,required=True);args=parser.parse_args();root=Path(args.root).resolve()
+    parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--presentation-views',action='store_true',help='Attach three views from each frozen owner decision.')
+    args=parser.parse_args();root=Path(args.root).resolve()
     output=args.output.resolve()
     if output.is_relative_to(root/'data/research'):raise ValueError('LEDGER_MUST_NOT_OVERWRITE_OWNER_EVIDENCE')
     report=build(root,args.season,args.week,datetime.now(timezone.utc));output.parent.mkdir(parents=True,exist_ok=True)
+    if args.presentation_views:
+        report['presentation_views']=[presentation_views(row) for row in report['decisions']]
     with output.open('x',encoding='utf-8') as stream:stream.write(json.dumps(report,separators=(',',':'),sort_keys=True,allow_nan=False)+'\n')
     with output.with_suffix('.md').open('x',encoding='utf-8') as stream:stream.write(markdown(report))
     print(markdown(report))

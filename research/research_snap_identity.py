@@ -11,6 +11,7 @@ import re
 from point_in_time_capture import first_write_json
 from research_feature_tables import snap_table
 from research_source_archive import read
+from research_snap_convention import load as load_convention, annotate
 
 
 def bind(rows: list[dict], identity_rows: list[dict]) -> dict:
@@ -45,17 +46,22 @@ def bind(rows: list[dict], identity_rows: list[dict]) -> dict:
             'name_matching_used': False, 'production_authorized': False}
 
 
-def build(root: Path, snaps: Path, identity: Path, *, season: int, target_week: int, cutoff: str) -> dict:
+def build(root: Path, snaps: Path, identity: Path, *, season: int, target_week: int, cutoff: str,
+          provider_convention: bool = False) -> dict:
     if isinstance(target_week, bool) or not 1 <= target_week <= 18:
         raise ValueError('SNAP_TARGET_WEEK_INVALID')
     raw_snaps, snap_receipt = read(root, snaps, kind='snaps', season=season, cutoff=cutoff)
     raw_identity, identity_receipt = read(root, identity, kind='identity', season=season, cutoff=cutoff)
     prior = snap_table(raw_snaps, season, target_week)
     report = bind(prior['rows'], raw_identity)
+    convention = load_convention(cutoff) if provider_convention else None
+    if convention is not None:
+        report['rows'] = annotate(report['rows'], convention)
     return {'schema': 'fie-research-canonical-snaps-v1', 'season': season,
             'target_week': target_week, 'cutoff': cutoff, 'snapshot_scope': 'OBSERVED_MASTER_NOT_HISTORICAL_IDENTITY_AVAILABILITY',
             'builder_sha256': {name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-                               for name in ('research_snap_identity.py', 'research_feature_tables.py', 'research_source_archive.py')},
+                               for name in ('research_snap_identity.py', 'research_feature_tables.py', 'research_source_archive.py', 'research_snap_convention.py')},
+            'provider_convention': convention,
             'sources': {'snaps': snap_receipt, 'identity': identity_receipt},
             'excluded_rows': prior['excluded_rows'], **report}
 
@@ -69,9 +75,11 @@ def main():
     parser.add_argument('--target-week', type=int, required=True)
     parser.add_argument('--cutoff', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--provider-convention', action='store_true',
+                        help='Attach observed pinned source convention; dataset build remains unverified.')
     args = parser.parse_args()
     result = build(args.root, args.snaps, args.identity, season=args.season,
-                   target_week=args.target_week, cutoff=args.cutoff)
+                   target_week=args.target_week, cutoff=args.cutoff, provider_convention=args.provider_convention)
     result['generated_at'] = datetime.now(timezone.utc).isoformat()
     first_write_json(args.output, result)
     print(result['identity_status_counts'])
