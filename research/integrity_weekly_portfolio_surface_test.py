@@ -15,6 +15,32 @@ def row(**changes):
 
 
 def main():
+    for pid, provider in [('KC',{'player_id':'KC','sport':'nfl','team':'KC','position':'DEF','first_name':'Kansas City','last_name':'Chiefs'}),
+                          ('14086',{'player_id':'14086','sport':'nfl','team':None,'position':'FB','full_name':'Terrelle Smith'})]:
+        identity=w.identity_only_projection(pid,{pid:provider})
+        displayed=w.projection(identity,2026,5,'sig')
+        assert displayed['fie_mean'] is None and displayed['sleeper_mean'] is None
+        assert displayed['p10'] is None and displayed['p50'] is None and displayed['p90'] is None
+        assert displayed['weekly_activation_eligible'] is False and displayed['waiver_activation_eligible'] is False
+        assert displayed['player_id']==('canonical:DST:KC' if pid=='KC' else 'sleeper:14086')
+    assert w.identity_only_projection('missing',{}) is None
+    with tempfile.TemporaryDirectory() as td:
+        import json
+        root=Path(td);base=root/'data/research/app';base.mkdir(parents=True)
+        path=base/'player-catalog.json';index=base/'league-index.json'
+        catalog={'schema':'fie-player-catalog-v1','player_count':500,'generated_at':'2026-10-12T01:00:00Z',
+                 'players':{str(i):{'player_id':str(i),'sport':'nfl','team':'AAA','position':'WR'} for i in range(500)},
+                 'identity_only_players':{'14086':{'player_id':'14086','sport':'nfl','team':None,'position':'FB'}}}
+        path.write_text(json.dumps(catalog));metadata={'generated_at':'2026-10-12T01:00:00Z',
+             'player_catalog':{'path':'data/research/app/player-catalog.json','sha256':w.digest(path)}}
+        index.write_text(json.dumps(metadata));core={'shared':{'player_catalog':'data/research/app/player-catalog.json'}}
+        rows,binding=w.roster_identity_catalog(root,core,w.stamp('2026-10-12T02:00:00Z'))
+        assert '14086' in rows and binding['forecast_authorized'] is False
+        try:w.roster_identity_catalog(root,core,w.stamp('2026-10-12T00:00:00Z'));raise AssertionError('Future catalog accepted')
+        except ValueError as exc:assert 'CUTOFF' in str(exc)
+        path.write_text('{}')
+        try:w.roster_identity_catalog(root,core,w.stamp('2026-10-12T02:00:00Z'));raise AssertionError('Tampered catalog accepted')
+        except ValueError as exc:assert 'HASH' in str(exc)
     player=w.projection(row(),2026,5,'sig')
     assert player['fie_mean']==10 and player['sleeper_mean']==12 and player['fie_minus_sleeper']==-2
     assert player['p50'] is None and player['fie_median'] is None and player['interval_coverage']=='PARTIAL'

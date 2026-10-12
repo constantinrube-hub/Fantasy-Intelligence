@@ -15,6 +15,8 @@ def main():
     retry=w.decision('WINDOW_1D',source,league,'WAIVER_PLAN',rec,'2026-10-08T01:00:00Z')
     assert first==retry and first['user_action']['status']=='NOT_OBSERVED' and first['outcome']['status']=='NOT_OBSERVED'
     assert first['ex_ante_quality']=='NOT_ASSESSED' and first['explanation']['synthesized_drivers'] is False
+    older=w.decision('WINDOW_1C',{**source,'generated_at':None},league,'LINEUP_CHANGE',rec,'2026-10-08T01:00:00Z')
+    assert older['issued_at'] is None and older['issued_at_status']=='NOT_DECLARED_BY_OWNER'
     changed=w.decision('WINDOW_1D',{**source,'sha256':'new'},league,'WAIVER_PLAN',rec,'2026-10-08T01:00:00Z')
     assert changed['decision_id']!=first['decision_id'] and changed['recommendation']==first['recommendation']
     for kind in ('LINEUP_CHANGE','STATUS_CHECK','WAIVER_PLAN'):

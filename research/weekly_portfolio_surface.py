@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import subprocess
+import re
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -119,6 +120,47 @@ def baseline_source(current: dict, season: int, week: int) -> dict:
             'note':'Source stats match is a refresh observation; postgame review verifies the archived bytes and scoring support remains unverified.'}
 
 
+def roster_identity_catalog(root: Path, core: dict, as_of: datetime) -> tuple[dict, dict]:
+    """Exact provider identities bound by the existing app index, not forecasts."""
+    expected = 'data/research/app/player-catalog.json'
+    index_path = root/'data/research/app/league-index.json'
+    if not index_path.is_file():
+        return {}, {'status':'NOT_BOUND'}
+    index = json.loads(index_path.read_text())
+    meta = index.get('player_catalog') or {}
+    if core.get('shared', {}).get('player_catalog') != expected or meta.get('path') != expected:
+        raise ValueError('PORTFOLIO_IDENTITY_CATALOG_PATH_MISMATCH')
+    path = root/expected
+    if not path.is_file() or digest(path) != meta.get('sha256'):
+        raise ValueError('PORTFOLIO_IDENTITY_CATALOG_HASH_MISMATCH')
+    catalog = json.loads(path.read_text())
+    from build_league_app_snapshots import validate_player_catalog
+    validate_player_catalog(catalog)
+    if stamp(catalog['generated_at']) > as_of or stamp(index['generated_at']) > as_of:
+        raise ValueError('PORTFOLIO_IDENTITY_CATALOG_AFTER_CUTOFF')
+    rows = {**catalog['players'], **(catalog.get('identity_only_players') or {})}
+    return rows, {'status':'BOUND_PROVIDER_CATALOG','path':expected,'sha256':digest(path),
+                  'index_path':index_path.relative_to(root).as_posix(),'index_sha256':digest(index_path),
+                  'observed_at':catalog['generated_at'], 'forecast_authorized':False}
+
+
+def identity_only_projection(pid: str, catalog: dict) -> dict | None:
+    source = catalog.get(pid)
+    if source is None:
+        return None
+    if str(source.get('player_id') or '') != pid or source.get('sport') != 'nfl':
+        raise ValueError('PORTFOLIO_IDENTITY_CATALOG_ROW_MISMATCH')
+    position = str(source.get('position') or '').upper()
+    team = source.get('team')
+    gsis = str(source.get('gsis_id') or '')
+    canonical = (f'DST:{team}' if position in {'DEF','DST','D/ST'} and team else
+                 gsis if re.fullmatch(r'00-\d{7}', gsis) else None)
+    return {'sleeper_id':pid, 'canonical_player_id':canonical,
+            'full_name':source.get('full_name') or ' '.join(str(source.get(k) or '') for k in ('first_name','last_name')).strip(),
+            'team':team, 'position_model':position, 'weekly_activation_eligible':False,
+            'waiver_activation_eligible':False, 'projection_source':None}
+
+
 def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime, username: str) -> dict:
     base = root / f'data/research/leagues/{lid}'
     current_path = base/'current/milestone5_current.json'
@@ -137,6 +179,7 @@ def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime
     if not set(starters).issubset(owned):
         raise ValueError('PORTFOLIO_STARTER_NOT_OWNED')
     index = projection_index(current)
+    identities, identity_binding = roster_identity_catalog(root, core, as_of)
     universe = set(pid for row in rosters for pid in valid_ids(row.get('players')))
     # Also expose independently forecastable available players. Never substitute
     # their diagnostic rows into a recommendation or declare waiver eligibility.
@@ -148,6 +191,9 @@ def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime
     seen = set()
     for pid in sorted(universe):
         row = index.get(pid) or index.get(pid.upper())
+        identity_only = row is None
+        if identity_only:
+            row = identity_only_projection(pid, identities)
         if row is None or canonical_player_id(row) is None:
             unresolved.append(pid)
             continue
@@ -156,6 +202,8 @@ def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime
             raise ValueError('PORTFOLIO_DUPLICATE_CANONICAL_PLAYER')
         seen.add(canonical)
         item = projection(row,season,week,current['scoring_signature'],current.get('forecast_artifacts'))
+        item['identity_status'] = 'BOUND_PROVIDER_CATALOG_ONLY' if identity_only else 'BOUND_CURRENT_SNAPSHOT'
+        item['forecast_row_status'] = 'NOT_PROVIDED_BY_CURRENT_OWNER' if identity_only else 'CURRENT_OWNER_ROW'
         item.update(owned_by_user=pid in owned, submitted_starter=pid in starters,
                     rostered_in_league=any(pid in valid_ids(r.get('players')) for r in rosters))
         records.append(item)
@@ -167,6 +215,7 @@ def league_surface(root: Path, lid: str, season: int, week: int, as_of: datetime
             'forecast_observed_at':current['generated_at'], 'profile_fingerprint':current['profile_fingerprint'],
             'forecast_snapshot_storage_sha256':digest(current_path),
             'forecast_artifacts':current.get('forecast_artifacts') or {},
+            'roster_identity_source':identity_binding,
             'sleeper_baseline_source':baseline_source(current,season,week),
             'scoring_signature':current['scoring_signature'], 'lifecycle':lifecycle, 'active_operational_scope':active,
             'managed_roster_id':roster['roster_id'], 'roster_positions':league.get('roster_positions') or [], 'unresolved_sleeper_ids':unresolved,
@@ -237,9 +286,15 @@ def build(root: Path, season: int, week: int, as_of: datetime) -> dict:
             leagues.append(league_surface(root,lid,season,week,as_of,username))
         except Exception as exc:
             leagues.append({'league_id':lid,'status':'BLOCKED_LEAGUE_SURFACE','reason':f'{type(exc).__name__}:{exc}'})
-    return {'producer':{'module':'research/weekly_portfolio_surface.py','version':'1.0.0','sha256':digest(Path(__file__))},'schema':'fie-weekly-portfolio-surface-v1','season':season,'week':week,'as_of_utc':as_of.isoformat(),
+    input_hashes = dict(receipt['input_hashes'])
+    for league in leagues:
+        identity = league.get('roster_identity_source') or {}
+        if identity.get('status') == 'BOUND_PROVIDER_CATALOG':
+            input_hashes[identity['path']] = identity['sha256']
+            input_hashes[identity['index_path']] = identity['index_sha256']
+    return {'producer':{'module':'research/weekly_portfolio_surface.py','version':'1.1.0','sha256':digest(Path(__file__))},'schema':'fie-weekly-portfolio-surface-v1','season':season,'week':week,'as_of_utc':as_of.isoformat(),
             'status':'BLOCKED' if not any(row['status'] in {'BOUND_CURRENT_ROSTER','PARTIAL_UNRESOLVED_PLAYERS'} for row in leagues) else 'PARTIAL' if any(row['status'] != 'BOUND_CURRENT_ROSTER' for row in leagues) else 'BOUND',
-            'input_hashes':receipt['input_hashes'],'leagues':leagues,'roster_exposure':exposure(leagues),'specialist_evidence':specialist_boards(leagues),
+            'input_hashes':input_hashes,'leagues':leagues,'roster_exposure':exposure(leagues),'specialist_evidence':specialist_boards(leagues),
             'league_status_counts':dict(Counter(row['status'] for row in leagues)),
             'player_scope':'Observed league-rostered players, eligible unrostered forecast candidates and current specialist boards; not a complete unsupported offensive free-agent universe.',
             'governance':{'display_only':True,'new_forecasts':False,'new_recommendations':False,'cross_league_decision_transfer':False,

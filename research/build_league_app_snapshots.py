@@ -126,14 +126,17 @@ def compact_player_catalog(raw: Any) -> dict[str, Any]:
         raise ValueError("Sleeper player catalog payload must be an object")
 
     players: dict[str, dict[str, Any]] = {}
+    identity_only: dict[str, dict[str, Any]] = {}
     for key, value in raw.items():
         if not isinstance(value, dict):
             continue
         player_id = str(value.get("player_id") or key or "").strip()
         team = str(value.get("team") or "").strip().upper()
         sport = str(value.get("sport") or "nfl").strip().lower()
-        if not player_id or not team or sport != "nfl":
+        if not player_id or sport != "nfl":
             continue
+        if str(key).strip() != player_id:
+            raise ValueError("Sleeper catalog source key/player_id mismatch")
 
         row = {
             field: value.get(field)
@@ -161,6 +164,13 @@ def compact_player_catalog(raw: Any) -> dict[str, Any]:
 
         if isinstance(fantasy_positions, tuple):
             row["fantasy_positions"] = list(fantasy_positions)
+        if not team:
+            # Stable source identity is still useful for a rostered free agent
+            # or historical player. Keep these outside the browser's active
+            # NFL-team universe; missing team does not mean missing identity.
+            row["team"] = None
+            identity_only[player_id] = row
+            continue
         players[player_id] = row
 
     catalog = {
@@ -171,6 +181,7 @@ def compact_player_catalog(raw: Any) -> dict[str, Any]:
         "player_count": len(players),
         "fields": list(PLAYER_FIELDS),
         "players": players,
+        "identity_only_players": identity_only,
     }
     validate_player_catalog(catalog)
     return catalog
@@ -188,7 +199,7 @@ def validate_player_catalog(catalog: dict[str, Any]) -> None:
         )
     if int(catalog.get("player_count") or -1) != len(players):
         raise ValueError("player catalog count mismatch")
-    for player_id, row in list(players.items())[:200]:
+    for player_id, row in players.items():
         if not isinstance(row, dict):
             raise ValueError("player catalog row must be an object")
         if str(row.get("player_id") or "") != str(player_id):
@@ -197,6 +208,14 @@ def validate_player_catalog(catalog: dict[str, Any]) -> None:
             raise ValueError("player catalog row missing team")
         if str(row.get("sport") or "").lower() != "nfl":
             raise ValueError("player catalog contains non-NFL row")
+    identities = catalog.get('identity_only_players') or {}
+    if not isinstance(identities, dict) or set(identities) & set(players):
+        raise ValueError('player catalog identity-only scope invalid')
+    for player_id, row in identities.items():
+        if (not isinstance(row, dict) or str(row.get('player_id') or '') != player_id
+                or row.get('sport') != 'nfl' or row.get('team') is not None
+                or not (row.get('position') or row.get('fantasy_positions'))):
+            raise ValueError('player catalog identity-only row invalid')
 
 
 def player_catalog_meta(

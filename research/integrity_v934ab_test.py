@@ -115,11 +115,19 @@ def main() -> int:
         str(i): {**raw["1"], "player_id": str(i), "full_name": f"Player {i}"}
         for i in range(1, 501)
     }
-    fixture["retired"] = raw["2"]
-    fixture["other"] = raw["3"]
+    fixture["14086"] = {**raw['2'], 'player_id':'14086'}
+    fixture["other"] = {**raw['3'], 'player_id':'other'}
     catalog = mod.compact_player_catalog(fixture)
     assert catalog["player_count"] == 500
-    assert "retired" not in catalog["players"]
+    assert "14086" not in catalog["players"]
+    assert catalog['identity_only_players']['14086']['team'] is None
+    assert catalog['identity_only_players']['14086']['full_name']=='Retired Player'
+    assert 'other' not in catalog['identity_only_players']
+    try:
+        mod.compact_player_catalog({**fixture,'mismatch':raw['1']})
+        raise AssertionError('Conflicting source identity accepted')
+    except ValueError as exc:
+        assert 'key/player_id mismatch' in str(exc)
     assert "other" not in catalog["players"]
     assert "extra_unused" not in catalog["players"]["1"]
     assert catalog["players"]["1"]["team"] == "LAR"
