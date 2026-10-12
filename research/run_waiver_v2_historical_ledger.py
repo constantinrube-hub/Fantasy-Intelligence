@@ -86,6 +86,8 @@ def run(
     event_evidence: bool = True, participation_evidence: bool = False,
 ) -> dict[str, Any]:
     """Fetch/cache a source snapshot, then build the isolated historical ledger."""
+    if output_dir.exists():
+        raise ValueError('waiver-v2 historical output must be a new directory; preserve existing evidence and choose a new revision')
     # Import only for the explicit networked operator path.  The canonical
     # PlayerIdentity and SourceManager owners remain in fie_research.
     from fie_research import SourceManager, build_identity

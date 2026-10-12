@@ -112,32 +112,30 @@ def build_same_season_horizon_targets(
     for column in target_week_columns:
         d[column] = pd.Series([pd.NA] * len(d), dtype="Int64")
 
-    lookup = {
-        (str(row[player_column]), int(row[season_column]), int(row[week_column])): row
-        for _, row in d.iterrows()
-    }
-    for index, row in d.iterrows():
-        player = str(row[player_column])
-        season = int(row[season_column])
-        decision_week = int(row[week_column])
-        values: list[float] = []
-        complete_count = 0
-        for offset, target_column in enumerate(target_week_columns, start=1):
-            target_week = decision_week + offset
-            d.at[index, target_column] = target_week
-            target = lookup.get((player, season, target_week))
-            if target is None:
-                continue
-            if not _true(target[outcome_complete_column]) or not _finite(target[value_column]):
-                continue
-            values.append(float(target[value_column]))
-            complete_count += 1
-        d.at[index, result_count] = complete_count
-        if complete_count != horizon_weeks:
-            continue
-        d.at[index, result_total] = float(sum(values))
-        d.at[index, result_mean] = float(sum(values) / horizon_weeks)
-        d.at[index, result_full] = True
+    # Indexed lookups retain the exact calendar-week contract while avoiding
+    # per-row dataframe writes in full portfolio/season batch replays.
+    source = d[[player_column, season_column, week_column, value_column, outcome_complete_column]].copy()
+    source[player_column] = source[player_column].astype(str)
+    if source.duplicated(key_columns).any():
+        raise ValueError("waiver-v2 normalized player-week identity collision")
+    source = source.set_index(key_columns)
+    totals = pd.Series(0.0, index=d.index)
+    counts = pd.Series(0, index=d.index)
+    for offset, target_column in enumerate(target_week_columns, start=1):
+        weeks = d[week_column] + offset
+        d[target_column] = weeks.astype('Int64')
+        target_keys = pd.MultiIndex.from_arrays([d[player_column].astype(str), d[season_column], weeks], names=key_columns)
+        targets = source.reindex(target_keys)
+        targets.index = d.index
+        valid = targets[outcome_complete_column].map(_true) & targets[value_column].map(_finite)
+        values = pd.to_numeric(targets[value_column], errors='coerce')
+        totals += values.where(valid, 0.0)
+        counts += valid.astype(int)
+    full = counts.eq(horizon_weeks)
+    d[result_count] = counts
+    d[result_full] = full
+    d[result_total] = totals.where(full)
+    d[result_mean] = (totals / horizon_weeks).where(full)
     return d
 
 

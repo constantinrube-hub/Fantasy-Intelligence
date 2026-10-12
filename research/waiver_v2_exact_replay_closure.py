@@ -63,7 +63,7 @@ def _outcome_position_coverage(path: Path) -> dict[str, Any]:
     return {"rows": total, "by_position": counts, "sha256": _sha256(path)}
 
 
-def build_exact_replay_closure(*, batch_report_path: Path, output_path: Path) -> dict[str, Any]:
+def build_exact_replay_closure(*, batch_report_path: Path, output_path: Path | None = None) -> dict[str, Any]:
     """Summarize all profile blockers without relaxing any exact-replay gate."""
     batch = json.loads(batch_report_path.read_text(encoding="utf-8"))
     if batch.get("schema") != "fie-waiver-v2-profile-batch-v1":
@@ -188,8 +188,9 @@ def build_exact_replay_closure(*, batch_report_path: Path, output_path: Path) ->
             "Exact historical outcome rows are not prospective forecast eligibility or validated recommendation coverage.",
         ],
     }
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    if output_path is not None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return report
 
 

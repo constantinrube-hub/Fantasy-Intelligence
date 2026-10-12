@@ -9,6 +9,8 @@ on:
       - '.github/workflows/build-fie-current.yml'
       - 'research/waiver_v2_source_adapter.py'
       - 'research/waiver_v2_event_ledger.py'
+      - 'research/build_waiver_v2_label_batch.py'
+      - 'research/integrity_waiver_v2_label_batch_test.py'
       - 'research/run_waiver_v2_historical_ledger.py'
       - 'research/integrity_waiver_v2_source_adapter_test.py'
       - 'research/integrity_waiver_v2_event_ledger_test.py'
@@ -122,6 +124,7 @@ jobs:
       - name: Validate focused weekly contracts
         run: |
           python research/integrity_m10_real_outcomes_test.py
+          python research/integrity_waiver_v2_label_batch_test.py
           python research/integrity_weekly_m10_outcome_review_test.py
           python research/integrity_m10_frozen_profile_snapshot_test.py
           python research/integrity_m10_prospective_r8c_workflow_test.py

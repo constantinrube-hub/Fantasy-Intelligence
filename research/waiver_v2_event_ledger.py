@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 import pandas as pd
+from waiver_v2_outcomes import EVENT_WEEKLY_RULES
 
 
 EVENT_LEDGER_SCHEMA = "fie-waiver-v2-event-ledger-v1"
@@ -355,6 +356,26 @@ def _event_weekly_stats(events: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def _confirmed_event_zeros(weekly: pd.DataFrame, population: pd.DataFrame,
+                           supports: Mapping[str, Any], covered_weeks: pd.DataFrame) -> pd.DataFrame:
+    """Represent absent events only for published stat rows in covered weeks.
+
+    This never supplies missing player stats, roster membership, byes or an
+    incomplete rule. Existing matched event values (including nulls) survive.
+    """
+    keys = ['canonical_player_id', 'season', 'week']
+    if population[keys].isna().any().any() or population.duplicated(keys).any():
+        raise ValueError('waiver-v2 event-zero population identity invalid')
+    covered = population[keys].merge(covered_weeks[['season','week']].drop_duplicates(),
+                                     on=['season','week'], how='inner')
+    combined = covered.merge(weekly, on=keys, how='outer', validate='one_to_one', indicator=True)
+    absent = combined['_merge'].eq('left_only')
+    for rule, column in EVENT_WEEKLY_RULES.items():
+        if column in combined and (supports.get(rule) or {}).get('support_status') == 'EXACT_EVENT_READY':
+            combined.loc[absent, column] = 0.0
+    return combined.drop(columns='_merge')
+
+
 def _append_event_rows(base_events: pd.DataFrame, additions: list[dict[str, Any]]) -> pd.DataFrame:
     """Append schema-bound events without dtype-dependent all-null inference."""
     records = base_events.reindex(columns=EVENT_COLUMNS).to_dict(orient="records")
@@ -601,7 +622,8 @@ def build_e2_event_ledger(
                 sack_reconciliation = {"status": "BLOCKED_RECONCILIATION_MISMATCH", "mismatch_rows": int(len(mismatches)), "excluded_non_qb_pbp_events": excluded_non_qb_pbp_events,
                                        "sample": mismatches.head(8).to_dict(orient="records")}
 
-    weekly = _event_weekly_stats(event_frame)
+    weekly = _confirmed_event_zeros(_event_weekly_stats(event_frame),
+        pd.read_csv(canonical_player_stats_path, low_memory=False), supports, regular[['season','week']])
     output_path.parent.mkdir(parents=True, exist_ok=True)
     event_frame.to_csv(output_path, index=False, compression={"method": "gzip", "mtime": 0})
     weekly_stats_output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -610,6 +632,7 @@ def build_e2_event_ledger(
         "schema": EVENT_LEDGER_SCHEMA, "phase": "E2_FIRST_EXACT_PROFILES", "diagnostic_only": True,
         "activation_eligible": False, "builder_sha256": builder, "source_inventory": source_inventory,
         "rule_support": supports, "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
+        "event_zero_policy": "SOURCE_READY_RULES_AND_SOURCE_COVERED_PUBLISHED_PLAYER_WEEKS_ONLY",
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
         "blockers": _blocker_receipt(report_path, blockers, "E2"),
         "sack_reconciliation": sack_reconciliation, "fumble_lost_reconciliation": fumble_reconciliation,
@@ -752,7 +775,8 @@ def build_e3_event_ledger(
     if not event_frame.empty and event_frame.duplicated(key).any():
         raise ValueError("waiver-v2 E3 event derivation produced duplicate canonical events")
     validate_event_ledger(event_frame)
-    weekly = _event_weekly_stats(event_frame)
+    weekly = _confirmed_event_zeros(_event_weekly_stats(event_frame),
+        pd.read_csv(canonical_player_stats_path, low_memory=False), supports, regular[['season','week']])
     event_frame.to_csv(output_path, index=False, compression={"method": "gzip", "mtime": 0})
     weekly.to_csv(weekly_stats_output_path, index=False, compression={"method": "gzip", "mtime": 0})
     report = {
@@ -760,6 +784,7 @@ def build_e3_event_ledger(
         "diagnostic_only": True, "activation_eligible": False, "builder_sha256": builder,
         "source_inventory": source_inventory, "rule_support": supports,
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
+        "event_zero_policy": "SOURCE_READY_RULES_AND_SOURCE_COVERED_PUBLISHED_PLAYER_WEEKS_ONLY",
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
         "blockers": _blocker_receipt(report_path, blockers, "E3", base),
         "sack_reconciliation": base["sack_reconciliation"], "fumble_lost_reconciliation": base["fumble_lost_reconciliation"],
@@ -869,7 +894,8 @@ def build_e4_event_ledger(
     if not event_frame.empty and event_frame.duplicated(identity_columns).any():
         raise ValueError("waiver-v2 E4 event derivation produced duplicate canonical events")
     validate_event_ledger(event_frame)
-    weekly = _event_weekly_stats(event_frame)
+    weekly = _confirmed_event_zeros(_event_weekly_stats(event_frame),
+        pd.read_csv(canonical_player_stats_path, low_memory=False), supports, regular[['season','week']])
 
     reconciliation: dict[str, Any] = {}
     for key, event_type, stat_column, weekly_column in (
@@ -909,6 +935,7 @@ def build_e4_event_ledger(
         "diagnostic_only": True, "activation_eligible": False, "builder_sha256": builder,
         "source_inventory": source_inventory, "rule_support": supports,
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
+        "event_zero_policy": "SOURCE_READY_RULES_AND_SOURCE_COVERED_PUBLISHED_PLAYER_WEEKS_ONLY",
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
         "blockers": _blocker_receipt(report_path, blockers, "E4", base),
         "sack_reconciliation": base["sack_reconciliation"], "fumble_lost_reconciliation": base["fumble_lost_reconciliation"],
@@ -1147,7 +1174,8 @@ def build_e5_event_ledger(
     if not event_frame.empty and event_frame.duplicated(identity_columns).any():
         raise ValueError("waiver-v2 E5 event derivation produced duplicate canonical events")
     validate_event_ledger(event_frame)
-    weekly = _event_weekly_stats(event_frame)
+    weekly = _confirmed_event_zeros(_event_weekly_stats(event_frame),
+        pd.read_csv(canonical_player_stats_path, low_memory=False), supports, regular[['season','week']])
     event_frame.to_csv(output_path, index=False, compression={"method": "gzip", "mtime": 0})
     weekly.to_csv(weekly_stats_output_path, index=False, compression={"method": "gzip", "mtime": 0})
     report = {
@@ -1155,6 +1183,7 @@ def build_e5_event_ledger(
         "diagnostic_only": True, "activation_eligible": False, "builder_sha256": builder,
         "source_inventory": source_inventory, "rule_support": supports,
         "event_ledger": {"path": str(output_path), "sha256": _sha256(output_path), "rows": int(len(event_frame))},
+        "event_zero_policy": "SOURCE_READY_RULES_AND_SOURCE_COVERED_PUBLISHED_PLAYER_WEEKS_ONLY",
         "event_weekly_stats": {"path": str(weekly_stats_output_path), "sha256": _sha256(weekly_stats_output_path), "rows": int(len(weekly))},
         "blockers": _blocker_receipt(report_path, blockers, "E5", base),
         "sack_reconciliation": base["sack_reconciliation"], "fumble_lost_reconciliation": base["fumble_lost_reconciliation"],
