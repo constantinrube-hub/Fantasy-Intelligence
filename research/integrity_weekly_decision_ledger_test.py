@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Stable recommendation identity and separately bound action observations."""
 import json,tempfile
+from copy import deepcopy
 from pathlib import Path
 from weekly_pipeline_readiness import stamp,digest
 import weekly_decision_ledger as w
@@ -16,6 +17,23 @@ def main():
     assert first['ex_ante_quality']=='NOT_ASSESSED' and first['explanation']['synthesized_drivers'] is False
     changed=w.decision('WINDOW_1D',{**source,'sha256':'new'},league,'WAIVER_PLAN',rec,'2026-10-08T01:00:00Z')
     assert changed['decision_id']!=first['decision_id'] and changed['recommendation']==first['recommendation']
+    for kind in ('LINEUP_CHANGE','STATUS_CHECK','WAIVER_PLAN'):
+        frozen=w.decision('WINDOW_1C' if kind!='WAIVER_PLAN' else 'WINDOW_1D',source,league,kind,
+                          {**rec,'projection_delta':0},'2026-10-08T01:00:00Z')
+        before=deepcopy(frozen);views=w.presentation_views(frozen)
+        assert frozen==before
+        for level in ('basic','expanded','advanced'):
+            assert views[level]['decision_id']==frozen['decision_id']
+            assert views[level]['recommendation']==frozen['recommendation']
+            assert views[level]['confidence']=='LOW' and views[level]['impact']=={'projection_delta':0}
+        views['basic']['recommendation']['recommended_bid']=99
+        assert views['advanced']['recommendation']['recommended_bid']==7 and frozen==before
+    missing=w.decision('WINDOW_1C',source,league,'STATUS_CHECK',{'player_id':'123'},'2026-10-08T01:00:00Z')
+    assert w.presentation_views(missing)['basic']['impact'] is None
+    assert w.presentation_views(missing)['basic']['confidence'] is None
+    tampered=deepcopy(first);tampered['recommendation']['recommended_bid']=8
+    try:w.presentation_views(tampered);raise AssertionError('Changed frozen recommendation accepted')
+    except ValueError as exc:assert 'ID_MISMATCH' in str(exc)
     with tempfile.TemporaryDirectory() as td:
         root=Path(td);path=root/'action.json'
         action={'schema':'fie-user-action-source-v1','decision_id':first['decision_id'],'league_id':'1','season':2026,'week':5,

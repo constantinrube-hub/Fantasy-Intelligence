@@ -4,6 +4,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from research_snap_identity import bind, build
 from research_source_archive import archive
+from research_snap_convention import load, annotate, CONTRACT_DIR
+import shutil
 
 
 def reject(action):
@@ -32,6 +34,24 @@ def main():
                          {'source_pfr_player_id': 'pfr:alias', 'game_id': 'g'}],
                         identity + [{'pfr_id': 'alias', 'gsis_id': '00-0000001'}]))
     reject(lambda: bind([{'source_pfr_player_id': 'one'}], identity))
+    convention = load('2026-10-12T00:00:00Z')
+    reject(lambda: load('2026-10-10T00:00:00Z'))
+    units = [{'offense_pct_provider_units': 0.5, 'defense_pct_provider_units': 0,
+              'st_pct_provider_units': None, 'offense_snap_share': None}]
+    annotated = annotate(units, convention)[0]
+    assert annotated['offense_snap_share_provider_convention'] == 0.5
+    assert annotated['defense_snap_share_provider_convention'] == 0
+    assert annotated['st_snap_share_provider_convention'] is None
+    assert annotated['offense_snap_share'] is None
+    assert annotated['dataset_build_revision_verified'] is False
+    reject(lambda: annotate([{'offense_pct_provider_units': 50}], convention))
+    with TemporaryDirectory() as temporary:
+        copied = Path(temporary) / 'contract'
+        shutil.copytree(CONTRACT_DIR, copied)
+        (copied / 'game_snaps.R').write_text('changed')
+        reject(lambda: load('2026-10-12T00:00:00Z', copied))
+        (copied / 'contract.json').write_text('{}')
+        reject(lambda: load('2026-10-12T00:00:00Z', copied))
     with TemporaryDirectory() as temporary:
         root = Path(temporary)
         raw = b'game_id,season,week,game_type,pfr_player_id,team,offense_snaps\ng,2026,1,REG,one,A,40\n'
