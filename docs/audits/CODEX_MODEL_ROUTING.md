@@ -2,6 +2,12 @@
 
 This repository follows the user-approved model-routing policy for the audit.
 
+User routing update (2026-10-12): GPT-6.1 Sol at High reasoning replaces the
+GPT-5.6 Sol designation for the waiver-v2 statistical-methodology checkpoint
+and its authorized implementation. The exact older model version is not a
+dependency. The methodology, evidence and separate promotion boundaries below
+remain in force; this update does not grant production activation.
+
 ## Default
 
 Use GPT-5.6 Terra at High reasoning for normal audit implementation, lifecycle/workflow reconciliation, known-target refactors, integrity tests, regression fixes with a clear cause, and release synchronization.
