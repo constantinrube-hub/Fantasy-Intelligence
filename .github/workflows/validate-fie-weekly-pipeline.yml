@@ -11,6 +11,11 @@ on:
       - 'research/waiver_v2_event_ledger.py'
       - 'research/build_waiver_v2_label_batch.py'
       - 'research/integrity_waiver_v2_label_batch_test.py'
+      - 'research/waiver_v2_validation.py'
+      - 'research/validate_waiver_v2_validation.py'
+      - 'research/integrity_waiver_v2_validation_test.py'
+      - 'config/waiver-v2-statistical-methodology.json'
+      - 'data/research/waiver-v2/model-validation/**'
       - 'research/run_waiver_v2_historical_ledger.py'
       - 'research/integrity_waiver_v2_source_adapter_test.py'
       - 'research/integrity_waiver_v2_event_ledger_test.py'
@@ -125,6 +130,7 @@ jobs:
         run: |
           python research/integrity_m10_real_outcomes_test.py
           python research/integrity_waiver_v2_label_batch_test.py
+          python research/integrity_waiver_v2_validation_test.py
           python research/integrity_weekly_m10_outcome_review_test.py
           python research/integrity_m10_frozen_profile_snapshot_test.py
           python research/integrity_m10_prospective_r8c_workflow_test.py
@@ -153,6 +159,11 @@ jobs:
           python research/integrity_tranche5c_documentation_lifecycle.py --mode target
       - name: Deterministic personal release and full integrity gate
         run: python tools/release_build.py --mode personal
+      - name: Replay immutable waiver research artifacts
+        run: >-
+          python research/validate_waiver_v2_validation.py
+          --validation-report data/research/waiver-v2/model-validation/2026-10-12/revision-1/validation-report.json
+          --expected-sha256 941b9c902c86753ceef020f50b770227412f3654ed6aaae058656c75de104107
       - name: Upload validation results
         if: always()
         uses: actions/upload-artifact@v4
