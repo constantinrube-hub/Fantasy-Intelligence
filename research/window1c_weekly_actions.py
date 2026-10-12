@@ -978,6 +978,8 @@ def main(argv: list[str] | None = None) -> int:
         waiver_limit=max(1, int(args.waiver_limit)),
         schedule_path=Path(args.schedule_file).resolve() if args.schedule_file else None,
     )
+    # Observation is not issuance. Only new producer outputs declare this clock.
+    report['generated_at'] = utc_now().isoformat()
     default_json, default_md = output_paths(root, report["season"], report["week"])
     json_out = Path(args.json_output) if args.json_output else default_json
     md_out = Path(args.markdown_output) if args.markdown_output else default_md

@@ -272,7 +272,7 @@ jobs:
         run: |
           set -euo pipefail
           OUTPUT="data/operations/weekly-pipeline/$INPUT_SEASON/week_$(printf '%02d' "$INPUT_WEEK")/decision-ledger-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
-          python research/weekly_decision_ledger.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+          python research/weekly_decision_ledger.py --season "$INPUT_SEASON" --week "$INPUT_WEEK" --presentation-views --output "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Commit only Window 1D research outputs
         if: steps.readiness.outputs.ready == 'true'

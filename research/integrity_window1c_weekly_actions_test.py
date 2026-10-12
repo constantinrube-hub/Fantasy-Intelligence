@@ -7,6 +7,7 @@ import json
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 import window1c_weekly_actions as w
 
@@ -309,6 +310,21 @@ def test_after_kickoff_downgrades_execution() -> None:
         assert out["actions"]["lineup"][0]["action"] == "REVIEW_ONLY_AFTER_KICKOFF"
 
 
+def test_issuance_is_producer_clock() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td)
+        report={'season':2026,'week':5,'as_of_utc':'2026-10-12T01:00:00+00:00',
+                'enabled_league_count':0,'ready_count':0,'partial_count':0,
+                'blocked_count':0,'unknown_count':0,'action_required_count':0}
+        issued=datetime(2026,10,12,2,tzinfo=timezone.utc)
+        with patch.object(w,'build_portfolio',return_value=report),patch.object(w,'utc_now',return_value=issued),patch.object(w,'markdown_portfolio',return_value='test'):
+            assert w.main(['--root',str(root),'--season','2026','--week','5',
+                           '--as-of-utc',report['as_of_utc']])==0
+        stored=json.loads(w.output_paths(root,2026,5)[0].read_text())
+        assert stored['generated_at']==issued.isoformat()
+        assert stored['as_of_utc']==report['as_of_utc']
+
+
 def main() -> None:
     tests = [
         test_managed_action_report,
@@ -323,6 +339,7 @@ def main() -> None:
         test_week_mismatch_blocks,
         test_missing_projection_never_becomes_zero,
         test_after_kickoff_downgrades_execution,
+        test_issuance_is_producer_clock,
     ]
     for test in tests:
         test()
