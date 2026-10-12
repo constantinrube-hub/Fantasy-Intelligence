@@ -1,0 +1,35 @@
+{
+  "schema": "fie-waiver-v2-zero-outcome-contract-v1",
+  "authority": "GPT-6.1 Sol High source-population checkpoint, 2026-10-12",
+  "purpose": "Certify zero scoring-event absence for an already confirmed roster player, without asserting blanket player-stat completeness.",
+  "scoring_signatures": ["0b264245218667cd", "f407dd1959d9d675", "fec2fca13ae53e1d"],
+  "allowed_rules": ["fum", "fum_lost", "pass_2pt", "pass_int", "pass_int_td", "pass_td", "pass_yd", "rec", "rec_2pt", "rec_td", "rec_yd", "rush_2pt", "rush_td", "rush_yd", "bonus_rec_te"],
+  "proof_scope": "whole regular-season NFL week; all scheduled games must be complete and bind to source-complete PBP with exact actor coverage",
+  "required": [
+    "replay frozen source hashes before deriving certificates",
+    "game identities, season, week and teams match the complete raw schedule",
+    "PBP reaches zero remaining regulation time and reconciles final team scores",
+    "all core scoring-play actors and nonzero lateral-yardage actors have exact GSIS identity",
+    "all PBP player-ID fields are inspected, including non-scoring and deleted plays as conservative exclusions",
+    "published potentially scoring players are represented in PBP identities",
+    "fumble, lost-fumble and interception-TD event receipts remain EXACT_EVENT_READY",
+    "candidate has existing exact canonical roster and completed team-game evidence",
+    "candidate has no published player-stat row and no PBP actor occurrence anywhere in the NFL week"
+  ],
+  "blocked": [
+    "unknown or out-of-scope scoring rules",
+    "missing or ambiguous actor identity",
+    "incomplete, abandoned, missing or score-inconsistent games",
+    "absent player-week roster membership, including omitted bye memberships",
+    "roster status alone, name matching, adjacent-week team carry-forward, inferred transaction dates",
+    "overwriting any observed, incomplete numeric or existing complete outcome"
+  ],
+  "label_policy": "copy into a new population revision; append source certificate fields; only certified absent-event rows become CONFIRMED_SOURCE_NO_EVENT_ZERO",
+  "feature_policy": "preserve previously issued feature frames, models and forecasts byte-for-byte; do not invent raw opportunity inputs",
+  "evaluation_policy": "apply new exact targets to previously issued outer predictions; report old and newly observable cohorts separately; this is a post-selection stress audit, not fresh confirmation or retraining",
+  "activation_eligible": false,
+  "forecast_eligible": false,
+  "ranking_eligible": false,
+  "recommendation_eligible": false,
+  "transaction_eligible": false
+}
