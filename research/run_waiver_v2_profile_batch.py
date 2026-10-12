@@ -51,6 +51,8 @@ def run_batch(
     *, seasons: list[int], cache_dir: Path, profiles_root: Path, portfolio_overview: Path | None,
     output_dir: Path, player_stats_complete: bool, event_evidence: bool = True, participation_evidence: bool = False,
 ) -> dict[str, Any]:
+    if output_dir.exists():
+        raise ValueError('waiver-v2 batch output must be a new directory; preserve existing evidence and choose a new revision')
     groups = load_profile_groups(profiles_root, portfolio_overview)
     # Build/cache raw history only once. The first profile's ledger is retained
     # as source-run provenance; every profile gets its own ledger below.

@@ -10,9 +10,30 @@ import pandas as pd
 
 from waiver_v2_event_ledger import (
     EVENT_COLUMNS, EVENT_TYPES, build_e1_event_ledger, build_e2_event_ledger, build_e3_event_ledger, build_e4_event_ledger, build_e5_event_ledger, build_source_inventory,
-    validate_event_ledger, _canonical_resolver, _blocker_receipt,
+    validate_event_ledger, _canonical_resolver, _blocker_receipt, _confirmed_event_zeros,
 )
 from run_waiver_v2_historical_ledger import write_source_snapshot
+
+
+def test_confirmed_zero_population():
+    keys=['canonical_player_id','season','week']
+    population=pd.DataFrame([['published',2025,1],['existing',2025,1],['future',2025,2]],columns=keys)
+    weekly=pd.DataFrame([{'canonical_player_id':'existing','season':2025,'week':1,
+                         'event_fumbles':2,'event_fumbles_lost':None}])
+    supports={'fum':{'support_status':'EXACT_EVENT_READY'},
+              'fum_lost':{'support_status':'BLOCKED_RECONCILIATION_MISMATCH'}}
+    result=_confirmed_event_zeros(weekly,population,supports,pd.DataFrame([{'season':2025,'week':1}])).set_index('canonical_player_id')
+    assert result.loc['published','event_fumbles']==0
+    assert pd.isna(result.loc['published','event_fumbles_lost'])
+    assert result.loc['existing','event_fumbles']==2 and pd.isna(result.loc['existing','event_fumbles_lost'])
+    assert 'future' not in result.index and 'missing-player-stats' not in result.index
+    try:
+        _confirmed_event_zeros(weekly,pd.concat([population,population]),supports,pd.DataFrame([{'season':2025,'week':1}]))
+        raise AssertionError('Duplicate population accepted')
+    except ValueError:pass
+
+
+test_confirmed_zero_population()
 
 
 def source_rows() -> pd.DataFrame:
