@@ -141,6 +141,9 @@ def main():
  if a.mode=='personal': copy(port,out)
  else:
   base=json.loads(port.read_text(encoding='utf-8')) if port.exists() else {}; safe={k:v for k,v in base.items() if k not in {'sleeper_username','leagues'}};safe['sleeper_username']=None;safe['leagues']=[];out.write_text(json.dumps(safe,indent=2)+'\n', encoding='utf-8', newline='\n')
+ if a.mode=='personal':
+  for p in sorted((ROOT/'data/research/prospective/weekly-research-view').glob('*/week_*.json')):
+   copy(p,DIST/p.relative_to(ROOT))
  contracts=json.loads((ROOT/'config/contracts/runtime-contracts.json').read_text())
  leagues=ROOT/'data/research/leagues';current_entries=[];cache={}
  for extra in ['registry.json','portfolio-status.json']:

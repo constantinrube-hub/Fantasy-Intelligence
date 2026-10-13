@@ -1,0 +1,92 @@
+name: FIE Weekly Research Preparation Reusable
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        required: true
+        type: string
+      season:
+        required: false
+        type: string
+        default: '2026'
+      week:
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fie-week6-research-preparation
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r research/requirements.txt
+      - name: Validate frozen research and source boundaries without network
+        run: python research/integrity_week6_evidence_preparation_test.py
+      - name: Capture exact responses and prepare research evidence
+        env:
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_SEASON: ${{ inputs.season }}
+          INPUT_WEEK: ${{ inputs.week }}
+        shell: bash
+        run: |
+          args=(--season "$INPUT_SEASON" --mode "$INPUT_MODE")
+          [[ -z "$INPUT_WEEK" ]] || args+=(--week "$INPUT_WEEK")
+          python research/run_week6_research_preparation.py "${args[@]}"
+      - name: Commit only new immutable research outputs
+        shell: bash
+        run: |
+          git config user.name 'FIE Research Evidence Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- data/research/prospective/
+          python research/validate_week6_research_write_plan.py --ref "$GITHUB_REF"
+          if git diff --cached --quiet; then echo 'No new research artifacts'; exit 0; fi
+          git commit -m 'Prepare immutable FIE weekly research evidence'
+          git fetch origin main
+          git rebase origin/main
+          python research/validate_week6_research_write_plan.py --ref "$GITHUB_REF" --base origin/main
+          if git push origin HEAD:main; then exit 0; fi
+          git fetch origin main
+          git rebase origin/main
+          python research/validate_week6_research_write_plan.py --ref "$GITHUB_REF" --base origin/main
+          git push origin HEAD:main
+      - name: Record actual research readiness
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          python research/workflow_usability.py emit \
+            --workflow-path .github/workflows/_fie-week6-research-preparation.yml \
+            --workflow-name 'FIE Weekly Research Preparation' \
+            --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
+            --job-status "$JOB_STATUS" --adapter readiness-index \
+            --source-file .cache/week6-preparation-index.json
+      - name: Upload usability evidence
+        if: always() && hashFiles('.cache/fie-workflow-usability.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: fie-workflow-usability
+          path: .cache/fie-workflow-usability.json
+          retention-days: 21

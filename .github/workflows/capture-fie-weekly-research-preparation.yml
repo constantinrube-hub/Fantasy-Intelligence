@@ -1,0 +1,37 @@
+name: Capture FIE Weekly Research Preparation
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        required: false
+        default: '2026'
+        type: string
+      week:
+        description: Optional explicit upcoming NFL target week
+        required: false
+        type: string
+  schedule:
+    - cron: '13 7,11,15,19 * 9-12 2-4'
+      timezone: Europe/Berlin
+    - cron: '13 7,19 * 9-12 0,1,5,6'
+      timezone: Europe/Berlin
+    - cron: '13 7,11,15,19 1-11 1 *'
+      timezone: Europe/Berlin
+
+permissions:
+  contents: write
+
+jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: waivers
+  capture:
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/_fie-week6-research-preparation.yml
+    with:
+      mode: capture
+      season: ${{ inputs.season || '2026' }}
+      week: ${{ inputs.week || '' }}

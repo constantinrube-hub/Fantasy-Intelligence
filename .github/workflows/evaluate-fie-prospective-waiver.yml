@@ -1,0 +1,39 @@
+name: Evaluate FIE Prospective Three-Week Waiver Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        required: false
+        default: '2026'
+        type: string
+      week:
+        description: Optional upcoming source week; last completed week supplies outcomes
+        required: false
+        type: string
+  schedule:
+    - cron: '55 18 * 9-12 2'
+      timezone: Europe/Berlin
+    - cron: '55 8 * 9-12 3,4'
+      timezone: Europe/Berlin
+    - cron: '55 18 1-11 1 *'
+      timezone: Europe/Berlin
+    - cron: '55 8 1-11 1 *'
+      timezone: Europe/Berlin
+
+permissions:
+  contents: write
+
+jobs:
+  calendar:
+    uses: ./.github/workflows/_fie-calendar-policy.yml
+    with:
+      purpose: weekly_lineup_outcomes
+  evaluate:
+    needs: calendar
+    if: needs.calendar.outputs.allowed == 'true' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/_fie-week6-research-preparation.yml
+    with:
+      mode: evaluate
+      season: ${{ inputs.season || '2026' }}
+      week: ${{ inputs.week || '' }}

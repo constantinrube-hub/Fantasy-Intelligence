@@ -14,6 +14,8 @@ from workflow_calendar_control import CONTROLLER, REPOSITORY, apply, make_receip
 
 CALENDAR = json.loads(CONFIG.read_text())
 WRAPPERS = {
+    'capture-fie-weekly-research-preparation':'waivers',
+    'evaluate-fie-prospective-waiver':'weekly_lineup_outcomes',
     'build-fie-current': 'current_refresh',
     'build-fie-window1c-weekly-actions': 'weekly_actions',
     'build-fie-window1d-optimal-waiver': 'optimal_waiver',

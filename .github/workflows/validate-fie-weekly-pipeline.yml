@@ -12,6 +12,36 @@ on:
       - 'research/build_waiver_v2_label_batch.py'
       - 'research/integrity_waiver_v2_label_batch_test.py'
       - 'research/waiver_v2_validation.py'
+      - 'research/strict_kicker_source_components.py'
+      - 'research/capture_retrospective_auction_history.py'
+      - 'research/prepare_research_readiness_ledger.py'
+      - 'research/prepare_weekly_scenario_inputs.py'
+      - 'research/publish_weekly_research_view.py'
+      - 'research/integrity_week6_extended_evidence_test.py'
+      - 'research/validate_prospective_research_graph.py'
+      - 'app/core/weekly-research-evidence.js'
+      - 'research/integrity_weekly_research_view_test.js'
+      - 'research/prepare_weekly_model_outcomes.py'
+      - 'config/week6-evidence-preparation.json'
+      - 'docs/audits/WEEK6_OVERNIGHT_EVIDENCE_DESIGN_2026-10-13.md'
+      - 'research/capture_week6_research_sources.py'
+      - 'research/prospective_research_io.py'
+      - 'research/waiver_v2_prospective.py'
+      - 'research/prepare_live_waiver_history.py'
+      - 'research/capture_prospective_waiver.py'
+      - 'research/evaluate_prospective_waiver.py'
+      - 'research/prepare_weekly_report_products.py'
+      - 'research/prepare_weekly_research_context.py'
+      - 'research/prepare_league_research_evidence.py'
+      - 'research/freeze_specialist_strategy_choices.py'
+      - 'research/run_week6_research_preparation.py'
+      - 'research/validate_week6_research_write_plan.py'
+      - 'research/integrity_week6_evidence_preparation_test.py'
+      - 'data/research/prospective/waiver-v2/locks/2026/revision-1/model-lock.json'
+      - '.github/workflows/capture-fie-weekly-research-preparation.yml'
+      - '.github/workflows/evaluate-fie-prospective-waiver.yml'
+      - '.github/workflows/_fie-week6-research-preparation.yml'
+      - 'data/research/prospective/waiver-v2/locks/**'
       - 'research/waiver_v2_population.py'
       - 'research/waiver_v2_corrected_challenger.py'
       - 'research/validate_waiver_v2_population.py'
@@ -140,6 +170,10 @@ jobs:
           python research/integrity_waiver_v2_label_batch_test.py
           python research/integrity_waiver_v2_validation_test.py
           python research/integrity_waiver_v2_population_test.py
+          python research/integrity_week6_evidence_preparation_test.py
+          python research/integrity_week6_extended_evidence_test.py
+          node research/integrity_weekly_research_view_test.js
+          python research/waiver_v2_prospective.py --replay-lock data/research/prospective/waiver-v2/locks/2026/revision-1/model-lock.json
           python research/integrity_weekly_m10_outcome_review_test.py
           python research/integrity_m10_frozen_profile_snapshot_test.py
           python research/integrity_m10_prospective_r8c_workflow_test.py

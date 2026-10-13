@@ -12,6 +12,7 @@ def normalize_deployment_code(root:Path=ROOT)->None:
  paths.update(p for p in (root/'app').rglob('*') if p.is_file() and p.suffix in {'.js','.css'})
  # These are mutable source/config components, never captured research data.
  for rel in COMPONENTS.values():
+  if rel.startswith('data/research/prospective/waiver-v2/locks/'):continue
   if rel not in {'index.html','_headers'} and not rel.startswith(('app/','config/','research/','tools/','docs/audits/','.github/workflows/')):
    raise ValueError(f'Unexpected build-manifest input namespace: {rel}')
   paths.add(root/rel)
