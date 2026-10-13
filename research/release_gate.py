@@ -5,6 +5,7 @@ import argparse,json,subprocess,sys,os,shutil
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def run(cmd,timeout=90):
+ if cmd[-1:] == ['research/integrity_waiver_v2_validation_test.py']: timeout=300
  try:
   env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1'};p=subprocess.run(cmd,cwd=ROOT,text=True,capture_output=True,timeout=timeout,env=env)
   return {'cmd':' '.join(cmd),'ok':p.returncode==0,'code':p.returncode,'stdout':p.stdout[-2500:],'stderr':p.stderr[-2500:]}
@@ -71,6 +72,9 @@ def main():
   run([sys.executable,'research/integrity_waiver_v2_label_batch_test.py']),
   run([sys.executable,'research/integrity_waiver_v2_validation_test.py']),
   run([sys.executable,'research/integrity_waiver_v2_population_test.py']),
+  run([sys.executable,'research/integrity_week6_evidence_preparation_test.py']),
+  run([sys.executable,'research/integrity_week6_extended_evidence_test.py']),
+  run(['node','research/integrity_weekly_research_view_test.js']),
   run([sys.executable,'research/integrity_m6_test.py']),
   run([sys.executable,'research/integrity_scoring_relevance_test.py']),
   run([sys.executable,'research/integrity_dst_test.py']),

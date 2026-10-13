@@ -353,6 +353,8 @@ tbody tr:hover{background:#162a45}
   <div id="labOverviewPanel" class="card intel-panel">
     <div class="eyebrow">Research / Lab · evidence only</div><h2 style="margin:4px 0 5px">Evidence, validation and model governance</h2>
     <div class="subtitle">One starting point for league-scoped research evidence, historical validation, decision-integration review and production data health. Research does not calculate or replace League Rank or Decision Rank.</div>
+    <button class="btn ghost" data-weekly-research-evidence>Inspect prospective weekly evidence</button>
+    <div id="weeklyResearchEvidence" role="status" aria-live="polite"></div>
     <div id="labFreshnessSummary" class="lab-freshness unknown"><b>Freshness unknown</b><span>Load a league to inspect its current research snapshot.</span></div>
     <div class="lab-overview-grid">
       <section class="lab-group"><div class="filter-label">Evidence &amp; validation</div><h3>League Research Report</h3><div class="subtitle">A league-scoped summary of model evidence, outliers and research-only position results.</div><div class="lab-actions"><button class="btn primary" data-fie-research-report>Open League Report</button><button class="btn ghost" data-lab-tab="validation">Validation</button></div></section>
@@ -2123,6 +2125,7 @@ window.FIE89=CORE;
 <script src="app/core/draft-value-service.js"></script>
 <script src="app/core/data-client.js"></script>
 <script src="app/core/research-lab-ux.js"></script>
+<script src="app/core/weekly-research-evidence.js"></script>
 <script src="app/runtime-foundation.js?v=932-season-namespace-fix"></script>
 <script src="app/league-context.js"></script>
 <script src="app/current-snapshot-store.js"></script>

@@ -1,0 +1,24 @@
+'use strict';
+const assert=require('assert'),fs=require('fs'),vm=require('vm');
+const events={},host={innerHTML:'',textContent:''};
+const scoring={xpm:1};
+const window={state:{league:{league_id:'1',scoring_settings:scoring}},FIE_M5:{getCurrentBundle:()=>({season:2026,week:6,scoring_signature:'sig'})},addEventListener:(n,f)=>events[n]=f};
+const document={getElementById:()=>host,addEventListener:()=>{}};
+vm.runInNewContext(fs.readFileSync('app/core/weekly-research-evidence.js','utf8'),{window,document,Date,console});
+const api=window.FIEWeeklyResearchEvidence,flags={activation_eligible:false,forecast_eligible:false,ranking_eligible:false,recommendation_eligible:false,transaction_eligible:false};
+const at='2026-10-12T22:00:00Z';
+const league={league_id:'1',season:2026,week:6,scoring_signature:'sig',observed_at:at,status:'RESEARCH',forecast_observed_at:at,first_kickoff:'2026-10-16T00:15:00Z',baseline_id:'SAME_CUTOFF_FP_PRIOR_4',sleeper_comparison:false,actual_adoption:'UNKNOWN',forecasts:[{canonical_player_id:'<script>',position:'QB',forecast_mean:null,baseline_mean:0,confidence:null,status:'BLOCKED'}],...flags};
+const value={schema:'fie-weekly-research-view-v1',pointer_replaceable:true,season:2026,week:6,target_weeks:[6,7,8],generated_at:at,bindings:{},leagues:[league],...flags};
+const c={leagueId:'1',season:2026,week:6,signature:'sig'},core={league_id:'1',scoring_signature:'sig',sleeper:{league:{scoring_settings:scoring}}};
+assert.equal(api.validate(value,c,core).league_id,'1');
+for(const bad of [{...value,week:5},{...value,target_weeks:[6,8,9]},{...value,forecast_eligible:true},{...value,leagues:[{...league,scoring_signature:'other'}]},{...value,leagues:[{...league,forecast_observed_at:league.first_kickoff}]}])assert.throws(()=>api.validate(bad,c,core));
+assert(api.render(league).includes('&lt;script&gt;'));assert(api.render(league).includes('<td>—</td>'));assert(!api.render(league).includes('<script>'));
+(async()=>{
+ const calls=[];window.FIEDataClient={json:async(path,opts)=>{calls.push({path,opts});return path.includes('/app/core')?core:value;}};
+ assert.equal((await api.load()).league_id,'1');assert(calls.every(c=>c.opts.cache==='no-store'&&c.opts.persist===false));
+ let resolve;window.FIEDataClient={json:async path=>path.includes('/app/core')?core:await new Promise(r=>resolve=r)};
+ const pending=api.load();window.state.league.league_id='2';events['fie:league-changing']();window.state.league.league_id='1';events['fie:league-changing']();resolve(value);
+ assert.equal(await pending,null);assert.equal(host.innerHTML,'');
+ const pending2=api.load();window.FIE_M5.getCurrentBundle=()=>({season:2026,week:7,scoring_signature:'sig'});resolve(value);assert.equal(await pending2,null);
+ console.log('PASS weekly read-only research view: context, horizon, authority, null, HTML and A/B/A/week stale transport');
+})().catch(e=>{console.error(e);process.exit(1);});
