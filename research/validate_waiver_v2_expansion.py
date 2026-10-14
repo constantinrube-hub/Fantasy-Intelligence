@@ -53,7 +53,15 @@ def validate(root,full=True,unit_key=None,replay_models=True):
             from waiver_v2_outcomes import _score_exact_row
             scoring=json.loads(verified(root,art['scoring'],at).read_text())['scoring_settings'];rebuilt,_,_=profile_outcomes(*source_args,scoring)
             cols=KEYS+['position_model','team','outcome_complete','exact_scoring','fantasy_points_exact','target_only_row']
-            pd.testing.assert_frame_equal(outcomes[cols],rebuilt[cols],check_dtype=False,check_exact=False,rtol=1e-10,atol=1e-10)
+            # CSV and reconstructed text columns can use different null representations.
+            comparison_left = outcomes[cols].copy()
+            comparison_right = rebuilt[cols].copy()
+            for column in ('position_model', 'team'):
+                for comparison in (comparison_left, comparison_right):
+                    comparison[column] = comparison[column].astype(object).where(
+                        comparison[column].notna(), np.nan
+                    )
+            pd.testing.assert_frame_equal(comparison_left,comparison_right,check_dtype=False,check_exact=False,rtol=1e-10,atol=1e-10)
             complete=rebuilt[rebuilt.outcome_complete&rebuilt.outcome_status.isin(['COMPLETE_EXACT','COMPLETE_PUBLISHED_SOURCE_WITHOUT_ROSTER'])]
             check=complete[KEYS+['position_model','fantasy_points_exact']].merge(published,on=KEYS,how='left',validate='one_to_one')
             scalar=check.apply(lambda r:_score_exact_row(r,scoring,str(r.position_model)),axis=1).to_numpy(float)

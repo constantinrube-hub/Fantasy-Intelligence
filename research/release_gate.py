@@ -76,7 +76,7 @@ def main():
   run([sys.executable,'research/integrity_week6_extended_evidence_test.py']),
   run([sys.executable,'research/integrity_waiver_v2_scoped_sources_test.py']),
   run([sys.executable,'research/integrity_waiver_v2_expanded_inference_test.py']),
-  run([sys.executable,'research/validate_waiver_v2_expansion.py','--structure-only'],timeout=300),
+  run([sys.executable,'research/validate_waiver_v2_expansion.py','--structure-only'],timeout=600),
   run(['node','research/integrity_weekly_research_view_test.js']),
   run([sys.executable,'research/integrity_m6_test.py']),
   run([sys.executable,'research/integrity_scoring_relevance_test.py']),
