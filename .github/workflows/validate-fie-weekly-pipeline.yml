@@ -12,6 +12,14 @@ on:
       - 'research/build_waiver_v2_label_batch.py'
       - 'research/integrity_waiver_v2_label_batch_test.py'
       - 'research/waiver_v2_validation.py'
+      - 'research/waiver_v2_scoped_sources.py'
+      - 'research/build_waiver_v2_expansion.py'
+      - 'research/archive_waiver_expansion_sources.py'
+      - 'research/waiver_v2_expanded_runtime.py'
+      - 'research/validate_waiver_v2_expansion.py'
+      - 'config/waiver-v2-expanded-*.json'
+      - 'data/research/waiver-expanded/**'
+      - 'data/research/prospective/waiver-expanded/**'
       - 'research/strict_kicker_source_components.py'
       - 'research/capture_retrospective_auction_history.py'
       - 'research/prepare_research_readiness_ledger.py'
@@ -149,7 +157,12 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -172,6 +185,9 @@ jobs:
           python research/integrity_waiver_v2_population_test.py
           python research/integrity_week6_evidence_preparation_test.py
           python research/integrity_week6_extended_evidence_test.py
+          python research/integrity_waiver_v2_scoped_sources_test.py
+          python research/integrity_waiver_v2_expanded_inference_test.py
+          python research/validate_waiver_v2_expansion.py
           node research/integrity_weekly_research_view_test.js
           python research/waiver_v2_prospective.py --replay-lock data/research/prospective/waiver-v2/locks/2026/revision-1/model-lock.json
           python research/integrity_weekly_m10_outcome_review_test.py

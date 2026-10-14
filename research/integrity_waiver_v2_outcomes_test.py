@@ -32,16 +32,23 @@ e2_rb = build_offensive_scoring_inventory({"bonus_rush_td_qb": -2}, position="RB
 assert e2_rb["exact_replay_eligible"] and e2_rb["ignored_irrelevant_keys"] == ["bonus_rush_td_qb"]
 
 # E4 return-yard rules require their own event columns and green independent
-# PBP/player-week reconciliation.  A blocked field-goal-return family cannot
-# be made exact merely because kickoff/punt values are available.
+# PBP/player-week reconciliation. Field-goal returns belong to team defense;
+# their unresolved source receipt must not block individual offensive scoring.
 e4_columns = event_columns | {"event_kick_return_yards", "event_punt_return_yards", "event_field_goal_return_yards"}
 e4_support = {**event_support, "kr_yd": {"support_status": "EXACT_EVENT_READY", "reason": "fixture"},
               "pr_yd": {"support_status": "EXACT_EVENT_READY", "reason": "fixture"},
               "fg_ret_yd": {"support_status": "BLOCKED_SOURCE_INCOMPLETE", "reason": "no direct role"}}
 e4_wr = build_offensive_scoring_inventory({"kr_yd": 0.01, "pr_yd": 0.02}, position="WR", available_columns=e4_columns, event_rule_support=e4_support)
 assert e4_wr["exact_replay_eligible"] and set(e4_wr["supported_keys"]) == {"kr_yd", "pr_yd"}
-e4_fg = build_offensive_scoring_inventory({"fg_ret_yd": 0.01}, position="WR", available_columns=e4_columns, event_rule_support=e4_support)
-assert not e4_fg["exact_replay_eligible"] and e4_fg["blocked_keys"][0]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
+from scoring_relevance import position_relevant
+for offensive_position in ("QB", "RB", "WR", "TE"):
+    e4_fg = build_offensive_scoring_inventory({"fg_ret_yd": 0.01}, position=offensive_position, available_columns=e4_columns, event_rule_support=e4_support)
+    assert e4_fg["exact_replay_eligible"] and e4_fg["ignored_irrelevant_keys"] == ["fg_ret_yd"]
+assert position_relevant("fg_ret_yd", "DEF")
+assert e4_support["fg_ret_yd"]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
+blocked_return = build_offensive_scoring_inventory({"kr_yd": 0.01}, position="WR", available_columns=e4_columns, event_rule_support={**e4_support, "kr_yd": {"support_status": "BLOCKED_SOURCE_INCOMPLETE", "reason": "unreconciled"}})
+assert not blocked_return["exact_replay_eligible"]
+assert blocked_return["blocked_keys"][0]["support_status"] == "BLOCKED_SOURCE_INCOMPLETE"
 
 # E5's long-play counters are individual event counts, so 50-yard touchdown
 # rules can stack with their matching 40-yard rules and never use weekly yards

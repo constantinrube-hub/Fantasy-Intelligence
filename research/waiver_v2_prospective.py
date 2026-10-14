@@ -116,7 +116,7 @@ def replay_lock(root,path):
     return lock
 
 
-def current_features(history, stats, universe, season, completed_week, position, signature=None):
+def current_features(history, stats, universe, season, completed_week, position, signature=None, contract=None):
     """The decision universe is observed now; source history ends at W."""
     if completed_week<1 or completed_week+3>18:
         raise ValueError('WAIVER_CAPTURE_FULL_HORIZON_REQUIRED')
@@ -140,20 +140,30 @@ def current_features(history, stats, universe, season, completed_week, position,
         else:
             history=pd.concat([history,pd.DataFrame([{**player,'season':season,'week':completed_week,
                             'scoring_signature':signature,'fantasy_points_exact':np.nan,'outcome_complete':False,'exact_scoring':False}])],ignore_index=True)
-    frame=features(history,stats,position)
+    frame=features(history,stats,position,contract)
     allowed={r['canonical_player_id'] for r in universe if r['position_model']==position}
     return frame[(frame.week==completed_week)&frame.canonical_player_id.isin(allowed)].copy()
 
 
-def forecast(lock, signature, history, stats, universe, *, season, completed_week, captured_at, first_kickoff):
+def forecast(lock, signature, history, stats, universe, *, season, completed_week, captured_at, first_kickoff, additional_methodology=None):
+    contract=policy()
+    if additional_methodology is not None:
+        if lock.get("schema")!="fie-waiver-v2-expanded-lock-v1" or lock.get("parameters_selected_from_2026") is not False:
+            raise ValueError("WAIVER_ADDITIONAL_LOCK_BOUNDARY")
+        for key in ["activation_eligible","forecast_eligible","ranking_eligible","recommendation_eligible","transaction_eligible"]:
+            if lock.get(key) is not False:raise ValueError("WAIVER_ADDITIONAL_AUTHORITY")
+        for key in contract:
+            if key not in {"schema","status","signatures","uncertainty"} and additional_methodology.get(key)!=contract[key]:
+                raise ValueError("WAIVER_ADDITIONAL_NUMERICAL_METHOD_DRIFT")
+        contract=additional_methodology
     if season!=lock['season'] or not clock(lock['frozen_at'])<=clock(captured_at)<clock(first_kickoff):
         raise ValueError('WAIVER_CAPTURE_LOCK_OR_PREGAME_TIME')
-    if signature not in policy()['signatures']:
+    if signature not in contract['signatures']:
         raise ValueError('WAIVER_CAPTURE_UNSUPPORTED_SIGNATURE')
     result=[]
-    for position in policy()['positions']:
+    for position in contract['positions']:
         unit=next(u for u in lock['units'] if (u['scoring_signature'],u['position'])==(signature,position))
-        frame=current_features(history,stats,universe,season,completed_week,position,signature)
+        frame=current_features(history,stats,universe,season,completed_week,position,signature,contract)
         values=predict(unit['model'],frame) if unit['model'] else np.full(len(frame),np.nan)
         for (_,row),value in zip(frame.iterrows(),values):
             base=float(row.fp_prior_4) if np.isfinite(row.fp_prior_4) else None

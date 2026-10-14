@@ -10,7 +10,7 @@ from publish_weekly_research_view import validate as validate_view
 def validate(root):
     base=root/'data/research/prospective';count=0;raw=0
     for path in sorted(base.rglob('*.json')):
-        if not any(part in path.parts for part in ['weekly-sources','waiver-v2','auction-history','weekly-preparation','weekly-research-view','specialist-strategies']):continue
+        if not any(part in path.parts for part in ['weekly-sources','waiver-v2','waiver-expanded','auction-history','weekly-preparation','weekly-research-view','specialist-strategies']):continue
         value=json.loads(path.read_text())
         if not isinstance(value,dict):continue
         at=value.get('captured_at') or value.get('generated_at') or value.get('prepared_at') or value.get('completed_at') or value.get('observed_at')

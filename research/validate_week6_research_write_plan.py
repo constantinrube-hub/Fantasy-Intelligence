@@ -3,7 +3,7 @@ import argparse
 from pathlib import PurePosixPath
 import subprocess
 
-PREFIXES=('data/research/prospective/weekly-sources/','data/research/prospective/waiver-v2/history/',
+PREFIXES=('data/research/prospective/waiver-expanded/history/','data/research/prospective/waiver-expanded/forecasts/','data/research/prospective/waiver-expanded/outcomes/','data/research/prospective/weekly-sources/','data/research/prospective/waiver-v2/history/',
           'data/research/prospective/waiver-v2/forecasts/','data/research/prospective/waiver-v2/outcomes/',
           'data/research/prospective/weekly-preparation/','data/research/prospective/report-preparation/',
           'data/research/prospective/football-context/','data/research/prospective/league-evidence/',

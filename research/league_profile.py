@@ -7,6 +7,7 @@ before installing or running the heavier research stack.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 import re
@@ -110,13 +111,16 @@ def roster_evolution_status(profile: Dict[str, Any], live_positions: list[Any] |
     if not isinstance(plan, dict) or str(plan.get("season")) != str(season):
         return {"configured": False, "recognized": False, "live_roster_positions": live}
     additions = plan.get("weekly_additions") or {}
-    stages = [{"stage": 0, "through_week": 0, "roster_positions": base, "added_slots": []}]
+    anchor = int(plan.get("base_through_week", 0))
+    if isinstance(plan.get("base_through_week"), bool) or not 0 <= anchor <= 16: raise ValueError("ROSTER_EVOLUTION_ANCHOR_INVALID")
+    stages = [{"stage": 0, "through_week": anchor, "roster_positions": base, "added_slots": []}]
     current = list(base)
     for raw_week, slots in sorted(additions.items(), key=lambda item: int(item[0])):
+        if int(raw_week) <= anchor: continue
         current = current + [str(slot).upper() for slot in (slots or [])]
         stages.append({"stage": len(stages), "through_week": int(raw_week), "roster_positions": list(current), "added_slots": [str(slot).upper() for slot in (slots or [])]})
     normalized_live = [str(slot).upper() for slot in live]
-    match = next((item for item in stages if item["roster_positions"] == normalized_live), None)
+    match = next((item for item in stages if Counter(item["roster_positions"]) == Counter(normalized_live) and item["through_week"] <= int(week or 0)), None)
     target_week = int(week or 0)
     scheduled_stage = max((item["stage"] for item in stages if item["through_week"] <= target_week), default=0)
     next_stage = next((item for item in stages if item["stage"] == ((match or {"stage": 0})["stage"] + 1)), None)
@@ -127,6 +131,7 @@ def roster_evolution_status(profile: Dict[str, Any], live_positions: list[Any] |
         "season": int(plan["season"]),
         "application_weekday": plan["application_weekday"],
         "season_complete_week": int(plan["season_complete_week"]),
+        "base_through_week": anchor,
         "target_week": target_week,
         "matched_stage": match["stage"] if match else None,
         "matched_through_week": match["through_week"] if match else None,

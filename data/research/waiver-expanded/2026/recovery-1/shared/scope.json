@@ -1,0 +1,924 @@
+{
+  "effective_support": {
+    "bonus_rush_td_qb": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "fg_ret_yd": {
+      "reason": "no dedicated individual field-goal returner ID is confirmed in the canonical PBP schema",
+      "required_columns": [],
+      "support_status": "BLOCKED_SOURCE_INCOMPLETE"
+    },
+    "fum": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "fum_lost": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "fum_rec_td": {
+      "reason": "Scoped rows only; uncertain observations retain null components",
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "kr_yd": {
+      "reason": "Scoped rows only; uncertain observations retain null components",
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_cmp_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_int_td": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_sack": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_td_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_td_50p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pr_yd": {
+      "reason": "Scoped rows only; uncertain observations retain null components",
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rec_40p": {
+      "reason": "Scoped rows only; uncertain observations retain null components",
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rec_td_40p": {
+      "reason": "Scoped rows only; uncertain observations retain null components",
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rec_td_50p": {
+      "reason": "Scoped rows only; uncertain observations retain null components",
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rush_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rush_td_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rush_td_50p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_ff": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_fum_rec": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_td": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    }
+  },
+  "exclusions": [
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2021_02_LA_IND",
+      "play_id": "2679.0",
+      "reason": "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership",
+      "rule": "fum_rec_td",
+      "season": 2021,
+      "week": 2
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2022_06_SF_ATL",
+      "play_id": "690.0",
+      "reason": "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership",
+      "rule": "fum_rec_td",
+      "season": 2022,
+      "week": 6
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2023_01_JAX_IND",
+      "play_id": "3108.0",
+      "reason": "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership",
+      "rule": "fum_rec_td",
+      "season": 2023,
+      "week": 1
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2024_11_HOU_DAL",
+      "play_id": "3780.0",
+      "reason": "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership",
+      "rule": "fum_rec_td",
+      "season": 2024,
+      "week": 11
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2018_05_NYG_CAR",
+      "play_id": "4281.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 5
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2018_13_MIN_NE",
+      "play_id": "1876.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 13
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2018_17_IND_TEN",
+      "play_id": "36.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 17
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2021_02_KC_BAL",
+      "play_id": "2060.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 2
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2021_09_LAC_PHI",
+      "play_id": "3779.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 9
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2021_14_SEA_HOU",
+      "play_id": "1778.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 14
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2022_15_TEN_LAC",
+      "play_id": "4022.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2022,
+      "week": 15
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2023_18_HOU_IND",
+      "play_id": "4102.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2023,
+      "week": 18
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2024_04_NO_ATL",
+      "play_id": "4407.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 4
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2024_16_PHI_WAS",
+      "play_id": "4792.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 16
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2024_18_CHI_GB",
+      "play_id": "4036.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 18
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2018_06_JAX_DAL",
+      "play_id": "2172.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "pr_yd",
+      "season": 2018,
+      "week": 6
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2022_11_LA_NO",
+      "play_id": "3458.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "rule": "pr_yd",
+      "season": 2022,
+      "week": 11
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2018_14_NE_MIA",
+      "play_id": "4172.0",
+      "reason": "lateral receiving yards lack exact player-week aggregate reconciliation",
+      "rule": "rec_40p",
+      "season": 2018,
+      "week": 14
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2018_14_PIT_OAK",
+      "play_id": "4221.0",
+      "reason": "lateral receiving yards lack exact player-week aggregate reconciliation",
+      "rule": "rec_40p",
+      "season": 2018,
+      "week": 14
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2024_17_DET_SF",
+      "play_id": "1168.0",
+      "reason": "lateral receiving yards lack exact player-week aggregate reconciliation",
+      "rule": "rec_40p",
+      "season": 2024,
+      "week": 17
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2018_14_NE_MIA",
+      "play_id": "4172.0",
+      "reason": "lateral touchdown yards lack exact player-week aggregate reconciliation",
+      "rule": "rec_td_40p",
+      "season": 2018,
+      "week": 14
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2024_17_DET_SF",
+      "play_id": "1168.0",
+      "reason": "lateral touchdown yards lack exact player-week aggregate reconciliation",
+      "rule": "rec_td_40p",
+      "season": 2024,
+      "week": 17
+    },
+    {
+      "basis": "UNRESOLVED_EVENT_BOTH_GAME_TEAMS",
+      "canonical_player_id": null,
+      "game_id": "2018_14_NE_MIA",
+      "play_id": "4172.0",
+      "reason": "lateral touchdown yards lack exact player-week aggregate reconciliation",
+      "rule": "rec_td_50p",
+      "season": 2018,
+      "week": 14
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0030578",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 13
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0031235",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 5
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0031972",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 17
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0032385",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 5
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0032464",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2022,
+      "week": 12
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0032813",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 5
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0033733",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 9
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0033948",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 4
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0034278",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 14
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0034297",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 2
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0034377",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 16
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0034389",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2018,
+      "week": 17
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0034488",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 14
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0035140",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 2
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0036252",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2023,
+      "week": 18
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0036398",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2021,
+      "week": 9
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0036919",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 16
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0037129",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 18
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0037545",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 4
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0037594",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2022,
+      "week": 15
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0038941",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2024,
+      "week": 18
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0038997",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "kr_yd",
+      "season": 2023,
+      "week": 18
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0033055",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "pr_yd",
+      "season": 2022,
+      "week": 11
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0034646",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "pr_yd",
+      "season": 2022,
+      "week": 11
+    },
+    {
+      "basis": "RETURN_AGGREGATE_MISMATCH_OR_MISSING",
+      "canonical_player_id": "00-0034777",
+      "game_id": null,
+      "play_id": null,
+      "reason": "Exact PBP/player-week return reconciliation failed",
+      "rule": "pr_yd",
+      "season": 2018,
+      "week": 6
+    }
+  ],
+  "original_support": {
+    "bonus_rush_td_qb": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "fg_ret_yd": {
+      "reason": "no dedicated individual field-goal returner ID is confirmed in the canonical PBP schema",
+      "required_columns": [],
+      "support_status": "BLOCKED_SOURCE_INCOMPLETE"
+    },
+    "fum": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "fum_lost": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "fum_rec_td": {
+      "reason": "4 fumble_recovery_td PBP events lack exact scoring attribution",
+      "required_columns": [],
+      "support_status": "BLOCKED_EVENT_SEMANTICS"
+    },
+    "kr_yd": {
+      "reason": "11 kick_return_yards PBP events lack exact player-attributed return yards",
+      "required_columns": [],
+      "support_status": "BLOCKED_EVENT_SEMANTICS"
+    },
+    "pass_cmp_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_int_td": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_sack": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_td_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_td_50p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pr_yd": {
+      "reason": "2 punt_return_yards PBP events lack exact player-attributed return yards",
+      "required_columns": [],
+      "support_status": "BLOCKED_EVENT_SEMANTICS"
+    },
+    "rec_40p": {
+      "reason": "3 reception_40 PBP events lack exact long-play scoring attribution",
+      "required_columns": [],
+      "support_status": "BLOCKED_RECONCILIATION_MISMATCH"
+    },
+    "rec_td_40p": {
+      "reason": "2 reception_td_40 PBP events lack exact long-play scoring attribution",
+      "required_columns": [],
+      "support_status": "BLOCKED_RECONCILIATION_MISMATCH"
+    },
+    "rec_td_50p": {
+      "reason": "1 reception_td_50 PBP events lack exact long-play scoring attribution",
+      "required_columns": [],
+      "support_status": "BLOCKED_RECONCILIATION_MISMATCH"
+    },
+    "rush_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rush_td_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rush_td_50p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_ff": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_fum_rec": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_td": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    }
+  },
+  "raw_blockers": [
+    {
+      "event_type": "fumble_recovery_td",
+      "game_id": "2021_02_LA_IND",
+      "phase": "E3",
+      "play_id": "2679.0",
+      "reason": "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership",
+      "season": 2021,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 2
+    },
+    {
+      "event_type": "fumble_recovery_td",
+      "game_id": "2022_06_SF_ATL",
+      "phase": "E3",
+      "play_id": "690.0",
+      "reason": "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership",
+      "season": 2022,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 6
+    },
+    {
+      "event_type": "fumble_recovery_td",
+      "game_id": "2023_01_JAX_IND",
+      "phase": "E3",
+      "play_id": "3108.0",
+      "reason": "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership",
+      "season": 2023,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 1
+    },
+    {
+      "event_type": "fumble_recovery_td",
+      "game_id": "2024_11_HOU_DAL",
+      "phase": "E3",
+      "play_id": "3780.0",
+      "reason": "multiple PBP fumble recoveries prevent exact recovery-touchdown ownership",
+      "season": 2024,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 11
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2018_05_NYG_CAR",
+      "phase": "E4",
+      "play_id": "4281.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2018,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 5
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2018_13_MIN_NE",
+      "phase": "E4",
+      "play_id": "1876.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2018,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 13
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2018_17_IND_TEN",
+      "phase": "E4",
+      "play_id": "36.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2018,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 17
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2021_02_KC_BAL",
+      "phase": "E4",
+      "play_id": "2060.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2021,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 2
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2021_09_LAC_PHI",
+      "phase": "E4",
+      "play_id": "3779.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2021,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 9
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2021_14_SEA_HOU",
+      "phase": "E4",
+      "play_id": "1778.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2021,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 14
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2022_15_TEN_LAC",
+      "phase": "E4",
+      "play_id": "4022.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2022,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 15
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2023_18_HOU_IND",
+      "phase": "E4",
+      "play_id": "4102.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2023,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 18
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2024_04_NO_ATL",
+      "phase": "E4",
+      "play_id": "4407.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2024,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 4
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2024_16_PHI_WAS",
+      "phase": "E4",
+      "play_id": "4792.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2024,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 16
+    },
+    {
+      "event_type": "kick_return_yards",
+      "game_id": "2024_18_CHI_GB",
+      "phase": "E4",
+      "play_id": "4036.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2024,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 18
+    },
+    {
+      "event_type": "punt_return_yards",
+      "game_id": "2018_06_JAX_DAL",
+      "phase": "E4",
+      "play_id": "2172.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2018,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 6
+    },
+    {
+      "event_type": "punt_return_yards",
+      "game_id": "2022_11_LA_NO",
+      "phase": "E4",
+      "play_id": "3458.0",
+      "reason": "non-zero lateral return lacks player-attributed yardage split",
+      "season": 2022,
+      "status": "BLOCKED_EVENT_SEMANTICS",
+      "week": 11
+    },
+    {
+      "event_type": "reception_40",
+      "game_id": "2018_14_NE_MIA",
+      "phase": "E5",
+      "play_id": "4172.0",
+      "reason": "lateral receiving yards lack exact player-week aggregate reconciliation",
+      "season": 2018,
+      "status": "BLOCKED_RECONCILIATION_MISMATCH",
+      "week": 14
+    },
+    {
+      "event_type": "reception_40",
+      "game_id": "2018_14_PIT_OAK",
+      "phase": "E5",
+      "play_id": "4221.0",
+      "reason": "lateral receiving yards lack exact player-week aggregate reconciliation",
+      "season": 2018,
+      "status": "BLOCKED_RECONCILIATION_MISMATCH",
+      "week": 14
+    },
+    {
+      "event_type": "reception_40",
+      "game_id": "2024_17_DET_SF",
+      "phase": "E5",
+      "play_id": "1168.0",
+      "reason": "lateral receiving yards lack exact player-week aggregate reconciliation",
+      "season": 2024,
+      "status": "BLOCKED_RECONCILIATION_MISMATCH",
+      "week": 17
+    },
+    {
+      "event_type": "reception_td_40",
+      "game_id": "2018_14_NE_MIA",
+      "phase": "E5",
+      "play_id": "4172.0",
+      "reason": "lateral touchdown yards lack exact player-week aggregate reconciliation",
+      "season": 2018,
+      "status": "BLOCKED_RECONCILIATION_MISMATCH",
+      "week": 14
+    },
+    {
+      "event_type": "reception_td_50",
+      "game_id": "2018_14_NE_MIA",
+      "phase": "E5",
+      "play_id": "4172.0",
+      "reason": "lateral touchdown yards lack exact player-week aggregate reconciliation",
+      "season": 2018,
+      "status": "BLOCKED_RECONCILIATION_MISMATCH",
+      "week": 14
+    },
+    {
+      "event_type": "reception_td_40",
+      "game_id": "2024_17_DET_SF",
+      "phase": "E5",
+      "play_id": "1168.0",
+      "reason": "lateral touchdown yards lack exact player-week aggregate reconciliation",
+      "season": 2024,
+      "status": "BLOCKED_RECONCILIATION_MISMATCH",
+      "week": 17
+    }
+  ]
+}

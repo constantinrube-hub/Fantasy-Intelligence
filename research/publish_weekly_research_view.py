@@ -30,7 +30,7 @@ def validate(value,root=None):
     return value
 
 
-def publish(root,envelope,capture_path=None,readiness=None):
+def publish(root,envelope,capture_path=None,readiness=None,expanded_capture_path=None,expanded_readiness=None):
     source=validate_manifest(root,envelope);at=now();capture=None
     refs={'source_envelope':binding(root,envelope,source['captured_at'])}
     if capture_path and capture_path.is_file():
@@ -39,6 +39,14 @@ def publish(root,envelope,capture_path=None,readiness=None):
         if any(capture.get(k) is not False for k in gates([]) if k.endswith('_eligible')):raise ValueError('RESEARCH_VIEW_CAPTURE_AUTHORITY')
         for ref in capture['bindings'].values():verified(root,ref,capture['captured_at'])
         refs['capture']=binding(root,capture_path,capture['captured_at'])
+    expanded=None
+    if expanded_capture_path and expanded_capture_path.is_file():
+        expanded=json.loads(expanded_capture_path.read_text())
+        if expanded.get('scope')!='ADDITIONAL_COMPONENT_SCOPED' or (expanded['season'],expanded['week'])!=(source['season'],source['week']):raise ValueError('RESEARCH_VIEW_EXPANDED_CONTEXT')
+        if any(expanded.get(k) is not False for k in gates([]) if k.endswith('_eligible')):raise ValueError('RESEARCH_VIEW_EXPANDED_AUTHORITY')
+        for ref in expanded['bindings'].values():verified(root,ref,expanded['captured_at'])
+        refs['expanded_capture']=binding(root,expanded_capture_path,expanded['captured_at'])
+    portfolio=json.loads((root/'config/league-portfolio.json').read_text()) if (root/'config/league-portfolio.json').exists() else {'leagues':[]}
     leagues=[]
     for lid in source['league_ids']:
         items=[r for r in source['responses'] if r.get('league_id')==lid and r.get('role')=='profile']
@@ -46,14 +54,18 @@ def publish(root,envelope,capture_path=None,readiness=None):
         profile=json.loads(replay_response(root,items[0],source['captured_at']))
         if str(profile.get('season'))!=str(source['season']):continue
         signature=scoring_signature(profile['scoring_settings'])
+        selected=expanded if any(r['scoring_signature']==signature for r in (expanded or {}).get('forecasts',[])) else capture
+        selected_readiness=expanded_readiness if selected is expanded and expanded is not None else readiness
+        lifecycle=next((e.get('lifecycle',{}) for e in portfolio['leagues'] if str(e.get('league_id'))==lid),{})
         rows=[{'canonical_player_id':r['canonical_player_id'],'position':r['position'],
                'forecast_mean':r['forecast_mean'],'baseline_mean':r['baseline_mean'],'confidence':None,
-               'status':r['status']} for r in (capture or {}).get('forecasts',[]) if r['scoring_signature']==signature]
-        units=[u for u in (readiness or {}).get('units',[]) if u['scoring_signature']==signature]
+               'status':r['status']} for r in (selected or {}).get('forecasts',[]) if r['scoring_signature']==signature]
+        units=[u for u in (selected_readiness or {}).get('units',[]) if u['scoring_signature']==signature]
         leagues.append({'league_id':lid,'scoring_signature':signature,'season':source['season'],'week':source['week'],
-                        'observed_at':items[0]['observed_at'],'status':capture['status'] if rows else 'BLOCKED_NO_SUPPORTED_CAPTURE',
-                        'forecast_observed_at':capture['captured_at'] if capture else None,
-                        'first_kickoff':capture['first_kickoff'] if capture else None,
+                        'observed_at':items[0]['observed_at'],'status':'ELIMINATED_RESEARCH_ONLY' if lifecycle.get('state')=='ELIMINATED_RESEARCH_ONLY' else selected['status'] if rows else 'BLOCKED_NO_SUPPORTED_CAPTURE', 'lifecycle':lifecycle,
+                        'forecast_observed_at':selected['captured_at'] if selected else None,
+                        'forecast_scope':selected.get('scope','LEGACY_THREE_SIGNATURES') if selected else None,
+                        'first_kickoff':selected['first_kickoff'] if selected else None,
                         'forecasts':rows,'readiness_units':units,'baseline_id':'SAME_CUTOFF_FP_PRIOR_4',
                         'sleeper_comparison':False,'actual_adoption':'UNKNOWN',
                         **gates(['BLOCKED_PROSPECTIVE_CONFIRMATION_AND_PROMOTION'])})

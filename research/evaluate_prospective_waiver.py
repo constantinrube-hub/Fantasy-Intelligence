@@ -30,7 +30,8 @@ def paired_metrics(rows):
     return result
 
 
-def evaluate(root,capture_path,envelope,history_path):
+def evaluate(root,capture_path,envelope,history_path,namespace="waiver-v2"):
+    if namespace not in {"waiver-v2","waiver-expanded"}:raise ValueError("WAIVER_OUTCOME_NAMESPACE")
     capture=json.loads(capture_path.read_text());source=validate_manifest(root,envelope)
     history=json.loads(history_path.read_text());at=now()
     if capture.get('schema')!='fie-waiver-v2-prospective-capture-v1' or capture['status']!='CAPTURED_RESEARCH':
@@ -38,7 +39,10 @@ def evaluate(root,capture_path,envelope,history_path):
     if source['season']!=capture['season'] or history['season']!=capture['season']:
         raise ValueError('WAIVER_EVALUATE_SEASON_DRIFT')
     for ref in capture['bindings'].values():verified(root,ref,capture['captured_at'])
-    if history['builder_sha256']!=sha(Path(__file__).with_name('prepare_live_waiver_history.py')):
+    expanded=capture.get('scope')=='ADDITIONAL_COMPONENT_SCOPED'
+    if expanded!=(namespace=='waiver-expanded') or (history.get('scope')=='ADDITIONAL_COMPONENT_SCOPED')!=expanded:raise ValueError('WAIVER_OUTCOME_SCOPE_DRIFT')
+    owner='waiver_v2_expanded_runtime.py' if expanded else 'prepare_live_waiver_history.py'
+    if history['builder_sha256']!=sha(Path(__file__).with_name(owner)):
         raise ValueError('WAIVER_OUTCOME_HISTORY_OWNER_DRIFT')
     if verified(root,history['source_envelope'],history['prepared_at']).resolve()!=envelope.resolve():
         raise ValueError('WAIVER_OUTCOME_SOURCE_DRIFT')
@@ -80,7 +84,7 @@ def evaluate(root,capture_path,envelope,history_path):
             'independent_temporal_unit':'same-season three-week horizon; overlapping starts share outcomes',
             **gates(['BLOCKED_SAMPLE_AND_TEMPORAL_REVIEW','BLOCKED_PROMOTION_REVIEW_REQUIRED'])}
     revision=clock(at).strftime('%Y%m%dT%H%M%S%fZ')
-    path=root/f"data/research/prospective/waiver-v2/outcomes/{capture['season']}/week_{capture['week']:02d}/{revision}/evaluation.json"
+    path=root/f"data/research/prospective/{namespace}/outcomes/{capture['season']}/week_{capture['week']:02d}/{revision}/evaluation.json"
     write(path,report)
     return {'status':report['status'],'path':str(path),'complete_rows':complete}
 
