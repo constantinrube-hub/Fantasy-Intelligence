@@ -177,6 +177,10 @@ jobs:
           node-version: '22'
       - name: Install research dependencies
         run: pip install -r research/requirements.txt
+      - name: Check TE numerical replay portability
+        run: |
+          python -c "import numpy,pandas,scipy; print('numpy',numpy.__version__,'pandas',pandas.__version__,'scipy',scipy.__version__)"
+          python research/validate_waiver_v2_expansion.py --unit cb090502c0b02160:TE
       - name: Validate focused weekly contracts
         run: |
           python research/integrity_m10_real_outcomes_test.py

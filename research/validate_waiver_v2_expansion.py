@@ -8,7 +8,22 @@ from archive_waiver_expansion_sources import BASE
 from build_waiver_v2_expansion import methodology
 from build_waiver_v2_label_batch import label_frame
 from waiver_v2_validation import features,evaluate,select,fit,KEYS,TARGET,FULL
-from validate_waiver_v2_validation import equivalent
+from validate_waiver_v2_validation import equivalent as _equivalent
+
+def equivalent(actual, expected, path='$'):
+    try:
+        _equivalent(actual, expected)
+    except ValueError as error:
+        if isinstance(expected, dict) and isinstance(actual, dict) and set(actual) == set(expected):
+            for key in expected:
+                equivalent(actual[key], expected[key], f'{path}.{key}')
+        elif isinstance(expected, list) and isinstance(actual, list) and len(actual) == len(expected):
+            for index, (left, right) in enumerate(zip(actual, expected)):
+                equivalent(left, right, f'{path}[{index}]')
+        raise ValueError(
+            f'{error}; path={path}; stored={actual!r}; replayed={expected!r}'
+        ) from error
+
 
 ROOT=Path(__file__).resolve().parents[1]
 def validate(root,full=True,unit_key=None,replay_models=True):
