@@ -28,20 +28,23 @@ def main() -> int:
     pending = roster_evolution_status(profile, base, 2026, 4)
     assert pending["recognized"] and pending["matched_stage"] == 0
     assert pending["scheduled_addition_pending"] is True
-    assert pending["next_scheduled_change"] == {"week": 1, "slots": ["BN"]}
+    assert pending["next_scheduled_change"] == {"week": 3, "slots": ["BN"]}
 
-    week_one = base + ["BN"]
-    stage_one = roster_evolution_status(profile, week_one, 2026, 4)
+    week_three = base + ["BN"]
+    stage_one = roster_evolution_status(profile, week_three, 2026, 4)
     assert stage_one["recognized"] and stage_one["matched_stage"] == 1
     assert stage_one["scheduled_addition_pending"] is True
-    positions, evidence = research_roster_positions_for_live_state(profile, week_one, 2026, 4)
+    positions, evidence = research_roster_positions_for_live_state(profile, week_three, 2026, 4)
     assert positions == base and evidence["recognized"]
 
-    through_week_five = week_one + ["BN", "BN", "BN", "FLEX"]
+    through_week_five = week_three + ["BN", "FLEX"]
     stage_five = roster_evolution_status(profile, through_week_five, 2026, 5)
-    assert stage_five["recognized"] and stage_five["matched_stage"] == 5
+    assert stage_five["recognized"] and stage_five["matched_stage"] == 3
     assert stage_five["scheduled_addition_pending"] is False
     assert not roster_evolution_status(profile, base + ["SUPER_FLEX"], 2026, 4)["recognized"]
+    assert profile["roster_evolution"]["base_through_week"] == 2
+    assert not roster_evolution_status(profile, week_three, 2026, 2)["recognized"]
+    assert roster_evolution_status(profile, sorted(through_week_five), 2026, 6)["recognized"]
     assert stage_five["season_complete_week"] == 17
     assert roster_evolution_status(profile, through_week_five, 2026, 17)["season_complete"] is True
     print("PASS Among Us roster evolution: Tuesday pending stages accepted; unplanned slots fail closed")

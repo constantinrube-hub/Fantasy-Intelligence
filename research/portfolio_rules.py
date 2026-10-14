@@ -138,6 +138,8 @@ def normalize_roster_evolution(raw: Dict[str, Any] | None) -> Dict[str, Any] | N
         if any(not re.fullmatch(r"[A-Z][A-Z0-9_]*", slot) for slot in slots):
             raise ValueError(f"roster_evolution Week {week} contains an invalid slot")
         normalized[str(week)] = slots
+    if "base_through_week" in raw and (isinstance(raw["base_through_week"],bool) or not 0 <= int(raw["base_through_week"]) <= 16):
+        raise ValueError("roster_evolution base_through_week must be 0-16")
     terminal_week = int(raw.get("season_complete_week") or 17)
     if terminal_week != 17:
         raise ValueError("roster_evolution season_complete_week must be 17")
@@ -146,6 +148,7 @@ def normalize_roster_evolution(raw: Dict[str, Any] | None) -> Dict[str, Any] | N
         "application_weekday": weekday,
         "weekly_additions": dict(sorted(normalized.items(), key=lambda item: int(item[0]))),
         "season_complete_week": terminal_week,
+        **({"base_through_week": int(raw["base_through_week"])} if "base_through_week" in raw else {}),
     }
 
 

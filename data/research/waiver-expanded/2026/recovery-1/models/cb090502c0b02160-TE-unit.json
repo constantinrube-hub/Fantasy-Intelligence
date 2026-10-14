@@ -1,0 +1,3540 @@
+{
+  "activation_eligible": false,
+  "blockers": [
+    "BLOCKED_DECISION_DOMAIN",
+    "BLOCKED_PROMOTION_REVIEW",
+    "BLOCKED_PROSPECTIVE_CONFIRMATION"
+  ],
+  "features": {
+    "observed_at": "2026-10-13T22:29:33.758437+00:00",
+    "path": "data/research/waiver-expanded/2026/recovery-1/profiles/cb090502c0b02160/TE-features.csv.gz",
+    "sha256": "915259a05c691e73c67902e6ff2c7aef9e39e80f5c36824d66c78dc097a11804"
+  },
+  "folds": {
+    "observed_at": "2026-10-13T22:55:29.911754+00:00",
+    "path": "data/research/waiver-expanded/2026/recovery-1/models/cb090502c0b02160-TE-folds.json",
+    "sha256": "1efba52a7b83705ca2eca98be93a1d2e53a67b8ab3de3f882569368572ffb99c"
+  },
+  "forecast_eligible": false,
+  "historical_research_signal": false,
+  "labels": {
+    "observed_at": "2026-10-13T22:29:33.755182+00:00",
+    "path": "data/research/waiver-expanded/2026/recovery-1/profiles/cb090502c0b02160/labels.csv.gz",
+    "sha256": "8897bbb1a4c2dfb2328903f38c0609ed259f08fa1b4dc8806554878933d4a2e9"
+  },
+  "metrics": {
+    "activation_eligible": false,
+    "eligibility_blockers": [
+      "BLOCKED_OUTCOME_SELECTION_BIAS",
+      "BLOCKED_HISTORICAL_PUBLICATION_TIME_UNVERIFIED",
+      "BLOCKED_LIVE_FEATURE_PARITY_UNVERIFIED",
+      "BLOCKED_PROMOTION_REVIEW_REQUIRED",
+      "BLOCKED_CUTOFF_FREE_AGENT_DOMAIN_UNVERIFIED"
+    ],
+    "equal_season_relative_mae_lift": 0.07741681334270901,
+    "folds": [
+      {
+        "base_paired_rows": 912,
+        "coverage_strata": {
+          "2": {
+            "baseline_mae": 1.8805813953488375,
+            "baseline_rmse": 2.854228888022059,
+            "mae_gain": -0.09921723777700486,
+            "model_mae": 1.9797986331258424,
+            "model_rmse": 2.8469692146870678,
+            "relative_mae_lift": -0.05275881066482667,
+            "rmse_gain": 0.0072596733349912235,
+            "rows": 258,
+            "weeks": 13
+          },
+          "3": {
+            "baseline_mae": 2.607048066875653,
+            "baseline_rmse": 3.675643389634033,
+            "mae_gain": 0.06519586210716799,
+            "model_mae": 2.541852204768485,
+            "model_rmse": 3.545621326989722,
+            "relative_mae_lift": 0.025007541263057813,
+            "rmse_gain": 0.13002206264431093,
+            "rows": 319,
+            "weeks": 13
+          },
+          "4": {
+            "baseline_mae": 3.680787037037037,
+            "baseline_rmse": 4.8387517395777095,
+            "mae_gain": 0.6340512021940694,
+            "model_mae": 3.0467358348429676,
+            "model_rmse": 4.145007365387258,
+            "relative_mae_lift": 0.17225968137088107,
+            "rmse_gain": 0.6937443741904517,
+            "rows": 252,
+            "weeks": 12
+          }
+        },
+        "covered_fraction": 0.9089912280701754,
+        "covered_metrics": {
+          "baseline_mae": 2.707354242058705,
+          "baseline_rmse": 3.8537557516852265,
+          "mae_gain": 0.18694853512499998,
+          "model_mae": 2.520405706933705,
+          "model_rmse": 3.5472122191633093,
+          "relative_mae_lift": 0.06905211450380502,
+          "rmse_gain": 0.30654353252191724,
+          "rows": 829,
+          "weeks": 14
+        },
+        "covered_paired_rows": 829,
+        "fallback_policy_metrics": {
+          "baseline_mae": 2.6579130116959067,
+          "baseline_rmse": 3.8041314899124954,
+          "mae_gain": 0.1699345785291939,
+          "model_mae": 2.4879784331667127,
+          "model_rmse": 3.5226653040723055,
+          "relative_mae_lift": 0.06393534242144575,
+          "rmse_gain": 0.2814661858401899,
+          "rows": 912,
+          "weeks": 14
+        },
+        "feature_admissible_rows": 1021,
+        "full_label_rows": 2084,
+        "missing_target_among_feature_admissible": 109,
+        "predictions_without_target": 103,
+        "ranking": {
+          "cutoffs": [
+            {
+              "baseline_spearman": 0.4579300012531504,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.7142857142857143,
+              "candidates": 53,
+              "model_spearman": 0.5170606212274438,
+              "model_top_one_regret": 6.766666666666669,
+              "model_top_quartile_precision": 0.7142857142857143,
+              "season": 2022,
+              "spearman_gain": 0.059130619974293364,
+              "week": 2
+            },
+            {
+              "baseline_spearman": 0.6453408926624464,
+              "baseline_top_one_regret": 8.966666666666669,
+              "baseline_top_quartile_precision": 0.6,
+              "candidates": 39,
+              "model_spearman": 0.6228047986112671,
+              "model_top_one_regret": 8.966666666666669,
+              "model_top_quartile_precision": 0.7,
+              "season": 2022,
+              "spearman_gain": -0.02253609405117929,
+              "week": 3
+            },
+            {
+              "baseline_spearman": 0.6226582659299276,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.625,
+              "candidates": 64,
+              "model_spearman": 0.6013960580984632,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.5625,
+              "season": 2022,
+              "spearman_gain": -0.021262207831464375,
+              "week": 4
+            },
+            {
+              "baseline_spearman": 0.5286650469010181,
+              "baseline_top_one_regret": 2.8000000000000025,
+              "baseline_top_quartile_precision": 0.5882352941176471,
+              "candidates": 65,
+              "model_spearman": 0.556704680789306,
+              "model_top_one_regret": 4.366666666666669,
+              "model_top_quartile_precision": 0.6470588235294118,
+              "season": 2022,
+              "spearman_gain": 0.028039633888287896,
+              "week": 5
+            },
+            {
+              "baseline_spearman": 0.53658535234897,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.5555555555555556,
+              "candidates": 71,
+              "model_spearman": 0.5099442308235121,
+              "model_top_one_regret": 9.900000000000002,
+              "model_top_quartile_precision": 0.6111111111111112,
+              "season": 2022,
+              "spearman_gain": -0.026641121525457834,
+              "week": 6
+            },
+            {
+              "baseline_spearman": 0.6059084512510113,
+              "baseline_top_one_regret": 4.6,
+              "baseline_top_quartile_precision": 0.5882352941176471,
+              "candidates": 66,
+              "model_spearman": 0.6232872894052636,
+              "model_top_one_regret": 4.6,
+              "model_top_quartile_precision": 0.6470588235294118,
+              "season": 2022,
+              "spearman_gain": 0.01737883815425223,
+              "week": 7
+            },
+            {
+              "baseline_spearman": 0.50777171903062,
+              "baseline_top_one_regret": 13.2,
+              "baseline_top_quartile_precision": 0.46153846153846156,
+              "candidates": 51,
+              "model_spearman": 0.545767367462706,
+              "model_top_one_regret": 13.2,
+              "model_top_quartile_precision": 0.5384615384615384,
+              "season": 2022,
+              "spearman_gain": 0.03799564843208603,
+              "week": 8
+            },
+            {
+              "baseline_spearman": 0.5386741765730795,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.45454545454545453,
+              "candidates": 43,
+              "model_spearman": 0.5190633789527935,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.36363636363636365,
+              "season": 2022,
+              "spearman_gain": -0.019610797620285947,
+              "week": 9
+            },
+            {
+              "baseline_spearman": 0.4983045137290437,
+              "baseline_top_one_regret": 11.133333333333333,
+              "baseline_top_quartile_precision": 0.6666666666666666,
+              "candidates": 58,
+              "model_spearman": 0.5373677249209343,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.6666666666666666,
+              "season": 2022,
+              "spearman_gain": 0.0390632111918906,
+              "week": 10
+            },
+            {
+              "baseline_spearman": 0.5440139261689351,
+              "baseline_top_one_regret": 2.233333333333329,
+              "baseline_top_quartile_precision": 0.5882352941176471,
+              "candidates": 65,
+              "model_spearman": 0.5470315541587104,
+              "model_top_one_regret": 2.233333333333329,
+              "model_top_quartile_precision": 0.7058823529411765,
+              "season": 2022,
+              "spearman_gain": 0.00301762798977534,
+              "week": 11
+            },
+            {
+              "baseline_spearman": 0.6036280911872917,
+              "baseline_top_one_regret": 10.066666666666668,
+              "baseline_top_quartile_precision": 0.6470588235294118,
+              "candidates": 68,
+              "model_spearman": 0.5308745768375709,
+              "model_top_one_regret": 10.066666666666668,
+              "model_top_quartile_precision": 0.6470588235294118,
+              "season": 2022,
+              "spearman_gain": -0.07275351434972077,
+              "week": 12
+            },
+            {
+              "baseline_spearman": 0.6567839787691142,
+              "baseline_top_one_regret": 7.599999999999998,
+              "baseline_top_quartile_precision": 0.7333333333333333,
+              "candidates": 60,
+              "model_spearman": 0.5780590620049889,
+              "model_top_one_regret": 7.599999999999998,
+              "model_top_quartile_precision": 0.6666666666666666,
+              "season": 2022,
+              "spearman_gain": -0.0787249167641253,
+              "week": 13
+            },
+            {
+              "baseline_spearman": 0.5881139080012082,
+              "baseline_top_one_regret": 10.399999999999999,
+              "baseline_top_quartile_precision": 0.6153846153846154,
+              "candidates": 51,
+              "model_spearman": 0.6352967161045271,
+              "model_top_one_regret": 6.166666666666668,
+              "model_top_quartile_precision": 0.5384615384615384,
+              "season": 2022,
+              "spearman_gain": 0.047182808103318874,
+              "week": 14
+            },
+            {
+              "baseline_spearman": 0.6000583156381146,
+              "baseline_top_one_regret": 10.766666666666662,
+              "baseline_top_quartile_precision": 0.47368421052631576,
+              "candidates": 75,
+              "model_spearman": 0.640058903458085,
+              "model_top_one_regret": 7.599999999999996,
+              "model_top_quartile_precision": 0.5789473684210527,
+              "season": 2022,
+              "spearman_gain": 0.0400005878199704,
+              "week": 15
+            }
+          ],
+          "domain": "CONDITIONAL_ALL_PLAYER_DIAGNOSTIC",
+          "means": {
+            "baseline_top_one_regret": 5.84047619047619,
+            "baseline_top_quartile_precision": 0.593697051265605,
+            "model_top_one_regret": 5.819047619047619,
+            "model_top_quartile_precision": 0.6134139850885761,
+            "spearman_gain": 0.0021628802436886585
+          }
+        },
+        "roster_decision_rows": 2348,
+        "season": 2022,
+        "selected_choice": {
+          "alpha": 0.1,
+          "features": "core",
+          "history": 2
+        },
+        "status": "OK",
+        "training_seasons": [
+          2018,
+          2021
+        ]
+      },
+      {
+        "base_paired_rows": 974,
+        "coverage_strata": {
+          "2": {
+            "baseline_mae": 1.8870163934426227,
+            "baseline_rmse": 2.8819373069457557,
+            "mae_gain": 0.129407807213209,
+            "model_mae": 1.7576085862294137,
+            "model_rmse": 2.5940555737410422,
+            "relative_mae_lift": 0.06857799840155114,
+            "rmse_gain": 0.28788173320471344,
+            "rows": 305,
+            "weeks": 14
+          },
+          "3": {
+            "baseline_mae": 2.66265988372093,
+            "baseline_rmse": 3.774311609419657,
+            "mae_gain": 0.1288624137581582,
+            "model_mae": 2.5337974699627717,
+            "model_rmse": 3.548382341443608,
+            "relative_mae_lift": 0.04839612244357685,
+            "rmse_gain": 0.22592926797604873,
+            "rows": 344,
+            "weeks": 13
+          },
+          "4": {
+            "baseline_mae": 3.7076813880126185,
+            "baseline_rmse": 4.9024130404319815,
+            "mae_gain": 0.4860544799410551,
+            "model_mae": 3.2216269080715634,
+            "model_rmse": 4.137578911676181,
+            "relative_mae_lift": 0.13109391802449044,
+            "rmse_gain": 0.7648341287558003,
+            "rows": 317,
+            "weeks": 12
+          }
+        },
+        "covered_fraction": 0.9917864476386037,
+        "covered_metrics": {
+          "baseline_mae": 2.7606935817805383,
+          "baseline_rmse": 3.9474147104466093,
+          "mae_gain": 0.24624981539767088,
+          "model_mae": 2.5144437663828674,
+          "model_rmse": 3.4966107711423544,
+          "relative_mae_lift": 0.08919853221770795,
+          "rmse_gain": 0.4508039393042549,
+          "rows": 966,
+          "weeks": 14
+        },
+        "covered_paired_rows": 966,
+        "fallback_policy_metrics": {
+          "baseline_mae": 2.7624709103353866,
+          "baseline_rmse": 3.9418414315871866,
+          "mae_gain": 0.24422722964491816,
+          "model_mae": 2.5182436806904684,
+          "model_rmse": 3.4942639949851255,
+          "relative_mae_lift": 0.08840897789409373,
+          "rmse_gain": 0.44757743660206106,
+          "rows": 974,
+          "weeks": 14
+        },
+        "feature_admissible_rows": 980,
+        "full_label_rows": 2316,
+        "missing_target_among_feature_admissible": 6,
+        "predictions_without_target": 6,
+        "ranking": {
+          "cutoffs": [
+            {
+              "baseline_spearman": 0.5726299127570624,
+              "baseline_top_one_regret": 8.466666666666667,
+              "baseline_top_quartile_precision": 0.46153846153846156,
+              "candidates": 50,
+              "model_spearman": 0.6350647184070786,
+              "model_top_one_regret": 8.466666666666667,
+              "model_top_quartile_precision": 0.5384615384615384,
+              "season": 2023,
+              "spearman_gain": 0.062434805650016134,
+              "week": 2
+            },
+            {
+              "baseline_spearman": 0.6074882970105547,
+              "baseline_top_one_regret": 10.2,
+              "baseline_top_quartile_precision": 0.625,
+              "candidates": 61,
+              "model_spearman": 0.7306278966601922,
+              "model_top_one_regret": 10.2,
+              "model_top_quartile_precision": 0.8125,
+              "season": 2023,
+              "spearman_gain": 0.1231395996496375,
+              "week": 3
+            },
+            {
+              "baseline_spearman": 0.6454752246105641,
+              "baseline_top_one_regret": 13.1,
+              "baseline_top_quartile_precision": 0.5263157894736842,
+              "candidates": 73,
+              "model_spearman": 0.6754468651525984,
+              "model_top_one_regret": 13.1,
+              "model_top_quartile_precision": 0.6842105263157895,
+              "season": 2023,
+              "spearman_gain": 0.029971640542034383,
+              "week": 4
+            },
+            {
+              "baseline_spearman": 0.7901875565322543,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.7777777777777778,
+              "candidates": 69,
+              "model_spearman": 0.7760356387352624,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.7777777777777778,
+              "season": 2023,
+              "spearman_gain": -0.014151917796991875,
+              "week": 5
+            },
+            {
+              "baseline_spearman": 0.7617133811592627,
+              "baseline_top_one_regret": 0.7333333333333343,
+              "baseline_top_quartile_precision": 0.7777777777777778,
+              "candidates": 71,
+              "model_spearman": 0.7536498154288676,
+              "model_top_one_regret": 0.7333333333333343,
+              "model_top_quartile_precision": 0.7222222222222222,
+              "season": 2023,
+              "spearman_gain": -0.008063565730395128,
+              "week": 6
+            },
+            {
+              "baseline_spearman": 0.6543535345306475,
+              "baseline_top_one_regret": 16.299999999999997,
+              "baseline_top_quartile_precision": 0.6875,
+              "candidates": 64,
+              "model_spearman": 0.6777183529136371,
+              "model_top_one_regret": 16.299999999999997,
+              "model_top_quartile_precision": 0.6875,
+              "season": 2023,
+              "spearman_gain": 0.02336481838298965,
+              "week": 7
+            },
+            {
+              "baseline_spearman": 0.5819021866203739,
+              "baseline_top_one_regret": 12.0,
+              "baseline_top_quartile_precision": 0.6842105263157895,
+              "candidates": 76,
+              "model_spearman": 0.5799939627854941,
+              "model_top_one_regret": 12.0,
+              "model_top_quartile_precision": 0.6842105263157895,
+              "season": 2023,
+              "spearman_gain": -0.001908223834879763,
+              "week": 8
+            },
+            {
+              "baseline_spearman": 0.524324219711292,
+              "baseline_top_one_regret": 9.133333333333333,
+              "baseline_top_quartile_precision": 0.6111111111111112,
+              "candidates": 70,
+              "model_spearman": 0.5000617058564518,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.6666666666666666,
+              "season": 2023,
+              "spearman_gain": -0.02426251385484013,
+              "week": 9
+            },
+            {
+              "baseline_spearman": 0.5013287014077957,
+              "baseline_top_one_regret": 9.333333333333332,
+              "baseline_top_quartile_precision": 0.5789473684210527,
+              "candidates": 73,
+              "model_spearman": 0.5697752698737678,
+              "model_top_one_regret": 9.333333333333332,
+              "model_top_quartile_precision": 0.631578947368421,
+              "season": 2023,
+              "spearman_gain": 0.06844656846597208,
+              "week": 10
+            },
+            {
+              "baseline_spearman": 0.5126797259407865,
+              "baseline_top_one_regret": 13.099999999999996,
+              "baseline_top_quartile_precision": 0.5882352941176471,
+              "candidates": 68,
+              "model_spearman": 0.5804727371964306,
+              "model_top_one_regret": 13.099999999999996,
+              "model_top_quartile_precision": 0.6470588235294118,
+              "season": 2023,
+              "spearman_gain": 0.06779301125564408,
+              "week": 11
+            },
+            {
+              "baseline_spearman": 0.5624983669124708,
+              "baseline_top_one_regret": 13.299999999999994,
+              "baseline_top_quartile_precision": 0.5,
+              "candidates": 79,
+              "model_spearman": 0.5861113972256419,
+              "model_top_one_regret": 13.299999999999994,
+              "model_top_quartile_precision": 0.6,
+              "season": 2023,
+              "spearman_gain": 0.02361303031317108,
+              "week": 12
+            },
+            {
+              "baseline_spearman": 0.6104402024912999,
+              "baseline_top_one_regret": 14.200000000000001,
+              "baseline_top_quartile_precision": 0.7058823529411765,
+              "candidates": 67,
+              "model_spearman": 0.6898812659182169,
+              "model_top_one_regret": 14.200000000000001,
+              "model_top_quartile_precision": 0.7058823529411765,
+              "season": 2023,
+              "spearman_gain": 0.07944106342691692,
+              "week": 13
+            },
+            {
+              "baseline_spearman": 0.6894931696640578,
+              "baseline_top_one_regret": 7.966666666666667,
+              "baseline_top_quartile_precision": 0.8333333333333334,
+              "candidates": 71,
+              "model_spearman": 0.6988495944441809,
+              "model_top_one_regret": 7.966666666666667,
+              "model_top_quartile_precision": 0.7777777777777778,
+              "season": 2023,
+              "spearman_gain": 0.009356424780123107,
+              "week": 14
+            },
+            {
+              "baseline_spearman": 0.49918858160761087,
+              "baseline_top_one_regret": 5.766666666666666,
+              "baseline_top_quartile_precision": 0.631578947368421,
+              "candidates": 74,
+              "model_spearman": 0.5817941987109045,
+              "model_top_one_regret": 6.533333333333333,
+              "model_top_quartile_precision": 0.6842105263157895,
+              "season": 2023,
+              "spearman_gain": 0.08260561710329367,
+              "week": 15
+            }
+          ],
+          "domain": "CONDITIONAL_ALL_PLAYER_DIAGNOSTIC",
+          "means": {
+            "baseline_top_one_regret": 9.542857142857143,
+            "baseline_top_quartile_precision": 0.6420863385840166,
+            "model_top_one_regret": 8.945238095238095,
+            "model_top_quartile_precision": 0.6871469775494543,
+            "spearman_gain": 0.037270025596620834
+          }
+        },
+        "roster_decision_rows": 2342,
+        "season": 2023,
+        "selected_choice": {
+          "alpha": 10.0,
+          "features": "core",
+          "history": 2
+        },
+        "status": "OK",
+        "training_seasons": [
+          2018,
+          2021,
+          2022
+        ]
+      },
+      {
+        "base_paired_rows": 948,
+        "coverage_strata": {
+          "2": {
+            "baseline_mae": 2.023244613434727,
+            "baseline_rmse": 3.1720807729438842,
+            "mae_gain": -0.03218585781532024,
+            "model_mae": 2.0554304712500473,
+            "model_rmse": 3.062586799176906,
+            "relative_mae_lift": -0.015908040778460527,
+            "rmse_gain": 0.10949397376697823,
+            "rows": 263,
+            "weeks": 14
+          },
+          "3": {
+            "baseline_mae": 2.5345142857142857,
+            "baseline_rmse": 3.6224729779793354,
+            "mae_gain": -0.10536833037870963,
+            "model_mae": 2.6398826160929953,
+            "model_rmse": 3.670968383081394,
+            "relative_mae_lift": -0.04157338191882172,
+            "rmse_gain": -0.04849540510205852,
+            "rows": 350,
+            "weeks": 13
+          },
+          "4": {
+            "baseline_mae": 3.4701661129568104,
+            "baseline_rmse": 4.6660473940477125,
+            "mae_gain": 0.547478825198942,
+            "model_mae": 2.9226872877578685,
+            "model_rmse": 3.9252192153852,
+            "relative_mae_lift": 0.1577673250726473,
+            "rmse_gain": 0.7408281786625124,
+            "rows": 301,
+            "weeks": 12
+          }
+        },
+        "covered_fraction": 0.9641350210970464,
+        "covered_metrics": {
+          "baseline_mae": 2.6955288110867976,
+          "baseline_rmse": 3.884620338755174,
+          "mae_gain": 0.13068635683468743,
+          "model_mae": 2.56484245425211,
+          "model_rmse": 3.5962852194897503,
+          "relative_mae_lift": 0.048482641438359037,
+          "rmse_gain": 0.28833511926542377,
+          "rows": 914,
+          "weeks": 14
+        },
+        "covered_paired_rows": 914,
+        "fallback_policy_metrics": {
+          "baseline_mae": 2.7098241912798877,
+          "baseline_rmse": 3.885344933312928,
+          "mae_gain": 0.12599929340390803,
+          "model_mae": 2.5838248978759797,
+          "model_rmse": 3.6078052183536897,
+          "relative_mae_lift": 0.04649722067186832,
+          "rmse_gain": 0.27753971495923846,
+          "rows": 948,
+          "weeks": 14
+        },
+        "feature_admissible_rows": 1006,
+        "full_label_rows": 2149,
+        "missing_target_among_feature_admissible": 58,
+        "predictions_without_target": 58,
+        "ranking": {
+          "cutoffs": [
+            {
+              "baseline_spearman": 0.5859537526965254,
+              "baseline_top_one_regret": 7.733333333333333,
+              "baseline_top_quartile_precision": 0.3333333333333333,
+              "candidates": 46,
+              "model_spearman": 0.6199087825738454,
+              "model_top_one_regret": 2.8666666666666654,
+              "model_top_quartile_precision": 0.3333333333333333,
+              "season": 2024,
+              "spearman_gain": 0.03395502987732002,
+              "week": 2
+            },
+            {
+              "baseline_spearman": 0.6186299303470515,
+              "baseline_top_one_regret": 14.83333333333333,
+              "baseline_top_quartile_precision": 0.7222222222222222,
+              "candidates": 70,
+              "model_spearman": 0.5952077824879176,
+              "model_top_one_regret": 4.266666666666662,
+              "model_top_quartile_precision": 0.6666666666666666,
+              "season": 2024,
+              "spearman_gain": -0.02342214785913388,
+              "week": 3
+            },
+            {
+              "baseline_spearman": 0.6498971231087314,
+              "baseline_top_one_regret": 19.700000000000003,
+              "baseline_top_quartile_precision": 0.6,
+              "candidates": 77,
+              "model_spearman": 0.5971186154281481,
+              "model_top_one_regret": 19.700000000000003,
+              "model_top_quartile_precision": 0.65,
+              "season": 2024,
+              "spearman_gain": -0.05277850768058323,
+              "week": 4
+            },
+            {
+              "baseline_spearman": 0.7466822793164636,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.7058823529411765,
+              "candidates": 67,
+              "model_spearman": 0.6880627160072742,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.7058823529411765,
+              "season": 2024,
+              "spearman_gain": -0.05861956330918938,
+              "week": 5
+            },
+            {
+              "baseline_spearman": 0.6800843325828568,
+              "baseline_top_one_regret": 20.799999999999997,
+              "baseline_top_quartile_precision": 0.6470588235294118,
+              "candidates": 66,
+              "model_spearman": 0.7163768359037833,
+              "model_top_one_regret": 7.066666666666666,
+              "model_top_quartile_precision": 0.6470588235294118,
+              "season": 2024,
+              "spearman_gain": 0.036292503320926484,
+              "week": 6
+            },
+            {
+              "baseline_spearman": 0.6884279426792976,
+              "baseline_top_one_regret": 7.966666666666667,
+              "baseline_top_quartile_precision": 0.631578947368421,
+              "candidates": 73,
+              "model_spearman": 0.6960469810341725,
+              "model_top_one_regret": 12.366666666666665,
+              "model_top_quartile_precision": 0.7368421052631579,
+              "season": 2024,
+              "spearman_gain": 0.007619038354874874,
+              "week": 7
+            },
+            {
+              "baseline_spearman": 0.6803544535388797,
+              "baseline_top_one_regret": 10.7,
+              "baseline_top_quartile_precision": 0.5294117647058824,
+              "candidates": 66,
+              "model_spearman": 0.6977892087248386,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.5882352941176471,
+              "season": 2024,
+              "spearman_gain": 0.01743475518595894,
+              "week": 8
+            },
+            {
+              "baseline_spearman": 0.6524697356273388,
+              "baseline_top_one_regret": 6.733333333333338,
+              "baseline_top_quartile_precision": 0.6470588235294118,
+              "candidates": 65,
+              "model_spearman": 0.6604018520219114,
+              "model_top_one_regret": 7.966666666666669,
+              "model_top_quartile_precision": 0.6470588235294118,
+              "season": 2024,
+              "spearman_gain": 0.007932116394572586,
+              "week": 9
+            },
+            {
+              "baseline_spearman": 0.5854041163493638,
+              "baseline_top_one_regret": 14.100000000000003,
+              "baseline_top_quartile_precision": 0.5,
+              "candidates": 64,
+              "model_spearman": 0.5550647472841249,
+              "model_top_one_regret": 14.100000000000003,
+              "model_top_quartile_precision": 0.625,
+              "season": 2024,
+              "spearman_gain": -0.03033936906523893,
+              "week": 10
+            },
+            {
+              "baseline_spearman": 0.7118201200305851,
+              "baseline_top_one_regret": 15.566666666666668,
+              "baseline_top_quartile_precision": 0.6666666666666666,
+              "candidates": 71,
+              "model_spearman": 0.7105337508888232,
+              "model_top_one_regret": 6.966666666666667,
+              "model_top_quartile_precision": 0.6111111111111112,
+              "season": 2024,
+              "spearman_gain": -0.001286369141761945,
+              "week": 11
+            },
+            {
+              "baseline_spearman": 0.6706472519644148,
+              "baseline_top_one_regret": 0.26666666666666927,
+              "baseline_top_quartile_precision": 0.5384615384615384,
+              "candidates": 52,
+              "model_spearman": 0.6677491839732046,
+              "model_top_one_regret": 2.8000000000000007,
+              "model_top_quartile_precision": 0.5384615384615384,
+              "season": 2024,
+              "spearman_gain": -0.0028980679912101737,
+              "week": 12
+            },
+            {
+              "baseline_spearman": 0.5788781732802062,
+              "baseline_top_one_regret": 1.466666666666665,
+              "baseline_top_quartile_precision": 0.6470588235294118,
+              "candidates": 66,
+              "model_spearman": 0.6216601373720461,
+              "model_top_one_regret": 4.733333333333334,
+              "model_top_quartile_precision": 0.5294117647058824,
+              "season": 2024,
+              "spearman_gain": 0.042781964091839875,
+              "week": 13
+            },
+            {
+              "baseline_spearman": 0.4803573487965536,
+              "baseline_top_one_regret": 3.1333333333333364,
+              "baseline_top_quartile_precision": 0.625,
+              "candidates": 61,
+              "model_spearman": 0.5397318457064427,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.5625,
+              "season": 2024,
+              "spearman_gain": 0.05937449690988911,
+              "week": 14
+            },
+            {
+              "baseline_spearman": 0.6080014535000373,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.6111111111111112,
+              "candidates": 70,
+              "model_spearman": 0.6086547762464818,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.5555555555555556,
+              "season": 2024,
+              "spearman_gain": 0.0006533227464444735,
+              "week": 15
+            }
+          ],
+          "domain": "CONDITIONAL_ALL_PLAYER_DIAGNOSTIC",
+          "means": {
+            "baseline_top_one_regret": 8.785714285714286,
+            "baseline_top_quartile_precision": 0.6003460290998991,
+            "model_top_one_regret": 5.916666666666666,
+            "model_top_quartile_precision": 0.5997940978010636,
+            "spearman_gain": 0.0026213715596220583
+          }
+        },
+        "roster_decision_rows": 2357,
+        "season": 2024,
+        "selected_choice": {
+          "alpha": 0.1,
+          "features": "core",
+          "history": 2
+        },
+        "status": "OK",
+        "training_seasons": [
+          2018,
+          2021,
+          2022,
+          2023
+        ]
+      },
+      {
+        "base_paired_rows": 1056,
+        "coverage_strata": {
+          "2": {
+            "baseline_mae": 2.2557671957671954,
+            "baseline_rmse": 3.653334528154132,
+            "mae_gain": 0.08714244816455397,
+            "model_mae": 2.1686247476026415,
+            "model_rmse": 3.3052346792810985,
+            "relative_mae_lift": 0.03863095816273562,
+            "rmse_gain": 0.3480998488730336,
+            "rows": 315,
+            "weeks": 14
+          },
+          "3": {
+            "baseline_mae": 2.6001687763713077,
+            "baseline_rmse": 3.71727280255399,
+            "mae_gain": 0.10154767947679355,
+            "model_mae": 2.498621096894514,
+            "model_rmse": 3.516491209339155,
+            "relative_mae_lift": 0.0390542646306635,
+            "rmse_gain": 0.20078159321483469,
+            "rows": 395,
+            "weeks": 13
+          },
+          "4": {
+            "baseline_mae": 3.7276252408477837,
+            "baseline_rmse": 4.948824551632316,
+            "mae_gain": 0.7053763697441062,
+            "model_mae": 3.0222488711036775,
+            "model_rmse": 4.09107653531968,
+            "relative_mae_lift": 0.1892294219962092,
+            "rmse_gain": 0.8577480163126356,
+            "rows": 346,
+            "weeks": 12
+          }
+        },
+        "covered_fraction": 1.0,
+        "covered_metrics": {
+          "baseline_mae": 2.866848169191919,
+          "baseline_rmse": 4.144210786942667,
+          "mae_gain": 0.2950960497127171,
+          "model_mae": 2.571752119479202,
+          "model_rmse": 3.656235210434264,
+          "relative_mae_lift": 0.10293396521096408,
+          "rmse_gain": 0.48797557650840284,
+          "rows": 1056,
+          "weeks": 14
+        },
+        "covered_paired_rows": 1056,
+        "fallback_policy_metrics": {
+          "baseline_mae": 2.866848169191919,
+          "baseline_rmse": 4.144210786942667,
+          "mae_gain": 0.2950960497127171,
+          "model_mae": 2.571752119479202,
+          "model_rmse": 3.656235210434264,
+          "relative_mae_lift": 0.10293396521096408,
+          "rmse_gain": 0.48797557650840284,
+          "rows": 1056,
+          "weeks": 14
+        },
+        "feature_admissible_rows": 1056,
+        "full_label_rows": 2357,
+        "missing_target_among_feature_admissible": 0,
+        "predictions_without_target": 0,
+        "ranking": {
+          "cutoffs": [
+            {
+              "baseline_spearman": 0.5304407276503245,
+              "baseline_top_one_regret": 15.2,
+              "baseline_top_quartile_precision": 0.4666666666666667,
+              "candidates": 59,
+              "model_spearman": 0.5862476786592964,
+              "model_top_one_regret": 13.833333333333332,
+              "model_top_quartile_precision": 0.5333333333333333,
+              "season": 2025,
+              "spearman_gain": 0.05580695100897193,
+              "week": 2
+            },
+            {
+              "baseline_spearman": 0.6400922608942087,
+              "baseline_top_one_regret": 1.1333333333333329,
+              "baseline_top_quartile_precision": 0.5789473684210527,
+              "candidates": 74,
+              "model_spearman": 0.6766619224137506,
+              "model_top_one_regret": 1.1333333333333329,
+              "model_top_quartile_precision": 0.5789473684210527,
+              "season": 2025,
+              "spearman_gain": 0.036569661519541885,
+              "week": 3
+            },
+            {
+              "baseline_spearman": 0.6845767371936219,
+              "baseline_top_one_regret": 0.5333333333333314,
+              "baseline_top_quartile_precision": 0.6363636363636364,
+              "candidates": 85,
+              "model_spearman": 0.7163106885131271,
+              "model_top_one_regret": 0.5333333333333314,
+              "model_top_quartile_precision": 0.5909090909090909,
+              "season": 2025,
+              "spearman_gain": 0.03173395131950518,
+              "week": 4
+            },
+            {
+              "baseline_spearman": 0.6773445181622298,
+              "baseline_top_one_regret": 7.9,
+              "baseline_top_quartile_precision": 0.6,
+              "candidates": 78,
+              "model_spearman": 0.7075659327107341,
+              "model_top_one_regret": 7.9,
+              "model_top_quartile_precision": 0.65,
+              "season": 2025,
+              "spearman_gain": 0.030221414548504244,
+              "week": 5
+            },
+            {
+              "baseline_spearman": 0.6324028021211477,
+              "baseline_top_one_regret": 10.666666666666668,
+              "baseline_top_quartile_precision": 0.5714285714285714,
+              "candidates": 81,
+              "model_spearman": 0.671939409035798,
+              "model_top_one_regret": 4.666666666666668,
+              "model_top_quartile_precision": 0.6190476190476191,
+              "season": 2025,
+              "spearman_gain": 0.03953660691465022,
+              "week": 6
+            },
+            {
+              "baseline_spearman": 0.6914256345654053,
+              "baseline_top_one_regret": 13.366666666666667,
+              "baseline_top_quartile_precision": 0.7,
+              "candidates": 78,
+              "model_spearman": 0.7348109021408651,
+              "model_top_one_regret": 0.6333333333333329,
+              "model_top_quartile_precision": 0.7,
+              "season": 2025,
+              "spearman_gain": 0.043385267575459796,
+              "week": 7
+            },
+            {
+              "baseline_spearman": 0.5926609273536966,
+              "baseline_top_one_regret": 6.099999999999994,
+              "baseline_top_quartile_precision": 0.5294117647058824,
+              "candidates": 66,
+              "model_spearman": 0.6276947084259326,
+              "model_top_one_regret": 16.999999999999996,
+              "model_top_quartile_precision": 0.5294117647058824,
+              "season": 2025,
+              "spearman_gain": 0.03503378107223598,
+              "week": 8
+            },
+            {
+              "baseline_spearman": 0.5655476164937958,
+              "baseline_top_one_regret": 20.566666666666663,
+              "baseline_top_quartile_precision": 0.6666666666666666,
+              "candidates": 72,
+              "model_spearman": 0.5686287727118791,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.6111111111111112,
+              "season": 2025,
+              "spearman_gain": 0.0030811562180832475,
+              "week": 9
+            },
+            {
+              "baseline_spearman": 0.5431492675761244,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.5882352941176471,
+              "candidates": 68,
+              "model_spearman": 0.5586827126649783,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.5294117647058824,
+              "season": 2025,
+              "spearman_gain": 0.015533445088853903,
+              "week": 10
+            },
+            {
+              "baseline_spearman": 0.6700910480691877,
+              "baseline_top_one_regret": 0.0,
+              "baseline_top_quartile_precision": 0.631578947368421,
+              "candidates": 73,
+              "model_spearman": 0.6619870270195694,
+              "model_top_one_regret": 0.0,
+              "model_top_quartile_precision": 0.5789473684210527,
+              "season": 2025,
+              "spearman_gain": -0.008104021049618382,
+              "week": 11
+            },
+            {
+              "baseline_spearman": 0.6711640009667148,
+              "baseline_top_one_regret": 1.8000000000000007,
+              "baseline_top_quartile_precision": 0.5263157894736842,
+              "candidates": 74,
+              "model_spearman": 0.6880733612884824,
+              "model_top_one_regret": 1.8000000000000007,
+              "model_top_quartile_precision": 0.5789473684210527,
+              "season": 2025,
+              "spearman_gain": 0.016909360321767597,
+              "week": 12
+            },
+            {
+              "baseline_spearman": 0.7161679483225645,
+              "baseline_top_one_regret": 8.133333333333333,
+              "baseline_top_quartile_precision": 0.6818181818181818,
+              "candidates": 85,
+              "model_spearman": 0.713472541099618,
+              "model_top_one_regret": 8.133333333333333,
+              "model_top_quartile_precision": 0.6818181818181818,
+              "season": 2025,
+              "spearman_gain": -0.0026954072229464776,
+              "week": 13
+            },
+            {
+              "baseline_spearman": 0.6439015077334611,
+              "baseline_top_one_regret": 0.06666666666666643,
+              "baseline_top_quartile_precision": 0.631578947368421,
+              "candidates": 76,
+              "model_spearman": 0.6454687236356172,
+              "model_top_one_regret": 0.06666666666666643,
+              "model_top_quartile_precision": 0.631578947368421,
+              "season": 2025,
+              "spearman_gain": 0.0015672159021561383,
+              "week": 14
+            },
+            {
+              "baseline_spearman": 0.5331939937104363,
+              "baseline_top_one_regret": 2.9000000000000004,
+              "baseline_top_quartile_precision": 0.6818181818181818,
+              "candidates": 87,
+              "model_spearman": 0.5533694021786251,
+              "model_top_one_regret": 2.9000000000000004,
+              "model_top_quartile_precision": 0.6363636363636364,
+              "season": 2025,
+              "spearman_gain": 0.02017540846818877,
+              "week": 15
+            }
+          ],
+          "domain": "CONDITIONAL_ALL_PLAYER_DIAGNOSTIC",
+          "means": {
+            "baseline_top_one_regret": 6.311904761904761,
+            "baseline_top_quartile_precision": 0.6064878583012153,
+            "model_top_one_regret": 4.185714285714286,
+            "model_top_quartile_precision": 0.6035591110447369,
+            "spearman_gain": 0.022768199406096718
+          }
+        },
+        "roster_decision_rows": 2371,
+        "season": 2025,
+        "selected_choice": {
+          "alpha": 10.0,
+          "features": "core",
+          "history": 2
+        },
+        "status": "OK",
+        "training_seasons": [
+          2018,
+          2021,
+          2022,
+          2023,
+          2024
+        ]
+      }
+    ],
+    "forecast_eligible": false,
+    "ranking_eligible": false,
+    "recommendation_eligible": false,
+    "research_signal_blockers": [
+      "BLOCKED_MATERIAL_COVERAGE_STRATUM_REGRESSION"
+    ],
+    "research_signal_passed": false,
+    "transaction_eligible": false,
+    "uncertainty": {
+      "block_count": 4,
+      "calibrated_population_confidence": false,
+      "equal_season_mae_gain": 0.21474518926751884,
+      "family_adjusted_percentile": [
+        0.13208741693859657,
+        0.2938796639949108
+      ],
+      "family_size": 64,
+      "independent_sign_sensitivity_p_one_sided": 0.0625,
+      "leave_one_season_out_means": [
+        0.22401074064835846,
+        0.20424364722413482,
+        0.24276480007846266,
+        0.18796156911911943
+      ],
+      "ordinary_95_percentile": [
+        0.1588174459798437,
+        0.270672932555194
+      ],
+      "positive_seasons": 4,
+      "resamples": 256
+    }
+  },
+  "model": {
+    "choice": {
+      "alpha": 0.1,
+      "features": "core",
+      "history": 2
+    },
+    "coefficients": [
+      0.48840960064216626,
+      1.9385768427715333,
+      0.4893866336021975,
+      -0.2869606588202737,
+      0.3268283803801979,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "columns": [
+      "fp_prior_4",
+      "role_prior_4",
+      "yards_prior_4",
+      "fp_history_count",
+      "role_history_count"
+    ],
+    "intercept": 4.280002465483235,
+    "means": [
+      4.619276688856016,
+      3.071267874753451,
+      22.485869699211047,
+      3.7381656804733727,
+      3.01978550295858,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "medians": [
+      3.375,
+      2.5,
+      17.5,
+      4.0,
+      3.0
+    ],
+    "scales": [
+      4.287493436540365,
+      2.299887094441383,
+      19.71242472178229,
+      0.5625193296399865,
+      0.7971940147707367,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "supported_patterns": [
+      "03:03:11111",
+      "07:03:11111",
+      "07:05:11111",
+      "07:06:11111",
+      "07:07:11111",
+      "07:0f:11111",
+      "0b:0b:11111",
+      "0b:0f:11111",
+      "0d:0d:11111",
+      "0e:0f:11111",
+      "0f:03:11111",
+      "0f:05:11111",
+      "0f:06:11111",
+      "0f:07:11111",
+      "0f:09:11111",
+      "0f:0a:11111",
+      "0f:0b:11111",
+      "0f:0c:11111",
+      "0f:0d:11111",
+      "0f:0e:11111",
+      "0f:0f:11111"
+    ],
+    "training_rows": 5408,
+    "training_seasons": [
+      2018,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "position": "TE",
+  "predictions": {
+    "observed_at": "2026-10-13T22:55:29.911754+00:00",
+    "path": "data/research/waiver-expanded/2026/recovery-1/models/cb090502c0b02160-TE-predictions.csv.gz",
+    "sha256": "fa9ec45b09fd7d71f656feabccce020f06dfaa0f9fb33e94445dac6b0dd3d316"
+  },
+  "ranking_eligible": false,
+  "recommendation_eligible": false,
+  "research_interpretation": "REUSED_HISTORICAL_SEASONS_EXPLORATORY",
+  "research_only": true,
+  "scoring_signature": "cb090502c0b02160",
+  "selection_audit": [
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 0.1,
+        "features": "core",
+        "history": 2
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.6241610738255033,
+          "covered_rows": 558,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.33574117219574307,
+            "model_mae": 2.6248740403322213,
+            "model_rmse": 3.761135210769543,
+            "relative_mae_lift": 0.11340250187698846,
+            "rmse_gain": 0.5135249766456194,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9089912280701754,
+          "covered_rows": 829,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.1699345785291939,
+            "model_mae": 2.4879784331667127,
+            "model_rmse": 3.5226653040723055,
+            "relative_mae_lift": 0.06393534242144575,
+            "rmse_gain": 0.2814661858401899,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9917864476386037,
+          "covered_rows": 966,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.24488235804863479,
+            "model_mae": 2.517588552286752,
+            "model_rmse": 3.492814258950578,
+            "relative_mae_lift": 0.08864613094474326,
+            "rmse_gain": 0.44902717263660863,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9641350210970464,
+          "covered_rows": 914,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.12599929340390803,
+            "model_mae": 2.5838248978759797,
+            "model_rmse": 3.6078052183536897,
+            "relative_mae_lift": 0.04649722067186832,
+            "rmse_gain": 0.27753971495923846,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 1.0,
+          "covered_rows": 1056,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2957660236405002,
+            "model_mae": 2.571082145551419,
+            "model_rmse": 3.655794490599815,
+            "relative_mae_lift": 0.10316766224974795,
+            "rmse_gain": 0.48841629634285155,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.8978147541262658,
+      "selection_gain": 0.234464685163596
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 1.0,
+        "features": "core",
+        "history": 2
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.6241610738255033,
+          "covered_rows": 558,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.33551296041827605,
+            "model_mae": 2.6251022521096883,
+            "model_rmse": 3.761209790595879,
+            "relative_mae_lift": 0.11332541932451716,
+            "rmse_gain": 0.5134503968192834,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9089912280701754,
+          "covered_rows": 829,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.17019181588089483,
+            "model_mae": 2.487721195815012,
+            "model_rmse": 3.522374038182952,
+            "relative_mae_lift": 0.06403212412595186,
+            "rmse_gain": 0.28175745172954336,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9917864476386037,
+          "covered_rows": 966,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.24482166287626894,
+            "model_mae": 2.5176492474591177,
+            "model_rmse": 3.4929485810348626,
+            "relative_mae_lift": 0.08862415961026196,
+            "rmse_gain": 0.448892850552324,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9641350210970464,
+          "covered_rows": 914,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.12606143270542258,
+            "model_mae": 2.583762758574465,
+            "model_rmse": 3.6076809972250032,
+            "relative_mae_lift": 0.04652015179105845,
+            "rmse_gain": 0.27766393608792495,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 1.0,
+          "covered_rows": 1056,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2957047039590188,
+            "model_mae": 2.5711434652329004,
+            "model_rmse": 3.6558346627157,
+            "relative_mae_lift": 0.10314627301744038,
+            "rmse_gain": 0.48837612422696663,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.8978147541262658,
+      "selection_gain": 0.23445851516797625
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 10.0,
+        "features": "core",
+        "history": 2
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.6241610738255033,
+          "covered_rows": 558,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.3334967208596664,
+            "model_mae": 2.627118491668298,
+            "model_rmse": 3.761984262925376,
+            "relative_mae_lift": 0.1126443988561774,
+            "rmse_gain": 0.5126759244897863,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9089912280701754,
+          "covered_rows": 829,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.17258599439214084,
+            "model_mae": 2.485327017303766,
+            "model_rmse": 3.5196519411606246,
+            "relative_mae_lift": 0.06493289796644651,
+            "rmse_gain": 0.28447954875187076,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9917864476386037,
+          "covered_rows": 966,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.24422722964491816,
+            "model_mae": 2.5182436806904684,
+            "model_rmse": 3.4942639949851255,
+            "relative_mae_lift": 0.08840897789409373,
+            "rmse_gain": 0.44757743660206106,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9641350210970464,
+          "covered_rows": 914,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.12666053005029543,
+            "model_mae": 2.5831636612295923,
+            "model_rmse": 3.6064898811658495,
+            "relative_mae_lift": 0.04674123526459179,
+            "rmse_gain": 0.27885505214707873,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 1.0,
+          "covered_rows": 1056,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2950960497127171,
+            "model_mae": 2.571752119479202,
+            "model_rmse": 3.656235210434264,
+            "relative_mae_lift": 0.10293396521096408,
+            "rmse_gain": 0.48797557650840284,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.8978147541262658,
+      "selection_gain": 0.2344133049319476
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 100.0,
+        "features": "core",
+        "history": 2
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.6241610738255033,
+          "covered_rows": 558,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.3211445699345221,
+            "model_mae": 2.639470642593442,
+            "model_rmse": 3.7663959397032385,
+            "relative_mae_lift": 0.10847224204468914,
+            "rmse_gain": 0.5082642477119239,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9089912280701754,
+          "covered_rows": 829,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.17903803822328035,
+            "model_mae": 2.4788749734726263,
+            "model_rmse": 3.50414749416419,
+            "relative_mae_lift": 0.06736038291525705,
+            "rmse_gain": 0.29998399574830525,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9917864476386037,
+          "covered_rows": 966,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.23456589524576188,
+            "model_mae": 2.5279050150896247,
+            "model_rmse": 3.5052227665496067,
+            "relative_mae_lift": 0.08491162544668521,
+            "rmse_gain": 0.43661866503757985,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9641350210970464,
+          "covered_rows": 914,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.13041454517053852,
+            "model_mae": 2.579409646109349,
+            "model_rmse": 3.5983900922661216,
+            "relative_mae_lift": 0.04812657056875041,
+            "rmse_gain": 0.2869548410468066,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 1.0,
+          "covered_rows": 1056,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2893688970976962,
+            "model_mae": 2.577479272094223,
+            "model_rmse": 3.660089472095515,
+            "relative_mae_lift": 0.10093624776064121,
+            "rmse_gain": 0.48412131484715193,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.8978147541262658,
+      "selection_gain": 0.23090638913435982
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 0.1,
+        "features": "core",
+        "history": 3
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.5727069351230425,
+          "covered_rows": 512,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.2858980955454684,
+            "model_mae": 2.674717116982496,
+            "model_rmse": 3.8800941410891343,
+            "relative_mae_lift": 0.09656712373012168,
+            "rmse_gain": 0.3945660463260281,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6260964912280702,
+          "covered_rows": 571,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.18364941935715517,
+            "model_mae": 2.4742635923387515,
+            "model_rmse": 3.538917476719062,
+            "relative_mae_lift": 0.06909534606626419,
+            "rmse_gain": 0.2652140131934333,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6786447638603696,
+          "covered_rows": 661,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.21742404506647395,
+            "model_mae": 2.5450468652689127,
+            "model_rmse": 3.5364210427780045,
+            "relative_mae_lift": 0.07870636546904919,
+            "rmse_gain": 0.4054203888091821,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6867088607594937,
+          "covered_rows": 651,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.11848730126717966,
+            "model_mae": 2.591336890012708,
+            "model_rmse": 3.6417514887784033,
+            "relative_mae_lift": 0.0437250880143691,
+            "rmse_gain": 0.24359344453452492,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.7017045454545454,
+          "covered_rows": 741,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.25978327407775126,
+            "model_mae": 2.607064895114168,
+            "model_rmse": 3.760750222071759,
+            "relative_mae_lift": 0.09061633499446069,
+            "rmse_gain": 0.38346056487090774,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.6531723192851043,
+      "selection_gain": 0.2130484270628057
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 1.0,
+        "features": "core",
+        "history": 3
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.5727069351230425,
+          "covered_rows": 512,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.28567291289593477,
+            "model_mae": 2.6749422996320296,
+            "model_rmse": 3.879709616859802,
+            "relative_mae_lift": 0.0964910643190301,
+            "rmse_gain": 0.3949505705553604,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6260964912280702,
+          "covered_rows": 571,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.18380657273386225,
+            "model_mae": 2.4741064389620444,
+            "model_rmse": 3.538536016561727,
+            "relative_mae_lift": 0.06915447267274662,
+            "rmse_gain": 0.2655954733507686,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6786447638603696,
+          "covered_rows": 661,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.21731204493168965,
+            "model_mae": 2.545158865403697,
+            "model_rmse": 3.536632368359361,
+            "relative_mae_lift": 0.07866582200690257,
+            "rmse_gain": 0.4052090632278258,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6867088607594937,
+          "covered_rows": 651,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.11857832609801777,
+            "model_mae": 2.59124586518187,
+            "model_rmse": 3.641549443129138,
+            "relative_mae_lift": 0.043758678691997205,
+            "rmse_gain": 0.24379549018379,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.7017045454545454,
+          "covered_rows": 741,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.25975522529815764,
+            "model_mae": 2.6070929438937616,
+            "model_rmse": 3.760765418453081,
+            "relative_mae_lift": 0.09060655115592503,
+            "rmse_gain": 0.38344536848958555,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.6531723192851043,
+      "selection_gain": 0.21302501639153243
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 10.0,
+        "features": "core",
+        "history": 3
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.5727069351230425,
+          "covered_rows": 512,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.283310174497716,
+            "model_mae": 2.6773050380302483,
+            "model_rmse": 3.8776083607641434,
+            "relative_mae_lift": 0.09569300775692749,
+            "rmse_gain": 0.397051826651019,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6260964912280702,
+          "covered_rows": 571,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.18523205640819107,
+            "model_mae": 2.4726809552877156,
+            "model_rmse": 3.5350527324188072,
+            "relative_mae_lift": 0.0696907895755407,
+            "rmse_gain": 0.26907875749368815,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6786447638603696,
+          "covered_rows": 661,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.21620224801920562,
+            "model_mae": 2.546268662316181,
+            "model_rmse": 3.5386790134937103,
+            "relative_mae_lift": 0.07826408133758661,
+            "rmse_gain": 0.4031624180934763,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6867088607594937,
+          "covered_rows": 651,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.11943872707713643,
+            "model_mae": 2.5903854642027513,
+            "model_rmse": 3.6396613522874883,
+            "relative_mae_lift": 0.04407619042648071,
+            "rmse_gain": 0.24568358102543986,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.7017045454545454,
+          "covered_rows": 741,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2594440956706001,
+            "model_mae": 2.607404073521319,
+            "model_rmse": 3.7609269261078584,
+            "relative_mae_lift": 0.09049802443626788,
+            "rmse_gain": 0.38328386083480837,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.6531723192851043,
+      "selection_gain": 0.21272546033456985
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 100.0,
+        "features": "core",
+        "history": 3
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.5727069351230425,
+          "covered_rows": 512,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.26862823042153794,
+            "model_mae": 2.6919869821064264,
+            "model_rmse": 3.8774682038422204,
+            "relative_mae_lift": 0.0907339222215797,
+            "rmse_gain": 0.39719198357294205,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6260964912280702,
+          "covered_rows": 571,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.1899078970407242,
+            "model_mae": 2.4680051146551825,
+            "model_rmse": 3.5179650883520557,
+            "relative_mae_lift": 0.07145000464840331,
+            "rmse_gain": 0.2861664015604397,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6786447638603696,
+          "covered_rows": 661,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.20561132492984768,
+            "model_mae": 2.556859585405539,
+            "model_rmse": 3.554403241791003,
+            "relative_mae_lift": 0.07443022265341602,
+            "rmse_gain": 0.3874381897961836,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6867088607594937,
+          "covered_rows": 651,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.12196397982192764,
+            "model_mae": 2.58786021145796,
+            "model_rmse": 3.629226196561659,
+            "relative_mae_lift": 0.04500807846295089,
+            "rmse_gain": 0.25611873675126917,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.7017045454545454,
+          "covered_rows": 741,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2558739971065176,
+            "model_mae": 2.6109741720854016,
+            "model_rmse": 3.7631121787590076,
+            "relative_mae_lift": 0.08925272006247928,
+            "rmse_gain": 0.38109860818365915,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.6531723192851043,
+      "selection_gain": 0.20839708586411101
+    },
+    {
+      "admissible": false,
+      "choice": {
+        "alpha": 0.1,
+        "features": "core",
+        "history": 4
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.31767337807606266,
+          "covered_rows": 284,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.22167505793407072,
+            "model_mae": 2.7389401545938936,
+            "model_rmse": 3.974819711949089,
+            "relative_mae_lift": 0.07487466017064415,
+            "rmse_gain": 0.2998404754660733,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.27631578947368424,
+          "covered_rows": 252,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.16323026524197326,
+            "model_mae": 2.4946827464539334,
+            "model_rmse": 3.5942975615463184,
+            "relative_mae_lift": 0.06141294486452084,
+            "rmse_gain": 0.20983392836617698,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32546201232032856,
+          "covered_rows": 317,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.15386272770659026,
+            "model_mae": 2.6086081826287963,
+            "model_rmse": 3.638893936285715,
+            "relative_mae_lift": 0.05569750151248111,
+            "rmse_gain": 0.30294749530147147,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.31751054852320676,
+          "covered_rows": 301,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.17047452920332873,
+            "model_mae": 2.539349662076559,
+            "model_rmse": 3.6239815210422113,
+            "relative_mae_lift": 0.06290981154862715,
+            "rmse_gain": 0.2613634122707169,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32765151515151514,
+          "covered_rows": 346,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2314226907402075,
+            "model_mae": 2.6354254784517117,
+            "model_rmse": 3.8269965917008917,
+            "relative_mae_lift": 0.08072373459716173,
+            "rmse_gain": 0.3172141952417751,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": null,
+      "selection_gain": null
+    },
+    {
+      "admissible": false,
+      "choice": {
+        "alpha": 1.0,
+        "features": "core",
+        "history": 4
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.31767337807606266,
+          "covered_rows": 284,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.2241205791094809,
+            "model_mae": 2.7364946334184834,
+            "model_rmse": 3.969487633567684,
+            "relative_mae_lift": 0.07570067807565992,
+            "rmse_gain": 0.3051725538474783,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.27631578947368424,
+          "covered_rows": 252,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.16375148057111755,
+            "model_mae": 2.494161531124789,
+            "model_rmse": 3.593481482435937,
+            "relative_mae_lift": 0.06160904433310794,
+            "rmse_gain": 0.21065000747655827,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32546201232032856,
+          "covered_rows": 317,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.15384737998825404,
+            "model_mae": 2.6086235303471326,
+            "model_rmse": 3.6390208511723268,
+            "relative_mae_lift": 0.05569194571883318,
+            "rmse_gain": 0.3028205804148598,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.31751054852320676,
+          "covered_rows": 301,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.1705596851132043,
+            "model_mae": 2.5392645061666834,
+            "model_rmse": 3.623812711710739,
+            "relative_mae_lift": 0.06294123643225968,
+            "rmse_gain": 0.26153222160218936,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32765151515151514,
+          "covered_rows": 346,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.23136348436902976,
+            "model_mae": 2.6354846848228894,
+            "model_rmse": 3.8270543772904975,
+            "relative_mae_lift": 0.08070308251945005,
+            "rmse_gain": 0.3171564096521693,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": null,
+      "selection_gain": null
+    },
+    {
+      "admissible": false,
+      "choice": {
+        "alpha": 10.0,
+        "features": "core",
+        "history": 4
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.31767337807606266,
+          "covered_rows": 284,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.23016872049274895,
+            "model_mae": 2.7304464920352154,
+            "model_rmse": 3.95183830467043,
+            "relative_mae_lift": 0.07774354448993594,
+            "rmse_gain": 0.3228218827447322,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.27631578947368424,
+          "covered_rows": 252,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.1676906704552068,
+            "model_mae": 2.4902223412407,
+            "model_rmse": 3.586649050401577,
+            "relative_mae_lift": 0.06309110558445635,
+            "rmse_gain": 0.21748243951091828,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32546201232032856,
+          "covered_rows": 317,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.1534371636151839,
+            "model_mae": 2.6090337467202027,
+            "model_rmse": 3.6402721206138238,
+            "relative_mae_lift": 0.05554344954045339,
+            "rmse_gain": 0.3015693109733628,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.31751054852320676,
+          "covered_rows": 301,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.1711815224600004,
+            "model_mae": 2.5386426688198873,
+            "model_rmse": 3.6224255044051397,
+            "relative_mae_lift": 0.06317071159481714,
+            "rmse_gain": 0.2629194289077885,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32765151515151514,
+          "covered_rows": 346,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.230637063688929,
+            "model_mae": 2.63621110550299,
+            "model_rmse": 3.827657973096064,
+            "relative_mae_lift": 0.08044969599974974,
+            "rmse_gain": 0.3165528138466027,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": null,
+      "selection_gain": null
+    },
+    {
+      "admissible": false,
+      "choice": {
+        "alpha": 100.0,
+        "features": "core",
+        "history": 4
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.31767337807606266,
+          "covered_rows": 284,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.21343683651413325,
+            "model_mae": 2.747178376013831,
+            "model_rmse": 3.961151668381868,
+            "relative_mae_lift": 0.07209205560079762,
+            "rmse_gain": 0.31350851903329424,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.27631578947368424,
+          "covered_rows": 252,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.17233838841053606,
+            "model_mae": 2.4855746232853706,
+            "model_rmse": 3.5655001038611576,
+            "relative_mae_lift": 0.06483973992082379,
+            "rmse_gain": 0.23863138605133782,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32546201232032856,
+          "covered_rows": 317,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.14765492411304848,
+            "model_mae": 2.614815986222338,
+            "model_rmse": 3.650504839370405,
+            "relative_mae_lift": 0.05345030912746226,
+            "rmse_gain": 0.29133659221678165,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.31751054852320676,
+          "covered_rows": 301,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.16839465059918046,
+            "model_mae": 2.5414295406807073,
+            "model_rmse": 3.62025507762056,
+            "relative_mae_lift": 0.06214227887590203,
+            "rmse_gain": 0.2650898556923682,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32765151515151514,
+          "covered_rows": 346,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2234887156522083,
+            "model_mae": 2.643359453539711,
+            "model_rmse": 3.8341602958687497,
+            "relative_mae_lift": 0.07795624409199292,
+            "rmse_gain": 0.310050491073917,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": null,
+      "selection_gain": null
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 0.1,
+        "features": "trend",
+        "history": 2
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.6241610738255033,
+          "covered_rows": 558,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.31661243247869475,
+            "model_mae": 2.6440027800492696,
+            "model_rmse": 3.7782006272201567,
+            "relative_mae_lift": 0.10694143269241349,
+            "rmse_gain": 0.4964595601950057,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9089912280701754,
+          "covered_rows": 829,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.16428001960143312,
+            "model_mae": 2.4936329920944735,
+            "model_rmse": 3.529321062360088,
+            "relative_mae_lift": 0.06180789923467537,
+            "rmse_gain": 0.27481042755240725,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9917864476386037,
+          "covered_rows": 966,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.25319374803756434,
+            "model_mae": 2.5092771622978223,
+            "model_rmse": 3.47750803007151,
+            "relative_mae_lift": 0.09165481058652108,
+            "rmse_gain": 0.4643334015156766,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9641350210970464,
+          "covered_rows": 914,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.13218030885725573,
+            "model_mae": 2.577643882422632,
+            "model_rmse": 3.5953679484334686,
+            "relative_mae_lift": 0.04877818615783525,
+            "rmse_gain": 0.28997698487945955,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 1.0,
+          "covered_rows": 1056,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.29973964577260803,
+            "model_mae": 2.567108523419311,
+            "model_rmse": 3.642771783897371,
+            "relative_mae_lift": 0.10455372174700689,
+            "rmse_gain": 0.5014390030452955,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.8978147541262658,
+      "selection_gain": 0.2332012309495112
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 1.0,
+        "features": "trend",
+        "history": 2
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.6241610738255033,
+          "covered_rows": 558,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.31644015536674,
+            "model_mae": 2.6441750571612244,
+            "model_rmse": 3.778235449676298,
+            "relative_mae_lift": 0.10688324305965548,
+            "rmse_gain": 0.4964247377388644,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9089912280701754,
+          "covered_rows": 829,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.16449192138916935,
+            "model_mae": 2.4934210903067373,
+            "model_rmse": 3.529023543263705,
+            "relative_mae_lift": 0.0618876241116009,
+            "rmse_gain": 0.27510794664879024,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9917864476386037,
+          "covered_rows": 966,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.25308183444505783,
+            "model_mae": 2.509389075890329,
+            "model_rmse": 3.4776502613363336,
+            "relative_mae_lift": 0.09161429845222574,
+            "rmse_gain": 0.464191170250853,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9641350210970464,
+          "covered_rows": 914,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.1322486495396098,
+            "model_mae": 2.577575541740278,
+            "model_rmse": 3.5952334840430415,
+            "relative_mae_lift": 0.048803405757901555,
+            "rmse_gain": 0.29011144926988663,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 1.0,
+          "covered_rows": 1056,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2996904034209331,
+            "model_mae": 2.567157765770986,
+            "model_rmse": 3.6428139353612194,
+            "relative_mae_lift": 0.10453654526999492,
+            "rmse_gain": 0.5013968515814473,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.8978147541262658,
+      "selection_gain": 0.233190592832302
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 10.0,
+        "features": "trend",
+        "history": 2
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.6241610738255033,
+          "covered_rows": 558,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.3148130109709846,
+            "model_mae": 2.6458022015569798,
+            "model_rmse": 3.7786191527718165,
+            "relative_mae_lift": 0.10633364634446262,
+            "rmse_gain": 0.4960410346433459,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9089912280701754,
+          "covered_rows": 829,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.16648251922606772,
+            "model_mae": 2.491430492469839,
+            "model_rmse": 3.5262351227762605,
+            "relative_mae_lift": 0.06263655676219515,
+            "rmse_gain": 0.2778963671362349,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9917864476386037,
+          "covered_rows": 966,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.2519839585084025,
+            "model_mae": 2.510486951826984,
+            "model_rmse": 3.4790430934264744,
+            "relative_mae_lift": 0.0912168731137189,
+            "rmse_gain": 0.46279833816071214,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9641350210970464,
+          "covered_rows": 914,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.13288123600475155,
+            "model_mae": 2.576942955275136,
+            "model_rmse": 3.5939444508555183,
+            "relative_mae_lift": 0.04903684764213057,
+            "rmse_gain": 0.2914004824574099,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 1.0,
+          "covered_rows": 1056,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.29920154551360323,
+            "model_mae": 2.567646623678316,
+            "model_rmse": 3.6432341328182796,
+            "relative_mae_lift": 0.10436602423836747,
+            "rmse_gain": 0.5009766541243872,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.8978147541262658,
+      "selection_gain": 0.2330724540447619
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 100.0,
+        "features": "trend",
+        "history": 2
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.6241610738255033,
+          "covered_rows": 558,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.3077581774350491,
+            "model_mae": 2.6528570350929153,
+            "model_rmse": 3.7798391144498806,
+            "relative_mae_lift": 0.10395075190209041,
+            "rmse_gain": 0.49482107296528177,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9089912280701754,
+          "covered_rows": 829,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.17463802082393354,
+            "model_mae": 2.483274990871973,
+            "model_rmse": 3.5099138291366683,
+            "relative_mae_lift": 0.06570494220670679,
+            "rmse_gain": 0.2942176607758271,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9917864476386037,
+          "covered_rows": 966,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.24223898377229203,
+            "model_mae": 2.5202319265630946,
+            "model_rmse": 3.4906555341965624,
+            "relative_mae_lift": 0.08768924330243254,
+            "rmse_gain": 0.4511858973906242,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.9641350210970464,
+          "covered_rows": 914,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.13711909605207406,
+            "model_mae": 2.5727050952278137,
+            "model_rmse": 3.5851920075185326,
+            "relative_mae_lift": 0.05060073509319098,
+            "rmse_gain": 0.30015292579439556,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 1.0,
+          "covered_rows": 1056,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.29454307225207765,
+            "model_mae": 2.5723050969398416,
+            "model_rmse": 3.6472718355396783,
+            "relative_mae_lift": 0.10274107830938976,
+            "rmse_gain": 0.4969389514029885,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.8978147541262658,
+      "selection_gain": 0.23125947006708528
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 0.1,
+        "features": "trend",
+        "history": 3
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.5727069351230425,
+          "covered_rows": 512,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.27754976234310114,
+            "model_mae": 2.683065450184863,
+            "model_rmse": 3.8886899265302666,
+            "relative_mae_lift": 0.09374732696388169,
+            "rmse_gain": 0.38597026088489583,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6260964912280702,
+          "covered_rows": 571,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.17967401418276863,
+            "model_mae": 2.478238997513138,
+            "model_rmse": 3.544972670045018,
+            "relative_mae_lift": 0.06759965935383487,
+            "rmse_gain": 0.25915881986747724,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6786447638603696,
+          "covered_rows": 661,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.21854536488569787,
+            "model_mae": 2.5439255454496887,
+            "model_rmse": 3.5342235816288854,
+            "relative_mae_lift": 0.07911227737024919,
+            "rmse_gain": 0.4076178499583012,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6867088607594937,
+          "covered_rows": 651,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.12163807564323958,
+            "model_mae": 2.588186115636648,
+            "model_rmse": 3.6383323175799056,
+            "relative_mae_lift": 0.04488781081616525,
+            "rmse_gain": 0.24701261573302258,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.7017045454545454,
+          "covered_rows": 741,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2627031627263192,
+            "model_mae": 2.6041450064656,
+            "model_rmse": 3.7547415283487093,
+            "relative_mae_lift": 0.09163483631585818,
+            "rmse_gain": 0.3894692585939574,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.6531723192851043,
+      "selection_gain": 0.2120220759562253
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 1.0,
+        "features": "trend",
+        "history": 3
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.5727069351230425,
+          "covered_rows": 512,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.2774138553912282,
+            "model_mae": 2.683201357136736,
+            "model_rmse": 3.888338634246968,
+            "relative_mae_lift": 0.09370142199409776,
+            "rmse_gain": 0.3863215531681945,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6260964912280702,
+          "covered_rows": 571,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.17982209985316588,
+            "model_mae": 2.4780909118427408,
+            "model_rmse": 3.544571173631861,
+            "relative_mae_lift": 0.06765537437149935,
+            "rmse_gain": 0.2595603162806346,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6786447638603696,
+          "covered_rows": 661,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.21843166488622634,
+            "model_mae": 2.5440392454491603,
+            "model_rmse": 3.5344361465018057,
+            "relative_mae_lift": 0.07907111856598951,
+            "rmse_gain": 0.4074052850853809,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6867088607594937,
+          "covered_rows": 651,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.12172964854553481,
+            "model_mae": 2.588094542734353,
+            "model_rmse": 3.6381312771093413,
+            "relative_mae_lift": 0.04492160374730443,
+            "rmse_gain": 0.24721365620358693,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.7017045454545454,
+          "covered_rows": 741,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.26267148017443764,
+            "model_mae": 2.6041766890174816,
+            "model_rmse": 3.754760364395399,
+            "relative_mae_lift": 0.09162378496259084,
+            "rmse_gain": 0.3894504225472679,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.6531723192851043,
+      "selection_gain": 0.21201374977011858
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 10.0,
+        "features": "trend",
+        "history": 3
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.5727069351230425,
+          "covered_rows": 512,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.27550087047442684,
+            "model_mae": 2.6851143420535375,
+            "model_rmse": 3.8864210433415742,
+            "relative_mae_lift": 0.09305527760197733,
+            "rmse_gain": 0.38823914407358817,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6260964912280702,
+          "covered_rows": 571,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.1811917327698005,
+            "model_mae": 2.476721278926106,
+            "model_rmse": 3.5409039999535863,
+            "relative_mae_lift": 0.06817067826241213,
+            "rmse_gain": 0.2632274899589091,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6786447638603696,
+          "covered_rows": 661,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.2173223659048662,
+            "model_mae": 2.5451485444305204,
+            "model_rmse": 3.5364946526655947,
+            "relative_mae_lift": 0.07866955814513228,
+            "rmse_gain": 0.4053467789215919,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6867088607594937,
+          "covered_rows": 651,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.12259538582089924,
+            "model_mae": 2.5872288054589885,
+            "model_rmse": 3.6362528819465387,
+            "relative_mae_lift": 0.04524108472254642,
+            "rmse_gain": 0.24909205136638946,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.7017045454545454,
+          "covered_rows": 741,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2623524805870767,
+            "model_mae": 2.6044956886048425,
+            "model_rmse": 3.754957485493899,
+            "relative_mae_lift": 0.09151251308192795,
+            "rmse_gain": 0.3892533014487678,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.6531723192851043,
+      "selection_gain": 0.2117925671114139
+    },
+    {
+      "admissible": true,
+      "choice": {
+        "alpha": 100.0,
+        "features": "trend",
+        "history": 3
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.5727069351230425,
+          "covered_rows": 512,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.262614735244898,
+            "model_mae": 2.6980004772830664,
+            "model_rmse": 3.8854028188959013,
+            "relative_mae_lift": 0.08870275817459594,
+            "rmse_gain": 0.38925736851926107,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6260964912280702,
+          "covered_rows": 571,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.18661752390289976,
+            "model_mae": 2.471295487793007,
+            "model_rmse": 3.5227096899153523,
+            "relative_mae_lift": 0.07021205098951928,
+            "rmse_gain": 0.2814217999971431,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6786447638603696,
+          "covered_rows": 661,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.20674703404100203,
+            "model_mae": 2.5557238762943846,
+            "model_rmse": 3.5522933177174525,
+            "relative_mae_lift": 0.07484134340292518,
+            "rmse_gain": 0.3895481138697341,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.6867088607594937,
+          "covered_rows": 651,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.1248654430296785,
+            "model_mae": 2.584958748250209,
+            "model_rmse": 3.625886974867928,
+            "relative_mae_lift": 0.046078798555083685,
+            "rmse_gain": 0.2594579584450001,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.7017045454545454,
+          "covered_rows": 741,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.25834673525550444,
+            "model_mae": 2.6085014339364148,
+            "model_rmse": 3.7574368857339193,
+            "relative_mae_lift": 0.09011524852686037,
+            "rmse_gain": 0.38677390120874744,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": 0.6531723192851043,
+      "selection_gain": 0.20783829429479656
+    },
+    {
+      "admissible": false,
+      "choice": {
+        "alpha": 0.1,
+        "features": "trend",
+        "history": 4
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.31767337807606266,
+          "covered_rows": 284,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.22306115553557415,
+            "model_mae": 2.73755405699239,
+            "model_rmse": 3.97786096344068,
+            "relative_mae_lift": 0.07534283908009448,
+            "rmse_gain": 0.29679922397448255,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.27631578947368424,
+          "covered_rows": 252,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.16511757457335907,
+            "model_mae": 2.4927954371225476,
+            "model_rmse": 3.5906774439184828,
+            "relative_mae_lift": 0.06212301676043349,
+            "rmse_gain": 0.21345404599401263,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32546201232032856,
+          "covered_rows": 317,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.15144164216406697,
+            "model_mae": 2.6110292681713196,
+            "model_rmse": 3.645267672437167,
+            "relative_mae_lift": 0.05482108122748729,
+            "rmse_gain": 0.2965737591500197,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.31751054852320676,
+          "covered_rows": 301,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.16653656204506362,
+            "model_mae": 2.543287629234824,
+            "model_rmse": 3.6342271141918894,
+            "relative_mae_lift": 0.0614565928597774,
+            "rmse_gain": 0.2511178191210388,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32765151515151514,
+          "covered_rows": 346,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.2305900363022113,
+            "model_mae": 2.636258132889708,
+            "model_rmse": 3.8276108702353344,
+            "relative_mae_lift": 0.08043329213601427,
+            "rmse_gain": 0.31659991670733234,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": null,
+      "selection_gain": null
+    },
+    {
+      "admissible": false,
+      "choice": {
+        "alpha": 1.0,
+        "features": "trend",
+        "history": 4
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.31767337807606266,
+          "covered_rows": 284,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.22685400138981882,
+            "model_mae": 2.7337612111381455,
+            "model_rmse": 3.97199606417004,
+            "relative_mae_lift": 0.07662393965614878,
+            "rmse_gain": 0.3026641232451226,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.27631578947368424,
+          "covered_rows": 252,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.16573019046225923,
+            "model_mae": 2.4921828212336474,
+            "model_rmse": 3.5898357454991983,
+            "relative_mae_lift": 0.0623535043219919,
+            "rmse_gain": 0.21429574441329713,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32546201232032856,
+          "covered_rows": 317,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.15142859764001182,
+            "model_mae": 2.611042312695375,
+            "model_rmse": 3.6453940095063855,
+            "relative_mae_lift": 0.054816359178105206,
+            "rmse_gain": 0.2964474220808011,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.31751054852320676,
+          "covered_rows": 301,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.16660018328898873,
+            "model_mae": 2.543224007990899,
+            "model_rmse": 3.6340040244308445,
+            "relative_mae_lift": 0.06148007085666364,
+            "rmse_gain": 0.2513409088820837,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32765151515151514,
+          "covered_rows": 346,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.23053890567097257,
+            "model_mae": 2.6363092635209466,
+            "model_rmse": 3.8276634684250386,
+            "relative_mae_lift": 0.08041545699853186,
+            "rmse_gain": 0.3165473185176282,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": null,
+      "selection_gain": null
+    },
+    {
+      "admissible": false,
+      "choice": {
+        "alpha": 10.0,
+        "features": "trend",
+        "history": 4
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.31767337807606266,
+          "covered_rows": 284,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.23420992427342702,
+            "model_mae": 2.7264052882545373,
+            "model_rmse": 3.951665406870852,
+            "relative_mae_lift": 0.0791085323355626,
+            "rmse_gain": 0.3229947805443105,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.27631578947368424,
+          "covered_rows": 252,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.1706726545032553,
+            "model_mae": 2.4872403571926514,
+            "model_rmse": 3.5827964082001644,
+            "relative_mae_lift": 0.06421303246277274,
+            "rmse_gain": 0.22133508171233096,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32546201232032856,
+          "covered_rows": 317,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.15123717487342203,
+            "model_mae": 2.6112337354619646,
+            "model_rmse": 3.646631530425083,
+            "relative_mae_lift": 0.05474706513925267,
+            "rmse_gain": 0.29520990116210344,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.31751054852320676,
+          "covered_rows": 301,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.167032771754152,
+            "model_mae": 2.5427914195257357,
+            "model_rmse": 3.6321181815501737,
+            "relative_mae_lift": 0.061639707952883864,
+            "rmse_gain": 0.25322675176275444,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32765151515151514,
+          "covered_rows": 346,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.22997334909361866,
+            "model_mae": 2.6368748200983005,
+            "model_rmse": 3.828218825087882,
+            "relative_mae_lift": 0.08021818231079933,
+            "rmse_gain": 0.3159919618547846,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": null,
+      "selection_gain": null
+    },
+    {
+      "admissible": false,
+      "choice": {
+        "alpha": 100.0,
+        "features": "trend",
+        "history": 4
+      },
+      "inner_folds": [
+        {
+          "coverage": 0.31767337807606266,
+          "covered_rows": 284,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.9606152125279643,
+            "baseline_rmse": 4.274660187415162,
+            "mae_gain": 0.21493480877712523,
+            "model_mae": 2.745680403750839,
+            "model_rmse": 3.9596793816595195,
+            "relative_mae_lift": 0.07259802215013278,
+            "rmse_gain": 0.3149808057556429,
+            "rows": 894,
+            "weeks": 14
+          },
+          "season": 2021,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.27631578947368424,
+          "covered_rows": 252,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.6579130116959067,
+            "baseline_rmse": 3.8041314899124954,
+            "mae_gain": 0.17449693044317094,
+            "model_mae": 2.4834160812527357,
+            "model_rmse": 3.561198051898405,
+            "relative_mae_lift": 0.06565185906209606,
+            "rmse_gain": 0.24293343801409018,
+            "rows": 912,
+            "weeks": 14
+          },
+          "season": 2022,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32546201232032856,
+          "covered_rows": 317,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7624709103353866,
+            "baseline_rmse": 3.9418414315871866,
+            "mae_gain": 0.14565557781703475,
+            "model_mae": 2.616815332518352,
+            "model_rmse": 3.6564196138654945,
+            "relative_mae_lift": 0.05272655624067765,
+            "rmse_gain": 0.28542181772169206,
+            "rows": 974,
+            "weeks": 14
+          },
+          "season": 2023,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.31751054852320676,
+          "covered_rows": 301,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.7098241912798877,
+            "baseline_rmse": 3.885344933312928,
+            "mae_gain": 0.16510418127037108,
+            "model_mae": 2.5447200100095166,
+            "model_rmse": 3.6270063548639824,
+            "relative_mae_lift": 0.06092800477671951,
+            "rmse_gain": 0.2583385784489458,
+            "rows": 948,
+            "weeks": 14
+          },
+          "season": 2024,
+          "status": "OK"
+        },
+        {
+          "coverage": 0.32765151515151514,
+          "covered_rows": 346,
+          "paired_fallback_metrics": {
+            "baseline_mae": 2.866848169191919,
+            "baseline_rmse": 4.144210786942667,
+            "mae_gain": 0.22339684896786283,
+            "model_mae": 2.6434513202240564,
+            "model_rmse": 3.8344079706292984,
+            "relative_mae_lift": 0.07792419960308951,
+            "rmse_gain": 0.30980281631336837,
+            "rows": 1056,
+            "weeks": 14
+          },
+          "season": 2025,
+          "status": "OK"
+        }
+      ],
+      "selection_coverage": null,
+      "selection_gain": null
+    }
+  ],
+  "trained_at": "2026-10-13T22:55:29.911754+00:00",
+  "transaction_eligible": false
+}

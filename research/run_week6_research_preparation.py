@@ -14,6 +14,19 @@ from prepare_league_research_evidence import build as league_evidence
 from prepare_weekly_report_products import preparation, markdown
 
 
+def expanded_readiness_ledger(root,season,week,capture_path):
+    from waiver_v2_expanded_runtime import load_lock
+    lock,path=load_lock(root);capture=json.loads(capture_path.read_text()) if capture_path.is_file() else None;units=[]
+    for u in lock['units']:
+        rows=[r for r in (capture or {}).get('forecasts',[]) if (r['scoring_signature'],r['position'])==(u['scoring_signature'],u['position'])]
+        units.append({'scoring_signature':u['scoring_signature'],'position':u['position'],'historical_research_signal':u['historical_research_signal'],
+            'historical_only_model_frozen':u['model'] is not None,'cutoff_rows':len(rows),'forecast_rows':sum(r['forecast_mean'] is not None for r in rows),
+            'abstained_rows':sum(r['forecast_mean'] is None for r in rows),'live_parity':'BOUND_SHARED_OWNER' if rows else 'PENDING_SOURCE_VALID_CAPTURE',
+            'temporal_confirmation':'PENDING_UNSEEN_2026_FULL_HORIZONS','free_agent_decision_domain':'UNVERIFIED','actual_adoption':'UNKNOWN','calibration':'UNAVAILABLE',
+            **gates(['BLOCKED_PROSPECTIVE_CONFIRMATION','BLOCKED_DECISION_DOMAIN','BLOCKED_PROMOTION_REVIEW'])})
+    return {'schema':'fie-research-readiness-ledger-v1','season':season,'week':week,'units':units,'model_lock':binding(root,path,lock['frozen_at']),**gates(['BLOCKED_RESEARCH_ONLY'])}
+
+
 def run(root,season,week=None,mode='capture',envelope=None,completed_week=None):
     if completed_week is not None and (mode!='evaluate' or week!=18 or completed_week!=18):
         raise ValueError('LOCAL_CLOSEOUT_REQUIRES_EXPLICIT_WEEK18_COMPLETED18')
@@ -66,13 +79,25 @@ def run(root,season,week=None,mode='capture',envelope=None,completed_week=None):
             from prepare_weekly_model_outcomes import build as weekly_model_outcomes
             owner_review=stage('weekly_model_outcomes',lambda:weekly_model_outcomes(root,season,completed_week or week-1))
             if owner_review:write(base/'weekly_model_outcomes.json',owner_review)
+        expanded_capture=None;expanded_readiness=None
+        if (root/'config/waiver-v2-expanded-scope.json').is_file():
+            from waiver_v2_expanded_runtime import prepare as expanded_prepare,publish as expanded_publish
+            expanded_history=stage('expanded_exact_history',lambda:expanded_prepare(root,envelope,root/f'data/research/prospective/waiver-expanded/history/{season}/week_{week:02d}/{stamp}',completed_week=completed_week if mode=='evaluate' else None))
+            expanded_capture=root/f'data/research/prospective/waiver-expanded/forecasts/{season}/week_{week:02d}/capture.json'
+            if expanded_history and mode=='capture' and week<=16:
+                stage('expanded_waiver_forecast',lambda:expanded_publish(root,envelope,expanded_history))
+            elif expanded_history and mode=='evaluate':
+                for p in sorted((root/f'data/research/prospective/waiver-expanded/forecasts/{season}').glob('week_*/capture.json')):
+                    stage('expanded_evaluate_'+p.parent.name,lambda p=p:evaluate(root,p,envelope,expanded_history,namespace='waiver-expanded'))
+            expanded_readiness=stage('expanded_readiness',lambda:expanded_readiness_ledger(root,season,week,expanded_capture))
+            if expanded_readiness:write(base/'expanded-readiness.json',expanded_readiness)
         from prepare_research_readiness_ledger import build as readiness_ledger
         from publish_weekly_research_view import publish as research_view
         canonical=root/f'data/research/prospective/waiver-v2/forecasts/{season}/week_{week:02d}/capture.json'
         ledger=stage('readiness_ledger',lambda:readiness_ledger(root,season,week,canonical))
         if ledger:
             write(base/'readiness_ledger.json',ledger)
-            stage('read_only_view',lambda:research_view(root,envelope,canonical,ledger))
+            stage('read_only_view',lambda:research_view(root,envelope,canonical,ledger,expanded_capture,expanded_readiness))
     else:
         stages.append({'name':'normalized_research','status':'BLOCKED','reason':'NO_VALID_RAW_RESPONSES'})
     produced=sum(s['status']=='PRODUCED' for s in stages)
