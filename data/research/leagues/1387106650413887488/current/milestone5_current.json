@@ -22,7 +22,7 @@
       "sha256": "7979a6a11c63fb6f6c7e12869f73657b218d7f278c683cce757bab78934b715f"
     }
   },
-  "generated_at": "2026-10-15T01:54:34.474846+00:00",
+  "generated_at": "2026-10-15T10:23:33.929404+00:00",
   "status": "complete",
   "season": 2026,
   "week": 6,
@@ -688,37 +688,60 @@
     ]
   },
   "sleeper_archive": {
-    "written": false,
-    "skipped": true,
-    "season": 2026,
-    "week": 6,
-    "pregame_eligible": false,
     "capture_policy_version": 2,
-    "season_type": "regular",
     "capture_window_hours": 18.0,
+    "captured_at": "2026-10-15T09:58:11.286455+00:00",
     "first_kickoff_utc": "2026-10-16T00:15:00+00:00",
-    "hours_before_kickoff": 22.340376,
-    "reason": "before_capture_window"
+    "first_write_policy": true,
+    "hours_before_kickoff": 14.295394,
+    "path": "data/research/market/sleeper/2026/week_06.jsonl.gz",
+    "point_in_time_metadata": {
+      "as_of_semantics": "provider response observed and immutably first-written at captured_at; never reconstructed later",
+      "capture_intent": "prospective_weekly_market_benchmark",
+      "release_cadence": "verified pregame scheduled capture",
+      "revision_metadata_status": "NOT_EXPOSED_BY_PROVIDER",
+      "schema": "fie-point-in-time-source-metadata-v1",
+      "source_endpoint": "https://api.sleeper.com/projections/nfl/2026/6?season_type=regular",
+      "source_release_identifier": null,
+      "source_revision_identifier": null
+    },
+    "pregame_eligible": true,
+    "reason": "timing_verified",
+    "rows": 9418,
+    "season": 2026,
+    "season_type": "regular",
+    "sha256": "f01034e2df35a43ae864a3d16f9f209e1209f80e9b7ba96687d78ce45654ad62",
+    "source": "Sleeper projection endpoint",
+    "week": 6,
+    "written": false,
+    "first_write": true,
+    "manifest": "data/research/market/sleeper/manifest.json"
   },
   "sleeper_baseline_receipt": {
     "schema": "fie-sleeper-baseline-source-receipt-v1",
     "season": 2026,
     "week": 6,
-    "source_observed_at": "2026-10-15T01:55:22.561522+00:00",
+    "source_observed_at": "2026-10-15T10:24:28.330057+00:00",
     "scoring_signature": "bd035c4fb16a126b",
-    "status": "ARCHIVE_MISSING"
+    "status": "ARCHIVED_PROJECTION_STATS_MATCH",
+    "archive_sha256": "f01034e2df35a43ae864a3d16f9f209e1209f80e9b7ba96687d78ce45654ad62",
+    "archive_captured_at": "2026-10-15T09:58:11.286455+00:00",
+    "archive_stats_sha256": "91f9388fe82d3644d1eae38bf0f319bd454cbb06fd729d40b76818c24e9d37f5",
+    "refresh_stats_sha256": "91f9388fe82d3644d1eae38bf0f319bd454cbb06fd729d40b76818c24e9d37f5",
+    "archive_player_count": 9418,
+    "refresh_player_count": 9418
   },
   "kickoff": {
     "first_kickoff_utc": "2026-10-16T00:15:00+00:00",
-    "capture_pregame_eligible": false,
+    "capture_pregame_eligible": true,
     "capture_policy": {
       "capture_policy_version": 2,
       "season_type": "regular",
       "capture_window_hours": 18.0,
       "first_kickoff_utc": "2026-10-16T00:15:00+00:00",
-      "hours_before_kickoff": 22.340376,
-      "pregame_eligible": false,
-      "reason": "before_capture_window"
+      "hours_before_kickoff": 13.857076,
+      "pregame_eligible": true,
+      "reason": "timing_verified"
     }
   },
   "guardrails": [
@@ -735,8 +758,8 @@
   ],
   "storage": {
     "format": "fie-current-split-v1",
-    "player_base": "data/research/shared/current/player_base.2a632cb5236abc5e.json",
-    "scoring_overlay": "data/research/shared/current/scoring/bd035c4fb16a126b.cc4fcdf36625f57e.json",
+    "player_base": "data/research/shared/current/player_base.496f76ea889bc41a.json",
+    "scoring_overlay": "data/research/shared/current/scoring/bd035c4fb16a126b.e245a5661fb61251.json",
     "player_count": 10740,
     "excluded_player_ids": []
   }
