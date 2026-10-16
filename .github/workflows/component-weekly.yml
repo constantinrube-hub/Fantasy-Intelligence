@@ -2,17 +2,23 @@ name: FIE Component Forecast and Weekly Evaluation
 
 on:
   push:
-    branches: ['research/component-recovered-20261016']
+    branches: ['research/component-*']
     paths:
       - '.github/workflows/component-weekly.yml'
       - 'research/component_weekly_*.py'
       - 'research/integrity_component_weekly_test.py'
+      - 'research/component_diagnostics.py'
+      - 'research/component_challenger.py'
+      - 'research/component_refit_v3.py'
+      - 'research/integrity_component_diagnostics_test.py'
+      - 'config/component-diagnostics-v1.json'
+      - 'config/component-challenger-contract-v1.json'
   workflow_dispatch:
     inputs:
       mode:
         description: Replay/fixture work on research branches; live modes require main
         type: choice
-        options: [replay, fixture, weekly, forecast, review]
+        options: [replay, fixture, weekly, forecast, review, diagnostics]
         default: replay
       ablations:
         description: Generate stages 0-4 with the same captured inputs
@@ -57,18 +63,28 @@ jobs:
         run: |
           python research/component-recovered-20261016/research/recovery_verify_delivery.py
           python -m unittest discover -s research -p integrity_component_weekly_test.py -v
+          python -m unittest discover -s research -p integrity_component_diagnostics_test.py -v
           python -m unittest discover -s research/component-recovered-20261016/research -p integrity_recovery_test.py -v
       - name: Reproduce all 42 games and independently validate exact output
         if: github.event_name == 'push' || inputs.mode == 'replay'
         run: python research/component_weekly_ops.py --mode replay --run-id ci-${{ github.run_id }}-${{ github.run_attempt }}-replay
       - name: Rebuild actuals and training; verify missing future outcomes stay pending
         run: python research/component_weekly_ops.py --mode fixture --run-id ci-${{ github.run_id }}-${{ github.run_attempt }}-fixture
+      - name: Verify separately versioned opponent-column repair
+        run: |
+          python research/component_refit_v3.py \
+            --bundle data/research/components/2026-10-15/joint-v5/observations/observation-bundle.json \
+            --training data/research/components/recovery-20261016/training/week05 \
+            --through-week 5 \
+            --output data/research/components/diagnostic-ci-v1/ci-repair-${{ github.run_id }}-${{ github.run_attempt }}/fit-v3.json
       - name: Upload replay, fixture, logs and receipts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: component-recovery-check-${{ github.run_id }}-${{ github.run_attempt }}
-          path: research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/ci-*
+          path: |
+            research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/ci-*
+            research/component-recovered-20261016/data/research/components/diagnostic-ci-v1/
           if-no-files-found: warn
           retention-days: 90
 
@@ -104,6 +120,7 @@ jobs:
         run: |
           python research/component-recovered-20261016/research/recovery_verify_delivery.py
           python -m unittest discover -s research -p integrity_component_weekly_test.py -v
+          python -m unittest discover -s research -p integrity_component_diagnostics_test.py -v
           python research/component_weekly_history.py restore
       - id: execute
         name: Capture actuals, review every freeze, and issue next pregame window
@@ -135,3 +152,4 @@ jobs:
           DUE: ${{ steps.calendar.outputs.due }}
         run: |
           python research/component_weekly_summary.py --run-id "$RUN_ID" --due "$DUE" >> "$GITHUB_STEP_SUMMARY"
+

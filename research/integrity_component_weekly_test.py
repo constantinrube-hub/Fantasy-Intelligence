@@ -88,7 +88,7 @@ class EvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             runner = Runner(Path(temp), 'replay', 'replay', lambda c, cwd: commands.append(c))
             self.assertEqual(runner.run(), 0)
-            self.assertEqual([Path(c[1]).name for c in commands], ['recovery_pipeline.py', 'recovery_validate.py', 'recovery_coverage.py', 'recovery_compare_replays.py'])
+            self.assertEqual([Path(c[1]).name for c in commands], ['recovery_pipeline.py', 'recovery_validate.py', 'recovery_coverage.py', 'recovery_compare_replays.py', 'component_diagnostics.py', 'component_challenger.py'])
             self.assertIn('--replay', commands[0])
 
     def test_history_modification_and_extra_files_detected(self):
@@ -179,6 +179,10 @@ class EvidenceTests(unittest.TestCase):
             self.assertEqual([c[c.index('--stage') + 1] for c in generation], ['0', '1', '2', '3', '4'])
             self.assertEqual(len([c for c in runner.commands if c[0] == 'recovery_validate.py']), 5)
             self.assertEqual(len([c for c in runner.commands if c[0] == 'recovery_coverage.py']), 5)
+            refits = [c for c in runner.commands if c[0] == 'component_refit_v3.py']
+            self.assertEqual(len(refits), 1)
+            self.assertIn('--training', refits[0])
+            self.assertEqual(runner.receipt['fresh_fit_version'], 'SOURCE_PREWEEK_ROLE_REFIT_V3_OPPONENT_COLUMN')
             self.assertEqual(runner.receipt['issued_start_weeks'], [7])
             html = (runner.folder / 'reports/FIE-Reconstructed-Forecast.html').read_text(encoding="utf-8")
             self.assertIn('<option>9</option>', html)
@@ -223,3 +227,4 @@ class EvidenceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

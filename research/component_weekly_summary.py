@@ -13,10 +13,17 @@ def summary(run_id, due):
     lines = ['Component workflow: **%s**' % r['status'], '',
              '- Run: `%s`' % run_id, '- Mode: `%s`' % r['mode'],
              '- Forecast: `%s`' % r.get('forecast_status', 'NOT_REQUESTED'),
+             '- Diagnostics: `%s`' % r.get('diagnostics_version', 'NOT_IN_THIS_RUN'),
+             '- Fresh fit: `%s`' % r.get('fresh_fit_version', 'NOT_REQUESTED'),
+             '- Challenger: `%s`' % r.get('challenger_training', 'NOT_IN_THIS_RUN'),
              '- Evidence history: `research/component-weekly-evidence-2026`',
              '- Research only; no accuracy or promotion claim.']
     if 'error' in r:
         lines.append('- Error: `%s`' % r['error'].replace('`', ''))
+    for summary_path in sorted(path.parent.glob('diagnostics/parameters-*/summary.json')):
+        value = json.loads(summary_path.read_text(encoding='utf-8'))
+        lines.append('- %s: %s parameters; %s prior-only opponent cells; %s changed parameters.' %
+                     (summary_path.parent.name, value['parameter_count'], value['prior_only_defense_cells'], value['changed_parameters']))
     return '\n'.join(lines)
 
 if __name__ == '__main__':
@@ -25,3 +32,4 @@ if __name__ == '__main__':
     p.add_argument('--due', default='false')
     a = p.parse_args()
     print(summary(a.run_id, a.due))
+
