@@ -159,6 +159,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
+      # Frozen rank diagnostics require the same arithmetic path on every runner.
+      OPENBLAS_CORETYPE: 'Sandybridge'
       OPENBLAS_NUM_THREADS: '1'
       OMP_NUM_THREADS: '1'
       MKL_NUM_THREADS: '1'
@@ -180,6 +182,7 @@ jobs:
       - name: Check TE numerical replay portability
         run: |
           python -c "import numpy,pandas,scipy; print('numpy',numpy.__version__,'pandas',pandas.__version__,'scipy',scipy.__version__)"
+          python -c "import os,numpy; print('OPENBLAS_CORETYPE',os.environ['OPENBLAS_CORETYPE']); numpy.show_runtime()"
           python research/validate_waiver_v2_expansion.py --unit cb090502c0b02160:TE
       - name: Validate focused weekly contracts
         run: |
