@@ -112,7 +112,10 @@ class Runner:
                         'research_only': True, 'forecast_accuracy_claimed': False, 'commands': self.commands}
 
     def command(self, script, *args):
-        command = [sys.executable, 'research/' + script, *map(str, args)]
+        if script in {'component_diagnostics.py', 'component_challenger.py', 'component_refit_v3.py'}:
+            command = [sys.executable, str(REPO / 'research' / script), '--project', str(self.project), *map(str, args)]
+        else:
+            command = [sys.executable, 'research/' + script, *map(str, args)]
         self.commands.append(command[1:])
         log = self.folder / 'logs' / ('%03d-%s.log' % (len(self.commands), script))
         log.parent.mkdir(parents=True, exist_ok=True)
@@ -149,6 +152,19 @@ class Runner:
         self.command('recovery_validate.py', '--base', out)
         self.command('recovery_coverage.py', '--base', out)
 
+    def diagnostics_seed(self):
+        out = self.relative / 'diagnostics/parameters-baseline'
+        self.command('component_diagnostics.py', 'snapshot', '--fit', REFERENCE / 'fit/source-refit-final.json',
+                     '--entities', REFERENCE / 'verified/source-refit/entities.json', '--history', HISTORY, '--output', out)
+        self.command('component_challenger.py', '--fit', REFERENCE / 'fit/source-refit-final.json',
+                     '--training', REFERENCE / 'training/week05', '--output', self.relative / 'diagnostics/challenger-interface-baseline')
+        self.receipt['diagnostics_version'] = 'DIAGNOSTICS_V1'
+        self.receipt['challenger_training'] = 'DISABLED_INTERFACE_ONLY'
+
+    def diagnostics_review(self, frozen, selected, label):
+        self.command('component_diagnostics.py', 'review', '--freeze', frozen, '--actual', *selected,
+                     '--output', self.relative / 'diagnostics/reviews' / label)
+
     def replay(self):
         out = self.relative / 'replay'
         self.command('recovery_pipeline.py', '--output', out, '--fitted', REFERENCE / 'fit/source-refit-final.json',
@@ -156,6 +172,7 @@ class Runner:
         self.validate(out)
         self.command('recovery_compare_replays.py', '--expected', REFERENCE / 'verified/source-refit', '--actual', out)
         self.receipt['replay_comparison'] = 'EXACT_REPLAY'
+        self.diagnostics_seed()
 
     def fixture(self):
         actual = self.relative / 'actual-week05'
@@ -169,6 +186,8 @@ class Runner:
             raise ValueError('WEEK5_MUST_NOT_MATCH_WEEK6_FORECAST')
         self.receipt['fixture'] = {'actual_rows': actual_receipt['rows'], 'future_review_status': review['status'],
                                    'training_revision': str(training)}
+        self.diagnostics_seed()
+        self.diagnostics_review(REFERENCE / 'freeze', [actual], 'week05-must-not-match-week06')
 
     def prior_runs(self):
         base = self.project / HISTORY / 'runs'
@@ -180,6 +199,7 @@ class Runner:
         return result
 
     def weekly(self, mode, ablations=False, revise=False):
+        self.diagnostics_seed()
         with urlopen(Request(SCHEDULE_URL, headers={'User-Agent': 'FIE-Component-Weekly/1'}), timeout=90) as response:
             raw = response.read()
         (self.folder / 'planning-schedule.csv').write_bytes(raw)
@@ -214,6 +234,7 @@ class Runner:
             selected = [actuals[w][1] for w in weeks if w in actuals]
             self.command('recovery_evaluate.py', 'review', '--freeze', frozen, '--actual', *selected,
                          '--output', self.relative / 'reviews' / ('freeze-%03d' % i))
+            self.diagnostics_review(frozen, selected, 'freeze-%03d' % i)
         self.receipt['reviewed_freezes'] = list(map(str, freezes))
         self.receipt['actual_revisions'] = {str(w): str(ref[1]) for w, ref in sorted(actuals.items())}
         if mode == 'review':
@@ -226,7 +247,8 @@ class Runner:
         training = REFERENCE / 'training/week05' if start == 6 else actuals[start - 1][1].parent / ('training-week%02d' % (start - 1))
         bundle = self.capture('forecast-observations', start)
         fitted = self.relative / 'fit/source-refit.json'
-        self.command('recovery_refit.py', '--output', fitted, '--bundle', bundle, '--training-dir', training, '--through-week', start - 1)
+        self.command('component_refit_v3.py', '--output', fitted, '--bundle', bundle, '--training', training, '--through-week', start - 1)
+        self.receipt['fresh_fit_version'] = 'SOURCE_PREWEEK_ROLE_REFIT_V3_OPPONENT_COLUMN'
         issuances = []
         for stage in range(5) if ablations else [4]:
             out = self.relative / ('stage%d' % stage)
@@ -234,6 +256,11 @@ class Runner:
                          '--training-dir', training, '--start-week', start, '--stage', stage)
             self.validate(out)
             issuances.append(out)
+        self.command('component_diagnostics.py', 'snapshot', '--fit', fitted,
+                     '--entities', issuances[-1] / 'entities.json', '--history', HISTORY,
+                     '--output', self.relative / 'diagnostics/parameters-fresh')
+        self.command('component_challenger.py', '--fit', fitted, '--training', training,
+                     '--output', self.relative / 'diagnostics/challenger-interface-fresh')
         basic = self.relative / 'baselines'
         self.command('recovery_comparators.py', '--output', basic, '--reference', issuances[-1])
         self.command('recovery_evaluate.py', 'freeze', '--issuance', *issuances, basic, '--output', self.relative / 'forecast-freeze')
@@ -257,6 +284,10 @@ class Runner:
                 self.replay()
             elif self.mode == 'fixture':
                 self.fixture()
+            elif self.mode == 'diagnostics':
+                self.diagnostics_seed()
+                for i, frozen in enumerate([REFERENCE / 'freeze', REFERENCE / 'ablation-freeze']):
+                    self.diagnostics_review(frozen, [], 'initial-freeze-%d' % i)
             else:
                 self.weekly(self.mode, ablations, revise)
             self.receipt['status'] = 'PASS'
@@ -271,7 +302,7 @@ class Runner:
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--mode', choices=['replay', 'fixture', 'weekly', 'forecast', 'review'], default='replay')
+    p.add_argument('--mode', choices=['replay', 'fixture', 'weekly', 'forecast', 'review', 'diagnostics'], default='replay')
     p.add_argument('--run-id', default=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
     p.add_argument('--ablations', action='store_true')
     p.add_argument('--revise', action='store_true')
@@ -282,9 +313,10 @@ def main():
                            os.getenv('GITHUB_REF', 'refs/heads/main'), read(REPO / 'config/workflow-season-calendar.json'))
         print('due=' + str(due).lower())
         return 0
-    if a.mode in {'weekly', 'forecast', 'review'} and os.getenv('GITHUB_ACTIONS') == 'true' and os.getenv('GITHUB_REF') != 'refs/heads/main':
+    if a.mode in {'weekly', 'forecast', 'review', 'diagnostics'} and os.getenv('GITHUB_ACTIONS') == 'true' and os.getenv('GITHUB_REF') != 'refs/heads/main':
         raise ValueError('LIVE_OPERATION_REQUIRES_MAIN')
     return Runner(PROJECT, a.run_id, a.mode).run(a.ablations, a.revise)
 
 if __name__ == '__main__':
     raise SystemExit(main())
+

@@ -1,0 +1,19 @@
+{
+  "schema": "fie-component-challenger-contract-v1",
+  "version": "CHALLENGER_INTERFACE_V1",
+  "status": "INTERFACE_ONLY_TRAINING_DISABLED",
+  "training_enabled": false,
+  "candidate_weight_grid": null,
+  "feature_selection_enabled": false,
+  "feature_families": ["historical_player_efficiency", "pregame_role_and_opportunity", "team_environment", "opponent_position_and_role_profiles"],
+  "excluded_features": ["sleeper_projection", "target_or_future_outcome", "postgame_diagnostic", "unimplemented_weather"],
+  "selection_protocol": "CHRONOLOGICAL_TRAIN_THEN_VALIDATION_THEN_UNSEEN_TEST",
+  "historical_validation_is_exploratory": true,
+  "protected_selection_outcomes": {"season": 2026, "weeks": [6, 7, 8]},
+  "training_cutoff": "NO_LATER_THAN_COMPLETED_PRIOR_WEEK_AND_OBSERVATION_CUTOFF",
+  "scoring_leagues_are_independent_samples": false,
+  "statistical_training_checkpoint": "docs/audits/CODEX_MODEL_ROUTING.md",
+  "coherence_required": ["team_opportunity_normalization", "shared_passing_receiving_events", "shared_offense_opposing_defense_events", "independent_validation"],
+  "baseline_replacement_allowed": false,
+  "automatic_promotion": false
+}
