@@ -1,0 +1,109 @@
+{
+  "schema": "fie-m10-prospective-operational-runner-design-v1",
+  "phase": "7C-R8",
+  "review_model": "GPT-5.6 Sol High",
+  "source_r7_closure": "79d403e1f7be63550dac9abdb83537c2a7bdd9ac",
+  "authorized_branch": "audit-implementation-2026-09",
+  "activation_branch": "main",
+  "research_only": true,
+  "production_model": "M9",
+  "production_activation": false,
+  "app_integration": false,
+  "runtime_integration": false,
+  "shadow_integration": false,
+  "r7_disposition": {
+    "status": "preserved_portable_point_model_validation_evidence",
+    "activation_eligible": false,
+    "copy_to_canonical_lock_path": false,
+    "reasons": [
+      "training_and_inference_do_not_share_one_feature_owner",
+      "team_budget_can_follow_a_player_across_a_team_change",
+      "required_residual_distribution_is_absent",
+      "required_lock_provenance_hashes_are_incomplete"
+    ]
+  },
+  "r8a_corrected_lock": {
+    "schema": "fie-m10-prospective-season-lock-v2",
+    "training_target_seasons": [2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    "forbidden_outcome_seasons": [2026],
+    "first_write_immutable": true,
+    "shared_feature_owner": true,
+    "historical_prospective_parity_required": true,
+    "features": {
+      "player_prior4_volume": "last_four_completed_player_regular_season_games_minimum_two",
+      "player_prior4_efficiency": "last_four_completed_player_regular_season_games_minimum_two",
+      "team_prior4_budget": "last_four_completed_canonical_team_regular_season_games_minimum_two_joined_by_target_week_team"
+    },
+    "team_change_policy": {
+      "player_history_may_cross": true,
+      "team_budget_follows_old_team": false,
+      "team_and_opponent_numeric_predictors": false
+    },
+    "required_hashes": [
+      "training_matrix_sha256",
+      "row_identity_manifest_sha256",
+      "feature_contract_sha256",
+      "target_contract_sha256",
+      "dependency_lock_sha256",
+      "scorer_sha256",
+      "training_code_manifest_sha256",
+      "candidate_config_sha256",
+      "rollout_design_sha256",
+      "residual_samples_sha256",
+      "residual_manifest_sha256",
+      "model_parameter_sha256"
+    ],
+    "activation_guard_accepts": ["fie-m10-prospective-season-lock-v2"],
+    "activation_guard_rejects": ["fie-m10-prospective-season-lock-v1"]
+  },
+  "residual_distribution": {
+    "unit": "one_out_of_sample_raw_component_residual_vector",
+    "groups": ["position", "candidate"],
+    "shared_declared_outer_folds": true,
+    "same_eligible_rows": true,
+    "stored_as_canonical_sample_table": true,
+    "quantiles": [0.1, 0.25, 0.5, 0.75, 0.9],
+    "weekly_method": "add_each_frozen_residual_vector_to_reconciled_point_vector_apply_domain_and_structural_constraints_score_exact_profile_then_take_empirical_quantiles",
+    "default_quantiles_profile": "repository_default_ppr",
+    "interpretation": "player_level_marginal_score_distribution_not_joint_simulation",
+    "event_probabilities": "null_typed_NOT_DEFINED_BY_2026_SEASON_LOCK",
+    "availability_probability": "externally_governed_never_invented"
+  },
+  "weekly_producer": {
+    "governed_input_builder": true,
+    "loads_frozen_lock_only": true,
+    "trains_or_selects": false,
+    "source_response_envelope_before_transform": true,
+    "source_metadata": ["source_identity", "observed_at", "release_or_etag_when_exposed", "sha256"],
+    "shared_candidate_universe": true,
+    "league_decision_incomplete_legal_set": "typed_blocker",
+    "before_window": "NO_WRITE_SUCCESS",
+    "inside_window_incomplete_required_source": "RETRYABLE_FAILURE",
+    "after_kickoff_without_winner": "FIRST_WRITE_TYPED_MISS",
+    "historical_reconstruction": false
+  },
+  "workflow": {
+    "operational_events": ["workflow_dispatch", "schedule_every_three_hours_in_january_and_september_through_december"],
+    "scheduled_write_ref": "refs/heads/main",
+    "contents_permission": "write",
+    "cancel_in_progress": false,
+    "force_push": false,
+    "push_race_retry_count": 1,
+    "no_op_commit": false,
+    "write_allowlist_root": "data/research/prospective/m10",
+    "forbidden_paths": ["app", "functions", "dist", "production_config", "ranks", "recommendations", "league_current_snapshots"],
+    "audit_target_repository_permission": "read",
+    "audit_target_real_evidence_write": false
+  },
+  "ordered_targets": [
+    "R8A_corrected_lock_preflight",
+    "R8A_real_lock_target_and_external_artifact_verification",
+    "R8A_exact_first_write_lock_installation",
+    "R8B_weekly_producer_target",
+    "R8C_default_branch_workflow_target",
+    "R8_combined_release_gate_and_closure"
+  ],
+  "current_terra_authority": "R8A_corrected_lock_preflight_only",
+  "implementation_model": "GPT-5.6 Terra High",
+  "release_gate_policy": "targeted_during_work_one_full_gate_at_combined_R8_closure"
+}

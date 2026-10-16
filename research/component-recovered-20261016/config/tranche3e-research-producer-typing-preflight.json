@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "tranche": "3E",
+  "change_package": "C10-005",
+  "phase": "preflight_characterization",
+  "branch": "audit-implementation-2026-09",
+  "validated_tranche3d_head": "e89363ab575aa2a35f23cf8e103fb94e2ea37f8e",
+  "validated_tranche3d_run": 33799110079,
+  "production_behavior_change": false,
+  "observed_gap": {
+    "pilot_league_id": "1391803939736801280",
+    "stages": [
+      "feature_evidence",
+      "production_shadow",
+      "controlled_runtime"
+    ],
+    "missing_typed_fields": [
+      "artifact_type",
+      "producer",
+      "validator",
+      "schema"
+    ],
+    "status_labels_present": true,
+    "governed_outputs_present": true,
+    "dedicated_implementations_present": true,
+    "dedicated_producers_referenced_by_unified_runner": false
+  },
+  "target_later": {
+    "typed_stage_identity": true,
+    "unified_runner_invokes_exact_dedicated_producers": true,
+    "stage_outputs_identify_producer_validator_and_schema": true,
+    "incomplete_or_ambiguous_provenance": "fail_closed",
+    "silent_reuse_of_untyped_artifacts": false
+  },
+  "preservation_constraints": [
+    "Tranche 3A replacement/scarcity/VOR economics",
+    "Tranche 3B scope-safe DataClient transport",
+    "Tranche 3C governed PlayerIdentity",
+    "Tranche 3D typed evidence semantics",
+    "all 22 enabled league profiles and six formats",
+    "ADP remains outside the football model",
+    "statistical and promotion gates remain fail-closed",
+    "no automatic model promotion",
+    "no runtime recommendation or ranking changes in preflight"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "fie-window1a-evidence-backbone-v1",
+  "window": "1A",
+  "title": "Prospective Evidence Backbone + 2026 Baseline Freeze",
+  "source_frontload_sha256": "a2ce0dd6a1dca58de2fe1d5473e9066084e84b952cdb80a59dbfd7c6edab4d93",
+  "reconciled_start_head": "c2e9f51",
+  "contracts": {
+    "point_in_time_envelope": "fie-point-in-time-source-envelope-v1",
+    "waiver_transaction": "fie-waiver-transaction-evidence-v1",
+    "waiver_cycle": "fie-waiver-cycle-state-v1",
+    "waiver_behavior": "fie-waiver-behavior-features-v1",
+    "weather_context": "fie-context-evidence-v1",
+    "season_baseline": "fie-2026-season-baseline-v1"
+  },
+  "existing_transaction_producer": {
+    "load_owner": "index.html::loadLeagueTransactions",
+    "profile_owner": "index.html::buildTransactionProfiles",
+    "existing_filter": "status === complete",
+    "production_consumer": "state.transactions.profiles",
+    "window1a_action": "preserved unchanged; failed/rejected claims remain in the separate research evidence owner"
+  },
+  "immutable_evidence": {
+    "baseline": {
+      "path": "data/research/baselines/2026/baseline-v1.json",
+      "sha256": "ddecc8598668859c6f61a8b210584eeca5e42d44b3f70dbef961e7e1ef49d10d",
+      "eligibility": "PRESEASON_ELIGIBLE"
+    },
+    "waiver_visibility_audit": {
+      "path": "data/research/waivers/sleeper/2026/visibility-audits/audit_20260906T080045382835Z.json",
+      "sha256": "6edc5a011157219fc6b4bb8e05f5dd07e87fd1d7405cb1bba518940a5f73278d",
+      "league_week_observations": 44,
+      "transactions_observed": 1612,
+      "partial_losing_claim_visibility": 11,
+      "winner_only_visibility": 2,
+      "unknown_visibility": 31
+    },
+    "weather": {
+      "path": "data/research/context/weather/2026/week_01/20260906T080324836404Z/context-evidence.json",
+      "sha256": "a4e9c06e1253da6c807984960a0f3bd7351492380250ca47d42c0b201e588453",
+      "games": 16,
+      "forecast_run_metadata_status": "NOT_EXPOSED_BY_PROVIDER"
+    }
+  },
+  "governance": {
+    "research_only": true,
+    "production_model": "M9",
+    "m10_production_or_shadow_integration": false,
+    "app_or_runtime_integration": false,
+    "rankings_changed": false,
+    "waiver_probability_or_optimization": false,
+    "adp_or_market_as_football_feature": false,
+    "historical_backfill": false
+  }
+}

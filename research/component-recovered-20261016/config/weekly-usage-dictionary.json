@@ -1,0 +1,99 @@
+{
+  "schema": "fie-weekly-usage-dictionary-v1",
+  "grain": [
+    "season",
+    "week",
+    "game_id",
+    "source_gsis_player_id",
+    "team"
+  ],
+  "source_owner": "research/weekly_player_performance.py",
+  "identity_policy": "Source GSIS IDs are namespace-prefixed; absent IDs remain unresolved. Sleeper joins require an explicit governed crosswalk.",
+  "purpose": "Retrospective reporting and research inventory. Not a prospective feature store or promotion approval.",
+  "unsupported_fields": {
+    "snaps": "No snap-count source bound by this owner.",
+    "routes": "No route source bound by this owner.",
+    "route_participation": "No route source bound by this owner.",
+    "alignment": "No tracking/alignment source bound by this owner."
+  },
+  "fields": {
+    "attempts": {
+      "provider_column": "attempts",
+      "units": "count",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "completions": {
+      "provider_column": "completions",
+      "units": "count",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "passing_yards": {
+      "provider_column": "passing_yards",
+      "units": "yards",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "passing_tds": {
+      "provider_column": "passing_tds",
+      "units": "count",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "carries": {
+      "provider_column": "carries",
+      "units": "count",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "rushing_yards": {
+      "provider_column": "rushing_yards",
+      "units": "yards",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "rushing_tds": {
+      "provider_column": "rushing_tds",
+      "units": "count",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "targets": {
+      "provider_column": "targets",
+      "units": "count",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "receptions": {
+      "provider_column": "receptions",
+      "units": "count",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "receiving_yards": {
+      "provider_column": "receiving_yards",
+      "units": "yards",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "receiving_air_yards": {
+      "provider_column": "receiving_air_yards",
+      "units": "yards",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "target_share": {
+      "provider_column": "target_share",
+      "units": "fraction",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    },
+    "air_yards_share": {
+      "provider_column": "air_yards_share",
+      "units": "fraction",
+      "missing_semantics": "null means not provided; explicit numeric zero is an observed zero",
+      "known_at": "Immutable source observation time; realized target-week value is not a pregame feature for that same week."
+    }
+  }
+}

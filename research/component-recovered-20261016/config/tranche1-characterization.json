@@ -1,0 +1,46 @@
+{
+  "schema": "fie-controlled-implementation-tranche1-v1",
+  "status": "CHARACTERIZATION_ONLY",
+  "repository": "constantinrube-hub/Fantasy-Intelligence",
+  "implementation_branch": "audit-implementation-2026-09",
+  "tranche0_head": "b9221db1134b9257153ca0ec97a91aeafe8c8415",
+  "original_baseline_commit": "8bcf13224c665be5a08f40b3aae2921ead5bfb1f",
+  "mode": "baseline",
+  "production_semantics_changed": false,
+  "cleanup_performed": false,
+  "thresholds_changed": false,
+  "tests": [
+    "integrity_tranche1_six_format_runtime_characterization.js",
+    "integrity_tranche1_all_league_runtime_profiles.js",
+    "integrity_tranche1_replacement_parity_characterization.js",
+    "integrity_tranche1_data_client_scope_characterization.js",
+    "integrity_tranche1_direct_fetch_allowlist.py",
+    "integrity_tranche1_research_stage_identity.py",
+    "integrity_tranche1_responsive_decision_visibility.py"
+  ],
+  "known_baseline_gaps_expected": [
+    "runtime foundation explicit CHOPPED_BESTBALL resolution collapses to CHOPPED",
+    "LeagueContext hybrid isBestBall=true but isChopped=false",
+    "DraftBase CHOPPED_BESTBALL uses REDRAFT/default branch",
+    "calibration guard has no CHOPPED_BESTBALL weight",
+    "Core lineup and Monte Carlo treat hybrid as generic Best Ball",
+    "D starter economics uses a separate replacement-rank convention",
+    "DataClient URL-only in-flight coalescing shares an aborted scope promise",
+    "ResearchReportService is a primary raw-fetch bypass",
+    "unified research stage manifests lack typed producer/schema/validator identity",
+    "ordinal responsive CSS hides primary decision/action columns"
+  ],
+  "allowed_tranche1_changes": [
+    "config/tranche1-characterization.json",
+    "docs/audits/TRANCHE1_CHARACTERIZATION.md",
+    "research/tranche1_characterization.py",
+    "research/integrity_tranche1_six_format_runtime_characterization.js",
+    "research/integrity_tranche1_all_league_runtime_profiles.js",
+    "research/integrity_tranche1_replacement_parity_characterization.js",
+    "research/integrity_tranche1_data_client_scope_characterization.js",
+    "research/integrity_tranche1_direct_fetch_allowlist.py",
+    "research/integrity_tranche1_research_stage_identity.py",
+    "research/integrity_tranche1_responsive_decision_visibility.py",
+    ".github/workflows/validate-fie-tranche1-characterization.yml"
+  ]
+}

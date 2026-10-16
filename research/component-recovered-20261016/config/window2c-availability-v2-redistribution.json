@@ -1,0 +1,65 @@
+{
+  "schema": "fie-window2c-availability-config-v2",
+  "schema_version": 2,
+  "status": "IMPLEMENTED_RESEARCH_ONLY",
+  "production_model": "M9",
+  "research_owner": "research/window2c_availability_v2.py",
+  "evidence_owner": "research/capture_fie_availability.py",
+  "schedule_context_owner": "research/capture_fie_weather.py",
+  "supported_positions": ["QB", "RB", "WR", "TE"],
+  "availability_states": [
+    "AVAILABLE",
+    "LIMITED",
+    "QUESTIONABLE",
+    "DOUBTFUL",
+    "OUT",
+    "IR",
+    "PUP",
+    "NFI",
+    "SUSPENDED",
+    "INACTIVE",
+    "UNKNOWN"
+  ],
+  "confirmed_unavailable_states": ["OUT", "IR", "PUP", "NFI", "SUSPENDED", "INACTIVE"],
+  "uncertain_states": ["LIMITED", "QUESTIONABLE", "DOUBTFUL"],
+  "point_in_time": {
+    "latest_snapshot_must_be_observed_before_team_kickoff": true,
+    "latest_snapshot_must_be_observed_before_run_as_of": true,
+    "post_kickoff_evidence_allowed": false,
+    "historical_backfill_from_current_status_allowed": false,
+    "missing_status_means_available": false,
+    "immutable_first_write": true
+  },
+  "redistribution": {
+    "unit": "opportunity_share_only",
+    "direct_fantasy_point_adjustment": false,
+    "automatic_absence_probability": false,
+    "uncertain_designations_are_default_absences": false,
+    "confirmed_absence_scenario": "CONFIRMED_ABSENCE",
+    "uncertain_scenario": "IF_ABSENT_SCENARIO",
+    "explicit_opportunity_baseline_schema": "fie-opportunity-baseline-v1",
+    "opportunity_baseline_required_for_quantified_allocation": true,
+    "missing_opportunity_share_zero_imputation": false,
+    "recipient_scope": "same_team_and_same_explicit_role_family_only",
+    "unavailable_recipients_allowed": false,
+    "conservation_required": true,
+    "unallocated_residual_allowed": true,
+    "depth_chart_used_as_quantitative_weight": false
+  },
+  "outputs": {
+    "root": "data/research/availability/v2/<season>/week_<week>/<point_in_time_stamp>/",
+    "availability": "availability-v2.json",
+    "redistribution": "redistribution-v2.json"
+  },
+  "governance": {
+    "research_only": true,
+    "automatic_model_promotion": false,
+    "canonical_rankings_changed": false,
+    "runtime_changed": false,
+    "production_projections_changed": false,
+    "waiver_values_changed": false,
+    "adp_used_as_football_feature": false,
+    "market_used_as_football_feature": false,
+    "target_week_realised_stats_allowed": false
+  }
+}

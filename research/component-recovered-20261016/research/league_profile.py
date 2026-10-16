@@ -1,0 +1,496 @@
+#!/usr/bin/env python3
+"""League-ID profile and registry utilities for FIE multi-league research.
+
+Stdlib-only by design so GitHub Actions can build a league identity/profile
+before installing or running the heavier research stack.
+"""
+from __future__ import annotations
+
+import argparse
+from collections import Counter
+import hashlib
+import json
+import re
+import urllib.request
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict
+
+try:
+    from dst_contract import dst_profile_fields
+except Exception:
+    dst_profile_fields = None
+
+try:
+    from portfolio_rules import load_portfolio_config, entry_for
+except Exception:
+    load_portfolio_config = None
+    entry_for = None
+
+SCHEMA_VERSION = 2
+LEAGUE_ID_RE = re.compile(r"^[0-9]{6,32}$")
+FORMATS = {
+    "AUTO", "REDRAFT", "DYNASTY", "CHOPPED",
+    "REDRAFT_BESTBALL", "DYNASTY_BESTBALL", "CHOPPED_BESTBALL",
+}
+
+# Sleeper settings include operational/progress fields (for example leg,
+# daily_waivers_last_ran and last_chopped_leg). They must never invalidate a
+# research model. Only structural/valuation settings belong in the contract.
+STRUCTURAL_SETTING_KEYS = {
+    "type", "best_ball", "waiver_budget", "reserve_slots", "taxi_slots",
+    "playoff_teams", "playoff_week_start", "daily_waivers",
+    "daily_waivers_days", "waiver_type", "waiver_clear_days",
+    "trade_deadline", "taxi_years", "taxi_allow_vets", "taxi_deadline",
+    "reserve_allow_na", "reserve_allow_dnr", "reserve_allow_sus",
+    "reserve_allow_out", "reserve_allow_doubtful", "reserve_allow_cov",
+    "max_keepers", "draft_rounds"
+}
+
+# Settings that can alter the model-relevant player pool / league structure.
+# Operational waiver schedules, deadlines and eligibility toggles remain in the
+# full profile fingerprint but must not force historical M1-M6 rebuilds.
+RESEARCH_SETTING_KEYS = {
+    "best_ball",
+    "reserve_slots",
+    "taxi_slots",
+    "taxi_years",
+    "taxi_allow_vets",
+    "max_keepers",
+}
+
+PASSIVE_RESERVE_SLOT_NAMES = {"BN", "BENCH", "IR", "TAXI", "RESERVE"}
+
+def structural_settings(settings: Dict[str, Any] | None) -> Dict[str, Any]:
+    settings = settings or {}
+    return {k: settings[k] for k in sorted(STRUCTURAL_SETTING_KEYS) if k in settings}
+
+
+def research_structural_settings(settings: Dict[str, Any] | None) -> Dict[str, Any]:
+    """Stable model-relevant subset of Sleeper league settings."""
+    settings = settings or {}
+    out = {
+        k: settings[k]
+        for k in sorted(RESEARCH_SETTING_KEYS)
+        if k in settings
+    }
+
+    # Sleeper may omit best_ball when false and later expose an explicit 0.
+    # Those states are semantically identical.
+    raw_best_ball = settings.get("best_ball", 0)
+    try:
+        out["best_ball"] = int(raw_best_ball or 0)
+    except (TypeError, ValueError):
+        out["best_ball"] = raw_best_ball
+
+    return out
+
+
+def passive_reserve_capacity_expansion(stored_positions: list[Any] | None, live_positions: list[Any] | None) -> bool:
+    """True only when live Sleeper state adds passive reserve capacity."""
+    stored = [str(slot).upper() for slot in (stored_positions or [])]
+    live = [str(slot).upper() for slot in (live_positions or [])]
+    if stored == live:
+        return False
+    stored_active = [slot for slot in stored if slot not in PASSIVE_RESERVE_SLOT_NAMES]
+    live_active = [slot for slot in live if slot not in PASSIVE_RESERVE_SLOT_NAMES]
+    if stored_active != live_active:
+        return False
+    stored_passive = {slot: stored.count(slot) for slot in PASSIVE_RESERVE_SLOT_NAMES}
+    live_passive = {slot: live.count(slot) for slot in PASSIVE_RESERVE_SLOT_NAMES}
+    return all(live_passive[slot] >= stored_passive[slot] for slot in PASSIVE_RESERVE_SLOT_NAMES) and any(
+        live_passive[slot] > stored_passive[slot] for slot in PASSIVE_RESERVE_SLOT_NAMES
+    )
+
+
+def roster_evolution_status(profile: Dict[str, Any], live_positions: list[Any] | None, season: Any, week: Any) -> Dict[str, Any]:
+    """Match live slots to a declared cumulative, Tuesday-applied roster plan."""
+    plan = profile.get("roster_evolution")
+    base = list(profile.get("roster_positions") or [])
+    live = list(live_positions or [])
+    if not isinstance(plan, dict) or str(plan.get("season")) != str(season):
+        return {"configured": False, "recognized": False, "live_roster_positions": live}
+    additions = plan.get("weekly_additions") or {}
+    anchor = int(plan.get("base_through_week", 0))
+    if isinstance(plan.get("base_through_week"), bool) or not 0 <= anchor <= 16: raise ValueError("ROSTER_EVOLUTION_ANCHOR_INVALID")
+    stages = [{"stage": 0, "through_week": anchor, "roster_positions": base, "added_slots": []}]
+    current = list(base)
+    for raw_week, slots in sorted(additions.items(), key=lambda item: int(item[0])):
+        if int(raw_week) <= anchor: continue
+        current = current + [str(slot).upper() for slot in (slots or [])]
+        stages.append({"stage": len(stages), "through_week": int(raw_week), "roster_positions": list(current), "added_slots": [str(slot).upper() for slot in (slots or [])]})
+    normalized_live = [str(slot).upper() for slot in live]
+    match = next((item for item in stages if Counter(item["roster_positions"]) == Counter(normalized_live) and item["through_week"] <= int(week or 0)), None)
+    target_week = int(week or 0)
+    scheduled_stage = max((item["stage"] for item in stages if item["through_week"] <= target_week), default=0)
+    next_stage = next((item for item in stages if item["stage"] == ((match or {"stage": 0})["stage"] + 1)), None)
+    return {
+        "configured": True,
+        "recognized": match is not None,
+        "status": "SCHEDULED_STAGE_ACTIVE" if match is not None else "UNPLANNED_ROSTER_DRIFT",
+        "season": int(plan["season"]),
+        "application_weekday": plan["application_weekday"],
+        "season_complete_week": int(plan["season_complete_week"]),
+        "base_through_week": anchor,
+        "target_week": target_week,
+        "matched_stage": match["stage"] if match else None,
+        "matched_through_week": match["through_week"] if match else None,
+        "scheduled_stage_for_target_week": scheduled_stage,
+        "scheduled_addition_pending": bool(match and match["stage"] < scheduled_stage),
+        "season_complete": target_week >= int(plan["season_complete_week"]),
+        "next_scheduled_change": ({"week": next_stage["through_week"], "slots": next_stage["added_slots"]} if next_stage else None),
+        "live_roster_positions": live,
+        "expected_stages": [{"stage": item["stage"], "through_week": item["through_week"], "roster_positions": item["roster_positions"]} for item in stages],
+    }
+
+
+def research_roster_positions_for_live_state(profile: Dict[str, Any], live_positions: list[Any] | None, season: Any, week: Any) -> tuple[list[Any], Dict[str, Any]]:
+    """Return research-compatible roster slots plus declared-evolution evidence."""
+    evolution = roster_evolution_status(profile, live_positions, season, week)
+    if evolution.get("recognized") or passive_reserve_capacity_expansion(profile.get("roster_positions"), live_positions):
+        return list(profile.get("roster_positions") or []), evolution
+    return list(live_positions or []), evolution
+
+
+def structural_contract(league_id: str, fmt: str, scoring: Dict[str, Any], roster_positions: list[Any], settings: Dict[str, Any], total_rosters: Any, season: Any, season_type: Any, constraints: list[Any] | None = None) -> Dict[str, Any]:
+    c = {
+        "league_id": league_id,
+        "format": fmt,
+        "scoring_settings": scoring or {},
+        "roster_positions": roster_positions or [],
+        "structural_settings": structural_settings(settings),
+        "total_rosters": total_rosters,
+        "season": season,
+        "season_type": season_type,
+    }
+    if constraints:
+        c["research_constraints"] = list(constraints)
+    return c
+
+
+def research_contract(
+    league_id: str,
+    fmt: str,
+    scoring: Dict[str, Any],
+    roster_positions: list[Any],
+    settings: Dict[str, Any],
+    total_rosters: Any,
+    season: Any,
+    season_type: Any,
+    constraints: list[Any] | None = None,
+) -> Dict[str, Any]:
+    """Contract whose changes genuinely require historical research review."""
+    c = {
+        "league_id": league_id,
+        "format": fmt,
+        "scoring_settings": scoring or {},
+        "roster_positions": roster_positions or [],
+        "research_structural_settings": research_structural_settings(settings),
+        "total_rosters": total_rosters,
+        "season": season,
+        "season_type": season_type,
+    }
+    if constraints:
+        c["research_constraints"] = list(constraints)
+    return c
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def require_league_id(value: str) -> str:
+    value = str(value or "").strip()
+    if not LEAGUE_ID_RE.fullmatch(value):
+        raise SystemExit("league_id must contain only 6-32 digits")
+    return value
+
+
+def canonical_json(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def sha256_json(value: Any) -> str:
+    return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def scoring_signature(scoring: Dict[str, Any]) -> str:
+    """Match research/fie_research.py scoring_signature exactly."""
+    return hashlib.sha256(canonical_json(scoring or {}).encode("utf-8")).hexdigest()[:16]
+
+
+def research_fingerprint_from_profile(profile: Dict[str, Any]) -> str:
+    contract = research_contract(
+        str(profile.get("league_id") or ""),
+        str(profile.get("format") or ""),
+        profile.get("scoring_settings") or {},
+        profile.get("roster_positions") or [],
+        profile.get("settings") or {},
+        profile.get("total_rosters"),
+        profile.get("season"),
+        profile.get("season_type"),
+        profile.get("research_constraints") or None,
+    )
+    return sha256_json(contract)
+
+
+def fetch_json(url: str, timeout: int = 20) -> Dict[str, Any]:
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "Fantasy-Intelligence-Engine-MultiLeague/1.0", "Accept": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        if response.status != 200:
+            raise RuntimeError(f"Sleeper returned HTTP {response.status}")
+        return json.loads(response.read().decode("utf-8"))
+
+
+def infer_format(league: Dict[str, Any], requested: str) -> str:
+    requested = (requested or "AUTO").upper()
+    if requested not in FORMATS:
+        raise SystemExit(f"Unsupported format {requested!r}")
+    if requested != "AUTO":
+        return requested
+    settings = league.get("settings") or {}
+    league_type = str(league.get("type") or "").lower()
+    name = str(league.get("name") or "").lower()
+
+    # Sleeper introduced a native Chopped format.  Live league payloads use
+    # settings.type == 3 for Chopped, settings.type == 2 for Dynasty, and
+    # settings.type == 0 for ordinary Redraft.  Name heuristics remain a
+    # backwards-compatible fallback for older/fixture payloads only.
+    raw_type = settings.get("type")
+    try:
+        type_code = int(raw_type)
+    except (TypeError, ValueError):
+        type_code = None
+    is_chopped = bool(
+        type_code == 3
+        or settings.get("last_chopped_leg") is not None
+        or any(token in name for token in ("chopped", "guillotine", "eliminator", "elimination league", "chop league"))
+    )
+    is_dynasty = bool(type_code == 2 or "dynasty" in league_type or "dynasty" in name)
+    is_best_ball = bool(settings.get("best_ball") in (1, 2, "1", "2") or "best ball" in name or "bestball" in name)
+    if is_chopped and is_best_ball:
+        return "CHOPPED_BESTBALL"
+    if is_chopped:
+        return "CHOPPED"
+    if is_dynasty and is_best_ball:
+        return "DYNASTY_BESTBALL"
+    if is_best_ball:
+        return "REDRAFT_BESTBALL"
+    if is_dynasty:
+        return "DYNASTY"
+    return "REDRAFT"
+
+
+def build_profile(league_id: str, requested_format: str = "AUTO", league_json: Dict[str, Any] | None = None, portfolio_entry: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    league_id = require_league_id(league_id)
+    league = league_json or fetch_json(f"https://api.sleeper.app/v1/league/{league_id}")
+    if str(league.get("league_id") or league_id) != league_id:
+        raise RuntimeError("Sleeper response league_id does not match requested league")
+    scoring = league.get("scoring_settings") or {}
+    roster_positions = league.get("roster_positions") or []
+    settings = league.get("settings") or {}
+    fmt = infer_format(league, requested_format)
+
+    constraints = list((portfolio_entry or {}).get("research_constraints") or [])
+    league_contract = structural_contract(league_id, fmt, scoring, roster_positions, settings, league.get("total_rosters"), league.get("season"), league.get("season_type"), constraints)
+
+    profile = {
+        "schema_version": SCHEMA_VERSION,
+        "league_id": league_id,
+        "league_name": league.get("name"),
+        "season": league.get("season"),
+        "season_type": league.get("season_type"),
+        "format": fmt,
+        "format_source": "manual" if requested_format.upper() != "AUTO" else "auto",
+        "total_rosters": league.get("total_rosters"),
+        "roster_positions": roster_positions,
+        "settings": settings,
+        "structural_settings": structural_settings(settings),
+        "scoring_settings": scoring,
+        "scoring_signature": scoring_signature(scoring),
+        "profile_fingerprint": sha256_json(league_contract),
+        "captured_at": utc_now(),
+        "source": "Sleeper league API",
+    }
+    if dst_profile_fields:
+        profile.update(dst_profile_fields(profile))
+    if constraints:
+        profile["research_constraints"] = constraints
+    for key in ("roster_evolution", "operational_rules"):
+        value = (portfolio_entry or {}).get(key)
+        if value is not None:
+            profile[key] = value
+    if portfolio_entry:
+        profile["portfolio"] = {
+            "priority": portfolio_entry.get("priority"),
+            "alias": portfolio_entry.get("alias"),
+            "managed": True,
+            "replaces_league_id": portfolio_entry.get("replaces_league_id"),
+        }
+
+    # Calculate only after custom research constraints have been attached.
+    profile["research_fingerprint"] = research_fingerprint_from_profile(profile)
+    return profile
+
+
+def load_json(path: Path, default: Any = None) -> Any:
+    if not path.exists():
+        return default
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def write_json(path: Path, value: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        json.dump(value, f, indent=2, sort_keys=True)
+        f.write("\n")
+    tmp.replace(path)
+
+
+def update_registry(registry_path: Path, profile: Dict[str, Any], current_refresh: bool = True) -> Dict[str, Any]:
+    reg = load_json(registry_path, {"schema_version": SCHEMA_VERSION, "leagues": {}})
+    if not isinstance(reg, dict):
+        reg = {"schema_version": SCHEMA_VERSION, "leagues": {}}
+    reg.setdefault("schema_version", SCHEMA_VERSION)
+    reg.setdefault("leagues", {})
+    lid = profile["league_id"]
+    existing = reg["leagues"].get(lid, {})
+    reg["leagues"][lid] = {
+        **existing,
+        "enabled": True,
+        "league_name": profile.get("league_name"),
+        "format": profile.get("format"),
+        "scoring_signature": profile.get("scoring_signature"),
+        "profile_fingerprint": profile.get("profile_fingerprint"),
+        "research_fingerprint": profile.get("research_fingerprint"),
+        "dst_enabled": bool(profile.get("dst_enabled")),
+        "dst_starter_slots": int(profile.get("dst_starter_slots") or 0),
+        "dst_scoring_signature": profile.get("dst_scoring_signature"),
+        "dst_roster_signature": profile.get("dst_roster_signature"),
+        "current_refresh": bool(current_refresh),
+        "profile_path": f"data/research/leagues/{lid}/profile.json",
+        "replaces_league_id": (
+            (profile.get("portfolio") or {}).get("replaces_league_id")
+        ),
+        "updated_at": utc_now(),
+    }
+    reg["updated_at"] = utc_now()
+    write_json(registry_path, reg)
+    return reg
+
+
+
+def build_legacy_profile(league_id: str, requested_format: str, m1_bundle: Dict[str, Any]) -> Dict[str, Any]:
+    """Build a migration profile whose scoring is the exact scoring embedded in legacy M1.
+
+    Current Sleeper metadata is used for roster/name context, but historical scoring is
+    never silently replaced. A mismatch is recorded so governance can stay fail-closed.
+    """
+    league_id=require_league_id(league_id)
+    live=fetch_json(f"https://api.sleeper.app/v1/league/{league_id}")
+    historical_scoring=((m1_bundle.get("scoring") or {}).get("settings") or {})
+    embedded_id=str(((m1_bundle.get("scoring") or {}).get("provenance") or {}).get("league_id") or "")
+    if embedded_id and embedded_id != league_id:
+        raise SystemExit(f"legacy M1 belongs to league {embedded_id}, not requested {league_id}")
+    fmt=infer_format(live, requested_format)
+    live_scoring=live.get("scoring_settings") or {}
+    league_contract=structural_contract(league_id, fmt, historical_scoring, live.get("roster_positions") or [], live.get("settings") or {}, live.get("total_rosters"), live.get("season"), live.get("season_type"))
+    hist_sig=scoring_signature(historical_scoring); live_sig=scoring_signature(live_scoring)
+    profile = {
+        "schema_version":SCHEMA_VERSION,"league_id":league_id,"league_name":live.get("name"),
+        "season":live.get("season"),"season_type":live.get("season_type"),"format":fmt,
+        "format_source":"manual" if requested_format.upper()!="AUTO" else "auto",
+        "total_rosters":live.get("total_rosters"),"roster_positions":live.get("roster_positions") or [],
+        "settings":live.get("settings") or {},"structural_settings":structural_settings(live.get("settings") or {}),"scoring_settings":historical_scoring,
+        "scoring_signature":hist_sig,"profile_fingerprint":sha256_json(league_contract),
+        "captured_at":utc_now(),"source":"legacy M1 scoring + current Sleeper metadata",
+        "migration":{"type":"legacy_single_profile","embedded_league_id":embedded_id or None,
+          "current_sleeper_scoring_signature":live_sig,"historical_scoring_matches_current":hist_sig==live_sig},
+    }
+    profile["research_fingerprint"] = research_fingerprint_from_profile(profile)
+    if dst_profile_fields:
+        profile.update(dst_profile_fields(profile))
+    return profile
+
+def cmd_legacy(args: argparse.Namespace) -> None:
+    m1=load_json(Path(args.m1_bundle), {})
+    prov=((m1.get("scoring") or {}).get("provenance") or {})
+    lid=args.league_id or prov.get("league_id")
+    if not lid: raise SystemExit("Could not infer legacy League ID from M1; provide --league-id")
+    profile=build_legacy_profile(str(lid), args.format, m1)
+    write_json(Path(args.output),profile)
+    update_registry(Path(args.registry),profile,current_refresh=not args.disable_current_refresh)
+    print(f"Wrote legacy migration profile for {profile['league_id']} format={profile['format']}")
+    print(f"historical_scoring_matches_current={profile['migration']['historical_scoring_matches_current']}")
+
+def cmd_build(args: argparse.Namespace) -> None:
+    portfolio_entry = None
+    if getattr(args, "portfolio_config", None) and load_portfolio_config and entry_for:
+        cfg_path = Path(args.portfolio_config)
+        if cfg_path.exists():
+            cfg = load_portfolio_config(cfg_path)
+            portfolio_entry = entry_for(cfg, args.league_id)
+            if portfolio_entry and args.format == "AUTO":
+                args.format = portfolio_entry.get("format") or args.format
+    profile = build_profile(args.league_id, args.format, portfolio_entry=portfolio_entry)
+    out = Path(args.output)
+    write_json(out, profile)
+    update_registry(Path(args.registry), profile, current_refresh=not args.disable_current_refresh)
+    print(f"Wrote {out} for league {profile['league_id']} format={profile['format']}")
+    print(f"scoring_signature={profile['scoring_signature']}")
+    print(f"profile_fingerprint={profile['profile_fingerprint']}")
+
+
+def cmd_fixture(args: argparse.Namespace) -> None:
+    fixture = {
+        "league_id": args.league_id,
+        "name": "Fixture League",
+        "season": "2026",
+        "season_type": "regular",
+        "total_rosters": 12,
+        "roster_positions": ["QB", "RB", "RB", "WR", "WR", "TE", "FLEX", "BN", "BN"],
+        "settings": {"best_ball": 0},
+        "scoring_settings": {"pass_yd": 0.04, "pass_td": 4, "rec": 1, "rush_yd": 0.1, "rush_td": 6},
+    }
+    profile = build_profile(args.league_id, args.format, fixture)
+    write_json(Path(args.output), profile)
+    update_registry(Path(args.registry), profile)
+    print(json.dumps(profile, indent=2, sort_keys=True))
+
+
+def main() -> None:
+    p = argparse.ArgumentParser()
+    sub = p.add_subparsers(dest="cmd", required=True)
+    b = sub.add_parser("build")
+    b.add_argument("--league-id", required=True)
+    b.add_argument("--format", default="AUTO", choices=sorted(FORMATS))
+    b.add_argument("--output", required=True)
+    b.add_argument("--registry", default="data/research/leagues/registry.json")
+    b.add_argument("--portfolio-config", default=None, help="Optional managed-portfolio config; custom constraints become part of the research fingerprint")
+    b.add_argument("--disable-current-refresh", action="store_true")
+    b.set_defaults(func=cmd_build)
+    f = sub.add_parser("fixture")
+    f.add_argument("--league-id", default="123456789012345678")
+    f.add_argument("--format", default="REDRAFT", choices=sorted(FORMATS))
+    f.add_argument("--output", required=True)
+    f.add_argument("--registry", required=True)
+    f.set_defaults(func=cmd_fixture)
+    l = sub.add_parser("legacy")
+    l.add_argument("--league-id", default=None)
+    l.add_argument("--format", default="AUTO", choices=sorted(FORMATS))
+    l.add_argument("--m1-bundle", default="data/research/milestone1.json")
+    l.add_argument("--output", required=True)
+    l.add_argument("--registry", default="data/research/leagues/registry.json")
+    l.add_argument("--disable-current-refresh", action="store_true")
+    l.set_defaults(func=cmd_legacy)
+    args = p.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

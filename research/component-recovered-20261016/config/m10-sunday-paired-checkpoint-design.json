@@ -1,0 +1,94 @@
+{
+  "schema": "fie-m10-sleeper-sunday-checkpoint-design-v1",
+  "design_authority": "Sol methodology checkpoint",
+  "checkpoint_id": "SUNDAY_MAIN_T6",
+  "research_only": true,
+  "production_model": "M9",
+  "production_activation": false,
+  "app_integration": false,
+  "shadow_integration": false,
+  "automatic_promotion": false,
+  "existing_week_open_capture": {
+    "identity": "WEEK_OPEN_FIRST_KICKOFF",
+    "policy": "preserve_immutable",
+    "replacement": false
+  },
+  "timing": {
+    "timezone": "America/New_York",
+    "anchor": "earliest Sunday regular-season game with local kickoff at or after 13:00 and before 16:00",
+    "target_hours_before_anchor": 6.0,
+    "opens_hours_before_anchor": 6.0,
+    "closes_hours_before_anchor": 4.5,
+    "poll_minutes": 30,
+    "target_rationale": "07:00 New York is six hours before the normal main slate and still precedes the usual 09:30 international window; the 90-minute late tolerance absorbs delayed GitHub dispatch without pretending the actual capture occurred at target time",
+    "no_anchor_policy": "typed_no_main_slate_manifest",
+    "actual_observed_times_required": true
+  },
+  "eligible_cohort": {
+    "positions": ["QB", "RB", "WR", "TE"],
+    "game_rule": "player kickoff must be after the actual capture time",
+    "minimum_lead_minutes": 30,
+    "already_started_games": "excluded_symmetrically",
+    "source_universe": "current governed M10 roster universe",
+    "m10_pairing": "M9, M10_LINEAR and M10_HGB must exist on every retained M10 forecast identity",
+    "sleeper_pairing": "direct comparison uses only canonical identities present in both immutable ledgers",
+    "missing_sleeper_policy": "retain M10 evidence, record typed exclusion, never impute Sleeper",
+    "coverage_reporting": ["m10_eligible", "sleeper_rows", "identity_resolved", "matched", "excluded_by_reason"]
+  },
+  "time_safety": {
+    "target_week_realised_stats_in_m10_features": false,
+    "prior_completed_weeks_only": true,
+    "current_week_earlier_game_outcomes": "excluded from every M10 feature and parameter input",
+    "parameters": "existing frozen season lock",
+    "candidate_or_hyperparameter_change": false,
+    "allowed_sunday_changes": ["schedule", "current roster universe", "identity", "captured league profiles", "provider projections"]
+  },
+  "coordinated_capture": {
+    "one_orchestrator": true,
+    "shared_schedule_snapshot": true,
+    "maximum_source_drift_minutes": 10,
+    "source_timestamps_preserved": true,
+    "order": ["schedule_and_checkpoint_decision", "m10_source_envelope", "sleeper_projection_response", "immutable_ledgers", "pairing_manifest"],
+    "partial_failure": "write typed component status; never label an unmatched or incomplete pair as comparative evidence"
+  },
+  "namespaces": {
+    "m10": "data/research/prospective/m10/checkpoints/{season}/week_{week}/sunday-main-t6",
+    "sleeper": "data/research/market/sleeper/checkpoints/{season}/week_{week}/sunday-main-t6",
+    "binding": "data/research/prospective/paired-checkpoints/{season}/week_{week}/sunday-main-t6/manifest.json"
+  },
+  "comparison": {
+    "raw_source_preservation": true,
+    "sleeper_raw_stats_scored_with_captured_league_profiles": true,
+    "same_scorer_and_profile_hashes_as_m10": true,
+    "provider_published_points_are_diagnostic_only": true,
+    "primary_rows": "intersection of checkpoint-eligible M10 identities and resolved Sleeper identities",
+    "within_model_delta": "Sunday checkpoint minus immutable week-open checkpoint on identities eligible at both cutoffs",
+    "outcome_evaluation": "paired on one declared append-only outcome revision",
+    "decision_domains": "existing decision_validation_contract thresholds remain authoritative",
+    "promotion_effect": "none"
+  },
+  "storage": {
+    "first_write_immutable_per_checkpoint": true,
+    "overwrite": false,
+    "retry": "identical input is no-op; divergent first-write collision fails closed",
+    "missed_reasons": ["NO_MAIN_SLATE", "WINDOW_NOT_REACHED", "WINDOW_MISSED", "SCHEDULE_UNVERIFIABLE", "M10_INPUTS_UNAVAILABLE", "SLEEPER_INPUTS_UNAVAILABLE", "SOURCE_DRIFT_EXCEEDED"],
+    "historical_reconstruction": false
+  },
+  "implementation_sequence": [
+    "Terra: additive schema, timing/cohort helpers, fixture and validators",
+    "Terra: coordinated no-network paired capture with first-write and failure tests",
+    "Terra: default-branch workflow polling Sunday in New York time",
+    "Operations: prospective accrual without model selection",
+    "Sol: descriptive review only at an already governed checkpoint"
+  ],
+  "forbidden": [
+    "overwrite week-open evidence",
+    "include already-started players",
+    "use target-week outcomes as M10 features",
+    "impute missing Sleeper forecasts",
+    "collapse source timestamps to one invented timestamp",
+    "select the better checkpoint after outcomes",
+    "change ranks, recommendations, runtime or production model",
+    "historical endpoint reconstruction"
+  ]
+}

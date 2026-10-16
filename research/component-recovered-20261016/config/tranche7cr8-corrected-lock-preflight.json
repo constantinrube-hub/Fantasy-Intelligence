@@ -1,0 +1,29 @@
+{
+  "schema": "fie-controlled-implementation-target-v1",
+  "tranche": "7C-R8A",
+  "phase": "corrected_v2_lock_preflight",
+  "source_design_commit": "3a00a016f5dc8ae598ad894e6bb882ed6237f0a3",
+  "workflow": "validate-fie-tranche7cr8-corrected-lock-preflight.yml",
+  "research_only": true,
+  "production_model": "M9",
+  "production_activation": false,
+  "app_integration": false,
+  "runtime_integration": false,
+  "shadow_integration": false,
+  "scheduled_collection": false,
+  "season": 2026,
+  "training_target_seasons": [2019, 2020, 2021, 2022, 2023, 2024, 2025],
+  "forbidden_outcome_seasons": [2026],
+  "feature_owner": "research/m10_prospective_features.py",
+  "lock_schema": "fie-m10-prospective-season-lock-v2",
+  "residual_policy": "out_of_sample_raw_component_residual_vectors_same_declared_outer_folds",
+  "required_fixtures": ["cross_season", "target_week_team_change", "negative_yardage", "null_features", "insufficient_history"],
+  "activation_guard": {"v1": "reject", "v2": "accept_when_non_fixture_and_valid"},
+  "validated_preflight": {
+    "commit": "99524b4d67c2fa382efec2eba92d8f549bca3cdd",
+    "github_actions_run": "33994558619",
+    "status": "DEPLOYABLE_SOURCE",
+    "duration": "1m 11s"
+  },
+  "lifecycle": "closed_manual_validation"
+}

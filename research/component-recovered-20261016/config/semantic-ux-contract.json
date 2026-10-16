@@ -1,0 +1,102 @@
+{
+  "schema": "fie-semantic-ux-v1",
+  "version": "1.0.0",
+  "rank_terms": {
+    "league_rank": {
+      "label": "League Rank",
+      "meaning": "Roster-neutral overall rank for league-eligible players from the canonical Draft Board value.",
+      "canonical": true,
+      "roster_aware": false,
+      "market_input": false
+    },
+    "position_rank": {
+      "label": "Position Rank",
+      "meaning": "Position-specific view of the same canonical Draft Board value.",
+      "canonical": true,
+      "roster_aware": false,
+      "market_input": false
+    },
+    "decision_rank": {
+      "label": "Decision Rank",
+      "meaning": "Current-pick ordering after roster marginal value and timing are applied to canonical board value.",
+      "canonical": false,
+      "roster_aware": true,
+      "market_input": false
+    },
+    "asset_rank": {
+      "label": "Asset Rank",
+      "meaning": "Dynasty-only multi-year asset ordering; distinct from current-season League Rank.",
+      "canonical": false,
+      "roster_aware": false,
+      "market_input": false
+    },
+    "asset_position_rank": {
+      "label": "Asset Position Rank",
+      "meaning": "Position-specific view of the dynasty multi-year Asset Rank.",
+      "canonical": false,
+      "roster_aware": false,
+      "market_input": false
+    },
+    "market_rank": {
+      "label": "Market Rank",
+      "meaning": "Market or ADP ordering shown as external context, never as football-model input.",
+      "canonical": false,
+      "roster_aware": false,
+      "market_input": true
+    },
+    "market_position_rank": {
+      "label": "Market Position Rank",
+      "meaning": "Position-specific market or ADP ordering shown only as external context.",
+      "canonical": false,
+      "roster_aware": false,
+      "market_input": true
+    },
+    "weekly_position_rank": {
+      "label": "Weekly Position Rank",
+      "meaning": "Position ordering for the active weekly projection context.",
+      "canonical": false,
+      "roster_aware": false,
+      "market_input": false
+    },
+    "research_position_rank": {
+      "label": "Research Position Rank",
+      "meaning": "Research-report ordering that cannot change canonical app ranks unless formally promoted.",
+      "canonical": false,
+      "roster_aware": false,
+      "market_input": false
+    }
+  },
+  "surface_roles": {
+    "draft_board": {
+      "label": "Draft Board",
+      "role": "Canonical roster-neutral league ranking.",
+      "owns_canonical_rank": true
+    },
+    "draft_assistant": {
+      "label": "Draft Assistant",
+      "role": "Live roster and pick-timing decision support built on the Draft Board.",
+      "owns_canonical_rank": false
+    },
+    "value_finder": {
+      "label": "Value Finder",
+      "role": "Market disagreement and timing discovery; not a second Draft Board.",
+      "owns_canonical_rank": false
+    },
+    "research_lab": {
+      "label": "Research / Lab",
+      "role": "Diagnostics, evidence, and model evaluation with fail-closed promotion.",
+      "owns_canonical_rank": false
+    },
+    "league_research_report": {
+      "label": "League Research Report",
+      "role": "League-scoped research evidence; it does not calculate or replace canonical ranks.",
+      "owns_canonical_rank": false
+    }
+  },
+  "invariants": [
+    "ADP and market rank remain outside the football model.",
+    "Research output cannot change canonical ranks without formal promotion.",
+    "Missing or unverified evidence fails closed.",
+    "This contract changes vocabulary and surface roles only, not numeric results."
+  ]
+}

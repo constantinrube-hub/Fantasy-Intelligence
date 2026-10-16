@@ -1,0 +1,137 @@
+name: FIE Component Forecast and Weekly Evaluation
+
+on:
+  push:
+    branches: ['research/component-recovered-20261016']
+    paths:
+      - '.github/workflows/component-weekly.yml'
+      - 'research/component_weekly_*.py'
+      - 'research/integrity_component_weekly_test.py'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Replay/fixture work on research branches; live modes require main
+        type: choice
+        options: [replay, fixture, weekly, forecast, review]
+        default: replay
+      ablations:
+        description: Generate stages 0-4 with the same captured inputs
+        type: boolean
+        default: true
+      revise:
+        description: Issue an additional pregame revision even if this week is frozen
+        type: boolean
+        default: false
+  schedule:
+    # Two UTC hours cover DST. The runner admits only 07:35 Europe/Berlin.
+    - cron: '35 5,6 * 9-12 2,3'
+    - cron: '35 5,6 1-11 1 2,3'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-component-weekly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (inputs.mode == 'replay' || inputs.mode == 'fixture'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: research/component-recovered-20261016/research/requirements-recovery.txt
+      - run: python -m pip install -r research/component-recovered-20261016/research/requirements-recovery.txt
+      - name: Verify sealed recovery and operational adapter
+        run: |
+          python research/component-recovered-20261016/research/recovery_verify_delivery.py
+          python -m unittest discover -s research -p integrity_component_weekly_test.py -v
+          python -m unittest discover -s research/component-recovered-20261016/research -p integrity_recovery_test.py -v
+      - name: Reproduce all 42 games and independently validate exact output
+        if: github.event_name == 'push' || inputs.mode == 'replay'
+        run: python research/component_weekly_ops.py --mode replay --run-id ci-${{ github.run_id }}-${{ github.run_attempt }}-replay
+      - name: Rebuild actuals and training; verify missing future outcomes stay pending
+        run: python research/component_weekly_ops.py --mode fixture --run-id ci-${{ github.run_id }}-${{ github.run_attempt }}-fixture
+      - name: Upload replay, fixture, logs and receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-recovery-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/ci-*
+          if-no-files-found: warn
+          retention-days: 90
+
+  weekly:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode != 'replay' && inputs.mode != 'fixture'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      RUN_ID: live-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: research/component-recovered-20261016/research/requirements-recovery.txt
+      - id: calendar
+        name: Apply seasonal calendar and Berlin-time gate
+        run: python research/component_weekly_ops.py --check-due >> "$GITHUB_OUTPUT"
+      - if: steps.calendar.outputs.due == 'true'
+        run: python -m pip install -r research/component-recovered-20261016/research/requirements-recovery.txt
+      - name: Verify package, tests and previously published history
+        if: steps.calendar.outputs.due == 'true'
+        run: |
+          python research/component-recovered-20261016/research/recovery_verify_delivery.py
+          python -m unittest discover -s research -p integrity_component_weekly_test.py -v
+          python research/component_weekly_history.py restore
+      - id: execute
+        name: Capture actuals, review every freeze, and issue next pregame window
+        if: steps.calendar.outputs.due == 'true'
+        env:
+          MODE: ${{ inputs.mode || 'weekly' }}
+          ABLATIONS: ${{ github.event_name == 'schedule' || inputs.ablations }}
+          REVISE: ${{ inputs.revise }}
+        shell: bash
+        run: |
+          args=(--mode "$MODE" --run-id "$RUN_ID")
+          [[ "$ABLATIONS" != 'true' ]] || args+=(--ablations)
+          [[ "$REVISE" != 'true' ]] || args+=(--revise)
+          python research/component_weekly_ops.py "${args[@]}"
+      - name: Preserve sealed successful or failed run on evidence branch
+        if: always() && steps.execute.outcome != 'skipped' && steps.execute.outcome != ''
+        run: python research/component_weekly_history.py publish
+      - name: Upload current run as an additional download route
+        if: always() && steps.calendar.outputs.due == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-weekly-${{ github.run_id }}-${{ github.run_attempt }}
+          path: research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/${{ env.RUN_ID }}
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Summarize actual usability
+        if: always()
+        env:
+          DUE: ${{ steps.calendar.outputs.due }}
+        run: |
+          python research/component_weekly_summary.py --run-id "$RUN_ID" --due "$DUE" >> "$GITHUB_STEP_SUMMARY"
