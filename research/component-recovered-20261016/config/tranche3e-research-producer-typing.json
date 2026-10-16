@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "tranche": "3E",
+  "change_package": "C10-005",
+  "phase": "target_implementation",
+  "branch": "audit-implementation-2026-09",
+  "preflight_commit": "c5ace5b61ae538ed25f8958fcded09edd28963ab",
+  "preflight_run": 33799813994,
+  "preflight_artifact_sha256": "2a30beba5d6f74dbea7c30be4e737afe192cdfc7fc3602069d075df6ce301e06",
+  "typed_stages": {
+    "feature_evidence": "fie-feature-evidence-v1",
+    "production_shadow": "fie-production-shadow-v1",
+    "controlled_runtime": "fie-v96-runtime-v1"
+  },
+  "required_identity_fields": [
+    "artifact_type",
+    "producer",
+    "validator",
+    "schema"
+  ],
+  "behavior": {
+    "reuse_requires_validator_success": true,
+    "missing_artifact_status": "blocked_data",
+    "rebuild_requires_explicit_force_stage": true,
+    "automatic_promotion": false,
+    "adp_in_football_model": false,
+    "statistical_gates_lowered": false
+  },
+  "scope": {
+    "football_model_value_changes": false,
+    "ranking_changes": false,
+    "replacement_or_scarcity_changes": false,
+    "runtime_activation_changes": false,
+    "metadata_and_orchestration_only": true
+  }
+}

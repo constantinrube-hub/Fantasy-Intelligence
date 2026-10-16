@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""Bounded final release gate for the browser repository."""
+from __future__ import annotations
+import argparse,json,subprocess,sys,os,shutil
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]
+def run(cmd,timeout=90):
+ if cmd[-1:] == ['research/integrity_waiver_v2_validation_test.py']: timeout=300
+ try:
+  env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1'};p=subprocess.run(cmd,cwd=ROOT,text=True,capture_output=True,timeout=timeout,env=env)
+  return {'cmd':' '.join(cmd),'ok':p.returncode==0,'code':p.returncode,'stdout':p.stdout[-2500:],'stderr':p.stderr[-2500:]}
+ except subprocess.TimeoutExpired:return {'cmd':' '.join(cmd),'ok':False,'timeout':True,'stdout':'','stderr':f'timeout after {timeout}s'}
+def main():
+ ap=argparse.ArgumentParser();ap.add_argument('--json-output',default='config/release-gate.json');a=ap.parse_args()
+ for d in ROOT.rglob('__pycache__'):
+  if d.is_dir(): shutil.rmtree(d,ignore_errors=True)
+ checks=[
+  run([sys.executable,'research/production_readiness.py']),
+  run([sys.executable,'research/integrity_build_manifest_test.py']),
+  run([sys.executable,'research/integrity_v932_build_determinism_test.py']),
+  run([sys.executable,'research/integrity_governance_hash_portability_test.py']),
+  run(['node','research/integrity_runtime_foundation_test.js']),
+  run(['node','research/integrity_league_switch_runtime_test.js']),
+  run(['node','research/integrity_current_week_hydration_test.js']),
+  run(['node','research/integrity_v9_model_runtime_test.js']),
+  run(['node','research/integrity_decision_service_test.js']),
+  run([sys.executable,'research/integrity_structural_profile_test.py']),
+  run([sys.executable,'research/integrity_release_versions_test.py']),
+  run([sys.executable,'research/integrity_dist_hygiene_test.py']),
+  run([sys.executable,'research/integrity_current_storage_test.py']),
+  run([sys.executable,'research/integrity_workflow_decision_context_test.py']),
+  run([sys.executable,'research/integrity_weekly_evidence_audit_test.py']),
+  run([sys.executable,'research/integrity_weekly_report_bundle_test.py']),
+  run([sys.executable,'research/integrity_weekly_lineup_review_test.py']),
+  run([sys.executable,'research/integrity_weekly_pr2_baseline_archive_test.py']),
+  run([sys.executable,'research/integrity_paired_forecast_metrics_test.py']),
+  run([sys.executable,'research/integrity_research_feature_lab_test.py']),
+  run([sys.executable,'research/integrity_research_snap_identity_test.py']),
+  run([sys.executable,'research/integrity_joint_scenario_engine_test.py']),
+  run([sys.executable,'research/integrity_weekly_context_audit_test.py']),
+  run([sys.executable,'research/integrity_weekly_player_performance_test.py']),
+  run([sys.executable,'research/integrity_weekly_usage_table_test.py']),
+  run([sys.executable,'research/integrity_weekly_usage_identity_crosswalk_test.py']),
+  run([sys.executable,'research/integrity_weekly_usage_historical_identity_test.py']),
+  run([sys.executable,'research/integrity_weekly_portfolio_surface_test.py']),
+  run([sys.executable,'research/integrity_weekly_decision_ledger_test.py']),
+  run([sys.executable,'research/integrity_roadmap_research_inventory_test.py']),
+
+  run([sys.executable,'research/integrity_workflow_usability_test.py']),
+  run([sys.executable,'research/integrity_waiver_capture_reconciliation_test.py']),
+  run([sys.executable,'research/integrity_availability_capture_test.py']),
+  run([sys.executable,'research/integrity_workflow_season_calendar_test.py']),
+  run([sys.executable,'research/integrity_weekly_pipeline_readiness_test.py']),
+  run([sys.executable,'research/integrity_in_season_pr2_release_gate.py'],timeout=180),
+  run([sys.executable,'research/integrity_window1b_pr2_ownership_test.py']),
+  run([sys.executable,'research/integrity_m10_sunday_checkpoint_design.py']),
+  run([sys.executable,'research/integrity_m10_sunday_paired_checkpoint_test.py'],timeout=180),
+  run([sys.executable,'research/integrity_m10_legal_roster_assignment_test.py']),
+  run(['node','research/integrity_monte_carlo_worker_test.js']),
+  run(['node','research/integrity_draft_worker_lifecycle_test.js']),
+  run([sys.executable,'research/integrity_decision_engines_test.py']),
+  run([sys.executable,'research/integrity_v89_test.py']),
+  run([sys.executable,'research/integrity_m5_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_contract_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_outcomes_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_outcome_build_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_source_adapter_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_historical_runner_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_profile_batch_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_event_ledger_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_exact_replay_closure_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_label_batch_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_validation_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_population_test.py']),
+  run([sys.executable,'research/integrity_week6_evidence_preparation_test.py']),
+  run([sys.executable,'research/integrity_week6_extended_evidence_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_scoped_sources_test.py']),
+  run([sys.executable,'research/integrity_waiver_v2_expanded_inference_test.py']),
+  run([sys.executable,'research/validate_waiver_v2_expansion.py','--structure-only'],timeout=600),
+  run(['node','research/integrity_weekly_research_view_test.js']),
+  run([sys.executable,'research/integrity_m6_test.py']),
+  run([sys.executable,'research/integrity_scoring_relevance_test.py']),
+  run([sys.executable,'research/integrity_dst_test.py']),
+  run([sys.executable,'research/integrity_kicker_test.py']),
+  run([sys.executable,'research/integrity_value_finder_test.py']),
+  run([sys.executable,'research/integrity_v932_structural_profile_test.py']),
+  run([sys.executable,'research/integrity_v932_source_contract.py']),
+  run(['node','research/integrity_v932_browser_qa_runtime_test.js']),
+  run(['node','research/integrity_v932_season_runtime_test.js']),
+  run([sys.executable,'research/integrity_v93_decision_ux_test.py']),
+  run([sys.executable,'research/integrity_v931_completion_test.py']),
+  run(['node','research/integrity_v931_persistent_cache_test.js']),
+  run(['node','research/integrity_v93_scarcity_runtime_test.js']),
+  run(['node','research/integrity_tranche2a_six_format_contract.js']),
+  run(['node','research/integrity_tranche3a_replacement_ownership.js','--mode','target']),
+  run(['node','research/integrity_tranche3a_all_league_replacement_profiles.js']),
+  run(['node','research/integrity_tranche3c_player_identity.js','--mode','target']),
+  run(['node','research/integrity_tranche3c_identity_fixtures.js']),
+  run(['node','research/integrity_tranche3c_current_feature_identity.js']),
+  run(['node','research/integrity_tranche3c_current_snapshot_identity.js']),
+  run(['node','research/integrity_tranche3c_value_finder_identity.js']),
+  run([sys.executable,'research/integrity_tranche3c_storage_identity.py']),
+  run(['node','research/integrity_tranche3d_evidence_semantics.js']),
+  run([sys.executable,'research/integrity_tranche3d_evidence_semantics_characterization.py','--mode','target']),
+  run([sys.executable,'research/integrity_tranche3e_research_producer_typing.py']),
+  run(['node','research/integrity_tranche5a_semantic_ux.js']),
+  run([sys.executable,'research/integrity_tranche5a_semantic_ux_rank_identity.py','--mode','target']),
+  run([sys.executable,'research/integrity_tranche5c_documentation_lifecycle.py','--mode','target']),
+  run([sys.executable,'research/integrity_tranche5d_documentation_cleanup.py','--mode','target']),
+  run([sys.executable,'research/integrity_tranche5e_regression_closure.py','--mode','release']),
+  run([sys.executable,'research/integrity_tranche1_research_stage_identity.py','--mode','target']),
+  run(['node','research/integrity_v93_league_context_runtime_test.js']),
+  run(['node','research/integrity_v93_decision_ui_runtime_test.js']),
+  run(['node','research/integrity_value_finder_runtime_test.js']),
+  run(['node','research/integrity_top100_optimizer_runtime_test.js']),
+ ]
+ # Hygiene: release output only and no backup/cache files.
+ for d in ROOT.rglob('__pycache__'):
+  if d.is_dir(): shutil.rmtree(d,ignore_errors=True)
+ bad=[str(p.relative_to(ROOT)) for p in ROOT.rglob('*') if p.is_file() and ('.pre_' in p.name or p.suffix in {'.pyc','.pyo'} or '__pycache__' in p.parts)]
+ checks.append({'cmd':'artifact hygiene','ok':not bad,'stderr':'\n'.join(bad[:100]),'stdout':''})
+ dist=ROOT/'dist'; forbidden=[]
+ if not dist.exists(): forbidden=['dist missing']
+ else:
+  for p in dist.rglob('*'):
+   if not p.is_file():continue
+   rel=str(p.relative_to(dist))
+   if rel.startswith(('research/','docs/','.github/')) or p.suffix in {'.py','.pyc'}:forbidden.append(rel)
+ checks.append({'cmd':'dist hygiene','ok':not forbidden,'stderr':'\n'.join(forbidden[:100]),'stdout':''})
+ ok=all(c['ok'] for c in checks)
+ result={'status':'DEPLOYABLE_SOURCE' if ok else 'BLOCKED','browser_preview_required':True,'checks':checks}
+ out=ROOT/a.json_output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8', newline='\n');print(json.dumps(result,indent=2));raise SystemExit(0 if ok else 1)
+if __name__=='__main__':main()

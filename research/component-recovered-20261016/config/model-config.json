@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "model_version": "9.1-diagnostic-architecture",
+  "production": {
+    "authority": "FIEDecisionService",
+    "authority_version": "9.3.2",
+    "architecture": "V9 canonical diagnostic decision geometry + DraftBase canonical overlay",
+    "promoted": false,
+    "promotion_scope": "candidate_decision_coefficients",
+    "decision_domain": "draft",
+    "current_feature_governance": "league_scoped_m6",
+    "current_feature_activation_independent_of_candidate_promotion": true,
+    "reason": "Production decisions route through FIEDecisionService and the canonical V9 decision geometry. Candidate decision coefficients remain fail-closed; governed current-feature activation is evaluated independently per league through lineage and M6 runtime governance.",
+    "fallback": "FIE_DRAFT_V71 is compatibility-only when canonical V9 decision rows are unavailable; it is not the normal unpromoted production authority."
+  },
+  "candidate": {
+    "draft_decision_weights": {
+      "league": 0.65,
+      "roster": 0.25,
+      "timing": 0.1
+    },
+    "chopped_utility_weights": {
+      "vor": 0.55,
+      "lower_tail_surplus": 0.45
+    },
+    "bestball_utility_weights": {
+      "vor": 0.55,
+      "spike_surplus": 0.45
+    },
+    "dynasty_utility_weights": {
+      "current_vor_percentile": 0.55,
+      "future_percentile": 0.45
+    }
+  },
+  "promotion_contract": "research/decision_validation_contract.json"
+}

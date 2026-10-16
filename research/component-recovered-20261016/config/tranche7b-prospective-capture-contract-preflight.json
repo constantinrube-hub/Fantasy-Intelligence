@@ -1,0 +1,31 @@
+{
+  "schema": "fie-controlled-tranche-preflight-v1",
+  "tranche": "7B",
+  "phase": "deterministic_prospective_capture_contract",
+  "source_design_commit": "3314828cc0020c4528f6b9b7d8828c6bebd48bb8",
+  "source_design_contract": "config/m10-prospective-evidence-contract.json",
+  "workflow": "validate-fie-tranche7b-prospective-capture-contract.yml",
+  "research_only": true,
+  "production_model": "M9",
+  "production_behavior_change": false,
+  "shadow_integration": false,
+  "scheduled_collection": false,
+  "live_network_collection": false,
+  "required_behaviors": [
+    "no_network_synthetic_fixture",
+    "paired_m9_m10_linear_m10_hgb_rows",
+    "first_write_immutable",
+    "typed_missed_capture",
+    "separate_outcome_revision_namespace",
+    "deterministic_validator"
+  ],
+  "forbidden_behaviors": [
+    "runtime_or_app_write",
+    "scheduled_workflow",
+    "historical_forecast_reconstruction",
+    "live_provider_request",
+    "model_selection",
+    "automatic_promotion",
+    "shadow_integration"
+  ]
+}

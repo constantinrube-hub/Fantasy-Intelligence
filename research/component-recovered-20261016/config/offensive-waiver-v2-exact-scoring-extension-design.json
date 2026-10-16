@@ -1,0 +1,164 @@
+{
+  "schema": "fie-offensive-waiver-v2-exact-scoring-extension-design-v1",
+  "status": "SOL_DESIGN_COMPLETE_TERRA_IMPLEMENTATION_AUTHORIZED",
+  "authority": "Sol exact-scoring methodology checkpoint",
+  "observed_real_batch": {
+    "seasons": [2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    "scoring_signatures": 19,
+    "active_leagues": 22,
+    "dense_rows_per_signature": 90858,
+    "exact_rows_per_signature": 0,
+    "activation_eligible": false
+  },
+  "scope": {
+    "positions": ["QB", "RB", "WR", "TE"],
+    "research_only": true,
+    "app_integration": false,
+    "model_promotion": false,
+    "recommendation_authority": false,
+    "transaction_execution": false,
+    "legacy_m5_mutation": false,
+    "production_m9_change": false
+  },
+  "source_hierarchy": [
+    "nflverse_weekly_player_stats_exact_aggregates",
+    "nflverse_play_by_play_event_semantics_and_primary_player_ids",
+    "nflverse_play_participation_only_with_exact_play_role_team_and_gsis_agreement",
+    "weekly_player_or_team_aggregates_for_reconciliation_only"
+  ],
+  "event_ledger": {
+    "key": ["season", "week", "game_id", "play_id", "event_type", "canonical_player_id"],
+    "identity_fallback": "forbidden",
+    "deduplicate_before_profile_scoring": true,
+    "statuses": [
+      "EXACT_EVENT_READY",
+      "BLOCKED_EVENT_IDENTITY",
+      "BLOCKED_EVENT_SEMANTICS",
+      "BLOCKED_SOURCE_INCOMPLETE",
+      "BLOCKED_RECONCILIATION_MISMATCH"
+    ],
+    "required_lineage": [
+      "source_url",
+      "source_sha256",
+      "source_season",
+      "schema_fingerprint",
+      "builder_sha256",
+      "reconciliation_status"
+    ]
+  },
+  "rule_contracts": {
+    "fum": {
+      "meaning": "player fumble on any play type",
+      "source": "all completed PBP plays with exact fumbler identity",
+      "weekly_offensive_components_are_authoritative": false
+    },
+    "fum_lost": {
+      "meaning": "player fumble lost on any play type",
+      "source": "all completed PBP plays with exact fumbler identity and loss state",
+      "weekly_offensive_components_are_authoritative": false
+    },
+    "fum_rec_td": {
+      "meaning": "touchdown credited to the exact fumble-recovery player",
+      "requires_ordered_recovery_role": true
+    },
+    "pass_sack": {
+      "meaning": "sacks taken by passer",
+      "preferred_source": "weekly player stats sacks after schema verification"
+    },
+    "pass_int_td": {
+      "meaning": "interception returned for touchdown charged to passer",
+      "stacks_with": ["pass_int"]
+    },
+    "bonus_rush_td_qb": {
+      "meaning": "QB Rushing TD adjustment",
+      "positions": ["QB"],
+      "source": "rushing_tds",
+      "stacks_with": ["rush_td"]
+    },
+    "long_play": {
+      "minimum_40_yards": 40,
+      "minimum_50_yards": 50,
+      "exclude_penalty_no_play": true,
+      "fifty_yard_td_stacks_with_forty_yard_td": true,
+      "play_bonus_stacks_with_touchdown_bonus": true,
+      "rules": [
+        "pass_cmp_40p",
+        "pass_td_40p",
+        "pass_td_50p",
+        "rush_40p",
+        "rush_td_40p",
+        "rush_td_50p",
+        "rec_40p",
+        "rec_td_40p",
+        "rec_td_50p"
+      ]
+    },
+    "individual_special_teams": {
+      "rules": ["kr_yd", "pr_yd", "fg_ret_yd", "st_td", "st_ff", "st_fum_rec"],
+      "team_only_attribution_is_exact": false,
+      "multi_returner_team_yards_may_be_assigned_to_first_returner": false,
+      "double_count_specific_and_aggregate_td": false,
+      "required_adversarial_cases": [
+        "onside_kick",
+        "muff",
+        "blocked_kick",
+        "missed_field_goal_return",
+        "lateral_or_multiple_returners",
+        "null_returner",
+        "penalty_no_play"
+      ]
+    }
+  },
+  "implementation_phases": [
+    {
+      "id": "E1",
+      "purpose": "source inventory, PBP/participation snapshot, event contract and adversarial fixtures",
+      "may_change_exact_eligibility": false
+    },
+    {
+      "id": "E2",
+      "rules": ["fum", "fum_lost", "pass_int_td", "pass_sack", "bonus_rush_td_qb"],
+      "expected_first_unlock": "three Stoned Lack Best Ball signatures, only after real reconciliation"
+    },
+    {
+      "id": "E3",
+      "rules": ["fum_rec_td", "st_td", "st_ff", "st_fum_rec"],
+      "expected_additional_unlock": "seven signatures covering eight leagues, only after real reconciliation"
+    },
+    {
+      "id": "E4",
+      "rules": ["kr_yd", "pr_yd", "fg_ret_yd"],
+      "fg_ret_yd_policy": "remain blocked unless complete individual attribution is proven"
+    },
+    {
+      "id": "E5",
+      "rules": [
+        "pass_cmp_40p",
+        "pass_td_40p",
+        "pass_td_50p",
+        "rush_40p",
+        "rush_td_40p",
+        "rush_td_50p",
+        "rec_40p",
+        "rec_td_40p",
+        "rec_td_50p"
+      ]
+    },
+    {
+      "id": "E6",
+      "purpose": "real 2019-2025 all-profile replay and exact-label admission",
+      "partial_profile_training_labels": false
+    }
+  ],
+  "acceptance": [
+    "all-play fumbles include special-teams cases and use canonical identity",
+    "pick-six stacks with ordinary interception penalty",
+    "QB rushing-TD adjustment is QB-only and stacks once with rush_td",
+    "50-yard TD bonuses stack with 40-yard TD bonuses",
+    "penalty/no-play events never score",
+    "individual and team special-teams rules cannot double count one event",
+    "incomplete attribution remains null with a typed blocker",
+    "source and reconciliation hashes are bound in build receipts",
+    "legacy M5, M9, app, rankings, recommendations and transactions are unchanged"
+  ]
+}

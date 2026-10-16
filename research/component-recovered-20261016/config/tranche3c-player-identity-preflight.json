@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "tranche": "3C",
+  "change_package": "C10-007",
+  "phase": "preflight_characterization",
+  "preflight_revision": 2,
+  "correction_of_run": "33775902008",
+  "correction_reason": [
+    "revision 1 assumed a non-existent synthesizePlayerId function",
+    "revision 1 piped node through tee without pipefail, masking the failing node process"
+  ],
+  "validated_current_head_before_correction": "48103345158239afd99f148fb3dd5ef99f69248f",
+  "production_behavior_change": false,
+  "target_contract": {
+    "owner": "FIECore.PlayerIdentity",
+    "canonical_operations": [
+      "id",
+      "resolve"
+    ],
+    "recognized_runtime_aliases": [
+      "sleeperId",
+      "sleeper_id",
+      "player_id",
+      "playerId",
+      "id"
+    ],
+    "crosswalk_fields": [
+      "sleeper_id",
+      "gsis_id",
+      "pfr_id",
+      "fantasypros_id",
+      "internal_id"
+    ],
+    "resolution_states": [
+      "resolved",
+      "unavailable",
+      "ambiguous"
+    ],
+    "synthetic_name_position_as_governed_identity": false,
+    "display_name_fallback_for_governed_research_join": false,
+    "incomplete_governed_mapping": "fail_closed",
+    "duplicate_name_collision": "ambiguous_not_guessed"
+  },
+  "frozen": [
+    "C10-009 evidence/uncertainty semantics",
+    "C10-005 research producer typing",
+    "ADP boundary",
+    "statistical/research promotion thresholds",
+    "Tranche 3A economics",
+    "Tranche 3B transport behavior"
+  ]
+}

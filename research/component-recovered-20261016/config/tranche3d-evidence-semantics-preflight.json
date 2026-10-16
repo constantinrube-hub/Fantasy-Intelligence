@@ -1,0 +1,61 @@
+{
+  "package": "C10-009",
+  "tranche": "3D",
+  "mode": "preflight_characterization_only",
+  "branch": "audit-implementation-2026-09",
+  "baseline_commit": "406608787b5930e510730fbb2ab5bfba0a089ae8",
+  "baseline_run": 33781298841,
+  "baseline_artifact": 9903687758,
+  "dependencies": {
+    "C10-006_data_access_reliability": "complete",
+    "C10-007_player_identity": "target_green_generated_sync_included",
+    "C10-004_economics_correctness": "complete"
+  },
+  "scope": {
+    "goal": "Characterize current projection evidence, freshness, confidence, uncertainty, fallback, bye and missing-data semantics before introducing a shared typed evidence status contract.",
+    "runtime_behavior_changes": false,
+    "model_ranking_changes": false,
+    "adp_boundary_changes": false,
+    "governance_threshold_changes": false,
+    "destructive_actions": false
+  },
+  "expected_baseline": {
+    "projection_source_present": true,
+    "projection_confidence_present": true,
+    "availability_and_bye_states_present": true,
+    "season_div_17_heuristic_present": true,
+    "calibrated_vs_heuristic_range_distinction_present": true,
+    "freshness_semantics_fragmented": true,
+    "specialist_semantics_local": true,
+    "shared_typed_evidence_status_contract_present": false,
+    "shared_typed_uncertainty_kind_present": false
+  },
+  "target_later": {
+    "typed_evidence_status_model": true,
+    "fields": [
+      "source",
+      "as_of",
+      "confidence",
+      "reason",
+      "fallback",
+      "uncertainty_kind",
+      "availability",
+      "bye_state",
+      "league_local_provenance"
+    ],
+    "uncertainty_classes": [
+      "calibrated",
+      "heuristic",
+      "exact",
+      "unavailable"
+    ]
+  },
+  "preservation_constraints": [
+    "league-specific decisions preserved",
+    "ADP remains outside the football model",
+    "fail-closed research governance preserved",
+    "real zero remains distinct from unavailable/null",
+    "verified bye may be a true zero; unknown schedule may not be treated as bye",
+    "C10-007 governed PlayerIdentity remains canonical"
+  ]
+}

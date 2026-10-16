@@ -1,0 +1,10 @@
+{
+  "schema": "fie-m10-prospective-target-contract-v2",
+  "count_targets": ["attempts", "completions", "passing_tds", "interceptions", "carries", "rushing_tds", "targets", "receptions", "receiving_tds"],
+  "continuous_targets": ["passing_yards", "rushing_yards", "receiving_yards"],
+  "count_observations": "finite_non_negative_only",
+  "continuous_observations": "finite_negative_values_preserved",
+  "null_observations": "remain_null_and_excluded_per_target",
+  "prediction_floor": "post_inference_only",
+  "structural_constraints": ["completions_lte_attempts", "receptions_lte_targets"]
+}

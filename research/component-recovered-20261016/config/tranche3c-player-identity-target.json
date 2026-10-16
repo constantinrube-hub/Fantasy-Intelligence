@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "tranche": "3C",
+  "change_package": "C10-007",
+  "phase": "target_implementation",
+  "validated_preflight_commit": "23063ab350ee82ce04272933060ce1ac4551fbe9",
+  "validated_preflight_run": 33777550987,
+  "validated_preflight_artifact": 9902218284,
+  "production_authority": "FIECore.PlayerIdentity",
+  "contract": {
+    "runtime_id": "stable ID with compatibility synthetic fallback",
+    "governed_id": "stable/crosswalk identity only; never synthetic",
+    "resolution_states": ["resolved", "unavailable", "ambiguous"],
+    "runtime_aliases": ["sleeperId", "sleeper_id", "player_id", "playerId", "id"],
+    "governed_crosswalk": ["canonical_player_id", "internal_id", "gsis_id", "pfr_id", "fantasypros_id"],
+    "display_name_governed_join": false,
+    "duplicate_name_behavior": "ambiguous_not_guessed",
+    "missing_identity_behavior": "unavailable_fail_closed",
+    "dst_team_entity_alias": true
+  },
+  "governed_consumers": [
+    "current-player-features",
+    "current-snapshot-store",
+    "value-finder current research join",
+    "D/ST current research join",
+    "kicker current research join",
+    "research/current_snapshot_storage.py"
+  ],
+  "preserved": [
+    "Tranche 3A replacement/scarcity/VOR economics",
+    "Tranche 3B scope-safe DataClient transport",
+    "ADP outside football/player-quality model",
+    "league-specific decisions",
+    "fail-closed statistical and research promotion gates"
+  ],
+  "not_in_scope": [
+    "C10-009 uncertainty/evidence semantics",
+    "C10-005 research producer typing",
+    "human-facing player name search",
+    "legacy external API transport IDs where Sleeper player_id is the source contract"
+  ]
+}

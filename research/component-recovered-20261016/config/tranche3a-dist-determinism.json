@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "tranche": "3A",
+  "change_package": "C10-004",
+  "phase": "dist_determinism_closure",
+  "runtime_model_change": false,
+  "root_cause": "tools/build_dist.py used filesystem-dependent league iteration with an order-sensitive greedy compatibility partition.",
+  "fix": [
+    "Canonicalize compatibility partition input by league ID inside partition_compatible.",
+    "Canonicalize league directory enumeration by league ID/name.",
+    "Extend the existing permanent build determinism test with permutation-invariance coverage."
+  ],
+  "allowed_one_time_generated_reconciliation": [
+    "config/release-gate.json",
+    "config/build-manifest.json",
+    "dist/config/build-manifest.json",
+    "dist/data/research/leagues/*/current/milestone5_current.json",
+    "dist/data/research/leagues/*/governance/active_release.json",
+    "dist/data/research/shared/current/runtime_player_base.*.json",
+    "dist/data/research/shared/current/scoring/*.json"
+  ]
+}

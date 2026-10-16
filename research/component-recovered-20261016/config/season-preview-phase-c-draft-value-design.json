@@ -1,0 +1,137 @@
+{
+  "schema": "fie-season-preview-phase-c-draft-value-design-v1",
+  "review_model": "GPT-5.6 Sol High",
+  "status": "IMPLEMENTATION_AUTHORIZED",
+  "season": 2026,
+  "research_only": true,
+  "architecture_order": [
+    "PHASE_A_RAW_FOOTBALL_SCENARIOS",
+    "PHASE_B_EXACT_LEAGUE_SCORING",
+    "PHASE_C_CANONICAL_REPLACEMENT_AND_VOR",
+    "FORMAT_COMPLETENESS_BOUNDARY",
+    "FROZEN_ADP_COMPARISON"
+  ],
+  "inputs": {
+    "baseline": "data/research/baselines/2026/baseline-v1.json",
+    "general_preview": "data/research/evaluation/2026/preseason/general-preview-v2/manifest.json",
+    "league_preview": "data/research/evaluation/2026/preseason/league-preview-v3/manifest.json",
+    "market_capture": "explicit_workflow_input",
+    "runtime_contracts": "config/contracts/runtime-contracts.json",
+    "core_services": "app/core/core-services.js",
+    "verify_all_hashes": true,
+    "provider_requests": false
+  },
+  "universe": {
+    "supported_positions": ["QB", "RB", "WR", "TE"],
+    "blocked_positions": {
+      "K": "BLOCKED_PHASE_B_FAMILY",
+      "DEF": "BLOCKED_PHASE_B_FAMILY",
+      "DL": "BLOCKED_PHASE_B_FAMILY",
+      "LB": "BLOCKED_PHASE_B_FAMILY",
+      "DB": "BLOCKED_PHASE_B_FAMILY"
+    },
+    "requires_any_frozen_draft_relevant": true,
+    "canonical_identity_required": true,
+    "display_name_join": false,
+    "market_join_order": ["exact_sleeper_id", "exact_canonical_player_id"]
+  },
+  "replacement": {
+    "starter_demand_owner": "FIECore.LeagueDemandService",
+    "replacement_owner": "FIECore.ReplacementService",
+    "cutoff_convention": "replacement_player_rank_1_based",
+    "demand_value": "phase_b_fantasy_points_p50",
+    "bench_influence": 0,
+    "ownership_affects_cutoff": false,
+    "additional_scarcity_multiplier": false,
+    "all_22_profile_parity_required": true
+  },
+  "scenario_value": {
+    "scenario_count": 200,
+    "score_with_phase_b_adapter": true,
+    "replacement_cutoff_source": "canonical_p50_core_profile",
+    "scenario_replacement": "position_score_at_fixed_canonical_cutoff",
+    "player_value": "player_scenario_score_minus_scenario_replacement_score",
+    "quantiles": [0.1, 0.25, 0.5, 0.75, 0.9],
+    "primary_value": "vor_p50",
+    "rank_tiebreakers": ["fantasy_points_p50", "canonical_player_id"],
+    "tier_gap_rule": {
+      "method": "robust_adjacent_vor_gap",
+      "mad_multiplier": 2.5,
+      "minimum_gap_points": 1.0
+    }
+  },
+  "format_completeness": {
+    "REDRAFT": [],
+    "REDRAFT_BESTBALL": ["BLOCKED_WEEKLY_SPIKE_SHAPE"],
+    "CHOPPED": ["BLOCKED_WEEKLY_SURVIVAL_SHAPE"],
+    "CHOPPED_BESTBALL": ["BLOCKED_WEEKLY_SURVIVAL_SHAPE", "BLOCKED_WEEKLY_SPIKE_SHAPE"],
+    "DYNASTY": ["BLOCKED_LONG_HORIZON_ASSET_VALUE"],
+    "DYNASTY_BESTBALL": ["BLOCKED_LONG_HORIZON_ASSET_VALUE", "BLOCKED_WEEKLY_SPIKE_SHAPE"]
+  },
+  "market": {
+    "must_precede_first_regular_season_kickoff": true,
+    "cross_family_fallback": false,
+    "invalid_values": [999, "non_positive", "non_finite", "missing"],
+    "two_qb_precedence": true,
+    "reception_family_thresholds": {
+      "ppr_min": 0.75,
+      "half_ppr_min": 0.25,
+      "standard_below": 0.25
+    },
+    "edge": {
+      "rank_edge": "market_sample_rank_minus_model_comparable_rank",
+      "utility_edge": "player_vor_p50_minus_model_vor_at_market_sample_rank",
+      "label_rank_threshold": "max(8, ceil(teams / 2))"
+    },
+    "late_round": {
+      "round": "ceil(adp / teams)",
+      "minimum_round": "max(8, starter_slots_per_team + 1)",
+      "requires_positive_vor": true,
+      "requires_bargain_threshold": true
+    },
+    "adp_can_change_football_or_value_rank": false
+  },
+  "outputs": {
+    "root": "data/research/evaluation/2026/preseason/draft-preview-v1",
+    "files": [
+      "manifest.json",
+      "league-draft-board.csv",
+      "league-replacement-levels.csv",
+      "league-draft-summary.json",
+      "validation.json",
+      "draft-preview.md"
+    ],
+    "overwrite_policy": "first_write_immutable"
+  },
+  "required_tests": [
+    "input_and_hash_binding",
+    "all_22_profile_fingerprint_and_scoring_validation",
+    "frozen_draft_universe_identity",
+    "core_replacement_parity",
+    "phase_b_score_reproduction",
+    "adp_permutation_and_removal_invariance",
+    "market_family_mapping_and_coverage",
+    "format_blocker_semantics",
+    "deterministic_no_network_reproduction",
+    "first_write_and_path_allowlist"
+  ],
+  "governance": {
+    "production_model": "M9",
+    "m9_changed": false,
+    "m10_changed": false,
+    "app_runtime_changed": false,
+    "canonical_rankings_changed": false,
+    "automatic_promotion": false,
+    "scheduled_workflow_authorized": false,
+    "waiver_logic_authorized": false,
+    "selected_roster_adjustment": false,
+    "live_draft_timing_adjustment": false
+  },
+  "terra_implementation_sequence": [
+    "python_orchestrator_using_existing_phase_b_scorer_and_node_canonical_core_bridge",
+    "deterministic_research_artifacts",
+    "synthetic_and_all_profile_integrity_tests",
+    "manual_main_only_workflow_with_explicit_market_date",
+    "restricted_first_write_commit"
+  ]
+}

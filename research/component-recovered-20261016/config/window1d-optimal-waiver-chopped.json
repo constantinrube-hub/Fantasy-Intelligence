@@ -1,0 +1,97 @@
+{
+  "schema_version": "fie-window1d-optimal-waiver-chopped-contract-v1",
+  "window": "1D",
+  "season": 2026,
+  "status": "IMPLEMENTED_RESEARCH_ONLY",
+  "producer": "research/window1d_optimal_waiver.py",
+  "outputs": {
+    "history": "data/research/evaluation/2026/waivers/history/league-<league_id>.json",
+    "latest_json": "data/research/evaluation/2026/weeks/week-<week>/waivers/portfolio-latest.json",
+    "latest_markdown": "data/research/evaluation/2026/weeks/week-<week>/waivers/portfolio-latest.md",
+    "immutable_capture": "data/research/evaluation/2026/weeks/week-<week>/waivers/captures/portfolio-<capture_id>.json"
+  },
+  "evidence": {
+    "football_value_source": "governed current-snapshot waiver_next3_projection",
+    "weekly_leverage_source": "existing decision_weekly_projection",
+    "auction_source": "Sleeper GET /league/<league_id>/transactions/<week>",
+    "live_budget_source": "Sleeper rosters waiver_budget_used",
+    "profile_guard": "stored profile fingerprint must match a live structural restamp",
+    "target_week_results_excluded": true,
+    "zero_impute_missing_projection": false,
+    "hidden_losing_bids_invented": false,
+    "no_bid_behavior_invented": false,
+    "failed_claim_policy": "preserve failed claims; classify as competitive loss only when Sleeper metadata explicitly indicates an outbid/higher-bid reason"
+  },
+  "history_pooling": {
+    "max_seasons_per_league_default": 2,
+    "hierarchy": [
+      "LEAGUE_POSITION",
+      "LEAGUE_ALL",
+      "FORMAT_POSITION",
+      "FORMAT_ALL",
+      "PORTFOLIO_ALL",
+      "PORTFOLIO_SPARSE"
+    ],
+    "minimums": {
+      "LEAGUE_POSITION": 6,
+      "LEAGUE_ALL": 12,
+      "FORMAT_POSITION": 12,
+      "FORMAT_ALL": 25,
+      "PORTFOLIO_ALL": 30,
+      "PORTFOLIO_SPARSE": 3
+    }
+  },
+  "standard_engine": {
+    "raw_acquisition_signal": "max(0,next3_add_minus_drop) + 0.25*max(0,current_week_lineup_upgrade)",
+    "best_ball_week_component": "candidate weekly projection minus drop weekly projection proxy",
+    "budget_preservation_weight": "0.55 + 0.45*(weeks_remaining/regular_season_weeks)",
+    "dynasty_scope": "SHORT_HORIZON_ONLY; does not replace dynasty asset valuation"
+  },
+  "chopped_engine": {
+    "formats": [
+      "CHOPPED",
+      "CHOPPED_BESTBALL"
+    ],
+    "raw_acquisition_signal": "max(0,week_upgrade) + 0.5*max(0,floor_leverage) + 0.5*max(0,next3_add_minus_drop)",
+    "future_supply": "exchangeability proxy from currently non-empty opponent rosters versus current free-agent pool",
+    "future_supply_is_calibrated_elimination_probability": false,
+    "budget_preservation_multiplier": "1 + 0.8*future_supply_index",
+    "survival_multiplier": "1 + 0.7*(1-teams_remaining_proxy/initial_teams)"
+  },
+  "bid_curve": {
+    "base_win_probability": "Laplace-smoothed empirical CDF of observable historical winning bid percentage of initial FAAB cap",
+    "current_competition_adjustment": "raises probability only when fewer current opponents can financially match or exceed the bid",
+    "player_strength_enters_win_probability_model": false,
+    "player_strength_enters_expected_utility": true,
+    "expected_utility_units": "decision utility index, not fantasy points and not calibrated win probability",
+    "recommended_bid": "integer FAAB amount maximizing expected utility index within own remaining budget",
+    "recommended_range": "all integer bids within max(0.5, 5% of best expected utility) of the optimum",
+    "marginal_plus_one_faab_reported": true
+  },
+  "typed_blockers": [
+    "BLOCKED_PROFILE_DRIFT",
+    "BLOCKED_PROFILE_BINDING_MISMATCH",
+    "BLOCKED_CURRENT_WEEK_MISMATCH",
+    "BLOCKED_TARGET_WEEK_REALIZED_STATS_NOT_EXCLUDED",
+    "BLOCKED_STALE_CURRENT",
+    "BLOCKED_MANAGED_ROSTER_UNRESOLVED",
+    "BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS",
+    "BLOCKED_NO_POSITIVE_ADD_DROP_UPGRADES",
+    "BLOCKED_INSUFFICIENT_BID_HISTORY",
+    "NOT_APPLICABLE_ADDS_DISABLED",
+    "NOT_APPLICABLE_NO_FAAB_BUDGET"
+  ],
+  "governance": {
+    "research_only": true,
+    "production_model": "M9",
+    "m10_activation_changed": false,
+    "app_runtime_changed": false,
+    "canonical_rankings_changed": false,
+    "adp_used_as_football_feature": false,
+    "football_model_reweighted": false,
+    "promotion_authorized": false
+  },
+  "validation": [
+    "python research/integrity_window1d_optimal_waiver_test.py"
+  ]
+}

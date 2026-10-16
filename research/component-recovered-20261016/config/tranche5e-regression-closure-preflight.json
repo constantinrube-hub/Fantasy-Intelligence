@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "tranche": "5E",
+  "phase": "bounded_regression_closure_preflight",
+  "branch": "audit-implementation-2026-09",
+  "validated_tranche5d_closure_head": "582ea395be026807e4333136fd950fbea8a2d670",
+  "production_behavior_change": false,
+  "scope": [
+    "run the completed audit preservation contracts as one bounded regression suite",
+    "characterize and repair only the clear generated-manifest hygiene gap created by the 5D lifecycle closure",
+    "produce one deterministic release artifact from the final manual-only controlled-workflow state"
+  ],
+  "preservation_constraints": [
+    "no football-model, projection, ranking, recommendation, promotion, research-data or runtime behavior change",
+    "all 22 enabled leagues and all six formats retain their established contracts",
+    "all completed controlled-tranche validators remain available manually and scheduled operational workflows remain unchanged",
+    "the only generated outputs eligible for final synchronization are config/build-manifest.json, config/release-gate.json, and dist/config/build-manifest.json",
+    "a target requires this preflight's independent GitHub Actions success before its release gate is authorized"
+  ],
+  "preflight_workflow": "validate-fie-tranche5e-regression-closure-preflight.yml",
+  "release_workflow": "validate-fie-regression-closure.yml",
+  "known_preflight_manifest_drift": [
+    "repository_lifecycle_contract"
+  ],
+  "required_integrity_paths": [
+    "research/integrity_tranche5c_documentation_lifecycle.py",
+    "research/integrity_tranche5d_documentation_cleanup.py",
+    "research/integrity_tranche5b_research_lab_freshness.py",
+    "research/integrity_tranche5a_semantic_ux_rank_identity.py",
+    "research/integrity_tranche5e_regression_closure.py",
+    "research/integrity_tranche1_all_league_runtime_profiles.js",
+    "research/integrity_tranche2a_six_format_contract.js",
+    "research/integrity_tranche3a_all_league_replacement_profiles.js",
+    "research/integrity_tranche3a_replacement_ownership.js",
+    "research/integrity_tranche3b_data_client_scope.js",
+    "research/integrity_tranche3c_player_identity.js",
+    "research/integrity_tranche3d_evidence_semantics.js",
+    "research/integrity_tranche3e_research_producer_typing.py"
+  ],
+  "preflight_allowed_paths": [
+    ".github/workflows/validate-fie-regression-closure.yml",
+    ".github/workflows/validate-fie-tranche5e-regression-closure-preflight.yml",
+    "config/repository-lifecycle-contract.json",
+    "config/tranche5e-regression-closure-preflight.json",
+    "docs/audits/AUDIT_CURRENT_STATE.md",
+    "docs/audits/TRANCHE5E_REGRESSION_CLOSURE.md",
+    "research/integrity_tranche5e_regression_closure.py"
+  ],
+  "target_allowed_paths": [
+    ".github/workflows/validate-fie-tranche5e-regression-closure-preflight.yml",
+    "config/build-manifest.json",
+    "config/release-gate.json",
+    "config/repository-lifecycle-contract.json",
+    "config/tranche5e-regression-closure-target.json",
+    "dist/config/build-manifest.json",
+    "docs/audits/AUDIT_CURRENT_STATE.md",
+    "docs/audits/TRANCHE5E_REGRESSION_CLOSURE.md",
+    "research/build_app_manifest.py",
+    "research/release_gate.py"
+  ]
+}

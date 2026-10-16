@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "tranche": "5E",
+  "phase": "regression_closure_target_authorization",
+  "branch": "audit-implementation-2026-09",
+  "validated_preflight": {
+    "commit": "bae3e59d0878e9a6f721bbc4e51a0a914925d2ee",
+    "github_actions_run": "33908414208"
+  },
+  "validated_closure_head": "b4c4ef5254aa93cd493d40b8a8ea327be379a7db",
+  "production_behavior_change": false,
+  "release_workflow": "validate-fie-regression-closure.yml",
+  "required_release_status": "DEPLOYABLE_SOURCE",
+  "authorized_generated_synchronization": [
+    "config/build-manifest.json",
+    "config/release-gate.json",
+    "dist/config/build-manifest.json"
+  ],
+  "closure_requirements": [
+    "all controlled-tranche workflows are manual-only",
+    "active_controlled_workflows is empty",
+    "the full deterministic personal release gate passes after the manifest is rebuilt",
+    "the release artifact contains only the authorized generated synchronization outputs"
+  ]
+}

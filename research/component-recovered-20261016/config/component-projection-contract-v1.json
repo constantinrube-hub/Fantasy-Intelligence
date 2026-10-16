@@ -1,0 +1,77 @@
+{
+  "baseline_smoothing": {
+    "B0": {
+      "empty_history": "VALIDATED_POSITION_ROLE_PRIOR",
+      "last_calendar_weeks": 4,
+      "unknown_week_policy": "EXCLUDE_AND_REPORT_DENOMINATOR"
+    },
+    "B1": {
+      "binomial_prior_total_opportunities": 20,
+      "count_exposure_prior_game_equivalents": 4,
+      "fallback_ladder": [
+        "PLAYER_RECENT_OBSERVED_HISTORY",
+        "POSITION_ROLE_PRIOR",
+        "POSITION_PRIOR",
+        "ENTITY_FAMILY_PRIOR"
+      ],
+      "prior_gate": "VALIDATED_NUMERATOR_AND_ZERO_EXPOSURE_DENOMINATORS_REQUIRED",
+      "selection_policy": "FIXED_V1_DEFAULTS_NO_PERFORMANCE_SELECTION",
+      "weekly_mean_prior_weight": 4,
+      "yard_per_opportunity_prior_equivalent_opportunities": 20
+    }
+  },
+  "blocked_kicker_attempts": "INCLUDED_IN_MISSES_AND_DISTANCE_BUCKETS",
+  "comparison_baselines": [
+    "B0_ROLLING_COMPONENTS",
+    "B1_SHRUNK_COMPONENTS",
+    "SLEEPER_MATCHED_CUTOFF",
+    "DIRECT_FIE_MATCHED_HORIZON",
+    "ACTUAL_APP_FORECAST_WITH_OWNER_RECEIPT"
+  ],
+  "complete_forecast_available": false,
+  "component_applicability": "ALL_PLAYER_RAW_STATS_POSITION_PREMIUM_EXCEPTIONS_APP_CONTRACT_PRESERVED",
+  "expected_enabled_leagues": 23,
+  "fallback_policy": "DECLARED_SOURCE_BOUND_POSITION_ROLE_PRIOR",
+  "feature_windows": {
+    "current_history_through_week": 5,
+    "current_season": 2026,
+    "historical_years": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "recent_calendar_weeks": 4
+  },
+  "first_down_scoring": "EXCLUDE_TOUCHDOWNS_RETAIN_SOURCE_NATIVE_TOTALS",
+  "forecast_interpretation": "UNCONDITIONAL_WEEKLY_COMPONENT_EXPECTATIONS",
+  "future_inputs_forbidden": true,
+  "game_yardage_bonuses": "EXCLUSIVE_300_399_400_PLUS_PASS_100_199_RUSH_RECEIVE",
+  "historical_publication_timing": "EXPLORATORY_NOT_ORIGINAL_PREGAME_CLOCKS",
+  "issuance_policy": "IMMUTABLE_FIRST_WRITE_WITH_ACTUAL_PREGAME_CLOCK",
+  "long_touchdown_bonuses": "OVERLAPPING_40_PLUS_AND_50_PLUS",
+  "negative_fantasy_totals_allowed": true,
+  "not_fitted_at_c0_c1": true,
+  "primary_model_independent_of_sleeper": true,
+  "provider_omitted_keys": "UNKNOWN_NOT_ZERO",
+  "required_surfaces": [
+    "weekly_components",
+    "event_probabilities",
+    "league_contributions",
+    "three_week_sum",
+    "three_week_mean",
+    "weekly_component_review"
+  ],
+  "research_only": true,
+  "schema": "fie-component-projection-contract-v1",
+  "scope": "ALL_ENABLED_LEAGUES_OFFENSE_RETURNS_IDP_K_DST",
+  "source_provider_mismatch_training_policy": "EXCLUDE_FROM_SCORE_TARGET_FITS_UNTIL_COMPONENT_RECONCILIATION",
+  "source_semantics_verified": false,
+  "status": "C0_AUDITED_C1_SOURCE_MASK_IMPLEMENTATION",
+  "target_calendar_weeks": 3,
+  "threshold_scoring": "WEIGHT_TIMES_EVENT_PROBABILITY",
+  "transaction_eligible": false,
+  "unknown_outcomes_are_zero": false,
+  "weekly_update_policy": "NEW_VERSION_AND_NEW_ISSUANCE_ONLY"
+}

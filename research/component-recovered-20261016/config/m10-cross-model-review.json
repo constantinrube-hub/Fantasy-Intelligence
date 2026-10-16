@@ -1,0 +1,35 @@
+{
+  "schema": "fie-m10-cross-model-review-contract-v1",
+  "review_model": "GPT-5.6 Sol High",
+  "source_tranche": "6D",
+  "source_artifact_sha256": "f13d6b8770be7bfd94181ca33edfd0f884d2611aa0a59b453b4ce9cf02bc1d9b",
+  "source_m10_json_sha256": "c491de5af28f5d1586ea3393560a0c292c0e2ba4de57b6b1825e6dce66a81b60",
+  "source_commit": "24a0d5ac9f1c37bdfb92f11ea7f77205f80df4e2",
+  "source_run": "33935011577",
+  "positions": ["QB", "RB", "WR", "TE"],
+  "candidates": ["M10_LINEAR", "M10_HGB"],
+  "champion": "M9",
+  "nominal_interval_coverage": 0.8,
+  "minimum_mean_relative_mae_lift": 0.01,
+  "required_outer_seasons": 4,
+  "bootstrap": {
+    "unit": "outer_season",
+    "method": "exhaustive_resampling_with_replacement",
+    "draw_size": 4,
+    "replicates": 256,
+    "confidence": 0.95
+  },
+  "required_promotion_dimensions": [
+    "source_lineage_and_leakage",
+    "four_outer_seasons",
+    "practical_point_and_distribution_improvement",
+    "overall_and_material_subgroup_calibration",
+    "all_applicable_scoring_profile_replay",
+    "downstream_decision_utility",
+    "deterministic_reproducibility",
+    "explicit_production_authorization"
+  ],
+  "automatic_promotion": false,
+  "production_activation": false,
+  "shadow_default": false
+}

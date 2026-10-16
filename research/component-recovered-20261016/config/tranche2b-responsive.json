@@ -1,0 +1,27 @@
+{
+  "schema": "fie-controlled-implementation-tranche2b-v1",
+  "package": "C10-002 RESPONSIVE_UX_CORRECTNESS + Tranche-1 workflow closure",
+  "branch": "audit-implementation-2026-09",
+  "tranche2a_validated_head": "7533ce190a8732b4447d2e14c489153db05b8746",
+  "production_model_semantics_changed": false,
+  "presentation_behavior_changed": true,
+  "changes": {
+    "responsive": [
+      "remove global nth-child(n+9) and nth-child(n+7) hiding",
+      "make decision table cards horizontally scrollable",
+      "pin semantic Decision and Action columns",
+      "pin Waiver FAAB next to Action",
+      "preserve D/ST and Kicker Action in main boards and week drawers"
+    ],
+    "workflow_closure": [
+      "Tranche 1 workflow becomes manual-only",
+      "manual Tranche 1 workflow validates the frozen 309aebf baseline rather than current implementation head"
+    ]
+  },
+  "known_unrelated_gaps_must_remain": [
+    "C10-004 replacement/VOR ownership",
+    "C10-006 DataClient scope/inflight",
+    "C10-005 research stage provenance"
+  ],
+  "generated_output_note": "First 2B target run may regenerate only config/build-manifest.json and dist/config/build-manifest.json; workflow exports them for one deterministic sync commit."
+}
