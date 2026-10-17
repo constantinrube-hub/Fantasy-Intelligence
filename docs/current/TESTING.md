@@ -48,6 +48,21 @@ python research/integrity_dist_hygiene_test.py
 
 ### Bounded release gate
 
+The weekly pipeline independently refits frozen waiver artifacts and compares
+the original diagnostics. Install `research/requirements-replay.txt` for this
+replay: it retains the research dependencies and pins NumPy 2.3.5, pandas 2.2.3
+and SciPy 1.17.0. CI uses that file for installation and its cache key, with the
+existing single-threaded Sandybridge OpenBLAS path. Dependency-file changes
+trigger weekly pipeline validation. The general research requirements remain
+available for other workflows.
+
+An open-ended numerical dependency upgrade can preserve predictions within
+floating-point tolerance while changing the order of near-tied values and
+therefore an exact rank diagnostic. Treat a replay failure as a failure; do not
+restamp frozen research or relax tolerances to accommodate a new environment.
+Validate an intentional numerical-stack upgrade separately against every frozen
+unit before changing the replay pins.
+
 ```bash
 python research/release_gate.py
 ```
