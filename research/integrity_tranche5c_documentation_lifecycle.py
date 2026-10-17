@@ -62,7 +62,11 @@ def main() -> None:
     )
 
     workflow_dir = ROOT / ".github/workflows"
-    workflows = {path.name: workflow_flags(path) for path in workflow_dir.glob("*.yml")}
+    workflows = {
+        path.name: workflow_flags(path)
+        for path in sorted(workflow_dir.iterdir())
+        if path.is_file() and path.suffix in {".yml", ".yaml"}
+    }
     lifecycle_contract = ROOT / "config/repository-lifecycle-contract.json"
     active_controlled = set()
     if lifecycle_contract.is_file():
@@ -152,10 +156,23 @@ def main() -> None:
                 flags,
             )
         expected_scheduled = set(contract.get("scheduled_workflows") or [])
-        assert set(scheduled) == expected_scheduled, (scheduled, expected_scheduled)
+        if set(scheduled) != expected_scheduled:
+            raise SystemExit(
+                "Workflow lifecycle mismatch in config/repository-lifecycle-contract.json: "
+                f"unregistered schedules={sorted(set(scheduled) - expected_scheduled)}; "
+                f"missing/unscheduled registered workflows={sorted(expected_scheduled - set(scheduled))}. "
+                "Update the workflow and its lifecycle registration together; "
+                "run python research/integrity_tranche5c_documentation_lifecycle.py --mode target."
+            )
         completion = contract.get("completion_triggered_workflows") or {}
         actual_completion = {name for name, flags in workflows.items() if flags["workflow_run"]}
-        assert actual_completion == set(completion), (actual_completion, completion)
+        if actual_completion != set(completion):
+            raise SystemExit(
+                "Workflow lifecycle completion mismatch: "
+                f"unregistered={sorted(actual_completion - set(completion))}; "
+                f"missing/changed={sorted(set(completion) - actual_completion)}. "
+                "Update completion_triggered_workflows in config/repository-lifecycle-contract.json."
+            )
         for name, upstream in completion.items():
             text = (workflow_dir / name).read_text(encoding="utf-8")
             assert f'workflows: ["{upstream}"]' in text and "types: [completed]" in text, name
@@ -166,7 +183,11 @@ def main() -> None:
             for name in workflows
             if not any(fnmatch.fnmatch(name, rule["pattern"]) for rule in rules)
         ]
-        assert not unmatched, unmatched
+        if unmatched:
+            raise SystemExit(
+                f"Unclassified workflows={sorted(unmatched)}. Add explicit ownership to "
+                "workflow_classification_rules in config/repository-lifecycle-contract.json."
+            )
         print(
             "TARGET_GAP_CLOSED documentation and workflow lifecycle ownership "
             "are explicit"

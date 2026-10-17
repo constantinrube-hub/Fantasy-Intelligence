@@ -3,6 +3,10 @@ name: Validate FIE V9.3.2 Browser QA
 on:
   workflow_dispatch:
 
+  # Every PR must pass the same release gate as the scheduled refresh.
+  # No path filter: new files and workflow names must not bypass validation.
+  pull_request:
+
   push:
     branches: [main]
     paths:
@@ -26,7 +30,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  repository-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate documentation and workflow registrations
+        run: python research/integrity_tranche5c_documentation_lifecycle.py --mode target
+      - name: Prove additions, renames and removals fail closed
+        run: python research/integrity_repository_lifecycle_regression_test.py
+
   validate-release:
+    needs: repository-lifecycle
     runs-on: ubuntu-latest
     timeout-minutes: 60
 

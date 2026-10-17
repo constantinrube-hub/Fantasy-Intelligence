@@ -2,6 +2,33 @@
 
 ## Test tiers
 
+### Repository lifecycle and release checks before merge
+
+Every pull request runs `Validate FIE V9.3.2 Browser QA`, without a path filter.
+Its fast `repository-lifecycle` job checks the full documentation/workflow tree
+before the dependent deterministic release build. New files cannot silently
+bypass the check. Review both jobs before merging; branch protection must require
+them if GitHub should enforce this mechanically.
+
+When adding, renaming, deleting or changing workflow triggers, update
+`config/repository-lifecycle-contract.json` in the same PR. Scheduled workflows
+must match `scheduled_workflows`, completion triggers must match
+`completion_triggered_workflows`, and every `.yml`/`.yaml` workflow must have an
+explicit classification. The registry is intentionally strict.
+
+```powershell
+python research/integrity_tranche5c_documentation_lifecycle.py --mode target
+python research/integrity_repository_lifecycle_regression_test.py
+python tools/release_build.py --mode personal
+```
+
+The regression suite mutates isolated copies to prove that an unregistered
+schedule, a removed/renamed registration, an unclassified file, a changed
+completion trigger and a missing canonical document are rejected. A workflow
+and its correct new registration pass together. Refresh Current runs the same
+lifecycle check immediately after checking out latest `main`, before dependency
+installation or snapshot rebuilding, and retains the full final release gate.
+
 ### Fast source/runtime tests
 
 Run on every code change. Important examples:
@@ -20,6 +47,21 @@ python research/integrity_dist_hygiene_test.py
 ```
 
 ### Bounded release gate
+
+The weekly pipeline independently refits frozen waiver artifacts and compares
+the original diagnostics. Install `research/requirements-replay.txt` for this
+replay: it retains the research dependencies and pins NumPy 2.3.5, pandas 2.2.3
+and SciPy 1.17.0. CI uses that file for installation and its cache key, with the
+existing single-threaded Sandybridge OpenBLAS path. Dependency-file changes
+trigger weekly pipeline validation. The general research requirements remain
+available for other workflows.
+
+An open-ended numerical dependency upgrade can preserve predictions within
+floating-point tolerance while changing the order of near-tied values and
+therefore an exact rank diagnostic. Treat a replay failure as a failure; do not
+restamp frozen research or relax tolerances to accommodate a new environment.
+Validate an intentional numerical-stack upgrade separately against every frozen
+unit before changing the replay pins.
 
 ```bash
 python research/release_gate.py

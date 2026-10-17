@@ -54,6 +54,9 @@ jobs:
           git fetch origin main
           git checkout -B main origin/main
 
+      - name: Preflight repository lifecycle before rebuilding current data
+        run: python3 research/integrity_tranche5c_documentation_lifecycle.py --mode target
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

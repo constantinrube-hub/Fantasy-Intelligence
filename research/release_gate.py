@@ -106,6 +106,7 @@ def main():
   run(['node','research/integrity_tranche5a_semantic_ux.js']),
   run([sys.executable,'research/integrity_tranche5a_semantic_ux_rank_identity.py','--mode','target']),
   run([sys.executable,'research/integrity_tranche5c_documentation_lifecycle.py','--mode','target']),
+  run([sys.executable,'research/integrity_repository_lifecycle_regression_test.py']),
   run([sys.executable,'research/integrity_tranche5d_documentation_cleanup.py','--mode','target']),
   run([sys.executable,'research/integrity_tranche5e_regression_closure.py','--mode','release']),
   run([sys.executable,'research/integrity_tranche1_research_stage_identity.py','--mode','target']),
