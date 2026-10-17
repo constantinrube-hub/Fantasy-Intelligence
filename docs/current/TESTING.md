@@ -2,6 +2,33 @@
 
 ## Test tiers
 
+### Repository lifecycle and release checks before merge
+
+Every pull request runs `Validate FIE V9.3.2 Browser QA`, without a path filter.
+Its fast `repository-lifecycle` job checks the full documentation/workflow tree
+before the dependent deterministic release build. New files cannot silently
+bypass the check. Review both jobs before merging; branch protection must require
+them if GitHub should enforce this mechanically.
+
+When adding, renaming, deleting or changing workflow triggers, update
+`config/repository-lifecycle-contract.json` in the same PR. Scheduled workflows
+must match `scheduled_workflows`, completion triggers must match
+`completion_triggered_workflows`, and every `.yml`/`.yaml` workflow must have an
+explicit classification. The registry is intentionally strict.
+
+```powershell
+python research/integrity_tranche5c_documentation_lifecycle.py --mode target
+python research/integrity_repository_lifecycle_regression_test.py
+python tools/release_build.py --mode personal
+```
+
+The regression suite mutates isolated copies to prove that an unregistered
+schedule, a removed/renamed registration, an unclassified file, a changed
+completion trigger and a missing canonical document are rejected. A workflow
+and its correct new registration pass together. Refresh Current runs the same
+lifecycle check immediately after checking out latest `main`, before dependency
+installation or snapshot rebuilding, and retains the full final release gate.
+
 ### Fast source/runtime tests
 
 Run on every code change. Important examples:

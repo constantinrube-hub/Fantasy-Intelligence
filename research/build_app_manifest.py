@@ -259,6 +259,7 @@ COMPONENTS={
  'build_determinism_integrity':'research/integrity_v932_build_determinism_test.py',
  'release_gate':'research/release_gate.py',
  'repository_lifecycle_integrity':'research/integrity_tranche5c_documentation_lifecycle.py',
+ 'repository_lifecycle_regression_integrity':'research/integrity_repository_lifecycle_regression_test.py',
  'documentation_cleanup_integrity':'research/integrity_tranche5d_documentation_cleanup.py',
  'regression_closure_preflight_contract':'config/tranche5e-regression-closure-preflight.json',
  'regression_closure_target_contract':'config/tranche5e-regression-closure-target.json',
