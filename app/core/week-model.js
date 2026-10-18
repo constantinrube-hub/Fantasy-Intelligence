@@ -162,12 +162,28 @@ function build(input){
       myRank:me?.rank??null,cutLine:cut,marginToCut:me&&cut!==null?round(me.projected-cut):null,meEliminated:!!roster&&!(roster.players||[]).length};
     if(verified&&field.marginToCut!==null&&field.marginToCut<pol.escalation.chopped_cut_margin&&rec.tier==='recommended')rec.tier='urgent';
   }else if(opponent&&pol.escalation.h2h_margin!==null){const m=myTotals.projected-opponent.totals.projected;if(Math.abs(m)<pol.escalation.h2h_margin&&rec.tier==='recommended')rec.tier='urgent';}
+  // Lineup context (Advanced, R2 · WP2.1): what this player is worth to YOUR lineup this week —
+  // starter: points lost if he could not play (full re-optimisation); bench: points gained if he
+  // had to start (forced into the best legal slot). Locked players are fixed, as in recommendations.
+  // Who rosters a player in this league (reader / compare tray).
+  const owner=new Map();for(const r of rosters||[])for(const k of ['players','reserve','taxi'])for(const id of r[k]||[])owner.set(String(id),{rosterId:Number(r.roster_id),name:names[r.roster_id],me:Number(r.roster_id)===Number(managedRosterId),where:k==='players'?'roster':k});
+  const ownerOf=pid=>owner.get(String(pid))||null;
+  const ctxCache=new Map();
+  function lineupContext(pid){pid=String(pid);if(ctxCache.has(pid))return ctxCache.get(pid);
+    const O=W().FIECore.LineupOptimizer,lockedIdx=submitted.map((e,i)=>e.p&&e.p.game.locked?i:-1).filter(i=>i>=0);
+    const open=slots.filter((_,i)=>!lockedIdx.includes(i)),pool=[...submitted.map(e=>e.p),...benchPids.map(player)].filter(p=>p&&!p.game.locked);
+    const seen=new Set(),uniq=pool.filter(p=>!seen.has(p.pid)&&seen.add(p.pid)),me=uniq.find(p=>p.pid===pid);
+    let out=null;
+    if(me&&open.length){const base=O.optimize(uniq,open,p=>p.recValue),inLineup=base.selectedPlayerIds.map(String).includes(pid);
+      if(inLineup){const w=O.optimize(uniq.filter(p=>p.pid!==pid),open,p=>p.recValue);const nb=w.selectedPlayerIds.map(String).find(x=>!base.selectedPlayerIds.map(String).includes(x));out={role:'starter',delta:round(w.total-base.total),nextBest:nb?player(nb)?.name:null};}
+      else{const BIG=1e4,f=O.optimize(uniq,open,p=>p.recValue+(p.pid===pid?BIG:0)),a=f.assignment.find(x=>String(x.playerId)===pid);out={role:'bench',delta:round(f.total-BIG-base.total),slot:a?.slot||null};}}
+    ctxCache.set(pid,out);return out;}
   // Next lock among my starters and bench
   const kick=[...submitted.map(e=>e.p),...benchPids.map(player)].filter(p=>p&&!p.game.locked&&p.game.kickoff).map(p=>p.game.kickoff);
   const nextLock=kick.length?Math.min(...kick):null;
   return{VERSION,key:{leagueId:String(league?.league_id||''),season,week,rosterId:Number(managedRosterId)||null},format,
     league:{name:league?.name||'',teams:num(league?.total_rosters)??(rosters||[]).length,status:league?.status||null,scoring:league?.scoring_settings||{}},
-    slots,player,me:{rosterId:Number(managedRosterId)||null,name:names[managedRosterId]||null,submitted,bench:benchPids.map(player).filter(Boolean),reserve:reserve.map(player).filter(Boolean),taxi:taxi.map(player).filter(Boolean),
+    slots,player,lineupContext,ownerOf,me:{rosterId:Number(managedRosterId)||null,name:names[managedRosterId]||null,submitted,bench:benchPids.map(player).filter(Boolean),reserve:reserve.map(player).filter(Boolean),taxi:taxi.map(player).filter(Boolean),
       recommended:rec,totals:myTotals,recommendedTotals:recTotals,emptySlots,reportedPoints:num(mm?.points),matchupFound:!!mm},
     opponent,winEstimate,field,standings:standings(league,rosters,users,managedRosterId,!!format.chopped),nextLock,issues,builtAt:now};
 }
