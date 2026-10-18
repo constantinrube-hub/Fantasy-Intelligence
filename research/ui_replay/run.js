@@ -144,6 +144,18 @@ check('C-BANNER', 'classic', 'WP0.5: a submitted starter who cannot play (D/O/IR
   } finally { await app.context.close(); }
 });
 
+check('C-NOBYE', 'classic', 'WP0.7: a Rams starter is not reported as a bye (nflverse "LA" = Sleeper "LAR")', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame');
+  try {
+    await loadLeague(app.page, L.dynastySF); // Genesis Dynasty: Matthew Stafford (LAR) is a submitted starter, Rams play ARI in Week 6
+    await nav(app.page, 'weekly', 'startsit');
+    await app.page.waitForTimeout(4000);
+    const has = await app.page.locator('#fieStarterAlert:visible').count();
+    const text = has ? await app.page.locator('#fieStarterAlert').innerText() : '';
+    return { pass: !/Stafford/.test(text) && app.errors.length === 0, detail: { alert: text || '(none)', errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
 check('C-REFRESH', 'classic', 'WP0.4: "Refresh weekly context" runs without a page error and keeps the lineup', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w6-pregame');
   try {

@@ -8,8 +8,15 @@ function n(v){return N()?.finiteOrNull?.(v)??(v===null||v===undefined||String(v)
 let currentBundleRef=null,currentBundleMap=new Map();
 function currentMap(){const b=window.FIE_M5?.getCurrentBundle?.()||null;if(b!==currentBundleRef){currentBundleRef=b;currentBundleMap=new Map((b?.players||[]).map(r=>[String(r.sleeper_id||''),r]).filter(([id])=>id));}return currentBundleMap;}
 function currentRow(p){return currentMap().get(String(p?.sleeperId||''))||null;}
+/* nflverse writes the Rams as "LA" (and historically JAC/WSH/OAK/SD/STL); Sleeper and the player
+ * catalog write LAR/JAX/WAS/LV/LAC. Compare canonical codes, otherwise every Rams player looks like a
+ * verified bye in every week the Rams play (R0 WP0.7). Same aliases as
+ * app/v9.3.3-runtime-integrity.js › NFL_TEAM_ALIASES. */
+const TEAM_ALIASES=Object.freeze({LA:'LAR',STL:'LAR',JAC:'JAX',WSH:'WAS',OAK:'LV',SD:'LAC',SFO:'SF',GBP:'GB',KCC:'KC',NEP:'NE',NOS:'NO',TBB:'TB'});
+function teamCode(team){const raw=String(team||'').trim().toUpperCase();return raw?TEAM_ALIASES[raw]||raw:'';}
 function scheduleGame(team,week,season){
-  const rows=window.state?.weekly?.schedule||[];return rows.find(g=>Number(g.season)===Number(season)&&Number(g.week)===Number(week)&&String(g.game_type||g.season_type||'REG').toUpperCase().startsWith('REG')&&(g.home_team===team||g.away_team===team))||null;
+  const t=teamCode(team);if(!t)return null;
+  const rows=window.state?.weekly?.schedule||[];return rows.find(g=>Number(g.season)===Number(season)&&Number(g.week)===Number(week)&&String(g.game_type||g.season_type||'REG').toUpperCase().startsWith('REG')&&(teamCode(g.home_team)===t||teamCode(g.away_team)===t))||null;
 }
 function schedulePublished(week,season){return (window.state?.weekly?.schedule||[]).some(g=>Number(g.season)===Number(season)&&Number(g.week)===Number(week)&&String(g.game_type||g.season_type||'REG').toUpperCase().startsWith('REG'));}
 function isVerifiedBye(p,week,season){return !!p?.team&&schedulePublished(week,season)&&!scheduleGame(p.team,week,season);}
@@ -31,6 +38,6 @@ function range(p,opts={}){
   if(w.value!==null){return{low:lo??Math.max(0,w.value*.78),high:hi??w.value*1.22,source:lo!==null||hi!==null?(p.rangeSource||'Heuristic range'):'Heuristic fallback',calibrated:false,estimate:true};}
   return{low:null,high:null,source:'Unavailable',calibrated:false,estimate:false};
 }
-function opponent(p,{week:W=window.currentWeek?.()||1,season=window.FIECore?.SeasonResolver?.resolve?.()}={}){const g=scheduleGame(p?.team,W,season);if(!g)return isVerifiedBye(p,W,season)?'BYE':'—';return g.home_team===p.team?g.away_team:g.home_team;}
+function opponent(p,{week:W=window.currentWeek?.()||1,season=window.FIECore?.SeasonResolver?.resolve?.()}={}){const g=scheduleGame(p?.team,W,season);if(!g)return isVerifiedBye(p,W,season)?'BYE':'—';return teamCode(g.home_team)===teamCode(p.team)?g.away_team:g.home_team;}
 window.FIEProjectionResolver={VERSION:'9.3.2',week,range,opponent,isVerifiedBye,schedulePublished};
 })();
