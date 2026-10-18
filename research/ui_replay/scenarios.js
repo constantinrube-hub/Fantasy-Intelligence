@@ -11,7 +11,8 @@ const REFERENCE_LEAGUES = {
   chopped: '1313696967989157888',   // Chopped – Drive (18 rosters, 5 eliminated after Week 5)
   bestBall: '1314007486205804544',  // BestBall – Pro XVI
   dynasty: '1312066407394975744',   // Stoned Lack Dynasty 29
-  idpDynasty: '1331042152091766784' // Stoned Lack IDP Dynasty 39 (submitted TE starter Out at capture time)
+  idpDynasty: '1331042152091766784', // Stoned Lack IDP Dynasty 39 (submitted TE starter Out at capture time)
+  dynasty30: '1335691030116184065'  // Stoned Lack Dynasty 30 (live rosters differ from the research snapshot → live overlay rebuild)
 };
 
 const nflState = (week) => ({ week, leg: week, season: '2026', season_type: 'regular', league_season: '2026',

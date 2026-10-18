@@ -291,7 +291,11 @@ function applyLiveOverlay(detail){
   if(part==='rosters'&&Array.isArray(value)){const before=simpleFingerprint(st.rosters);st.rosters=clone(value);changed=before!==simpleFingerprint(st.rosters);}
   if(part==='users'&&Array.isArray(value)){const before=simpleFingerprint(st.users);st.users=clone(value);changed=before!==simpleFingerprint(st.users);}
   if(!changed)return;diagnostics.liveOverlayChanges++;
-  clearTimeout(applyLiveOverlay._t);applyLiveOverlay._t=setTimeout(async()=>{if(String(detail.leagueId)!==String(leagueId()))return;await idle(800);try{window.buildPlayerUniverse?.();repairPlayerNames();window.populateRosterPicker?.();window.populateIntelligencePickers?.();window.assignScores?.('V9.3.3 live league overlay');if(!enrichmentActive&&!recentUserInput())window.render?.();}catch(e){diag(e,{feature:'live-overlay-rebuild'});}},120);
+  clearTimeout(applyLiveOverlay._t);applyLiveOverlay._t=setTimeout(async()=>{if(String(detail.leagueId)!==String(leagueId()))return;await idle(800);try{window.buildPlayerUniverse?.();repairPlayerNames();window.populateRosterPicker?.();window.populateIntelligencePickers?.();window.assignScores?.('V9.3.3 live league overlay');
+    // R0 WP0.8: buildPlayerUniverse() creates new player objects without the selected week's Sleeper rows;
+    // re-apply them (week cache, no new request) so Weekly never falls back to the legacy model after an overlay.
+    await loadSelectedWeek(activeWeek(),{reason:'live-overlay-rebuild'});
+    if(String(detail.leagueId)!==String(leagueId()))return;if(!enrichmentActive&&!recentUserInput())window.render?.();}catch(e){diag(e,{feature:'live-overlay-rebuild'});}},120);
 }
 
 /* ------------------ B · non-blocking enrichment rendering ---------------- */

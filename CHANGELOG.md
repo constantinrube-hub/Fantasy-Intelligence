@@ -32,10 +32,16 @@ projection, scoring, ranking, governance or research change. Contract: `docs/cur
   every week the Rams play. Found while building R1: R0's status service uses this as its bye fallback, so the R0
   starter alert reported e.g. "Matthew Stafford (SUPER_FLEX · BYE)" in Week 6 (Rams vs ARI). Schedule matching and
   `opponent()` now compare canonical codes (same aliases as `NFL_TEAM_ALIASES`). Regression: status test + replay C-NOBYE.
+- **WP0.8 Weekly fell back to legacy projections after the live overlay.** Found while building R2 (23-league
+  parity check): when the restored live roster overlay (WP0.1) changes rosters, `applyLiveOverlay()` rebuilds the player
+  universe with new player objects but did not re-apply the selected week's Sleeper rows. Depending on timing (about
+  half of all league loads in the replay), classic Weekly then showed the legacy model values instead of the Sleeper
+  weekly projections (Stoned Lack Dynasty 30, Week 6: 123.2 instead of 158.5). The overlay rebuild now re-runs
+  `loadSelectedWeek()` (week cache, no new request) before rendering. Regression: replay C-OVERLAY samples four timings.
 - Release gate: added `integrity_ui_status_policy_test.js`, `integrity_ui_policy_test.py`,
   `integrity_ui_replay_no_injection_test.js`. Build manifest registers all new files.
-- Verification: release build `DEPLOYABLE_SOURCE` (103/103 gate checks); replay classic suite 7/7 (C-LOAD, C-WEEK,
-  C-WAIVER, C-DRAFT, C-BANNER, C-NOBYE, C-REFRESH). On unmodified `main` (`d4e1eb99`) the same suite fails C-WEEK, C-WAIVER,
+- Verification: release build `DEPLOYABLE_SOURCE` (103/103 gate checks); replay classic suite 8/8 (C-LOAD, C-WEEK,
+  C-WAIVER, C-DRAFT, C-BANNER, C-NOBYE, C-OVERLAY, C-REFRESH). On unmodified `main` (`d4e1eb99`) the same suite fails C-WEEK, C-WAIVER,
   C-BANNER and C-REFRESH (`ReferenceError: syncSeasonSelectV89 is not defined`).
 
 # V9.3.2 Season Namespace Integrity Hotfix, 2026-08-27
