@@ -13,7 +13,8 @@ const REFERENCE_LEAGUES = {
   dynasty: '1312066407394975744',   // Stoned Lack Dynasty 29
   idpDynasty: '1331042152091766784', // Stoned Lack IDP Dynasty 39 (submitted TE starter Out at capture time)
   dynasty30: '1335691030116184065', // Stoned Lack Dynasty 30 (live rosters differ from the research snapshot → live overlay rebuild)
-  dynastyPrime: '1314002567004459008' // Dynasty - Prime XVI (live roster has a healthy, projected player in an IR slot)
+  dynastyPrime: '1314002567004459008', // Dynasty - Prime XVI (live roster has a healthy, projected player in an IR slot)
+  genesisGM: '1342896584593018880' // Genesis NFL GM League (IDP; DB Marques Sigle is Doubtful/Out but Sleeper still projects 11.0)
 };
 
 const nflState = (week) => ({ week, leg: week, season: '2026', season_type: 'regular', league_season: '2026',

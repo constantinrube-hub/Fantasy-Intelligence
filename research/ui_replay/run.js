@@ -194,6 +194,25 @@ check('C-IRSTART', 'classic', 'WP0.9: the Weekly lineup never starts a player in
   } finally { await app.context.close(); }
 });
 
+check('C-OUTSTART', 'classic', 'WP0.10: the Weekly lineup never starts a player who cannot play (Out/IR/PUP/SUS/NA, Doubtful = Out)', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame');
+  try {
+    await loadLeague(app.page, L.genesisGM); // Marques Sigle (DB): Out, Sleeper still projects 11.0 → was START on main
+    await nav(app.page, 'weekly', 'startsit');
+    await app.page.waitForTimeout(4000);
+    const r = await app.page.evaluate(() => {
+      const st = window.state, rid = Number(st.selectedRoster), ro = (st.rosters || []).find(x => Number(x.roster_id) === rid); // read-only
+      const off = new Set([...(ro?.reserve || []), ...(ro?.taxi || [])].map(String)), ids = new Set((ro?.players || []).map(String));
+      const cant = new Map((window.PLAYERS || []).filter(p => ids.has(String(p.sleeperId)) && !off.has(String(p.sleeperId)) && window.FIEStatus?.resolve?.(p)?.unavailable === true && Number(p.sleeperWeeklyProjection) > 0)
+        .map(p => [p.name, window.FIEStatus.resolve(p).code]));
+      const rows = [...document.querySelectorAll('#mainArea table tbody tr')].map(tr => [...tr.children].map(td => td.innerText.split('\n')[0].trim()));
+      const total = (document.querySelector('#fie93WeeklyPanel')?.innerText.match(/Your projected total\s*\n?\s*([\d.,]+)/) || [])[1] || null;
+      return { cannotPlay: [...cant].map(([n, c]) => `${n} (${c})`), started: rows.filter(x => x[0] && x[0] !== 'BENCH' && cant.has(x[1])).map(x => `${x[0]} ${x[1]}`), total };
+    });
+    return { pass: r.cannotPlay.length > 0 && r.started.length === 0 && app.errors.length === 0, detail: { ...r, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
 check('C-REFRESH', 'classic', 'WP0.4: "Refresh weekly context" runs without a page error and keeps the lineup', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w6-pregame');
   try {
