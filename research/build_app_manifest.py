@@ -42,6 +42,7 @@ COMPONENTS={
  'v10_kit':'app/v10/v10-kit.js',
  'v10_data':'app/v10/v10-data.js',
  'v10_overview':'app/v10/v10-overview.js',
+ 'v10_league':'app/v10/v10-league.js',
  'v10_shell':'app/v10/v10-shell.js',
  'v10_css':'app/v10/v10.css',
  'v10_core_test':'research/integrity_v10_core_test.js',
