@@ -38,10 +38,17 @@ projection, scoring, ranking, governance or research change. Contract: `docs/cur
   half of all league loads in the replay), classic Weekly then showed the legacy model values instead of the Sleeper
   weekly projections (Stoned Lack Dynasty 30, Week 6: 123.2 instead of 158.5). The overlay rebuild now re-runs
   `loadSelectedWeek()` (week cache, no new request) before rendering. Regression: replay C-OVERLAY samples four timings.
+- **WP0.9 Weekly started players in IR / taxi slots.** The classic weekly lineup optimiser used the whole roster,
+  including players in reserve (IR) and taxi slots, who cannot be started in Sleeper. With the live rosters of WP0.1
+  this became visible (Dynasty – Prime, Week 6: "WR Jalen Coker" — healthy, projected 12.7, in an IR slot — listed
+  as a starter; on main the stale snapshot still had him active). `app/decision-ui.js` now optimises the weekly
+  lineup over the active roster (`lineupPool`); IR/taxi players stay visible as bench rows. The season simulation's
+  lineup models (`decision-engines.js › rosterPoolFor`) are unchanged (also used for season and trade value).
+  Regression: replay C-IRSTART.
 - Release gate: added `integrity_ui_status_policy_test.js`, `integrity_ui_policy_test.py`,
   `integrity_ui_replay_no_injection_test.js`. Build manifest registers all new files.
-- Verification: release build `DEPLOYABLE_SOURCE` (103/103 gate checks); replay classic suite 8/8 (C-LOAD, C-WEEK,
-  C-WAIVER, C-DRAFT, C-BANNER, C-NOBYE, C-OVERLAY, C-REFRESH). On unmodified `main` (`d4e1eb99`) the same suite fails C-WEEK, C-WAIVER,
+- Verification: release build `DEPLOYABLE_SOURCE` (103/103 gate checks); replay classic suite 9/9 (C-LOAD, C-WEEK,
+  C-WAIVER, C-DRAFT, C-BANNER, C-NOBYE, C-OVERLAY, C-IRSTART, C-REFRESH). On unmodified `main` (`d4e1eb99`) the same suite fails C-WEEK, C-WAIVER,
   C-BANNER and C-REFRESH (`ReferenceError: syncSeasonSelectV89 is not defined`).
 
 # V9.3.2 Season Namespace Integrity Hotfix, 2026-08-27

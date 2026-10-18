@@ -107,6 +107,7 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | C-BANNER | submitted starter who cannot play → red Weekly alert |
 | C-NOBYE | a Rams starter (nflverse `LA` / Sleeper `LAR`) is not reported as a bye |
 | C-OVERLAY | Weekly keeps Sleeper week projections after the live roster overlay (4 timings sampled) |
+| C-IRSTART | the Weekly lineup never starts a reserve (IR) or taxi player |
 | C-REFRESH | "Refresh weekly context" runs without a page error |
 
 ## Mandatory preview browser test
