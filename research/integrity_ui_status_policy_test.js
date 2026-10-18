@@ -35,6 +35,21 @@ w = sandbox({ byeTeams: ['DET'] });
 assert.strictEqual(w.FIEStatus.resolve({ team: 'DET' }).code, 'BYE');
 assert.strictEqual(w.FIEStatus.resolve({ team: 'DET' }).unavailable, true);
 
+// WP0.7: the real resolver matches nflverse "LA" to Sleeper "LAR" (no false Rams bye), still finds real byes.
+{
+  const window = { state: { weekly: { schedule: [
+    { season: 2026, week: 6, game_type: 'REG', away_team: 'ARI', home_team: 'LA' },
+    { season: 2026, week: 6, game_type: 'REG', away_team: 'HOU', home_team: 'JAX' }] } } };
+  const ctx = vm.createContext({ window, Math, Number, String, Object, Array, Map, Set, JSON });
+  vm.runInContext(read('app/core/projection-service.js'), ctx);
+  const R = window.FIEProjectionResolver;
+  assert.strictEqual(R.isVerifiedBye({ team: 'LAR' }, 6, 2026), false, 'Rams (LAR) play nflverse "LA" — not a bye');
+  assert.strictEqual(R.isVerifiedBye({ team: 'LA' }, 6, 2026), false);
+  assert.strictEqual(R.isVerifiedBye({ team: 'JAC' }, 6, 2026), false, 'legacy JAC alias');
+  assert.strictEqual(R.isVerifiedBye({ team: 'DET' }, 6, 2026), true, 'a team without a game is a verified bye');
+  assert.strictEqual(R.opponent({ team: 'LAR' }, { week: 6, season: 2026 }), 'ARI', 'Rams opponent is Arizona, not themselves');
+}
+
 // Policy: Doubtful treated as out with a tie-break; Questionable unchanged (user decisions D6, F4).
 assert.strictEqual(S.recommendationValue({ injuryStatus: 'Doubtful' }, 12), 12 * w.FIE_UI_POLICY.status.doubtful_tiebreak_factor);
 assert.strictEqual(S.recommendationValue({ injuryStatus: 'Out' }, 12), 0);

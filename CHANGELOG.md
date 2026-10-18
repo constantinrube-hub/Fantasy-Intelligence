@@ -27,10 +27,15 @@ projection, scoring, ranking, governance or research change. Contract: `docs/cur
   and week and shows one red alert for starters who cannot play or empty slots (not in Best Ball).
 - **WP0.6 Latent D/ST/K defect.** `next3()` in `app/dst-intelligence.js` and `app/kicker-intelligence.js` read `.mean`
   of a missing week row (`row?.mean!==null` is true for `undefined`); guarded. Exposed by the restored live overlay.
+- **WP0.7 False Rams bye.** `FIEProjectionResolver` (`app/core/projection-service.js`) matched schedule rows by raw
+  team code; nflverse writes the Rams as `LA`, Sleeper/catalog as `LAR`, so every Rams player was a "verified bye" in
+  every week the Rams play. Found while building R1: R0's status service uses this as its bye fallback, so the R0
+  starter alert reported e.g. "Matthew Stafford (SUPER_FLEX · BYE)" in Week 6 (Rams vs ARI). Schedule matching and
+  `opponent()` now compare canonical codes (same aliases as `NFL_TEAM_ALIASES`). Regression: status test + replay C-NOBYE.
 - Release gate: added `integrity_ui_status_policy_test.js`, `integrity_ui_policy_test.py`,
   `integrity_ui_replay_no_injection_test.js`. Build manifest registers all new files.
-- Verification: release build `DEPLOYABLE_SOURCE` (103/103 gate checks); replay classic suite 6/6 (C-LOAD, C-WEEK,
-  C-WAIVER, C-DRAFT, C-BANNER, C-REFRESH). On unmodified `main` (`d4e1eb99`) the same suite fails C-WEEK, C-WAIVER,
+- Verification: release build `DEPLOYABLE_SOURCE` (103/103 gate checks); replay classic suite 7/7 (C-LOAD, C-WEEK,
+  C-WAIVER, C-DRAFT, C-BANNER, C-NOBYE, C-REFRESH). On unmodified `main` (`d4e1eb99`) the same suite fails C-WEEK, C-WAIVER,
   C-BANNER and C-REFRESH (`ReferenceError: syncSeasonSelectV89 is not defined`).
 
 # V9.3.2 Season Namespace Integrity Hotfix, 2026-08-27

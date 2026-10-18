@@ -105,6 +105,7 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | C-WAIVER | no CLAIM for Doubtful/Out/IR/…; status column; unavailable adds below CLAIMs |
 | C-DRAFT | no draft-preparation task for in-season leagues |
 | C-BANNER | submitted starter who cannot play → red Weekly alert |
+| C-NOBYE | a Rams starter (nflverse `LA` / Sleeper `LAR`) is not reported as a bye |
 | C-REFRESH | "Refresh weekly context" runs without a page error |
 
 ## Mandatory preview browser test

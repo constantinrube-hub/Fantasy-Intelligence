@@ -39,7 +39,8 @@ labelled "research"; they never feed totals, the optimizer or recommendations.
    ≤ `status.projection_feed_max_age_minutes` old. A feed row with no designation
    clears an older database status.
 2. Sleeper player database `injuryStatus` (edge-cached 24 h; Sleeper asks for at most daily calls).
-3. Verified schedule bye → `BYE` (`FIEProjectionResolver.isVerifiedBye`).
+3. Verified schedule bye → `BYE` (`FIEProjectionResolver.isVerifiedBye`; team codes compared canonically —
+   nflverse `LA` = Sleeper `LAR`, `JAC` = `JAX`, `WSH` = `WAS`, `OAK` = `LV`, `SD` = `LAC` — WP0.7).
 
 **Policy** (`status` in the policy file):
 
