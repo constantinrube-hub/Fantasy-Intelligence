@@ -187,7 +187,7 @@ async function loadSelectedWeek(week=activeWeek(),{reason='automatic',rerunSimul
     if(token!==weeklyLoadToken)return null;const summary=applyWeekProjectionRows(Array.isArray(rows)?rows:[],w,s);diagnostics.weeklyProjectionLoads++;
     window.dispatchEvent(new CustomEvent('fie:weekly-fast-path-ready',{detail:{leagueId:leagueId(),season:s,week:w,reason,...summary}}));
     try{window.FIEDST?.render?.();window.FIEKicker?.render?.();}catch{}
-    if(reason==='user-week-change'||recentUserInput())forceRender(()=>{try{window.updateKPIs?.();window.render?.();}catch{}});
+    if(reason==='user-week-change'||reason==='live-league-week'||recentUserInput())forceRender(()=>{try{window.updateKPIs?.();window.render?.();}catch{}});
     if(rerunSimulation&&window.FIEDecisionEngines?.runLeagueSimulation){try{await window.FIEDecisionEngines.runLeagueSimulation(true);}catch(e){diag(e,{feature:'rerun-sim'});}}
     scheduleDomEnhance();return summary;
   }catch(e){
@@ -251,11 +251,43 @@ function installPlayerCatalogGate(){
   ctl.switchLeague=async function(){const started=performance.now();if(!playerCatalogFresh()){const gate=primePlayerCatalog();await Promise.race([gate,new Promise(resolve=>setTimeout(resolve,PLAYER_CATALOG_GATE_MS))]);}diagnostics.playerCatalogGateMs=Math.round((performance.now()-started)*10)/10;window.FIEPerformance?.push?.('934:player-catalog-gate',diagnostics.playerCatalogGateMs,{players:diagnostics.playerCatalogPlayers});return original.apply(this,arguments);};ctl.switchLeague.__fie934PlayerCatalogGate=true;ctl.__fie934OriginalSwitchLeague=original;playerCatalogGateWrapped=true;return true;
 }
 function simpleFingerprint(value){try{return JSON.stringify(value);}catch{return String(value);}}
+/* WP0.1 (UI contract §5.11): the provider week wins over the research snapshot week.
+   DataClient serves the bundled snapshot first and patches it with the live league later;
+   without this the whole app stays on the snapshot week. A week the user picked is kept. */
+let userWeekChoice=null,weekSource=null;
+function weekSourceNotice(){
+  const sel=document.getElementById('weekSelect');if(!sel)return;let el=document.getElementById('fieWeekSourceNotice');
+  const show=weekSource&&String(weekSource.leagueId)===String(leagueId())&&weekSource.snapshotWeek!==null&&weekSource.snapshotWeek!==weekSource.liveWeek;
+  if(!show){if(el)el.hidden=true;return;}
+  if(!el){el=document.createElement('div');el.id='fieWeekSourceNotice';el.className='notice';el.style.cssText='margin-top:6px;font-size:11px';const host=sel.closest('.field')||sel.parentElement;host?.insertAdjacentElement('afterend',el);}
+  el.hidden=false;el.textContent=`Live Sleeper week ${weekSource.liveWeek} in use · research snapshot was built for Week ${weekSource.snapshotWeek}.`;
+}
+document.addEventListener('change',e=>{if(e?.target?.id==='weekSelect')userWeekChoice={leagueId:String(leagueId()),week:Number(e.target.value)};},true);
+window.addEventListener('fie:league-changing',()=>{userWeekChoice=null;});
+/* WP0.1b: restore the snapshot's declared live overlay (core.json live_overlay.automatic=true).
+   The fast path below serves league/rosters/users from the research snapshot, which is rebuilt
+   about every 6 h and cached in the browser for up to a day. After the core stage of every
+   league load, refresh those three parts from Sleeper once (rate-limited per league); the
+   existing applyLiveOverlay() merges them and syncLiveLeagueWeek() re-binds the week. */
+const liveOverlayAt=new Map();
+function scheduleLiveOverlay(id){
+  const client=window.FIEDataClient,key=String(id||'');if(!key||typeof client?.refreshLeague!=='function')return;
+  const last=liveOverlayAt.get(key)||0;if(Date.now()-last<60000)return;liveOverlayAt.set(key,Date.now());
+  client.refreshLeague(key,{timeoutMs:8000}).then(()=>{diagnostics.liveOverlayRefreshes=(diagnostics.liveOverlayRefreshes||0)+1;})
+    .catch(e=>{diagnostics.liveOverlayErrors=(diagnostics.liveOverlayErrors||0)+1;liveOverlayAt.delete(key);diag(e,{feature:'live-overlay-refresh',leagueId:key});});
+}
+function syncLiveLeagueWeek(previousLeg){
+  const live=authoritativeLeagueWeek();if(live===null)return;
+  weekSource={leagueId:String(leagueId()),snapshotWeek:previousLeg,liveWeek:live};
+  const chosen=userWeekChoice&&userWeekChoice.leagueId===String(leagueId());
+  if(!chosen&&live!==activeWeek()){diagnostics.liveWeekResyncs=(diagnostics.liveWeekResyncs||0)+1;setWeek(live,{reason:'live-league-week',rerunSimulation:false});}
+  weekSourceNotice();
+}
 function applyLiveOverlay(detail){
   const st=stateObj();if(!st||String(detail?.leagueId||'')!==String(leagueId()))return;const part=detail.part,value=detail.value;if(!['league','rosters','users'].includes(part))return;
   const k=`${detail.leagueId}:${part}`,fp=simpleFingerprint(value);if(liveFingerprints.get(k)===fp)return;liveFingerprints.set(k,fp);
   let changed=false;
-  if(part==='league'&&value&&typeof value==='object'){const before=simpleFingerprint(st.league);if(st.league&&typeof st.league==='object')Object.assign(st.league,value);else st.league=value;changed=before!==simpleFingerprint(st.league);}
+  if(part==='league'&&value&&typeof value==='object'){const before=simpleFingerprint(st.league),previousLeg=authoritativeLeagueWeek(st.league);if(st.league&&typeof st.league==='object')Object.assign(st.league,value);else st.league=value;changed=before!==simpleFingerprint(st.league);syncLiveLeagueWeek(previousLeg);}
   if(part==='rosters'&&Array.isArray(value)){const before=simpleFingerprint(st.rosters);st.rosters=clone(value);changed=before!==simpleFingerprint(st.rosters);}
   if(part==='users'&&Array.isArray(value)){const before=simpleFingerprint(st.users);st.users=clone(value);changed=before!==simpleFingerprint(st.users);}
   if(!changed)return;diagnostics.liveOverlayChanges++;
@@ -359,7 +391,7 @@ window.addEventListener('fie:league-changing',e=>{
 });
 window.addEventListener('fie:league-loaded',e=>{
   const stage=e?.detail?.stage,id=String(e?.detail?.leagueId||'');if(stage==='core'){
-    switchingLeagueId=null;ensureSeasonInvariant();const week=syncAuthoritativeLeagueWeek();repairPlayerNames();clearLeagueSimulationForContext(id);renderCoreOnce();enrichmentActive=true;
+    switchingLeagueId=null;ensureSeasonInvariant();const week=syncAuthoritativeLeagueWeek();repairPlayerNames();clearLeagueSimulationForContext(id);renderCoreOnce();enrichmentActive=true;scheduleLiveOverlay(id);
     Promise.allSettled([ensureSchedule(activeSeason()),loadSelectedWeek(week,{reason:'core',rerunSimulation:false})]).then(()=>{preloadSpecialTeamsWindow(week).catch(()=>{});scheduleDomEnhance();});
   }else if(stage==='enhanced'){
     switchingLeagueId=null;enrichmentActive=false;repairPlayerNames();refreshStartedLeagueSimulation();flushAutomaticRender();scheduleDomEnhance();
