@@ -1,3 +1,46 @@
+# UI v10 · R1 Lean Interface Preview, 2026-10-18
+
+Release R1 of the UI v10 plan (`claude/FIE_V10_IMPLEMENTATION_GUIDE_2026-10-18.md`), stacked on R0. **Opt-in
+preview:** the new interface appears only with `?ui=v10` (remembered per browser; `?ui=classic` switches back);
+`default_ui` stays `classic`. The classic application is unchanged and keeps running underneath. No projection,
+scoring rule, ranking, governance or research change. Contract: `docs/current/UI_CONTRACT.md` §4–§9.
+
+- **WP1.3 Pure core.**
+  - `app/core/scoring-core.js` (`FIEScoringCore`): league-explicit port of the classic V8.9 scoring compiler
+    (position relevance, D/ST buckets, reception bonuses, derived rules). Parity: every Week 6 projection row ×
+    5 leagues (47,090 rows) equals `scoreSleeperProjectionStatsV89`.
+  - `app/core/distribution.js` (`FIEDistribution`): per-player spread and team correlation identical to
+    `decision-engines.js`, with a closed-form win estimate.
+  - `app/core/game-state.js` (`FIEGameState`): nflverse schedule index, US/Eastern→UTC kickoffs with DST,
+    lock/live/final per team, team-code aliases.
+  - `app/core/week-model.js` (`FIEWeekModel`): the single source of every v10 number — submitted lineup, totals
+    (banked/remaining), full re-optimisation of unlocked slots with tiers 3.0/1.0/0.25, Doubtful-as-out,
+    Questionable fallbacks, H2H opponent and win estimate, Chopped field (verified eliminations, cut margin,
+    escalation), standings.
+  - `app/core/alerts.js` (`FIEAlerts`): task codes, lock-aware ordering, per-league action rows and per-player
+    monitor groups.
+  - `FIEStatus.resolve` gains `scheduleBye:false` so the WeekModel never reads byes from classic state.
+- **WP1.0/1.1 Shell.** `app/v10/v10-shell.js`: switch, hash router (`#/overview`, `#/league/<id>/<tab>`,
+  `#/classic/<id>/<tab>` bridge to classic Waivers/Trades/Draft/Research Lab), context bar (league picker, data time,
+  Refresh, Classic view), 2-minute re-render while visible.
+- **WP1.2 Components.** `app/v10/v10-kit.js` + `v10.css`: Basic row → Expand (native `<details>`, several open) →
+  Advanced inside Expand; governance dots; tier/status/format chips; open rows survive live re-renders; classic table
+  styles neutralised inside v10.
+- **Light pass.** `app/v10/v10-data.js` loads each managed league's live Sleeper league/rosters/users/matchups (never
+  the research snapshot) plus the shared projection feed, schedule and catalog through `FIEDataClient`.
+- **WP1.5 Overview.** To-do queue (Urgent / Recommended / Close calls per league; Monitor per player across leagues),
+  league table (this week, win estimate, record, tasks, lock), latest results of the last completed week. No in-season
+  draft task (WP0.3); no Best Ball lineup task.
+- **WP1.4 Lineup · WP1.6 Matchup & Standings · WP1.7 League Home.** Submitted Sleeper lineup with lock/live state,
+  suggested changes with tier and Questionable fallback, bench/reserve, H2H card, Chopped field, standings with
+  on-demand playoff/survival odds (classic simulation), "Open in Sleeper" links (advisory only).
+- **WP-T1 v10 replay suite.** V-OVERVIEW, V-CONSISTENCY (A-03: Overview = Home = Lineup = Matchup; best lineup =
+  classic optimum 84.3), V-LINEUP, V-AFTER-TNF, V-CHOPPED, V-SWITCH, V-BRIDGE.
+- Deviation recorded (UI_CONTRACT §5.8): actions are grouped per league, not per player (44 → 15 queue rows on the
+  Week 6 replay). Classic finding recorded, not changed (§8): `weeklyLineupValue` falls back to the raw Sleeper value
+  when a status-zeroed projection is 0.
+- Release gate: added `integrity_v10_core_test.js`; build manifest registers all new files.
+
 # UI v10 · R0 Classic Safety Fixes, 2026-10-18
 
 Release R0 of the UI v10 plan (`claude/FIE_V10_IMPLEMENTATION_GUIDE_2026-10-18.md`). Classic UI only; no
