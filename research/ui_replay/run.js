@@ -156,6 +156,27 @@ check('C-NOBYE', 'classic', 'WP0.7: a Rams starter is not reported as a bye (nfl
   } finally { await app.context.close(); }
 });
 
+check('C-OVERLAY', 'classic', 'WP0.8: after the live roster overlay rebuilds players, Weekly still uses the Sleeper week projections (race sampled at 4 timings)', async ({ browser, origin }) => {
+  // The overlay rebuild and the week fast path race; before WP0.8 about half of all loads ended on legacy
+  // values. Sample several delays between league load and opening Weekly; every one must be right.
+  // 158.5 = the optimal Week 6 lineup on Sleeper projections for this immutable capture (fresh load, and the v10 optimum).
+  const runs = [];
+  for (const delay of [0, 1500, 5000, 7000]) {
+    const app = await openApp(browser, origin, 'w6-pregame');
+    try {
+      await app.page.selectOption('#savedLeagueSelect', L.dynasty30);
+      await app.page.click('#loadSavedLeagueBtn');
+      await app.page.waitForFunction(id => window.state?.league?.league_id === id && window.state?.matched === true, L.dynasty30, { timeout: 60000 });
+      await app.page.waitForTimeout(delay);
+      await nav(app.page, 'weekly', 'startsit');
+      await app.page.waitForTimeout(6000);
+      const t = await app.page.locator('#mainArea').innerText();
+      runs.push({ delay, total: Number(((t.match(/Your projected total\s*\n?\s*([\d.,]+)/) || [])[1] || '').replace(',', '.')), errors: app.errors.slice(0, 3) });
+    } finally { await app.context.close(); }
+  }
+  return { pass: runs.every(r => Math.abs(r.total - 158.5) <= 0.05 && !r.errors.length), detail: { expected: 158.5, runs } };
+});
+
 check('C-REFRESH', 'classic', 'WP0.4: "Refresh weekly context" runs without a page error and keeps the lineup', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w6-pregame');
   try {

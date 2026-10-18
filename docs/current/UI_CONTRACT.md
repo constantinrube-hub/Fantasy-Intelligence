@@ -64,7 +64,9 @@ Reserve eligibility follows Sleeper settings `reserve_slots`, `reserve_allow_out
   research snapshot (`data/research/leagues/<id>/app/core.json`, rebuilt about every
   6 h, cached in the browser for up to a day). After the core stage of each league
   load, `scheduleLiveOverlay()` refreshes those parts from Sleeper once per league
-  per 60 s via `FIEDataClient.refreshLeague`; `applyLiveOverlay()` merges them.
+  per 60 s via `FIEDataClient.refreshLeague`; `applyLiveOverlay()` merges them. When rosters change it rebuilds
+  the player universe and then re-applies the selected week's Sleeper rows (`loadSelectedWeek`, cached) before
+  rendering (WP0.8), so Weekly never shows legacy model values after an overlay.
 - **Week:** the live Sleeper `settings.leg` wins over the snapshot week.
   `syncLiveLeagueWeek()` re-binds the selected week (`setWeek(…, {reason:'live-league-week'})`)
   unless the user picked a week for this league. When they differ, `#fieWeekSourceNotice`
