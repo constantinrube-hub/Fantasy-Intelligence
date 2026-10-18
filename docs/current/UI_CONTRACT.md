@@ -74,6 +74,9 @@ Reserve eligibility follows Sleeper settings `reserve_slots`, `reserve_allow_out
 - Known limitation: if Sleeper is unreachable the snapshot values remain in use without
   an explicit offline notice (planned in R1 context bar: "data as of").
 
+**Classic weekly lineup pool (WP0.9):** the Weekly optimiser (`app/decision-ui.js › lineupPool`) uses the active
+roster only — players in reserve (IR) or taxi slots cannot be started in Sleeper and are shown as bench rows.
+
 ## 4. Recommendations (thresholds implemented in policy; v10 views *planned* R1)
 
 - Gain = full legal re-optimization delta (`FIECore.LineupOptimizer.optimize`) over

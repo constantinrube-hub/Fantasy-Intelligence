@@ -177,6 +177,23 @@ check('C-OVERLAY', 'classic', 'WP0.8: after the live roster overlay rebuilds pla
   return { pass: runs.every(r => Math.abs(r.total - 158.5) <= 0.05 && !r.errors.length), detail: { expected: 158.5, runs } };
 });
 
+check('C-IRSTART', 'classic', 'WP0.9: the Weekly lineup never starts a player in a reserve (IR) or taxi slot', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame');
+  try {
+    await loadLeague(app.page, L.dynastyPrime); // Jalen Coker: healthy, projected 12.7, but in an IR slot in the live roster
+    await nav(app.page, 'weekly', 'startsit');
+    await app.page.waitForTimeout(4000);
+    const r = await app.page.evaluate(() => {
+      const st = window.state, rid = Number(st.selectedRoster), ro = (st.rosters || []).find(x => Number(x.roster_id) === rid); // read-only
+      const out = new Set([...(ro?.reserve || []), ...(ro?.taxi || [])].map(String));
+      const names = new Map((window.PLAYERS || []).filter(p => out.has(String(p.sleeperId))).map(p => [p.name, String(p.sleeperId)]));
+      const rows = [...document.querySelectorAll('#mainArea table tbody tr')].map(tr => [...tr.children].map(td => td.innerText.split('\n')[0].trim()));
+      return { reserveOrTaxi: [...names.keys()], started: rows.filter(x => x[0] && x[0] !== 'BENCH' && names.has(x[1])).map(x => `${x[0]} ${x[1]}`) };
+    });
+    return { pass: r.reserveOrTaxi.length > 0 && r.started.length === 0 && app.errors.length === 0, detail: { ...r, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
 check('C-REFRESH', 'classic', 'WP0.4: "Refresh weekly context" runs without a page error and keeps the lineup', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w6-pregame');
   try {
