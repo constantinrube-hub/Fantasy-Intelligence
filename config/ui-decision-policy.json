@@ -45,5 +45,18 @@
     "dynasty_protect_adp": 150,
     "long_term_zero": ["IR", "PUP", "NA", "Suspended"]
   },
+  "variance": {
+    "mode": "rule_of_thumb",
+    "calibration": {
+      "source": "WP-V1 research/wpv1_measure_spread.py --weeks 1-5: frozen Thursday Sleeper projections (pts_ppr) vs nflverse fantasy_points_ppr (capture week_07/20261018T093323977084Z), players projected >= 5 pts, did-not-play counted as 0, interpolated quantiles",
+      "n": 985,
+      "positions": {
+        "QB": { "p10": 0.35, "p50": 0.90, "p90": 1.58, "sd": 0.479, "n": 158 },
+        "RB": { "p10": 0.24, "p50": 0.77, "p90": 1.70, "sd": 0.652, "n": 269 },
+        "WR": { "p10": 0.00, "p50": 0.80, "p90": 1.91, "sd": 0.737, "n": 402 },
+        "TE": { "p10": 0.02, "p50": 0.78, "p90": 2.07, "sd": 0.785, "n": 156 }
+      }
+    }
+  },
   "league_aliases": {}
 }

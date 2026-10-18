@@ -26,6 +26,12 @@ def validate(policy: dict) -> None:
     assert 'Doubtful' in s['zero'], 'Doubtful is treated as out (user decision 2026-10-18)'
     assert 0 <= s['doubtful_tiebreak_factor'] < 0.1, 'doubtful tie-break must stay a tie-break'
     assert s['waiver_add_policy']['never_claim_unavailable'] is True
+    v = policy.get('variance', {})
+    if v:
+        assert v['mode'] in {'rule_of_thumb', 'calibrated'}, 'variance.mode is rule_of_thumb or calibrated'
+        for pos, q in v.get('calibration', {}).get('positions', {}).items():
+            assert 0 <= q['p10'] < q['p50'] < q['p90'], f'{pos}: p10 < p50 < p90'
+            assert q['n'] >= 30, f'{pos}: calibration needs at least 30 observations'
     w = policy.get('waivers', {})
     if w:
         assert 1 <= w['horizon_weeks'] <= 6, 'waiver horizon 1-6 weeks'
