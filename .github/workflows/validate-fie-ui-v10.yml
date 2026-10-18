@@ -1,0 +1,50 @@
+name: Validate FIE UI v10
+
+# Read-only validation for UI v10 work. Never writes to the repository.
+on:
+  push:
+    branches: ['ui/**', 'fix/**']
+  pull_request:
+    paths: ['app/**', 'index.html', 'config/ui-decision-policy.json', 'research/ui_replay/**', 'research/integrity_ui_*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fie-ui-v10-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r research/requirements.txt
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+      - name: Contract tests
+        run: |
+          node research/integrity_ui_status_policy_test.js
+          python research/integrity_ui_policy_test.py
+          node research/integrity_ui_replay_no_injection_test.js
+      - name: Release build
+        run: python tools/release_build.py --mode personal
+      - name: Browser replay (classic)
+        run: node research/ui_replay/run.js --dist dist --suite classic --out ui-replay-output
+      - name: Upload replay report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-replay-output
+          path: ui-replay-output
+          retention-days: 14
