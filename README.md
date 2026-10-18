@@ -21,6 +21,7 @@ The production architecture is intentionally fail-closed. Candidate research/mod
 - [Data contracts](docs/current/DATA_CONTRACTS.md)
 - [Current snapshot storage](docs/current/CURRENT_SNAPSHOT_STORAGE.md)
 - [Testing](docs/current/TESTING.md)
+- [UI contract (v10)](docs/current/UI_CONTRACT.md)
 - [Security](docs/current/SECURITY.md)
 - [D/ST integration foundation](docs/current/DST_INTEGRATION_GUIDE.md)
 - [D/ST implementation & evaluation](docs/current/DST_IMPLEMENTATION_AND_EVALUATION.md)

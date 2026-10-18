@@ -24,6 +24,7 @@ def main():
   run(['node','research/integrity_current_week_hydration_test.js']),
   run(['node','research/integrity_v9_model_runtime_test.js']),
   run(['node','research/integrity_decision_service_test.js']),
+  run([sys.executable,'research/integrity_ui_policy_test.py']),
   run([sys.executable,'research/integrity_structural_profile_test.py']),
   run([sys.executable,'research/integrity_release_versions_test.py']),
   run([sys.executable,'research/integrity_dist_hygiene_test.py']),
