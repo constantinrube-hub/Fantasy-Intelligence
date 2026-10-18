@@ -73,6 +73,40 @@ This is designed to remain bounded. Long empirical research jobs should not make
 
 M2-M6 empirical/historical validation can be substantially slower. Run them when research inputs/model logic change and in research workflows.
 
+## Browser replay suite (UI contract)
+
+`research/ui_replay/` runs the real built application in headless Chromium against
+**immutable, already-committed provider captures**, with a frozen browser clock. It is
+the deterministic browser layer between VM tests and the manual preview pass.
+
+```bash
+python tools/release_build.py --mode personal          # builds dist/
+node research/ui_replay/run.js --dist dist --suite classic --out ui-replay-output
+node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
+```
+
+- Requires Node 22 and Playwright with Chromium (`npm install --no-save playwright && npx playwright install chromium`;
+  set `FIE_UI_PLAYWRIGHT` to a Playwright module path if it is installed elsewhere).
+- Fixtures (`research/ui_replay/fixtures.js`) read the receipts of
+  `data/research/prospective/weekly-sources/2026/week_06/20261015T174631408136Z/`
+  (Week 6, ~6.5 h before the first kickoff: 23 leagues' league/rosters/users/matchups/transactions,
+  Sleeper players and Week 6 projections, nflverse players/schedule/weekly/snaps). Season projections are
+  rebuilt from `data/research/market/sleeper/2026/season_market_2026-09-30.jsonl.gz`.
+- Scenarios (`scenarios.js`): `w6-pregame` (Thu 18:00 UTC), `w6-after-tnf` (Sat 12:00 UTC),
+  `live-week-ahead` (provider one week ahead of the bundled snapshot). Overrides may change provider
+  payloads only; tests never assign application state (`integrity_ui_replay_no_injection_test.js`).
+- Requests not covered by the capture are aborted and listed in the report (`unmatched`).
+- Output: `report.json` plus screenshots in the output folder (git-ignored).
+
+| Check | Contract |
+|---|---|
+| C-LOAD | reference leagues load; Weekly/Waivers render with no page error |
+| C-WEEK | live Sleeper week wins over the snapshot week; notice shown |
+| C-WAIVER | no CLAIM for Doubtful/Out/IR/…; status column; unavailable adds below CLAIMs |
+| C-DRAFT | no draft-preparation task for in-season leagues |
+| C-BANNER | submitted starter who cannot play → red Weekly alert |
+| C-REFRESH | "Refresh weekly context" runs without a page error |
+
 ## Mandatory preview browser test
 
 Static/VM testing cannot prove real browser behavior.
