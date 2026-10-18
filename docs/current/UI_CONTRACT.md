@@ -77,6 +77,11 @@ Reserve eligibility follows Sleeper settings `reserve_slots`, `reserve_allow_out
 **Classic weekly lineup pool (WP0.9):** the Weekly optimiser (`app/decision-ui.js › lineupPool`) uses the active
 roster only — players in reserve (IR) or taxi slots cannot be started in Sleeper and are shown as bench rows.
 
+**Classic weekly decision value (WP0.10):** every classic weekly lineup decision (optimal lineup, Bench Δ, waiver week
+gain, Start/Sit drawer) uses `FIEStatus.recommendationValue(p, weekProj(p))`: Out, IR, PUP, Suspended, NA and BYE count
+0, Doubtful only as a tie-break (Doubtful = Out). The Week Proj column still shows the projection. In max-win mode a
+simulated lineup that contains an unavailable player is not used; the max-points lineup is shown with a note naming him.
+
 ## 4. Recommendations (thresholds implemented in policy; v10 views *planned* R1)
 
 - Gain = full legal re-optimization delta (`FIECore.LineupOptimizer.optimize`) over

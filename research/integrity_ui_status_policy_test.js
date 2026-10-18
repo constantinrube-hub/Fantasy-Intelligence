@@ -81,4 +81,7 @@ assert.ok(/<script src="app\/core\/status\.js"><\/script>/.test(index) && /<scri
 assert.ok(index.indexOf('app/generated/ui-decision-policy.js') < index.indexOf('app/core/status.js'), 'policy loads before status service');
 assert.ok(ui.includes('window.FIEStatus?.addPolicy?.(p,{rosterId:rid})') && (ui.match(/key:'status',label:'Status',value:x=>x\.status\?\.code/g) || []).length === 3, 'WP0.2 waiver action and status column in all formats');
 assert.ok(engines.includes("allowClaim!==false"), 'WP0.2 Home/portfolio callouts skip unavailable adds');
+assert.ok(ui.includes('points=lineup(decisionProj,active)') && ui.includes('window.FIEStatus.recommendationValue(p,v)') && !/lineup\(weekProj/.test(ui),
+  'WP0.10 every classic weekly lineup decision (lineup, bench delta, waiver week gain, drawer) uses the status-adjusted value');
+assert.ok(ui.includes('winBlocked:blocked') && ui.includes('unavailableNow(p)'), 'WP0.10 max-win mode never forces an unavailable player into the lineup');
 console.log('UI status policy + R0 wiring: PASS');
