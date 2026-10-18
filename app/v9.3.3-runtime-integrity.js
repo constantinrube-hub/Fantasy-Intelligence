@@ -157,6 +157,7 @@ function applyWeekProjectionRows(rows,week,season){
     const id=playerId(p),row=map.get(id)||null,sleeper=scoreProjectionRow(row,p),opp=opponentForTeam(p.team,week,season),bye=opp==='BYE',g=governed.get(id)||null,same=Number(g?.week)===Number(week)&&Number(g?.season)===Number(season)&&g?.weekly_activation_eligible===true,gv=same?finite(g?.decision_weekly_projection):null;
     if(sleeper!==null)matched++;if(gv!==null)governedCount++;if(bye)byeCount++;
     p.__fieWeeklyByWeek=p.__fieWeeklyByWeek||{};
+    p.weeklyStatusFeed=row?{status:row.player?.injury_status??null,week:Number(week),season:Number(season),at:Date.now()}:null;
     p.sleeperWeeklyProjection=sleeper;
     p.weeklyOpponent=opp;p.opponent=opp;
     if(gv!==null){

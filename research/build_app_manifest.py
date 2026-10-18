@@ -22,6 +22,7 @@ COMPONENTS={
  'numeric_contract':'app/core/numeric.js',
  'season_context':'app/core/season-context.js',
  'projection_service':'app/core/projection-service.js',
+ 'status_service':'app/core/status.js',
  'ui_decision_policy':'config/ui-decision-policy.json',
  'ui_decision_policy_js':'app/generated/ui-decision-policy.js',
  'ui_decision_policy_generator':'research/generate_ui_policy.py',
