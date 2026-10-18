@@ -12,12 +12,12 @@
  */
 (function(){
 'use strict';
-const VERSION='10.1.0';
+const VERSION='10.2.0';
 const SLEEPER='https://api.sleeper.app/v1';
 const W=()=>window;
 const P=()=>W().FIE_UI_POLICY||{};
 const ttl=(k,d)=>1000*(Number(P().cache_seconds?.[k])||d);
-const shared={catalog:null,schedule:null,proj:new Map(),state:null};
+const shared={catalog:null,schedule:null,proj:new Map(),state:null,adp:new Map()};
 const fetchedAt=new Map();   // url → time of our last successful network-or-cache read
 const models=new Map();      // `${leagueId}:${week}` → {at, wm, inputs}
 let forceGen=0;              // refresh() bumps this; each URL then bypasses caches exactly once
@@ -47,6 +47,41 @@ async function projections(season,week){
   const p=(async()=>{const rows=await json(url,{sourceId:'v10-week-projections',ttlMs:15*60e3});const m=new Map();for(const r of rows||[]){const id=String(r?.player_id||'');if(id)m.set(id,r);}return{rows:m,at:fetchedAt.get(url)||Date.now()};})();
   shared.proj.set(key,p);
   try{return await p;}catch(e){shared.proj.delete(key);throw e;}
+}
+/** Projection maps for week … week+n−1 (≤ 18). A week that fails to load is an empty map. */
+async function horizon(season,week,n){
+  const weeks=[];for(let i=0;i<n&&week+i<=18;i++)weeks.push(week+i);
+  return Promise.all(weeks.map(async w=>({week:w,projRows:(await projections(season,w).catch(()=>({rows:new Map()}))).rows})));
+}
+/** Sleeper season projections per player: ADP (dynasty drop protection, redraft tie-break) and the season stat line (rest-of-season proxy for unpublished weeks). */
+async function seasonAdp(season){
+  if(shared.adp.has(season))return shared.adp.get(season);
+  const p=(async()=>{const rows=await json(`/api/data/sleeper/projections/${season}`,{sourceId:'v10-season-adp',ttlMs:6*3600e3});const m=new Map();
+    for(const r of rows||[]){const id=String(r?.player_id||''),st=r?.stats||{};if(id)m.set(id,{dynasty:st.adp_dynasty_ppr??st.adp_dynasty,dynasty2qb:st.adp_dynasty_2qb,redraft:st.adp_ppr,stats:st});}return m;})();
+  shared.adp.set(season,p);try{return await p;}catch(e){shared.adp.delete(season);return new Map();}
+}
+/** All transactions of weeks 1…upTo (past weeks cached 6 h, the current week 10 min). */
+async function transactions(id,upTo){
+  const ws=[];for(let w=1;w<=Math.min(18,upTo);w++)ws.push(w);
+  const parts=await Promise.all(ws.map(w=>json(`${SLEEPER}/league/${id}/transactions/${w}`,{sourceId:'v10-transactions',ttlMs:w<upTo?6*3600e3:ttl('matchups',600),live:true}).catch(()=>[])));
+  return parts.flat().filter(Boolean);
+}
+/** Transactions of selected weeks only (changes feed: current and previous week). */
+async function txWeeks(id,weeks){
+  const parts=await Promise.all(weeks.filter(w=>w>=1&&w<=18).map(w=>json(`${SLEEPER}/league/${id}/transactions/${w}`,{sourceId:'v10-transactions',ttlMs:ttl('matchups',600),live:true}).catch(()=>[])));
+  return parts.flat().filter(Boolean);
+}
+function constraintsFor(id){try{return W().FIEPortfolioConfig?.constraintsFor?.(String(id))||[];}catch{return [];}}
+/** Waiver ranking (and optionally the FAAB market) for one league, from the same WeekModel. */
+async function waivers(entry,{week=null,market=false,limit=null,pids=null}={}){
+  const wm=await model(entry,{week}),id=wm.key.leagueId,base=`${SLEEPER}/league/${id}`;
+  const [league,rosters,users]=await Promise.all([json(base,{ttlMs:ttl('league',3600),sourceId:'v10-league',live:true}),json(`${base}/rosters`,{ttlMs:ttl('rosters',300),sourceId:'v10-rosters',live:true}),json(`${base}/users`,{ttlMs:ttl('league',3600),sourceId:'v10-users',live:true})]);
+  const n=Number(P().waivers?.horizon_weeks)||3;
+  const [hz,sched,cat,adp]=await Promise.all([horizon(wm.key.season,wm.key.week,n),schedule(),catalog(),seasonAdp(wm.key.season)]);
+  const result=W().FIEWaivers.build({wm,league,rosters,managedRosterId:wm.key.rosterId,horizon:hz,schedule:sched,season:wm.key.season,now:Date.now(),catalog:cat,adp,seasonRows:adp,policy:P(),constraints:constraintsFor(id),limit,...(pids?{pids}:{})});
+  let mkt=null;
+  if(market){const tx=await transactions(id,wm.key.week);mkt=W().FIEWaivers.market({league,rosters,users,transactions:tx,positionOf:pid=>wm.player(pid)?.position||cat.get(String(pid))?.position,nameOf:pid=>wm.player(pid)?.name||cat.get(String(pid))?.full_name||pid,managedRosterId:wm.key.rosterId});}
+  return{wm,result,market:mkt};
 }
 function savedLeagues(){try{const x=JSON.parse(localStorage.getItem('fieSavedLeaguesV71')||'[]');return Array.isArray(x)?x:[];}catch{return [];}}
 async function leagues(){
@@ -107,16 +142,21 @@ async function results(entry,week){
   }catch{return null;}
 }
 /** Light pass over all leagues with limited concurrency; onEach(i, result) streams rows. */
-async function portfolio({week=null,limit=4,onEach}={}){
+async function portfolio({week=null,limit=4,onEach,withWaivers=true,withTx=true}={}){
   const list=await leagues(),out=new Array(list.length);let next=0;
   async function worker(){while(next<list.length){const i=next++,e=list[i];
-    try{const wm=await model(e,{week});out[i]={entry:e,wm,alerts:W().FIEAlerts.forLeague(wm,{leagueId:e.id,leagueName:wm.entry.name,priority:e.priority})};}
+    try{const wm=await model(e,{week});let wv=null;
+      if(withWaivers&&!wm.field?.meEliminated){try{wv=(await waivers(e,{week,limit:Number(P().waivers?.overview_candidates)||30})).result;}catch(err){wv=null;}}
+      const tx=withTx?await txWeeks(wm.key.leagueId,[wm.key.week-1,wm.key.week]).catch(()=>[]):null;
+      out[i]={entry:e,wm,waivers:wv,tx,alerts:W().FIEAlerts.forLeague(wm,{leagueId:e.id,leagueName:wm.entry.name,priority:e.priority,waivers:wv})};}
     catch(err){out[i]={entry:e,wm:null,error:String(err?.message||err),alerts:[{code:'DATA_ISSUE',tier:'urgent',quiet:true,leagueId:String(e.id),leagueName:e.name||e.id,priority:e.priority,title:`Could not load: ${String(err?.message||err).slice(0,120)}`,dedupKey:`${e.id}:load`,route:'home'}]};}
     onEach?.(i,out[i]);}}
   await Promise.all(Array.from({length:Math.min(limit,list.length)},worker));
   return out;
 }
 function refresh(){forceGen++;models.clear();shared.proj.clear();}
+/** Matchups of any week for one league (review, results). */
+async function matchups(id,week){return json(`${SLEEPER}/league/${id}/matchups/${week}`,{ttlMs:ttl('matchups',600),sourceId:'v10-matchups',live:true}).catch(()=>[]);}
 function lastFetch(){return Math.max(0,...fetchedAt.values());}
-window.FIEV10Data={VERSION,leagues,model,portfolio,results,nflState,refresh,lastFetch,managedRoster,currentWeek,_models:models};
+window.FIEV10Data={VERSION,leagues,model,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
 })();

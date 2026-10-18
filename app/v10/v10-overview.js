@@ -9,7 +9,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.1.0';
+const VERSION='10.2.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 let token=0,last=null;
 function draftAlert(r){const st=r.wm?.league?.status;if(st!=='drafting'&&st!=='pre_draft')return null;
@@ -69,6 +69,31 @@ function queue(rows,now){
   const q=quiet.length?k.expand(`<span class="v10-muted">Data issues (${quiet.length})</span>`,quiet.map(a=>`<div>${k.esc(a.leagueName)}: ${k.esc(a.title)}</div>`).join(''),{cls:'v10-quietbox',key:'quiet'}):'';
   return `<section class="v10-card"><h2>To do</h2>${body}${q}</section>`;
 }
+// ---- R2 · WP2.5: changes since last visit + my players this week ----
+const LAST='fieV10LastVisit',BASE='fieV10FeedBase';
+function readJSON(store,key){try{return JSON.parse(store.getItem(key)||'null');}catch{return null;}}
+function writeJSON(store,key,v){try{store.setItem(key,JSON.stringify(v));}catch{}}
+/** Baseline = the snapshot of the previous visit; kept per browser session so live re-renders keep the same feed. */
+function feedBaseline(){let b=readJSON(sessionStorage,BASE);if(!b){b=readJSON(localStorage,LAST)||{none:true};writeJSON(sessionStorage,BASE,b);}return b.none?null:b;}
+function feedSection(rows){
+  const k=K(),ok=rows.filter(r=>r?.wm);if(ok.length<rows.length)return `<section class="v10-card" id="v10Feed"><h2>Since your last visit</h2>${k.empty('Loading…')}</section>`;
+  const tx={};for(const r of ok)tx[r.wm.key.leagueId]=r.tx||[];
+  const f=window.FIEPortfolioViews.changes(feedBaseline(),ok,tx);
+  writeJSON(localStorage,LAST,window.FIEPortfolioViews.snapshot(ok));
+  if(f.firstVisit)return `<section class="v10-card" id="v10Feed"><h2>Since your last visit</h2>${k.empty('First visit in this browser — status changes, waiver results and trades will appear here from your next visit.')}</section>`;
+  const items=f.items.slice(0,25);
+  return `<section class="v10-card" id="v10Feed"><h2>Since your last visit <span class="v10-muted">${k.esc(k.time(f.since))}</span></h2>${items.length?`<ul class="v10-feed">${items.map(x=>`<li class="v10-feed-${k.esc(x.tier)}">${x.tier==='urgent'?k.tierChip('urgent')+' ':''}${x.kind==='tx'?`<span class="v10-muted">${k.esc(x.leagueName)} ·</span> `:''}${k.esc(x.text)}${x.at?` <span class="v10-lock">${k.esc(k.time(x.at))}</span>`:''}</li>`).join('')}</ul>${f.items.length>items.length?`<div class="v10-muted">${f.items.length-items.length} more</div>`:''}`:k.empty('Nothing changed for your players or rosters.')}</section>`;
+}
+function myPlayersSection(rows){
+  const k=K(),ok=rows.filter(r=>r?.wm);if(!ok.length)return '';
+  const mp=window.FIEPortfolioViews.myPlayers(ok),top=mp.rows.filter(r=>r.starts>0).slice(0,40);
+  const line=x=>{const sum=`<span class="v10-mp-name">${k.playerLink(x,{leagueId:x.leagues[0]?.leagueId})} <span class="v10-muted">${k.esc(x.position)} · ${k.esc(x.team||'FA')}</span> ${k.statusChip(x.status)}</span><span class="v10-num">${x.starts}</span><span class="v10-num">${x.rostered}</span><span class="v10-muted">${k.esc(k.gameText(x.game))}</span>`;
+    const body=`<table class="v10-mini"><tbody>${x.leagues.map(l=>`<tr><td><a href="#/league/${encodeURIComponent(l.leagueId)}/lineup">${k.esc(l.leagueName)}</a></td><td>${l.role==='start'?k.esc(l.slot):l.role}</td><td class="v10-num">${k.pts(l.value)}</td></tr>`).join('')}</tbody></table>`;
+    return k.expand(sum,body,{cls:'v10-mprow',key:`mp:${x.pid}`});};
+  return `<section class="v10-card"><h2>My players this week <span class="v10-muted">${mp.players} players · ${mp.startSlots} starting slots${mp.unavailableStarters.length?` · <b class="v10-bad">${mp.unavailableStarters.length} starting but can't play</b>`:''}</span></h2>
+    <div class="v10-mphead"><span>Player</span><span class="v10-num">Starts</span><span class="v10-num">Rostered</span><span>Game</span></div>${top.map(line).join('')}
+    ${mp.rows.length>top.length?k.expand(`<span class="v10-muted">${mp.rows.length-top.length} more players (bench / IR / taxi only)</span>`,mp.rows.filter(r=>!top.includes(r)).map(line).join(''),{key:'mp:rest'}):''}</section>`;
+}
 function leaguesTable(rows,now){
   const k=K();return `<section class="v10-card"><h2>Leagues</h2><div class="v10-lhead"><span>League</span><span>This week</span><span>Win est.</span><span>Record</span><span>Tasks</span><span>Lock</span></div>${rows.map(r=>r?leagueRow(r,now):`<div class="v10-lrow v10-loading">Loading…</div>`).join('')}</section>`;
 }
@@ -82,7 +107,7 @@ function resultsSection(res){
 async function render(root){
   const my=++token,now=Date.now(),list=await D().leagues();if(my!==token)return;
   const rows=new Array(list.length).fill(null);let resultsRows=null;
-  const paint=()=>{if(my!==token)return;const t=Date.now();K().repaint(root,`<div class="v10-overview">${header(rows.map((r,i)=>r||{entry:list[i]}),t)}${queue(rows,t)}${leaguesTable(rows,t)}${resultsSection(resultsRows)}</div>`);};
+  const paint=()=>{if(my!==token)return;const t=Date.now(),done=rows.every(Boolean);K().repaint(root,`<div class="v10-overview">${header(rows.map((r,i)=>r||{entry:list[i]}),t)}${queue(rows,t)}${done?feedSection(rows):''}${leaguesTable(rows,t)}${done?myPlayersSection(rows):''}${resultsSection(resultsRows)}</div>`);};
   let pending=null;const schedule=()=>{if(!pending)pending=setTimeout(()=>{pending=null;paint();},120);};
   paint();
   await D().portfolio({onEach:(i,r)=>{rows[i]=r;schedule();}});
