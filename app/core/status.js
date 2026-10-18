@@ -61,7 +61,8 @@ function resolve(p,ctx={}){
     (finite(feed.at)===null||(c.now-Number(feed.at))/60000<=pol.projection_feed_max_age_minutes);
   if(feedFresh){code=normalize(feed.status);source='projection-feed';ageMinutes=finite(feed.at)===null?null:Math.max(0,Math.round((c.now-Number(feed.at))/60000));}
   else if(normalize(p?.injuryStatus)){code=normalize(p.injuryStatus);source='player-db';}
-  if(!code){try{if(c.week!==null&&c.season!==null&&window.FIEProjectionResolver?.isVerifiedBye?.(p,c.week,c.season)){code='BYE';source='schedule';}}catch{}}
+  // ctx.scheduleBye===false: the caller resolves byes from its own schedule (v10 WeekModel stays independent of classic state).
+  if(!code&&ctx.scheduleBye!==false){try{if(c.week!==null&&c.season!==null&&window.FIEProjectionResolver?.isVerifiedBye?.(p,c.week,c.season)){code='BYE';source='schedule';}}catch{}}
   const unavailable=!!code&&pol.zero.includes(code);
   const monitor=!!code&&!unavailable&&pol.monitor.includes(code);
   return{code,short:code?(SHORT[code]||code):null,label:code||'Active',source,ageMinutes,unavailable,monitor,week:c.week,season:c.season};
