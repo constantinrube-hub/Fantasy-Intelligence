@@ -27,7 +27,8 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const IGNORED_CONSOLE = [/Failed to load resource/i, /net::ERR_FAILED/i, /ERR_ABORTED/i];
 
-async function openApp(browser, origin, scenarioId, { width = 1440, height = 1000, path: urlPath = '/' } = {}) {
+// Classic checks open the classic UI explicitly, so they keep testing classic after default_ui switches to v10 (S7).
+async function openApp(browser, origin, scenarioId, { width = 1440, height = 1000, path: urlPath = '/?ui=classic' } = {}) {
   const scenario = SCENARIOS[scenarioId];
   const router = new ProviderRouter(scenario);
   const context = await browser.newContext({ viewport: { width, height }, timezoneId: 'Europe/Berlin' });

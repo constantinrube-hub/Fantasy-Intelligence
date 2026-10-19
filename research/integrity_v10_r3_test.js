@@ -150,9 +150,13 @@ const results = {};
     assert.strictEqual(t.roster.filter(r => !['BN', 'IR', 'TAXI'].includes(r.slot)).length, wm.me.submitted.filter(e => e.p).length, `${id}: starters keep their Sleeper slots`);
     assert.strictEqual(t.roster.filter(r => r.slot === 'IR').length, (mine.reserve || []).length, `${id}: IR slots`);
     assert.ok(t.roster.filter(r => r.position === 'DEF').every(r => r.ros === null), `${id}: no season-per-game proxy for D/ST (bucket scoring)`);
+    for (const x of t.thin) for (const st of x.starters) assert.ok(Math.max(st.recovered, st.faRecovered) < t.thinAt, `${id} ${st.name}: thin = neither bench nor best free agent covers ${t.thinAt}`);
+    for (const d of t.depth) if (d.recovered !== null && d.value >= 1 && Math.max(d.recovered, d.faRecovered) < t.thinAt) assert.ok(t.thin.some(x => x.position === d.position), `${id} ${d.name}: uncovered starter is flagged`);
     thin += t.thin.length;
   }
   assert.ok(leagues >= 15 && players > 3000, `players/team on ${leagues} leagues, ${players} player rows`);
+  assert.strictEqual(w.FIE_UI_POLICY.team.thin_recovery, 0.25, 'thin threshold 25 % (decision 19 Oct)');
+  assert.ok(thin / leagues < 0.5, `thin flags are rare: ${thin} in ${leagues} leagues`);
   results.team = `players/team on ${leagues} leagues (${players} rows, ${thin} thin positions)`;
 }
 

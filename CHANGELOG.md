@@ -64,6 +64,13 @@ the guide it follows R3 plus two clean Sundays on v10.
   (`v10-shell.js`, `v10-league.js`); the classic Lab stays reachable. Display only. Unscored weeks are never
   evaluated. Tests: `integrity_v10_r3_test.js §6` (Week 5 fixture: 206 players, WR MAE/bias recomputed by hand,
   pregame payload "not scored", last-N skips unscored weeks, model-state counts); replay V-LAB.
+- **R3 review decisions (19 Oct).** Carry-over kept (S5). Thin positions (S6): the first cut flagged bench-only
+  shortfalls below 40 % — about 2.6 positions per league, mostly single-rostered TE/QB/K/D-ST the waiver wire replaces
+  (lowering the threshold alone barely helped: 25 % → 2.0, 10 % → 1.6). `app/core/team-views.js` now also measures the
+  share the best free agent at the position recovers; thin = neither reaches `team.thin_recovery` = **0.25**
+  (`config/ui-decision-policy.json`, regenerated copy) → 2 flags in 21 leagues (an elite TE and an elite RB).
+  `app/v10/v10-team.js`: "Best FA recovers" column and wording. Tests: thin ⇔ uncovered, threshold 0.25, < 0.5 per
+  league. Default switch (S7) is a separate one-line patch, not part of R3.
 - Docs: `UI_CONTRACT.md` status line (R3 implemented, WP3.6 not built), §9 verification (R3 test, `--suite all`);
   `TESTING.md` pure-module tests and the 27-check replay.
 - Verification: release build `DEPLOYABLE_SOURCE` 106/106 (the documentation check timed out once on a cold file

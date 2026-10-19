@@ -9,8 +9,9 @@
  *       (status-adjusted, same as Lineup) and the horizon sum.
  *   team({wm, rosters, horizon, schedule, catalog, season, seasonRows, adp})
  *     → position strength (your optimal-lineup points per position, rank among active teams, league median),
- *       depth per starter (share of his points your bench recovers if he is out, full re-optimisation),
- *       thin positions (< policy team.thin_recovery, default 40 %), byes in the horizon (points lost to byes,
+ *       depth per starter (share of his points your bench recovers if he is out, full re-optimisation, and the share
+ *       the best free agent at his position would recover), thin positions = neither the bench nor the best free agent
+ *       recovers policy team.thin_recovery (25 %, R3 tuning 19 Oct), byes in the horizon (points lost to byes,
  *       using this week's values so it works before Sleeper publishes the week), and the roster with real
  *       Sleeper slots, value vs the best free agent at the position ("replacement gap", a VOR proxy).
  */
@@ -44,7 +45,7 @@ function players(input){
 }
 
 function team(input){
-  const {wm,rosters,schedule,season}=input,pol=W().FIE_UI_POLICY?.team||{},thinAt=num(pol.thin_recovery)??0.4;
+  const {wm,rosters,schedule,season}=input,pol=W().FIE_UI_POLICY?.team||{},thinAt=num(pol.thin_recovery)??0.25;
   const O=W().FIECore.LineupOptimizer,can=startable(wm),slots=wm.slots;
   const active=(rosters||[]).filter(r=>(r.players||[]).length);
   // 1 · Position strength: every active team's optimal lineup this week (recValue = status-adjusted, same as Lineup).
@@ -61,18 +62,24 @@ function team(input){
   // 2 · Depth per starter (current week, locks respected by WeekModel.lineupContext)
   const myPool=[...wm.me.submitted.map(e=>e.p),...wm.me.bench].filter(Boolean),uniq=[...new Map(myPool.map(p=>[p.pid,p])).values()];
   const best=O.optimize(uniq.filter(p=>can(p.position)),slots,p=>p.recValue),starters=(best.assignment||[]).map(a=>({slot:a.slot,p:wm.player(a.playerId)})).filter(x=>x.p);
+  // Best free agent per position this week (also the replacement-gap reference of the roster table, §4).
+  const own=owners(wm,rosters),faBest={};
+  for(const [id] of input.projRows||[]){const pid=String(id);if(own.has(pid))continue;const p=wm.player(pid);if(!p||!can(p.position))continue;const v=p.recValue||0;if(v>(faBest[p.position]?.v??-1))faBest[p.position]={v,name:p.name,pid};}
+  // Thin = neither your bench nor the waiver wire replaces him: with one rostered TE/QB/K/D-ST the bench recovers 0 %
+  // by design, so a bench-only rule flagged ~2.6 positions per league (R3 first cut); counting the best free agent
+  // leaves real scarcity (0.1 per league at 25 % on the Week 6 captures). Adding the free agent needs a roster spot.
   const depth=starters.map(({slot,p})=>{const c=wm.lineupContext(p.pid),v=p.recValue||0;
     const loss=c&&c.role==='starter'?-c.delta:null,recovered=loss===null||!(v>0)?null:Math.max(0,Math.min(1,(v-loss)/v));
-    return{pid:p.pid,name:p.name,position:p.position,slot,value:round(v),loss:round(loss),recovered:round(recovered,3),nextBest:c?.nextBest||null};});
-  const thin=[...new Set(depth.filter(d=>d.recovered!==null&&d.recovered<thinAt&&d.value>=1).map(d=>d.position))].map(pos=>({position:pos,starters:depth.filter(d=>d.position===pos&&d.recovered!==null&&d.recovered<thinAt).map(d=>({name:d.name,recovered:d.recovered,nextBest:d.nextBest}))}));
+    const fb=faBest[p.position],faRecovered=fb&&v>0?Math.max(0,Math.min(1,fb.v/v)):0;
+    return{pid:p.pid,name:p.name,position:p.position,slot,value:round(v),loss:round(loss),recovered:round(recovered,3),nextBest:c?.nextBest||null,faRecovered:round(faRecovered,3),bestFa:fb?{name:fb.name,value:round(fb.v)}:null};});
+  const isThin=d=>d.recovered!==null&&d.value>=1&&Math.max(d.recovered,d.faRecovered)<thinAt;
+  const thin=[...new Set(depth.filter(isThin).map(d=>d.position))].map(pos=>({position:pos,starters:depth.filter(d=>d.position===pos&&isThin(d)).map(d=>({name:d.name,recovered:d.recovered,nextBest:d.nextBest,faRecovered:d.faRecovered,bestFa:d.bestFa}))}));
   // 3 · Byes in the horizon: points lost if this week's values held (bye players → 0) — works before a week is published.
   const pv=p=>p.recValue||0,base=O.optimize(uniq.filter(p=>can(p.position)),slots,pv).total;
   const byes=(input.horizon||[]).slice(1).map(h=>{const on=uniq.filter(p=>W().FIEGameState.forTeam(schedule,p.team,{week:h.week,season,now:Date.now()}).bye);
     const set=new Set(on.map(p=>p.pid)),t=O.optimize(uniq.filter(p=>can(p.position)),slots,p=>set.has(p.pid)?0:pv(p)).total;
     return{week:h.week,players:on.map(p=>({pid:p.pid,name:p.name,position:p.position,starter:starters.some(s=>s.p.pid===p.pid)})),cost:round(base-t),published:!!h.projRows&&h.projRows.size>0};});
   // 4 · Roster with real Sleeper slots; replacement gap = value − best free agent at the position this week.
-  const own=owners(wm,rosters),faBest={};
-  for(const [id] of input.projRows||[]){const pid=String(id);if(own.has(pid))continue;const p=wm.player(pid);if(!p||!can(p.position))continue;const v=p.recValue||0;if(v>(faBest[p.position]?.v??-1))faBest[p.position]={v,name:p.name,pid};}
   const hv=horizonValuer(input),sf=slots.some(s=>/SUPER/.test(s));
   const ros=pid=>{if(wm.player(pid)?.position==='DEF'||isTeamCode(pid))return null; // bucket scoring: not valid on season totals
     const r=input.seasonRows?.get?.(String(pid));if(!r?.stats||!Object.keys(r.stats).some(k=>!/^(adp|pos_adp|gp)/.test(k)))return null;const p=wm.player(pid);const t=W().FIEScoringCore.score(r.stats,wm.league.scoring,p?.position);const gp=num(r.stats.gp)||17;return t===null?null:round(t/gp);};

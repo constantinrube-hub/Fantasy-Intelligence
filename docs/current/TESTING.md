@@ -136,7 +136,8 @@ for past weeks (`data/research/market/sleeper/2026/week_NN.jsonl.gz`), and a **t
 captures post-week matchups. Pure-module contracts run without a browser (all in the release gate):
 `node research/integrity_v10_core_test.js` (R1), `node research/integrity_v10_r2_test.js` (R2) and
 `node research/integrity_v10_r3_test.js` (R3: carry-over, returning players, fill-ins, Players/Team, Trades, Lab).
-The whole replay (`--suite all`) has 27 checks after R3: classic 10, v10 17.
+The whole replay (`--suite all`) has 27 checks after R3: classic 10, v10 17. Classic checks open `/?ui=classic` explicitly (they keep testing classic when
+`default_ui` becomes `v10`); v10 checks open `/?ui=v10#…`.
 
 ## Mandatory preview browser test
 
