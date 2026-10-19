@@ -446,6 +446,28 @@ check('V-TRADES', 'v10', 'WP3.4: Trades tab — tick players on both sides, effe
   } finally { await app.context.close(); }
 });
 
+check('V-LAB', 'v10', 'WP3.1: Research Lab — model state for every league, projection accuracy on a scored week, forecasts, rankings with the research board, documents; display only', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10('#/lab/state') });
+  try {
+    const p = app.page, go = async (h, re) => { await p.evaluate(x => { location.hash = x; }, h); await p.waitForFunction(r => new RegExp(r).test(document.querySelector('#fieV10Main')?.innerText || '') && !document.querySelector('#fieV10Main .v10-loading'), re, { timeout: 120000 }); return p.locator('#fieV10Main').innerText(); };
+    await p.waitForFunction(() => /Research pipeline/.test(document.querySelector('#fieV10Main')?.innerText || '') && !document.querySelector('#fieV10Main .v10-loading'), null, { timeout: 180000 });
+    const state = await p.locator('#fieV10Main').innerText(), leaguesRows = await p.locator('#fieV10Main table').first().locator('tbody tr').count();
+    const navLab = await p.locator('#fieV10 .v10-bar [data-nav="lab"].active').count();
+    const ev = await go(`#/lab/eval?league=${L.redraft}&week=5`, 'Mean abs\\. error');
+    const evRows = await p.$$eval('#fieV10Main table.v10-table tbody tr', trs => trs.map(t => [...t.children].map(c => c.innerText.trim())));
+    await p.screenshot({ path: path.join(OUT, 'V-LAB-eval.png'), fullPage: true });
+    const fc = await go(`#/lab/forecasts?league=${L.redraft}`, 'Forecasts, Week');
+    const games = await p.locator('#fieV10Main .v10-labgame').count();
+    const rk = await go(`#/lab/rankings?league=${L.redraft}&pos=WR`, 'Season p50');
+    const rkRows = await p.$$eval('#fieV10Main table.v10-table tbody tr', trs => trs.map(t => [...t.children].map(c => c.innerText.trim())));
+    const dc = await go(`#/lab/docs?league=${L.redraft}`, 'Documents');
+    const pass = /Sleeper-only mode|governed FIE projection/.test(state) && leaguesRows >= 20 && /Production model/.test(state) && navLab === 1
+      && evRows.some(r => r[0] === 'All' && Number(r[1]) > 20 && Number(String(r[2]).replace(',', '.')) > 0) && games > 3 && /Last 4/.test(fc)
+      && rkRows.length >= 20 && rkRows.filter(r => /\d/.test(r[4])).length >= 10 && /research/.test(rk) && (dc.match(/JSON ↗/g) || []).length >= 3 && app.errors.length === 0;
+    return { pass, detail: { leaguesRows, navLab, eval: evRows.slice(-3), games, rankings: rkRows.slice(0, 3), docs: dc.slice(0, 300), errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
 check('V-REVIEW', 'v10', 'A-23/§5.13: a past week shows submitted vs projection-best vs hindsight-best on actual points', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/lineup?week=5`) });
   try {

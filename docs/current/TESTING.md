@@ -127,6 +127,7 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | V-PLAYERS | (v10, R3) Players filters (position, owner, search), expand, defaults reset on league change |
 | V-TEAM | (v10, R3) Team: strength ranks, depth, byes, roster with Sleeper slots |
 | V-TRADES | (v10, R3) Trades: both lineups per week + season rate, verdict; Draft link only for drafting/dynasty leagues |
+| V-LAB | (v10, R3) Research Lab: model state (all leagues), accuracy on the scored Week 5 fixture, forecasts, rankings with the research board, documents; no console errors |
 
 The v10 checks open `/?ui=v10#…`; run them with `--suite v10`. Scenario `w7-tuesday` (R2) uses the Sunday
 Week 7 capture with Thursday's Week 6 capture as fallback (processed FAAB claims), the frozen Thursday projections

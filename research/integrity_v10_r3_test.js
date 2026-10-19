@@ -7,6 +7,8 @@
  *     depth = full re-optimisation, bye costs, real Sleeper slots, no season proxy for D/ST.
  *   · WP3.4 Trades (FIETrades): empty trade = 0, a trade and its reverse cancel exactly, receiving never lowers a
  *     lineup, locked players exclude this week, entry-class floor, roster-size drops.
+ *   · WP3.1 Lab (FIELab): projection error on the scored Week 5 fixture (MAE/bias recomputed), unscored weeks are
+ *     "not scored" and skipped by last-N, model-state source counts.
  * Later R3 work packages append their sections below.
  */
 'use strict';
@@ -26,7 +28,7 @@ const window = { state: {} };
 const ctx = vm.createContext({ window, console, Math, Number, String, Object, Array, Map, Set, JSON, Date, Intl });
 for (const f of ['app/generated/runtime-contracts.js', 'app/core/core-services.js', 'app/generated/ui-decision-policy.js', 'app/core/status.js', 'app/core/projection-service.js',
   'app/core/scoring-core.js', 'app/core/distribution.js', 'app/core/game-state.js', 'app/core/week-model.js', 'app/core/alerts.js',
-  'app/core/waivers.js', 'app/core/review.js', 'app/core/portfolio.js', 'app/core/team-views.js', 'app/core/trades.js']) vm.runInContext(read(f), ctx, { filename: f });
+  'app/core/waivers.js', 'app/core/review.js', 'app/core/portfolio.js', 'app/core/team-views.js', 'app/core/trades.js', 'app/core/lab.js']) vm.runInContext(read(f), ctx, { filename: f });
 const w = window;
 const pmap = rows => new Map((rows || []).map(r => [String(r.player_id), r]));
 const schedule = w.FIEGameState.index(W6.raw('https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv'));
@@ -197,6 +199,27 @@ const results = {};
   const gt = w.FIETrades.evaluate({ wm: gw, rosters: gr, partnerRosterId: go.roster_id, send: [], receive: [vet], horizon: hz, schedule, catalog, season: 2026, constraints: entryOf(g).research_constraints || [], now: T6 });
   assert.ok(gt.issues.some(x => /entry class/.test(x)), 'entry-class floor flagged');
   results.trades = `trades on ${checked} leagues (reverse = 0, receive-only ≥ 0, lock: ${lockedSeen}, entry floor)`;
+}
+
+/* 6 · Research Lab computations (WP3.1) */
+{
+  const { week5Matchups } = require('./ui_replay/scenarios'), { CaptureStore } = require('./ui_replay/fixtures');
+  const p5 = pmap(JSON.parse(new CaptureStore('data/research/prospective/weekly-sources/2026/week_07/20261018T093323977084Z').frozenWeekProjections(2026, 5).body.toString('utf8')));
+  const id = '1313697754907697152', league = W6.J(L(id)), wm = model(W6, id), mm5 = week5Matchups(id);
+  const ev = w.FIELab.evaluate({ projRows: p5, matchups: mm5, scoring: league.scoring_settings, positionOf: pid => wm.player(pid)?.position, nameOf: pid => wm.player(pid)?.name || pid });
+  assert.ok(ev.scored && ev.n >= 50, `Week 5 evaluated: ${ev.n} players`);
+  // Recompute one position by hand
+  const wr = []; for (const m of mm5) for (const pid of m.players || []) { const r = p5.get(String(pid)); if (!r || wm.player(pid)?.position !== 'WR') continue; const pr = w.FIEScoringCore.score(r.stats || {}, league.scoring_settings, 'WR'); if (pr === null || pr < 3) continue; wr.push(Number(m.players_points[pid]) - pr); }
+  const row = ev.byPosition.find(x => x.position === 'WR'); assert.ok(row && row.n === wr.length && Math.abs(row.mae - wr.reduce((s2, e) => s2 + Math.abs(e), 0) / wr.length) < 0.006 && Math.abs(row.bias - wr.reduce((s2, e) => s2 + e, 0) / wr.length) < 0.006, `WR MAE/bias recomputed (n=${wr.length})`);
+  assert.ok(ev.misses.length === 10 && Math.abs(ev.misses[0].error) >= Math.abs(ev.misses[9].error), 'misses sorted by size');
+  const pre = w.FIELab.evaluate({ projRows: p6, matchups: W6.J(`${L(id)}/matchups/6`), scoring: league.scoring_settings, positionOf: pid => wm.player(pid)?.position, nameOf: pid => pid });
+  assert.ok(pre.scored === false && pre.n === 0, 'a pregame payload is "not scored", never a 100 % miss');
+  const l4 = w.FIELab.lastN({ weeks: [{ week: 5, matchups: mm5 }, { week: 6, matchups: W6.J(`${L(id)}/matchups/6`) }], n: 4 });
+  assert.ok(l4.size > 50 && [...l4.values()].every(x => x.games === 1 && x.weeks[0] === 5), 'last-N skips the unscored week');
+  const wms = ids.slice(0, 6).map(x => { const m = model(W6, x); m.entry = { name: x }; return m; });
+  const ms = w.FIELab.modelState({ wms, readiness: new Map(), researchView: null });
+  assert.ok(ms.length === 6 && ms.every(r => Object.values(r.counts).reduce((s2, c) => s2 + Object.values(c).reduce((a, b) => a + b, 0), 0) === r.players && r.governed === 0), 'model state counts every rostered player; no governed rows in the captures');
+  results.lab = `lab: Week 5 ${ev.n} players, MAE ${ev.overall.mae}, bias ${ev.overall.bias}`;
 }
 
 console.log(`UI v10 R3: PASS (${Object.values(results).join(' · ')})`);

@@ -56,6 +56,8 @@ COMPONENTS={
  'v10_team':'app/v10/v10-team.js',
  'v10_trades_core':'app/core/trades.js',
  'v10_trades':'app/v10/v10-trades.js',
+ 'v10_lab_core':'app/core/lab.js',
+ 'v10_lab':'app/v10/v10-lab.js',
  'v10_r2_test':'research/integrity_v10_r2_test.js',
  'wpv1_measure_spread':'research/wpv1_measure_spread.py',
  'v10_r3_test':'research/integrity_v10_r3_test.js',

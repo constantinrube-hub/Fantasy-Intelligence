@@ -18,14 +18,15 @@ const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 let token=0;
 const sleeperUrl=id=>`https://sleeper.com/leagues/${encodeURIComponent(id)}/team`;
 // Routes still rendered by the classic UI (bridge). Draft only where it matters (WP3.4, lifecycle-aware):
-// leagues before/during their draft, and dynasty leagues (rookie drafts). Trades is a v10 tab since R3.
-const CLASSIC=[['draft','Draft'],['lab','Research Lab']];
+// leagues before/during their draft, and dynasty leagues (rookie drafts). Trades is a v10 tab since R3; the
+// Research Lab is a v10 route (#/lab, WP3.1) linked from every league.
+const CLASSIC=[['draft','Draft']];
 function classicFor(wm){return CLASSIC.filter(([t])=>t!=='draft'||!wm||['pre_draft','drafting'].includes(String(wm.league?.status||''))||!!wm.format?.dynasty);}
 function link(id,tab,week){return `#/league/${encodeURIComponent(id)}/${tab}${week?`?week=${week}`:''}`;}
 function tabs(id,active,wm,week){
   const k=K(),t=[['home','Home'],['lineup',wm?.format?.bestBall?'Lineup (auto)':'Lineup'],['matchup',wm?.format?.chopped?'Field & standings':'Matchup & standings'],['waivers','Waivers'],['players','Players'],['team','Team'],['trades','Trades']];
   const classic=classicFor(wm);
-  return `<nav class="v10-tabs">${t.map(([k2,l])=>`<a href="${link(id,k2,['waivers','players','team','trades'].includes(k2)?null:week)}" class="${k2===active?'active':''}">${k.esc(l)}</a>`).join('')}<span class="v10-tabs-sep"></span>${classic.map(([k2,l])=>`<a class="v10-classic-link" href="#/classic/${encodeURIComponent(id)}/${k2}" title="Opens the classic view">${k.esc(l)} ↗</a>`).join('')}</nav>`;
+  return `<nav class="v10-tabs">${t.map(([k2,l])=>`<a href="${link(id,k2,['waivers','players','team','trades'].includes(k2)?null:week)}" class="${k2===active?'active':''}">${k.esc(l)}</a>`).join('')}<span class="v10-tabs-sep"></span><a class="v10-classic-link" href="#/lab/state?league=${encodeURIComponent(id)}">Research Lab</a>${classic.map(([k2,l])=>`<a class="v10-classic-link" href="#/classic/${encodeURIComponent(id)}/${k2}" title="Opens the classic view">${k.esc(l)} ↗</a>`).join('')}</nav>`;
 }
 function weekPicker(wm,live){
   const k=K(),opts=[];for(let w=1;w<=18;w++)opts.push(`<option value="${w}"${w===wm.key.week?' selected':''}>Week ${w}${w===live?' · live':w<live?' · review':''}</option>`);

@@ -5,7 +5,8 @@
  * accepts the preview). The classic application keeps running underneath, unchanged: v10 hides it
  * with one body class and never patches its functions (CHANGE_GUIDE: no monkey-patch layer).
  *
- * Routes: #/overview · #/league/<id>/<home|lineup|matchup|waivers|players|team|trades> · #/classic/<id>/<trades|draft|lab>
+ * Routes: #/overview · #/league/<id>/<home|lineup|matchup|waivers|players|team|trades> · #/lab/<state|eval|forecasts|rankings|docs>?league=<id>
+ *         · #/classic/<id>/<trades|draft|lab|waivers|weekly> (bridge)
  * The classic route is the bridge for views not rebuilt in R1: it shows the classic UI, loads that
  * league through FIELeagueController and opens the tab by clicking its real navigation.
  * A "New view" pill returns to v10. While visible, the current view re-renders every 2 minutes
@@ -13,7 +14,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.1.0';
+const VERSION='10.3.0';
 const KEY='fieUiMode';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 const CLASSIC_TABS={waivers:['market','waivers'],trades:['market','trades'],draft:['draft','draft'],lab:['lab',null],weekly:['weekly','startsit']};
@@ -27,7 +28,7 @@ function mode(){
   return window.FIE_UI_POLICY?.default_ui==='v10'?'v10':'classic';
 }
 function bar(){
-  return `<div class="v10-bar"><a class="v10-brand" href="#/overview">FIE</a><a class="v10-nav" href="#/overview" data-nav="overview">Overview</a>
+  return `<div class="v10-bar"><a class="v10-brand" href="#/overview">FIE</a><a class="v10-nav" href="#/overview" data-nav="overview">Overview</a><a class="v10-nav" href="#/lab/state" data-nav="lab">Research Lab</a>
   <select id="v10LeagueSelect" aria-label="League"><option value="">League…</option></select>
   <span class="v10-spacer"></span><span class="v10-muted" id="v10AsOf"></span>
   <button class="v10-btn" id="v10Refresh" title="Re-read Sleeper rosters, matchups and projections">Refresh</button>
@@ -43,16 +44,17 @@ function parse(){const [path,qs]=(location.hash||'').replace(/^#\/?/,'').split('
   const week=Number(q.get('week'))||null;
   if(h[0]==='league'&&h[1])return{view:'league',id:h[1],tab:['home','lineup','matchup','waivers','players','team','trades'].includes(h[2])?h[2]:'home',week};
   if(h[0]==='classic'&&h[1])return{view:'classic',id:h[1],tab:h[2]||'weekly'};
+  if(h[0]==='lab')return{view:'lab',tab:h[1]||'state',id:q.get('league')||null,pos:q.get('pos')||null,week};
   return{view:'overview'};}
 async function route(){
   if(document.body.classList.contains('fie-v10-off'))return;
   const r=parse();current=r;
-  window.FIEV10Overview?.cancel();window.FIEV10League?.cancel();
+  window.FIEV10Overview?.cancel();window.FIEV10League?.cancel();window.FIEV10Lab?.cancel();
   if(r.view==='classic'){openClassic(r.id,r.tab);return;}
   show(true);
-  root.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('active',r.view==='overview'));
+  root.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===r.view));
   const sel=root.querySelector('#v10LeagueSelect');if(sel)sel.value=r.view==='league'?r.id:'';
-  try{if(r.view==='league')await window.FIEV10League.render(main,r.id,r.tab,r.week);else await window.FIEV10Overview.render(main);}
+  try{if(r.view==='league')await window.FIEV10League.render(main,r.id,r.tab,r.week);else if(r.view==='lab')await window.FIEV10Lab.render(main,r.tab,r.id,r.pos,r.week);else await window.FIEV10Overview.render(main);}
   catch(e){main.innerHTML=K().empty(`Something went wrong: ${String(e?.message||e)}`);window.FIECore?.Diagnostics?.capture?.(e,{domain:'v10-route'});}
   asOf();
 }

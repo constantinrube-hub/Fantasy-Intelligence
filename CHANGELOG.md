@@ -56,6 +56,14 @@ the guide it follows R3 plus two clean Sundays on v10.
   bridge; Draft link lifecycle-aware (`classicFor`); Home "More for this league" follows the same rule.
   Tests: `integrity_v10_r3_test.js §5` (21 leagues: empty trade = 0, trade + reverse = 0 exactly, receive-only
   never lowers a lineup, locked player excludes only this week, entry-class floor); replay V-TRADES.
+- **WP3.1 Research Lab v1.** `app/core/lab.js` (`FIELab.evaluate / lastN / modelState`, new) and
+  `app/v10/v10-lab.js` (new): route `#/lab/…` with Model state, Evaluations (week picker, league-scored projection
+  error from Sleeper `players_points`, biggest misses, on-demand review across all leagues), Forecasts (by game,
+  active vs Sleeper published vs last-4), Rankings (weekly in league scoring beside the research season board, joined
+  by Sleeper ID) and Documents (served research artifacts). Top-bar link and a link from every league
+  (`v10-shell.js`, `v10-league.js`); the classic Lab stays reachable. Display only. Unscored weeks are never
+  evaluated. Tests: `integrity_v10_r3_test.js §6` (Week 5 fixture: 206 players, WR MAE/bias recomputed by hand,
+  pregame payload "not scored", last-N skips unscored weeks, model-state counts); replay V-LAB.
 
 # UI v10 · R2 Explain & Act (preview), 2026-10-18
 

@@ -209,6 +209,21 @@ Carlo on classic inputs) and the v10 estimate can differ by a few points.
 | Trades (WP3.4) | League tab `trades` (`app/v10/v10-trades.js`, numbers `app/core/trades.js › FIETrades.evaluate`): choose a partner, tick players on both sides (reserve/taxi marked); the effect on **both** teams' optimal legal lineups per horizon week and in total, plus a **season rate** (Sleeper season projection in league scoring ÷ games, optimal lineup per game; D/ST excluded) and a one-line verdict that flags when short-term and season effects disagree. Rules: reserve/taxi players don't start; if a traded player is locked this week, this week is not counted; drops needed for roster size are reported (lineups assume the weakest bench players go); entry-class floor and legacy cap are checked. Expand "Assets" = Sleeper market ADP (dynasty ADP in dynasty), season rate, age — labelled "market view, not an FIE value". **No fairness score, no offer is sent.** Picks are not valued in v10: dynasty leagues link to the classic evaluator (asset index) |
 | Draft placement (WP3.4) | No v10 Draft view; the classic Draft link appears only where the lifecycle needs it — leagues `pre_draft`/`drafting` and dynasty leagues (rookie drafts). In-season redraft leagues no longer show it |
 
+### 7.3 Research Lab v1 (R3 · WP3.1)
+
+Route `#/lab/<state|eval|forecasts|rankings|docs>?league=<id>` (`app/v10/v10-lab.js`, computations
+`app/core/lab.js › FIELab`), linked from the top bar and every league. **Display only** — nothing in the Lab feeds a
+total, the optimiser or a recommendation; research artifacts are labelled "research". The classic Lab (validation,
+model detail) stays reachable from the Lab's tab bar.
+
+| Tab | Content |
+|---|---|
+| Model state | One line for the whole portfolio ("Sleeper-only mode: 0 of N rostered players use a governed FIE projection", weekly research view blocker, runtime model activation). Per league: active projection source per position for your players (from the WeekModels) and the weekly research view status/blockers. For the selected league: the research pipeline's per-position decisions (production model, decision, best challenger, reason) — fetched for that league only, because no index of pipeline runs is served |
+| Evaluations | Week picker (completed weeks). Projection error by position for every rostered player of the league projected ≥ 3, **in league scoring**: Sleeper's projection for that week (as published now) re-scored vs Sleeper's `players_points`; MAE, bias (actual − projection), RMSE, biggest misses; did not play = 0. An unscored week (pregame payload) is "not scored", never a 100 % miss; the newest week may be partial while games run. "Review all leagues" (on demand): the four-row review (`FIEReview`) for every league that week and the portfolio sum |
+| Forecasts | This week by game (kickoff order): rostered players projected ≥ 3 with active value, Sleeper's own published total and the last-4 average in league scoring (`FIELab.lastN`, Sleeper matchups, unscored weeks skipped). FIE research (M10) is not shown while the weekly research view is blocked |
+| Rankings | Per position: this week and the horizon in league scoring (`FIETeamViews.players`) beside the FIE league season board p50 and board rank from the research pipeline (`rankings.json`, joined by `sleeper_id`; preseason run, full-season value, not refreshed weekly) |
+| Documents | The league's served research artifacts (readiness, report summary, season board, weekly research view) with status, generation time and raw JSON |
+
 ### 4.5 Player reader and compare tray (R2 · WP2.2)
 
 One reader for every view. It shows the player in the league being viewed:
