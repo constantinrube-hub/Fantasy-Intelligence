@@ -199,6 +199,12 @@ Carlo on classic inputs) and the v10 estimate can differ by a few points.
 | Overview v2 (§5.14) | WAIVER_ADD in the queue; "Since your last visit" feed; "My players this week" |
 | Reader / compare (§4.5) | `app/v10/v10-reader.js`: every player name opens one side panel; pin up to 3; Compare in the current league's scoring |
 
+### 7.2 R3 additions (preview)
+
+| Item | Implementation |
+|---|---|
+| Kicker & D/ST board (WP3.5) | `app/v10/v10-specialists.js`, in Lineup (live week) for every specialist position the league starts. Rows: your rostered K / D/ST (this week as in the lineup, later weeks Sleeper's projection with opponent; byes from the schedule even before Sleeper publishes the week) and the top 5 free agents by lineup gain, then projected points, with the drop only when there is a gain. Gains are `FIEWaivers` rows (identical to the Waivers tab, replay V-SPECIAL). A chip warns when no rostered player at the position plays in a horizon week (bye). Opens by itself when the best add gains ≥ `waivers.alert_week_gain` this week. In-season copy only: no PAY / WAIT / STREAM |
+
 ### 4.5 Player reader and compare tray (R2 · WP2.2)
 
 One reader for every view. It shows the player in the league being viewed:

@@ -51,6 +51,7 @@ COMPONENTS={
  'v10_portfolio':'app/core/portfolio.js',
  'v10_waivers_view':'app/v10/v10-waivers.js',
  'v10_reader':'app/v10/v10-reader.js',
+ 'v10_specialists':'app/v10/v10-specialists.js',
  'v10_r2_test':'research/integrity_v10_r2_test.js',
  'wpv1_measure_spread':'research/wpv1_measure_spread.py',
  'v10_r3_test':'research/integrity_v10_r3_test.js',

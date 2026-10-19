@@ -32,6 +32,11 @@ the guide it follows R3 plus two clean Sundays on v10.
     Tuesday of Week 7 and the 108 h guard; returns only where Sleeper projects; IR-slot return (Omar Cooper, Genesis
     NFL GM League) vs the `long_term_zero` override; injured starters never drops; constructed fill-ins (top RB/WR
     ruled out for W6 in every league: 35 fill-ins in 14 leagues, all causal, all inflated under R2 rules).
+- **WP3.5 Kicker & D/ST in Lineup.** `app/v10/v10-specialists.js` (new, loaded in `index.html`, manifest): one board
+  per specialist position under the bench — your K / D/ST with opponent and the next weeks, the top 5 free agents
+  with the Waivers engine's lineup gain and drop, bye chip when no rostered player covers a week. `v10-league.js`
+  renders it for the live week; `v10.css` board styles. Replay V-SPECIAL (Genesis Dynasty, w7-tuesday): both boards,
+  gains equal `FIEWaivers` (e.g. Tennessee Titans +9.0 = 8.97), no PAY/WAIT/STREAM.
 
 # UI v10 · R2 Explain & Act (preview), 2026-10-18
 

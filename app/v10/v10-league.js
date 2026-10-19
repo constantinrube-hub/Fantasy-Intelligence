@@ -137,7 +137,8 @@ async function render(root,id,tab='home',week=null){
     wm=sel===live?cur:await D().model(entry,{week:sel});
     if(tab==='waivers'){const data=await D().waivers(entry,{market:true});body=window.FIEV10Waivers.body(data,{selectedWeek:week});}
     else if(tab==='lineup'&&sel<live){const rv=window.FIEReview.build({wm,matchups:await D().matchups(id,sel)});body=review(rv,wm)+lineup(wm,{past:true});}
-    else if(tab==='lineup')body=(sel>live?`<div class="v10-note">Week ${sel} is in the future: projections for your current roster and starters; nothing is locked yet.</div>`:'')+lineup(wm);
+    else if(tab==='lineup'){body=(sel>live?`<div class="v10-note">Week ${sel} is in the future: projections for your current roster and starters; nothing is locked yet.</div>`:'')+lineup(wm);
+      if(sel===live&&window.FIEV10Specialists){try{body+=await window.FIEV10Specialists.board(entry,wm);}catch(e){body+=`<div class="v10-note">Kicker & D/ST board unavailable: ${k.esc(String(e?.message||e))}</div>`;}}}
     else if(tab==='matchup')body=matchup(wm);
     else{let wv=null;if(sel===live&&!wm.field?.meEliminated){try{wv=(await D().waivers(entry,{limit:Number(window.FIE_UI_POLICY?.waivers?.overview_candidates)||30})).result;}catch{}}body=home(wm,wv);}
   }catch(e){if(my===token)root.innerHTML=`<div class="v10-league">${tabs(id,tab,null,week)}${k.empty(`Could not load this league: ${String(e?.message||e)}`)}</div>`;return;}

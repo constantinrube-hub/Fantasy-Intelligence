@@ -371,6 +371,27 @@ check('V-WAIVERS', 'v10', 'A-24/A-25/§5.12: Waivers rank free agents by lineup 
   } finally { await app.context.close(); }
 });
 
+check('V-SPECIAL', 'v10', 'WP3.5: Lineup shows a Kicker and a D/ST board (yours + best free agents, next weeks); gains equal the Waivers engine', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.dynastySF}/lineup`) });
+  try {
+    await app.page.waitForSelector('#fieV10 .v10-specboard', { timeout: 90000 });
+    const cards = await app.page.$$eval('#fieV10 .v10-specboard > summary', xs => xs.map(x => x.innerText.replace(/\s+/g, ' ')));
+    for (const s of await app.page.locator('#fieV10 .v10-specboard:not([open]) > summary').all()) await s.click();
+    const tables = await app.page.$$eval('#fieV10 .v10-specboard table', ts => ts.map(t => ({ head: [...t.querySelectorAll('th')].map(x => x.innerText.trim()),
+      rows: [...t.querySelectorAll('tbody tr')].map(tr => [...tr.children].map(td => td.innerText.replace(/\s+/g, ' ').trim())) })));
+    // Same engine, same numbers: recompute the waiver rows in-page (read-only call of the app's own data layer).
+    const engine = await app.page.evaluate(async id => { const e = (await window.FIEV10Data.leagues()).find(x => String(x.id) === id); const r = (await window.FIEV10Data.waivers(e, {})).result;
+      return r.rows.filter(x => ['K', 'DEF'].includes(x.position) && !x.pruned).map(x => ({ name: x.name, pos: x.position, gh: x.gainHorizon })); }, L.dynastySF);
+    await app.page.screenshot({ path: path.join(OUT, 'V-SPECIAL.png'), fullPage: true });
+    const fa = tables.flatMap(t => t.rows.filter(r => /free agent/.test(r[0])).map(r => ({ name: r[0].replace(/\s*free agent.*$/, '').replace(/\s+(Q|O|D|IR|BYE)(·prev)?$/, '').trim(), gh: r[r.length - 2] })));
+    const num = s => Number(String(s).replace('+', '').replace('−', '-').replace(',', '.'));
+    const consistent = fa.length > 0 && fa.every(f => { const e = engine.find(x => f.name.startsWith(x.name)); return e && Math.abs(Math.max(0, e.gh) - Math.max(0, num(f.gh))) < 0.051; });
+    const pass = cards.length === 2 && cards.some(c => /^Kicker/.test(c)) && cards.some(c => /^D\/ST/.test(c)) && tables.every(t => t.rows.some(r => /yours/.test(r[0])))
+      && tables.every(t => t.head.filter(h => /^W\d+$/.test(h)).length >= 1) && consistent && !cards.some(c => /\b(PAY|WAIT|STREAM)\b/.test(c)) && app.errors.length === 0;
+    return { pass, detail: { cards, tables: tables.map(t => ({ head: t.head, rows: t.rows.slice(0, 4) })), fa: fa.slice(0, 6), engine: engine.slice(0, 6), errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
 check('V-REVIEW', 'v10', 'A-23/§5.13: a past week shows submitted vs projection-best vs hindsight-best on actual points', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/lineup?week=5`) });
   try {
