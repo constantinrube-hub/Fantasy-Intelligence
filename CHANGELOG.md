@@ -1,3 +1,67 @@
+# UI v10 · R0 Classic Safety Fixes, 2026-10-18
+
+Release R0 of the UI v10 plan (`claude/FIE_V10_IMPLEMENTATION_GUIDE_2026-10-18.md`). Classic UI only; no
+projection, scoring, ranking, governance or research change. Contract: `docs/current/UI_CONTRACT.md`.
+
+- **WP-T3 Policy + contract.** Added `config/ui-decision-policy.json` (thresholds 3.0/1.0/0.25, status policy,
+  primary sources, cache times, `default_ui: classic`), generator `research/generate_ui_policy.py` →
+  `app/generated/ui-decision-policy.js` (run by `tools/release_build.py`), and `docs/current/UI_CONTRACT.md`.
+- **WP-T1 Replay harness.** Added `research/ui_replay/` (fixtures, router, scenarios, runner) using the committed
+  Week 6 pre-kickoff capture; `docs/current/TESTING.md` section; `ui-replay-output/` git-ignored.
+- **WP0.4 Weekly refresh error.** `loadWeeklyData()` called `syncSeasonSelectV89()`, which exists only inside the
+  later V8.9 IIFE, so every "Refresh weekly context" click threw `ReferenceError` before loading anything (also the
+  reason the editorial Weekly view never bound forecasts). The call is now guarded and the function exported.
+- **N1 Status service.** Added `app/core/status.js` (`window.FIEStatus`). Status now prefers the Sleeper weekly
+  projection feed (`player.injury_status`, 15-min edge cache) over the player DB (24-h edge cache); recorded per
+  player as `weeklyStatusFeed` in `applyWeekProjectionRows()`.
+- **WP0.1 / 0.1b Live league data and week.** The V9.3.3 DataClient fast path served league, rosters and users from
+  the research snapshot (rebuilt ~6 h, browser-cached up to a day) and skipped the snapshot's declared live overlay.
+  After each league's core load the app now refreshes those parts from Sleeper (`FIEDataClient.refreshLeague`, once
+  per league per 60 s); `applyLiveOverlay()` merges them and the live `settings.leg` re-binds the selected week unless
+  the user picked one. `#fieWeekSourceNotice` explains a snapshot/live week difference.
+- **WP0.2 Status-aware waivers.** Waiver tables (all formats) gain a Status column; Doubtful/Out/IR/Suspended/PUP/NA
+  players are never CLAIM (WATCH, or STASH in dynasty with a free legal reserve slot) and sort below available adds.
+  Home/portfolio waiver callouts skip unavailable players; the lineup callout says "can't play" for D/O/IR starters.
+  Values (roster/week/next-3 Δ) are unchanged.
+- **WP0.5 Submitted-starter alert.** `app/weekly-alerts.js` reads the submitted Sleeper starters for the selected roster
+  and week and shows one red alert for starters who cannot play or empty slots (not in Best Ball).
+- **WP0.6 Latent D/ST/K defect.** `next3()` in `app/dst-intelligence.js` and `app/kicker-intelligence.js` read `.mean`
+  of a missing week row (`row?.mean!==null` is true for `undefined`); guarded. Exposed by the restored live overlay.
+- **WP0.7 False Rams bye.** `FIEProjectionResolver` (`app/core/projection-service.js`) matched schedule rows by raw
+  team code; nflverse writes the Rams as `LA`, Sleeper/catalog as `LAR`, so every Rams player was a "verified bye" in
+  every week the Rams play. Found while building R1: R0's status service uses this as its bye fallback, so the R0
+  starter alert reported e.g. "Matthew Stafford (SUPER_FLEX · BYE)" in Week 6 (Rams vs ARI). Schedule matching and
+  `opponent()` now compare canonical codes (same aliases as `NFL_TEAM_ALIASES`). Regression: status test + replay C-NOBYE.
+- **WP0.8 Weekly fell back to legacy projections after the live overlay.** Found while building R2 (23-league
+  parity check): when the restored live roster overlay (WP0.1) changes rosters, `applyLiveOverlay()` rebuilds the player
+  universe with new player objects but did not re-apply the selected week's Sleeper rows. Depending on timing (about
+  half of all league loads in the replay), classic Weekly then showed the legacy model values instead of the Sleeper
+  weekly projections (Stoned Lack Dynasty 30, Week 6: 123.2 instead of 158.5). The overlay rebuild now re-runs
+  `loadSelectedWeek()` (week cache, no new request) before rendering. Regression: replay C-OVERLAY samples four timings.
+- **WP0.9 Weekly started players in IR / taxi slots.** The classic weekly lineup optimiser used the whole roster,
+  including players in reserve (IR) and taxi slots, who cannot be started in Sleeper. With the live rosters of WP0.1
+  this became visible (Dynasty – Prime, Week 6: "WR Jalen Coker" — healthy, projected 12.7, in an IR slot — listed
+  as a starter; on main the stale snapshot still had him active). `app/decision-ui.js` now optimises the weekly
+  lineup over the active roster (`lineupPool`); IR/taxi players stay visible as bench rows. The season simulation's
+  lineup models (`decision-engines.js › rosterPoolFor`) are unchanged (also used for season and trade value).
+  Regression: replay C-IRSTART.
+- **WP0.10 Weekly started players who cannot play.** The classic weekly optimiser valued every player by
+  `FIEProjectionResolver.week()`, which returns Sleeper's raw weekly projection and ignores injury status (Sleeper keeps
+  projecting some Doubtful/Out players). Found in the R2 parity check: Genesis NFL GM League, Week 6 — DB Marques Sigle
+  (Doubtful in the live feed, Out in the player catalog, Sleeper projection 11.0) was START and inflated the projected
+  total to 123.7 (correct: 118.9). The R0 alert (WP0.5) only covers *submitted* starters, not the optimiser's own picks.
+  `app/decision-ui.js` now feeds the optimiser `decisionProj` = `FIEStatus.recommendationValue` (Out/IR/PUP/Suspended/
+  NA/BYE → 0, Doubtful → tie-break factor 0.01, i.e. Doubtful = Out). The same value now drives Bench Δ, the waiver
+  "week gain" and the Start/Sit drawer, which also use the active roster (WP0.9) now. Max-win mode: the season
+  simulation's lineup search ignores status, so if its lineup contains an unavailable player the panel falls back to
+  the max-points lineup and names the player. Displayed projections are unchanged. Regression: replay C-OUTSTART (fails
+  on the previous R0 build: "DB Marques Sigle" started) + static wiring assertions in `integrity_ui_status_policy_test.js`.
+- Release gate: added `integrity_ui_status_policy_test.js`, `integrity_ui_policy_test.py`,
+  `integrity_ui_replay_no_injection_test.js`. Build manifest registers all new files.
+- Verification: release build `DEPLOYABLE_SOURCE` (103/103 gate checks); replay classic suite 10/10 (C-LOAD, C-WEEK,
+  C-WAIVER, C-DRAFT, C-BANNER, C-NOBYE, C-OVERLAY, C-IRSTART, C-OUTSTART, C-REFRESH). On unmodified `main` (`d4e1eb99`) the same suite fails C-WEEK, C-WAIVER,
+  C-BANNER and C-REFRESH (`ReferenceError: syncSeasonSelectV89 is not defined`).
+
 # V9.3.2 Season Namespace Integrity Hotfix, 2026-08-27
 
 - Fixed the root cause behind the three successive live Season bootstrap failures introduced during V9.3.2 browser QA. The new early resolver had reused `window.FIESeasonContext`, but `runtime-foundation.js` already owned that global for its `active/prior/week/snapshot` facade and overwrote the resolver during startup.

@@ -36,6 +36,7 @@ def main()->None:
  run('python','research/generate_runtime_contracts.py')
  run('python','research/generate_model_config.py')
  run('python','research/generate_release_descriptor.py')
+ run('python','research/generate_ui_policy.py')
  run('python','research/build_app_manifest.py')
  run('python','tools/build_dist.py','--mode',ns.mode)
  run('python','tools/sync_league_app_snapshots.py')

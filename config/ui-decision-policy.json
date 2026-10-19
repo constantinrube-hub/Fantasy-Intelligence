@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "contract": "docs/current/UI_CONTRACT.md",
+  "default_ui": "classic",
+  "thresholds": {
+    "urgent": 3.0,
+    "recommend": 1.0,
+    "close_call": 0.25
+  },
+  "escalation": {
+    "chopped_cut_margin": 10,
+    "h2h_margin": null
+  },
+  "status": {
+    "zero": ["Doubtful", "Out", "IR", "Suspended", "PUP", "NA", "BYE"],
+    "monitor": ["Questionable"],
+    "doubtful_tiebreak_factor": 0.01,
+    "inactives_minutes_before_kickoff": 90,
+    "projection_feed_max_age_minutes": 720,
+    "waiver_add_policy": {
+      "unavailable_action": "WATCH",
+      "dynasty_stash_action": "STASH",
+      "never_claim_unavailable": true
+    }
+  },
+  "primary_source": {
+    "*": { "*": "SLEEPER" }
+  },
+  "freshness_minutes": {
+    "projection_stale": 720
+  },
+  "cache_seconds": {
+    "rosters": 300,
+    "matchups_live": 120,
+    "matchups": 600,
+    "league": 3600,
+    "nfl_state": 600
+  },
+  "league_aliases": {}
+}

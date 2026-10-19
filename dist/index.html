@@ -966,7 +966,7 @@ async function loadWeeklyData(){
   const leagueId=String(state.league.league_id||''),generation=(state.weekly.refreshGeneration||0)+1;state.weekly.refreshGeneration=generation;
   const active=()=>String(state.league?.league_id||'')===leagueId&&state.weekly.refreshGeneration===generation;
   const deadline=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(`${label} timeout after ${Math.round(ms/1000)}s`)),ms))]);
-  state.weekly.errors=[];state.weekly.week=currentWeek();state.weekly.season=activeSeason();syncSeasonSelectV89();
+  state.weekly.errors=[];state.weekly.week=currentWeek();state.weekly.season=activeSeason();window.syncSeasonSelectV89?.();
   const btn=$("weeklyLoadBtn"),status=$("weeklyStatus");if(btn){btn.disabled=true;btn.textContent='Refreshing…';}
   if(status)status.textContent=`Season ${activeSeason()} · Week ${currentWeek()}: loading schedule and Sleeper weekly projections…`;
   const scheduleP=deadline(fetchCSV(LIVE_URLS.schedule),12000,'schedule').then(rows=>{if(active())state.weekly.schedule=rows;return rows;});
@@ -2062,6 +2062,7 @@ function tradeAssetValueV89(p){return Math.round(playerDecisionValue(p)*10)/10;}
 function seasonDraftScoreV89(p){const pool=PLAYERS.filter(x=>x.leagueEligible),rank=pool.slice().sort((a,b)=>playerDecisionValue(b)-playerDecisionValue(a)).findIndex(x=>x===p),base=rank>=0&&pool.length>1?100-rank*100/(pool.length-1):50,edge=marketEdgeValue(p);return Math.round(clamp(base+(Number.isFinite(edge)?edge*.8:0),0,100)*10)/10;}
 function waiverScoreV89(p){if(p.availability!=='FA'||!p.leagueEligible)return 0;const base=playerDecisionValue(p),momentum=(Number(p.roleMomentum)||50)-50,shock=(Number(p.opportunityShock)||50)-50,score=base*.75+momentum*.18+shock*.22;return Math.round(clamp(score,0,100)*10)/10;}
 
+window.syncSeasonSelectV89=syncSeasonSelectV89;
 function syncSeasonSelectV89(){const el=$('seasonSelect'),season=activeSeason();if(!el||!Number.isFinite(season)||season<=1900)return;for(const o of [...el.options]){const v=String(o.value??'').trim();if(v===''||Number(v)===0)o.remove();}if(![...el.options].some(o=>Number(o.value)===season)){const o=document.createElement('option');o.value=String(season);o.textContent=String(season);el.appendChild(o);}el.value=String(season);state.weekly.season=season;}
 const PRE_LOAD_LEAGUE=window.loadLeague;
 async function loadLeagueV89(){window.FIE_RESEARCH_RUNTIME?.resetAll?.();const r=await PRE_LOAD_LEAGUE?.();syncSeasonSelectV89();syncSeasonDataUrls();if(state.league){await Promise.all([window.FIE_M5?.loadMilestone5Research?.(),window.FIE_M5?.loadM5Current?.(),window.FIE_M6?.loadM6?.()]);assignScores('league-specific research profile evaluated');}renderIntegrityStrip();window.render?.();return r;}
@@ -2116,9 +2117,11 @@ window.FIE89=CORE;
 <script src="app/generated/release.js"></script>
 <script src="app/generated/runtime-contracts.js"></script>
 <script src="app/generated/model-config.js"></script>
+<script src="app/generated/ui-decision-policy.js"></script>
 <script src="app/core/core-services.js"></script>
 <script src="app/core/numeric.js?v=932-season-namespace-fix"></script>
 <script src="app/core/projection-service.js"></script>
+<script src="app/core/status.js"></script>
 <script src="app/core/draft-state-service.js"></script>
 <script src="app/core/surface-router.js"></script>
 <script src="app/core/special-teams-series.js"></script>
@@ -2141,6 +2144,7 @@ window.FIE89=CORE;
 <script src="app/dst-intelligence.js"></script>
 <script src="app/kicker-intelligence.js"></script>
 <script src="app/decision-ui.js"></script>
+<script src="app/weekly-alerts.js"></script>
 
 <script src="app/core/value-calibration-guard.js?v=933-calibration"></script>
 <script src="app/core/research-report-service.js?v=unified-research-v1"></script>
