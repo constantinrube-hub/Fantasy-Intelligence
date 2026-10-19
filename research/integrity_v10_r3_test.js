@@ -5,6 +5,8 @@
  *     with a causal check, "if he stays out" gain, long_term_zero override.
  *   · WP3.2/3.3 Players and Team (FIETeamViews): owners equal rosters, values equal the Lineup's, position ranks,
  *     depth = full re-optimisation, bye costs, real Sleeper slots, no season proxy for D/ST.
+ *   · WP3.4 Trades (FIETrades): empty trade = 0, a trade and its reverse cancel exactly, receiving never lowers a
+ *     lineup, locked players exclude this week, entry-class floor, roster-size drops.
  * Later R3 work packages append their sections below.
  */
 'use strict';
@@ -24,7 +26,7 @@ const window = { state: {} };
 const ctx = vm.createContext({ window, console, Math, Number, String, Object, Array, Map, Set, JSON, Date, Intl });
 for (const f of ['app/generated/runtime-contracts.js', 'app/core/core-services.js', 'app/generated/ui-decision-policy.js', 'app/core/status.js', 'app/core/projection-service.js',
   'app/core/scoring-core.js', 'app/core/distribution.js', 'app/core/game-state.js', 'app/core/week-model.js', 'app/core/alerts.js',
-  'app/core/waivers.js', 'app/core/review.js', 'app/core/portfolio.js', 'app/core/team-views.js']) vm.runInContext(read(f), ctx, { filename: f });
+  'app/core/waivers.js', 'app/core/review.js', 'app/core/portfolio.js', 'app/core/team-views.js', 'app/core/trades.js']) vm.runInContext(read(f), ctx, { filename: f });
 const w = window;
 const pmap = rows => new Map((rows || []).map(r => [String(r.player_id), r]));
 const schedule = w.FIEGameState.index(W6.raw('https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv'));
@@ -150,6 +152,51 @@ const results = {};
   }
   assert.ok(leagues >= 15 && players > 3000, `players/team on ${leagues} leagues, ${players} player rows`);
   results.team = `players/team on ${leagues} leagues (${players} rows, ${thin} thin positions)`;
+}
+
+/* 5 · Trades (WP3.4) */
+{
+  const hz = [{ week: 6, projRows: p6 }, { week: 7, projRows: p7 }];
+  const ev = (id, wm, rosters, partner, send, receive, extra = {}) => w.FIETrades.evaluate({ wm, rosters, partnerRosterId: partner, send, receive, horizon: hz, schedule, catalog, season: 2026, seasonRows: adp, adp,
+    constraints: entryOf(id).research_constraints || [], rosterPositions: W6.J(L(id)).roster_positions, now: T6, ...extra });
+  let checked = 0;
+  for (const id of ids) {
+    const wm = model(W6, id), rosters = W6.J(`${L(id)}/rosters`), me = rosters.find(r => r.roster_id === myRoster(W6, id));
+    if (!(me.players || []).length) continue;
+    const other = rosters.find(r => r.roster_id !== me.roster_id && (r.players || []).length); if (!other) continue;
+    const zero = ev(id, wm, rosters, other.roster_id, [], []);
+    assert.ok([...zero.me.delta, ...zero.partner.delta].every(d => d === null || Math.abs(d) < 1e-9) && zero.me.rateDelta === 0, `${id}: empty trade changes nothing`);
+    // my best active starter for their best active non-starter-of-mine player
+    const actMe = (me.players || []).map(String).filter(x => !(me.reserve || []).map(String).includes(x) && !(me.taxi || []).map(String).includes(x));
+    const actThem = (other.players || []).map(String).filter(x => !(other.reserve || []).map(String).includes(x) && !(other.taxi || []).map(String).includes(x));
+    const best = ids2 => ids2.map(x => wm.player(x)).filter(p => p && p.position !== 'DEF').sort((a, b) => (b.recValue || 0) - (a.recValue || 0))[0];
+    const a = best(actMe), b = best(actThem); if (!a || !b) continue;
+    const t = ev(id, wm, rosters, other.roster_id, [a.pid], [b.pid]);
+    // Reverse on the post-trade rosters cancels exactly
+    const post = JSON.parse(JSON.stringify(rosters)), pm = post.find(r => r.roster_id === me.roster_id), po = post.find(r => r.roster_id === other.roster_id);
+    pm.players = pm.players.filter(x => String(x) !== a.pid).concat(b.pid); po.players = po.players.filter(x => String(x) !== b.pid).concat(a.pid);
+    const r = ev(id, wm, post, other.roster_id, [b.pid], [a.pid]);
+    t.me.delta.forEach((d, k) => { if (d !== null) assert.ok(Math.abs(d + r.me.delta[k]) < 0.011 && Math.abs(t.partner.delta[k] + r.partner.delta[k]) < 0.011, `${id}: trade + reverse = 0 (W${hz[k].week})`); });
+    assert.ok(Math.abs(t.me.rateDelta + r.me.rateDelta) < 0.011, `${id}: season-rate reverse`);
+    // Receiving only never lowers my lineup; sending only never lowers theirs
+    const recv = ev(id, wm, rosters, other.roster_id, [], [b.pid]); assert.ok(recv.me.delta.every(d => d === null || d >= -1e-9) && recv.partner.delta.every(d => d === null || d <= 1e-9), `${id}: receiving only`);
+    if (recv.roster.limit !== null && actMe.length >= recv.roster.limit) assert.ok(recv.roster.meDrops >= 1, `${id}: a full roster must drop for a 0-for-1`);
+    checked++;
+  }
+  assert.ok(checked >= 15, `trades checked on ${checked} leagues`);
+  // Locked players: after TNF (Sat 17 Oct) a trade involving a Thursday player does not count Week 6.
+  const sat = Date.parse('2026-10-17T12:00:00Z');let lockedSeen = null;
+  for (const id of ids) { const wm = model(W6, id, { now: sat }), rosters = W6.J(`${L(id)}/rosters`), me = rosters.find(r => r.roster_id === myRoster(W6, id));
+    const lockedPid = (me.players || []).map(String).find(x => wm.player(x)?.game?.locked); if (!lockedPid) continue;
+    const other = rosters.find(r => r.roster_id !== me.roster_id && (r.players || []).length); const t = w.FIETrades.evaluate({ wm, rosters, partnerRosterId: other.roster_id, send: [lockedPid], receive: [], horizon: hz, schedule, catalog, season: 2026, seasonRows: adp, adp, now: sat });
+    assert.ok(t.counted[0] === false && t.me.delta[0] === null && t.locked.length === 1 && t.counted[1] === true, 'a locked traded player excludes this week only'); lockedSeen = wm.player(lockedPid).name; break; }
+  assert.ok(lockedSeen, 'some league has a player locked after TNF');
+  // Entry-class floor (Genesis NFL GM League: 2025+ only) — a veteran received is flagged.
+  const g = '1342896584593018880', gw = model(W6, g), gr = W6.J(`${L(g)}/rosters`), gme = gr.find(r => r.roster_id === myRoster(W6, g)), go = gr.find(r => r.roster_id !== gme.roster_id && (r.players || []).length);
+  const vet = [...p6.keys()].find(pid => { const c = catalog.get(pid); return c && Number(c.years_exp) >= 3 && gw.player(pid)?.position === 'QB'; });
+  const gt = w.FIETrades.evaluate({ wm: gw, rosters: gr, partnerRosterId: go.roster_id, send: [], receive: [vet], horizon: hz, schedule, catalog, season: 2026, constraints: entryOf(g).research_constraints || [], now: T6 });
+  assert.ok(gt.issues.some(x => /entry class/.test(x)), 'entry-class floor flagged');
+  results.trades = `trades on ${checked} leagues (reverse = 0, receive-only ≥ 0, lock: ${lockedSeen}, entry floor)`;
 }
 
 console.log(`UI v10 R3: PASS (${Object.values(results).join(' · ')})`);

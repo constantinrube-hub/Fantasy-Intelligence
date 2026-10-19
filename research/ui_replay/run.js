@@ -427,6 +427,25 @@ check('V-TEAM', 'v10', 'WP3.3: Team tab — position strength with ranks, depth/
   } finally { await app.context.close(); }
 });
 
+check('V-TRADES', 'v10', 'WP3.4: Trades tab — tick players on both sides, effect on both lineups per week and at season rates; Draft link only where the lifecycle needs it', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/trades`) });
+  try {
+    const p = app.page; await p.waitForSelector('#fieV10 input[data-v10-tr="send"]', { timeout: 90000 });
+    const before = await text(p, '#fieV10 #v10TrResult');
+    await p.locator('#fieV10 input[data-v10-tr="send"]').first().check(); await p.locator('#fieV10 input[data-v10-tr="receive"]').first().check();
+    await p.waitForFunction(() => /Season rate/.test(document.querySelector('#fieV10 #v10TrResult')?.innerText || ''), null, { timeout: 30000 });
+    const res = await p.$$eval('#fieV10 #v10TrResult table.v10-table tbody tr', trs => trs.map(t => [...t.children].map(c => c.innerText.replace(/\s+/g, ' ').trim())));
+    const verdict = await text(p, '#fieV10 #v10TrResult > p');
+    await p.screenshot({ path: path.join(OUT, 'V-TRADES.png'), fullPage: true });
+    const navRedraft = await p.$$eval('#fieV10 nav.v10-tabs a', xs => xs.map(x => x.innerText.trim()));
+    await p.evaluate(id => { location.hash = `#/league/${id}/home`; }, L.dynastySF); await p.waitForFunction(id => document.querySelector(`#fieV10 [data-v10-league="${id}"] .v10-lhdr`), L.dynastySF, { timeout: 90000 });
+    const navDynasty = await p.$$eval('#fieV10 nav.v10-tabs a', xs => xs.map(x => x.innerText.trim()));
+    const pass = /Tick players/.test(before) && res.length >= 3 && res.some(r => /^W\d+$/.test(r[0]) && /→/.test(r[1]) && /→/.test(r[2])) && res.some(r => /Season rate/.test(r[0]))
+      && /helps|costs|neutral/.test(verdict) && navRedraft.includes('Trades') && !navRedraft.some(x => /^Draft/.test(x)) && navDynasty.some(x => /^Draft/.test(x)) && app.errors.length === 0;
+    return { pass, detail: { res, verdict: verdict.slice(0, 300), navRedraft, navDynasty, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
 check('V-REVIEW', 'v10', 'A-23/§5.13: a past week shows submitted vs projection-best vs hindsight-best on actual points', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/lineup?week=5`) });
   try {

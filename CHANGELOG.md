@@ -49,6 +49,13 @@ the guide it follows R3 plus two clean Sundays on v10.
     practically undroppable in weeks Sleeper had not published. D/ST now has no season proxy (both modules).
   - Tests: `integrity_v10_r3_test.js §4` (21 leagues, 11,608 player rows: owners = rosters, values = Lineup, ranks,
     depth = lineup context, bye costs ≥ 0, Sleeper slots, no D/ST proxy); replay V-PLAYERS, V-TEAM.
+- **WP3.4 Trades + Draft placement.** `app/core/trades.js` (`FIETrades.evaluate`, new): effect on both teams'
+  optimal lineups per horizon week and at season rates, locks, roster-size drops, entry floor / legacy cap, market
+  asset view. `app/v10/v10-trades.js` (new): partner select, tick lists, live re-evaluation, verdict, Assets
+  Expand; dynasty leagues link to the classic evaluator for picks. `v10-league.js`: Trades tab replaces the classic
+  bridge; Draft link lifecycle-aware (`classicFor`); Home "More for this league" follows the same rule.
+  Tests: `integrity_v10_r3_test.js §5` (21 leagues: empty trade = 0, trade + reverse = 0 exactly, receive-only
+  never lowers a lineup, locked player excludes only this week, entry-class floor); replay V-TRADES.
 
 # UI v10 · R2 Explain & Act (preview), 2026-10-18
 
