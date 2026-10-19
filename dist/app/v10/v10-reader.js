@@ -69,9 +69,9 @@ async function compare(){
     <tr><td>Game</td>${cell(d=>k.esc(k.gameText(d.p?.game)))}</tr>
     ${weeks.map((w,i)=>`<tr><td>W${w} projection</td>${cell(d=>d.hv[i].published?`<span class="v10-num">${k.pts(d.hv[i].value)}</span>`:'<span class="v10-muted" title="Sleeper has not published this week yet">not yet</span>')}</tr>`).join('')}
     <tr><td>Sum W${weeks[0]}–W${weeks[weeks.length-1]}</td>${cell(d=>`<b>${k.pts(d.hv.reduce((s,h)=>s+(h.value||0),0))}</b>`)}</tr>
-    <tr><td>Typical range</td>${cell(d=>d.p?.range?`${k.pts(d.p.range.low)}–${k.pts(d.p.range.high)}`:'–')}</tr>
+    <tr><td>Range (P10–P90 where calibrated)</td>${cell(d=>d.p?.range?`${k.pts(d.p.range.low)}–${k.pts(d.p.range.high)}${d.p.range.calibrated?'':' <span class="v10-muted" title="Rule-of-thumb range (no calibration for this position)">*</span>'}`:'–')}</tr>
     <tr><td>Your lineup</td>${cell(d=>`<span class="v10-small">${impactText(d.im)}</span>`)}</tr>
-    </tbody></table><p class="v10-muted">Lineup impact = full re-optimisation of your legal lineup in this league (same engine as Waivers). Range not calibrated (WP-V1).</p></div>`;
+    </tbody></table><p class="v10-muted">Lineup impact = full re-optimisation of your legal lineup in this league (same engine as Waivers). Ranges: P10–P90 calibrated on 2026 Weeks 1–5 for QB/RB/WR/TE; * = rule of thumb (K, D/ST, IDP).</p></div>`;
 }
 function renderTray(){
   const root=document.getElementById('fieV10');if(!root)return;let t=document.getElementById('fieV10Tray');const list=pins(),k=K();

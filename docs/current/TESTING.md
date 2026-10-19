@@ -123,13 +123,21 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | V-WEEKPICK | (v10) past → review, future → projections, live → normal lineup |
 | V-READER | (v10) reader from a name, pin two, compare with lineup impact |
 | V-FEED | (v10) second visit lists status changes; My players counts |
+| V-SPECIAL | (v10, R3) Kicker and D/ST boards in Lineup; free-agent gains equal the Waivers engine; no PAY/WAIT/STREAM |
+| V-PLAYERS | (v10, R3) Players filters (position, owner, search), expand, defaults reset on league change |
+| V-TEAM | (v10, R3) Team: strength ranks, depth, byes, roster with Sleeper slots |
+| V-TRADES | (v10, R3) Trades: both lineups per week + season rate, verdict; Draft link only for drafting/dynasty leagues |
+| V-LAB | (v10, R3) Research Lab: model state (all leagues), accuracy on the scored Week 5 fixture, forecasts, rankings with the research board, documents; no console errors |
 
 The v10 checks open `/?ui=v10#…`; run them with `--suite v10`. Scenario `w7-tuesday` (R2) uses the Sunday
 Week 7 capture with Thursday's Week 6 capture as fallback (processed FAAB claims), the frozen Thursday projections
 for past weeks (`data/research/market/sleeper/2026/week_NN.jsonl.gz`), and a **test fixture** for a scored Week 5
 (lineups from the Tuesday-after-Week-5 capture, points rebuilt from real nflverse stats, D/ST = 0) until WP-T2
-captures post-week matchups. Pure-module contracts of the v10 core run without a
-browser: `node research/integrity_v10_core_test.js` (release gate).
+captures post-week matchups. Pure-module contracts run without a browser (all in the release gate):
+`node research/integrity_v10_core_test.js` (R1), `node research/integrity_v10_r2_test.js` (R2) and
+`node research/integrity_v10_r3_test.js` (R3: carry-over, returning players, fill-ins, Players/Team, Trades, Lab).
+The whole replay (`--suite all`) has 27 checks after R3: classic 10, v10 17. Classic checks open `/?ui=classic` explicitly (they keep testing classic when
+`default_ui` becomes `v10`); v10 checks open `/?ui=v10#…`.
 
 ## Mandatory preview browser test
 

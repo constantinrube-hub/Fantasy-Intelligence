@@ -1,3 +1,82 @@
+# UI v10 · R3 Remaining views and waiver horizon (preview), 2026-10-19
+
+Release R3 of the UI v10 plan, stacked on R2 (still opt-in behind `?ui=v10`; `default_ui` stays `classic`). No
+projection, scoring rule, ranking, governance or research change. Classic removal (WP3.6) is **not** part of R3: per
+the guide it follows R3 plus two clean Sundays on v10.
+
+- **WP3.0 Sign-off decisions (19 Oct).**
+  - WP-V1 calibrated spread switched on (`config/ui-decision-policy.json › variance.mode = "calibrated"`, regenerated
+    `app/generated/ui-decision-policy.js`): QB/RB/WR/TE ranges are P10–P90; the win estimate drops its amber
+    "uncalibrated" dot (`app/core/week-model.js`), its Expand note keeps "in-sample, W1–W5". K, D/ST and IDP keep the
+    rule of thumb; the reader marks those ranges with * (`app/v10/v10-reader.js`). The classic simulation keeps its
+    amber dot (its spread is not calibrated).
+  - `UI_CONTRACT.md §1` sign-off table S1–S4 (calibration on, §5.8 grouping accepted, waiver thresholds unchanged
+    with the WP3.7 return assumption, Doubtful tie-break kept); §6 dot/range text updated.
+  - Tests: `integrity_v10_r2_test.js §7` and `integrity_v10_core_test.js` now expect calibrated as the default;
+    replay V-LINEUP expects "P10–P90 (calibrated, n=…)" in the Expand of the QB row.
+- **WP3.7 Waivers: injured starters return (your 19 Oct question).** R2 zeroed IR/PUP/NA/Suspended players in every
+  horizon week and ignored players in an IR slot, so a healthy fill-in collected "gain" in weeks the injured starter
+  would be back (e.g. BestBall – Prime: Efton Chism +15.3 in R2, +13.0 with Omar Cooper and David Montgomery back in
+  W7), and an injured starter could be the suggested drop (Stoned Lack Bestball Dynasty 3: Tank Dell for three adds).
+  - `app/core/waivers.js` 10.3.0: later weeks use Sleeper's projection for that week (`waivers.long_term_zero` now
+    `[]`); IR-slot players rejoin future-week pools when projected; `returning`, `fillIn` (causal check),
+    `ifOut`, injured-starter drop protection (`protectedDrops[].reason = "injured"`); value-function-aware optimiser
+    pools; pruned injured candidates now go to watch/stash (previously they could appear as zero-gain rows).
+  - `app/core/week-model.js`: last-game carry-over (`status.last_game_carry_over`, `…_min_hours` 108; §2.1) — Out/
+    Doubtful tags with a positive Sleeper projection for the modelled week, before the week's first injury report,
+    are monitored at full value (`O·prev`). `app/core/alerts.js`: monitor wording for carried-over tags.
+  - `app/v10/v10-waivers.js` 10.3.0: fill-in chip, "if he stays out" line, returning players and IR-slot
+    activation note, injured-protected drops.
+  - Policy generator validates the new keys (carry-over only for game designations; window ≥ 96 h).
+  - `research/integrity_v10_r3_test.js` (release gate): no carry-over in the game week (W6 capture), carry-over on
+    Tuesday of Week 7 and the 108 h guard; returns only where Sleeper projects; IR-slot return (Omar Cooper, Genesis
+    NFL GM League) vs the `long_term_zero` override; injured starters never drops; constructed fill-ins (top RB/WR
+    ruled out for W6 in every league: 35 fill-ins in 14 leagues, all causal, all inflated under R2 rules).
+- **WP3.5 Kicker & D/ST in Lineup.** `app/v10/v10-specialists.js` (new, loaded in `index.html`, manifest): one board
+  per specialist position under the bench — your K / D/ST with opponent and the next weeks, the top 5 free agents
+  with the Waivers engine's lineup gain and drop, bye chip when no rostered player covers a week. `v10-league.js`
+  renders it for the live week; `v10.css` board styles. Replay V-SPECIAL (Genesis Dynasty, w7-tuesday): both boards,
+  gains equal `FIEWaivers` (e.g. Tennessee Titans +9.0 = 8.97), no PAY/WAIT/STREAM.
+- **WP3.2 Players, WP3.3 Team.** New pure module `app/core/team-views.js` (`FIETeamViews.players / team`), view
+  `app/v10/v10-team.js`, data loader `FIEV10Data.inputs()` (rosters, projection rows, horizon, schedule, catalog,
+  season rows — shared by later views). League tabs `players` and `team` (`v10-league.js`, router in
+  `v10-shell.js`); styles in `v10.css`; policy `team.thin_recovery` (0.4) with generator validation.
+  - Players: filters position / owner / horizon / search, reset per league, 50 + 50 rows, shared detail and reader.
+  - Team: position strength and rank vs every active team, depth and thin positions, byes in the horizon, roster
+    with Sleeper slots, season projection per game, ADP, replacement gap vs the best free agent (VOR proxy).
+  - **R2 bug fixed on the way:** `FIEWaivers` used a season-per-game proxy for D/ST built from season totals; D/ST
+    scoring uses points-/yards-allowed buckets, so it produced e.g. 91 pts/game for JAX D/ST and made D/STs
+    practically undroppable in weeks Sleeper had not published. D/ST now has no season proxy (both modules).
+  - Tests: `integrity_v10_r3_test.js §4` (21 leagues, 11,608 player rows: owners = rosters, values = Lineup, ranks,
+    depth = lineup context, bye costs ≥ 0, Sleeper slots, no D/ST proxy); replay V-PLAYERS, V-TEAM.
+- **WP3.4 Trades + Draft placement.** `app/core/trades.js` (`FIETrades.evaluate`, new): effect on both teams'
+  optimal lineups per horizon week and at season rates, locks, roster-size drops, entry floor / legacy cap, market
+  asset view. `app/v10/v10-trades.js` (new): partner select, tick lists, live re-evaluation, verdict, Assets
+  Expand; dynasty leagues link to the classic evaluator for picks. `v10-league.js`: Trades tab replaces the classic
+  bridge; Draft link lifecycle-aware (`classicFor`); Home "More for this league" follows the same rule.
+  Tests: `integrity_v10_r3_test.js §5` (21 leagues: empty trade = 0, trade + reverse = 0 exactly, receive-only
+  never lowers a lineup, locked player excludes only this week, entry-class floor); replay V-TRADES.
+- **WP3.1 Research Lab v1.** `app/core/lab.js` (`FIELab.evaluate / lastN / modelState`, new) and
+  `app/v10/v10-lab.js` (new): route `#/lab/…` with Model state, Evaluations (week picker, league-scored projection
+  error from Sleeper `players_points`, biggest misses, on-demand review across all leagues), Forecasts (by game,
+  active vs Sleeper published vs last-4), Rankings (weekly in league scoring beside the research season board, joined
+  by Sleeper ID) and Documents (served research artifacts). Top-bar link and a link from every league
+  (`v10-shell.js`, `v10-league.js`); the classic Lab stays reachable. Display only. Unscored weeks are never
+  evaluated. Tests: `integrity_v10_r3_test.js §6` (Week 5 fixture: 206 players, WR MAE/bias recomputed by hand,
+  pregame payload "not scored", last-N skips unscored weeks, model-state counts); replay V-LAB.
+- **R3 review decisions (19 Oct).** Carry-over kept (S5). Thin positions (S6): the first cut flagged bench-only
+  shortfalls below 40 % — about 2.6 positions per league, mostly single-rostered TE/QB/K/D-ST the waiver wire replaces
+  (lowering the threshold alone barely helped: 25 % → 2.0, 10 % → 1.6). `app/core/team-views.js` now also measures the
+  share the best free agent at the position recovers; thin = neither reaches `team.thin_recovery` = **0.25**
+  (`config/ui-decision-policy.json`, regenerated copy) → 2 flags in 21 leagues (an elite TE and an elite RB).
+  `app/v10/v10-team.js`: "Best FA recovers" column and wording. Tests: thin ⇔ uncovered, threshold 0.25, < 0.5 per
+  league. Default switch (S7) is a separate one-line patch, not part of R3.
+- Docs: `UI_CONTRACT.md` status line (R3 implemented, WP3.6 not built), §9 verification (R3 test, `--suite all`);
+  `TESTING.md` pure-module tests and the 27-check replay.
+- Verification: release build `DEPLOYABLE_SOURCE` 106/106 (the documentation check timed out once on a cold file
+  cache and passed on the re-run); replay `--suite all` 27/27; v10 vs classic Weekly totals identical in 19 of 21
+  active leagues (two documented sub-point drifts, unchanged since R2).
+
 # UI v10 · R2 Explain & Act (preview), 2026-10-18
 
 Release R2 of the UI v10 plan, stacked on R1 (still opt-in behind `?ui=v10`; `default_ui` stays `classic`). No

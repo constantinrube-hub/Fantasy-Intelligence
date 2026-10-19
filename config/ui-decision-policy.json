@@ -17,6 +17,8 @@
     "doubtful_tiebreak_factor": 0.01,
     "inactives_minutes_before_kickoff": 90,
     "projection_feed_max_age_minutes": 720,
+    "last_game_carry_over": ["Out", "Doubtful"],
+    "last_game_carry_over_min_hours": 108,
     "waiver_add_policy": {
       "unavailable_action": "WATCH",
       "dynasty_stash_action": "STASH",
@@ -43,10 +45,10 @@
     "candidates_per_position": 12,
     "overview_candidates": 30,
     "dynasty_protect_adp": 150,
-    "long_term_zero": ["IR", "PUP", "NA", "Suspended"]
+    "long_term_zero": []
   },
   "variance": {
-    "mode": "rule_of_thumb",
+    "mode": "calibrated",
     "calibration": {
       "source": "WP-V1 research/wpv1_measure_spread.py --weeks 1-5: frozen Thursday Sleeper projections (pts_ppr) vs nflverse fantasy_points_ppr (capture week_07/20261018T093323977084Z), players projected >= 5 pts, did-not-play counted as 0, interpolated quantiles",
       "n": 985,
@@ -57,6 +59,9 @@
         "TE": { "p10": 0.02, "p50": 0.78, "p90": 2.07, "sd": 0.785, "n": 156 }
       }
     }
+  },
+  "team": {
+    "thin_recovery": 0.25
   },
   "league_aliases": {}
 }

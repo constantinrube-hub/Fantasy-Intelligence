@@ -27,7 +27,8 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const IGNORED_CONSOLE = [/Failed to load resource/i, /net::ERR_FAILED/i, /ERR_ABORTED/i];
 
-async function openApp(browser, origin, scenarioId, { width = 1440, height = 1000, path: urlPath = '/' } = {}) {
+// Classic checks open the classic UI explicitly, so they keep testing classic after default_ui switches to v10 (S7).
+async function openApp(browser, origin, scenarioId, { width = 1440, height = 1000, path: urlPath = '/?ui=classic' } = {}) {
   const scenario = SCENARIOS[scenarioId];
   const router = new ProviderRouter(scenario);
   const context = await browser.newContext({ viewport: { width, height }, timezoneId: 'Europe/Berlin' });
@@ -284,7 +285,7 @@ check('V-CONSISTENCY', 'v10', 'A-03: the Overview row, League Home, Lineup and M
   } finally { await app.context.close(); }
 });
 
-check('V-LINEUP', 'v10', '§4.2: pregame suggestion with tier, Questionable caveat, Doubtful-as-out, Sleeper link; expand shows source and typical range', async ({ browser, origin }) => {
+check('V-LINEUP', 'v10', '§4.2: pregame suggestion with tier, Questionable caveat, Doubtful-as-out, Sleeper link; expand shows source and the calibrated P10–P90 range (WP-V1 on)', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w6-pregame', { path: V10(`#/league/${L.redraft}/lineup`) });
   try {
     await app.page.waitForSelector('#fieV10 .v10-lhdr', { timeout: 60000 });
@@ -295,7 +296,7 @@ check('V-LINEUP', 'v10', '§4.2: pregame suggestion with tier, Questionable cave
     const adv = await app.page.locator('#fieV10 .v10-prow[open] .v10-adv').count();
     const advOpenBefore = await app.page.locator('#fieV10 .v10-prow[open] .v10-adv[open]').count();
     const link = await app.page.locator('#fieV10 a[href*="sleeper.com/leagues/"]').count();
-    const pass = /Lamar Jackson/.test(rec) && /Questionable/.test(rec) && /(Urgent|Recommended)/.test(rec) && /Typical range/.test(body) && /Source/.test(body) && adv === 1 && advOpenBefore === 0 && link > 0;
+    const pass = /Lamar Jackson/.test(rec) && /Questionable/.test(rec) && /(Urgent|Recommended)/.test(rec) && /P10–P90/.test(body) && /calibrated, n=/.test(body) && !/Typical range/.test(body) && /Source/.test(body) && adv === 1 && advOpenBefore === 0 && link > 0;
     return { pass, detail: { rec: rec.slice(0, 400), expand: body.slice(0, 300), advancedInsideExpand: adv, advancedOpenByDefault: advOpenBefore } };
   } finally { await app.context.close(); }
 });
@@ -368,6 +369,103 @@ check('V-WAIVERS', 'v10', 'A-24/A-25/§5.12: Waivers rank free agents by lineup 
     const pass = info.rows.length > 0 && noClaim && Object.values(counts).every(n => n <= 3) && /Replaces/.test(expand) && /budget/i.test(expand)
       && info.cards.some(c => /Last waiver run/.test(c)) && info.cards.some(c => /FAAB budgets/.test(c)) && app.errors.length === 0;
     return { pass, detail: { rows: info.rows.slice(0, 6), perPosition: counts, cards: info.cards, expand: expand.slice(0, 400), errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
+check('V-SPECIAL', 'v10', 'WP3.5: Lineup shows a Kicker and a D/ST board (yours + best free agents, next weeks); gains equal the Waivers engine', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.dynastySF}/lineup`) });
+  try {
+    await app.page.waitForSelector('#fieV10 .v10-specboard', { timeout: 90000 });
+    const cards = await app.page.$$eval('#fieV10 .v10-specboard > summary', xs => xs.map(x => x.innerText.replace(/\s+/g, ' ')));
+    for (const s of await app.page.locator('#fieV10 .v10-specboard:not([open]) > summary').all()) await s.click();
+    const tables = await app.page.$$eval('#fieV10 .v10-specboard table', ts => ts.map(t => ({ head: [...t.querySelectorAll('th')].map(x => x.innerText.trim()),
+      rows: [...t.querySelectorAll('tbody tr')].map(tr => [...tr.children].map(td => td.innerText.replace(/\s+/g, ' ').trim())) })));
+    // Same engine, same numbers: recompute the waiver rows in-page (read-only call of the app's own data layer).
+    const engine = await app.page.evaluate(async id => { const e = (await window.FIEV10Data.leagues()).find(x => String(x.id) === id); const r = (await window.FIEV10Data.waivers(e, {})).result;
+      return r.rows.filter(x => ['K', 'DEF'].includes(x.position) && !x.pruned).map(x => ({ name: x.name, pos: x.position, gh: x.gainHorizon })); }, L.dynastySF);
+    await app.page.screenshot({ path: path.join(OUT, 'V-SPECIAL.png'), fullPage: true });
+    const fa = tables.flatMap(t => t.rows.filter(r => /free agent/.test(r[0])).map(r => ({ name: r[0].replace(/\s*free agent.*$/, '').replace(/\s+(Q|O|D|IR|BYE)(·prev)?$/, '').trim(), gh: r[r.length - 2] })));
+    const num = s => Number(String(s).replace('+', '').replace('−', '-').replace(',', '.'));
+    const consistent = fa.length > 0 && fa.every(f => { const e = engine.find(x => f.name.startsWith(x.name)); return e && Math.abs(Math.max(0, e.gh) - Math.max(0, num(f.gh))) < 0.051; });
+    const pass = cards.length === 2 && cards.some(c => /^Kicker/.test(c)) && cards.some(c => /^D\/ST/.test(c)) && tables.every(t => t.rows.some(r => /yours/.test(r[0])))
+      && tables.every(t => t.head.filter(h => /^W\d+$/.test(h)).length >= 1) && consistent && !cards.some(c => /\b(PAY|WAIT|STREAM)\b/.test(c)) && app.errors.length === 0;
+    return { pass, detail: { cards, tables: tables.map(t => ({ head: t.head, rows: t.rows.slice(0, 4) })), fa: fa.slice(0, 6), engine: engine.slice(0, 6), errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
+check('V-PLAYERS', 'v10', 'WP3.2: Players tab — visible filters work (position, owner, horizon, search), defaults reset on league change, rows expand', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/players`) });
+  try {
+    const p = app.page; await p.waitForSelector('#fieV10 .v10-plrow', { timeout: 90000 });
+    const rows = () => p.$$eval('#fieV10 .v10-plrow > summary', xs => xs.map(x => x.innerText.replace(/\s+/g, ' ')));
+    const all = await rows();
+    await p.selectOption('#fieV10 select[data-v10-pf="pos"]', 'RB'); const rb = await rows();
+    await p.selectOption('#fieV10 select[data-v10-pf="own"]', 'FA'); const rbFa = await rows();
+    await p.fill('#fieV10 input[data-v10-pf="q"]', 'zzzz-nobody'); const none = await p.locator('#fieV10 .v10-plrow').count();
+    await p.fill('#fieV10 input[data-v10-pf="q"]', '');
+    await p.locator('#fieV10 .v10-plrow > summary').first().click(); const expand = await text(p, '#fieV10 .v10-plrow[open] .v10-xbody');
+    await p.screenshot({ path: path.join(OUT, 'V-PLAYERS.png'), fullPage: false });
+    await p.evaluate(id => { location.hash = `#/league/${id}/players`; }, L.dynastySF); await p.waitForFunction(id => document.querySelector(`#fieV10 [data-v10-league="${id}"] .v10-plrow`), L.dynastySF, { timeout: 90000 });
+    const reset = await p.$eval('#fieV10 select[data-v10-pf="pos"]', e => e.value) === 'ALL' && await p.$eval('#fieV10 select[data-v10-pf="own"]', e => e.value) === 'ALL';
+    const pass = all.length === 50 && rb.length > 0 && rb.every(r => /\bRB · /.test(r)) && rbFa.length > 0 && rbFa.every(r => /free agent/.test(r) && /\bRB · /.test(r)) && none === 0
+      && /Source|Projection|range/i.test(expand) && reset && app.errors.length === 0;
+    return { pass, detail: { first: all.slice(0, 3), rb: rb.slice(0, 2), rbFa: rbFa.slice(0, 2), none, expand: expand.slice(0, 200), reset, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
+check('V-TEAM', 'v10', 'WP3.3: Team tab — position strength with ranks, depth/thin, byes, roster with real Sleeper slots', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/team`) });
+  try {
+    const p = app.page; await p.waitForSelector('#fieV10 .v10-card h2', { timeout: 90000 }); await p.waitForFunction(() => /Roster/.test(document.querySelector('#fieV10Main')?.innerText || ''), null, { timeout: 90000 });
+    const h2 = await p.$$eval('#fieV10 .v10-card h2', xs => xs.map(x => x.innerText.split('\n')[0]));
+    const tables = await p.$$eval('#fieV10 .v10-card table', ts => ts.map(t => [...t.querySelectorAll('tbody tr')].map(tr => [...tr.children].map(td => td.innerText.trim()))));
+    const strength = tables[0] || [], roster = tables[tables.length - 1] || [];
+    const slots = roster.map(r => r[0]);
+    await p.screenshot({ path: path.join(OUT, 'V-TEAM.png'), fullPage: true });
+    const pass = ['Team strength', 'Depth', 'Byes', 'Roster'].every(x => h2.some(h => h.startsWith(x))) && strength.length >= 4 && strength.every(r => /^\d+\/\d+$/.test(r[2]))
+      && slots.includes('QB') && slots.includes('BN') && slots.some(s => s === 'FLEX') && app.errors.length === 0;
+    return { pass, detail: { h2, strength, rosterSlots: slots, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
+check('V-TRADES', 'v10', 'WP3.4: Trades tab — tick players on both sides, effect on both lineups per week and at season rates; Draft link only where the lifecycle needs it', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/trades`) });
+  try {
+    const p = app.page; await p.waitForSelector('#fieV10 input[data-v10-tr="send"]', { timeout: 90000 });
+    const before = await text(p, '#fieV10 #v10TrResult');
+    await p.locator('#fieV10 input[data-v10-tr="send"]').first().check(); await p.locator('#fieV10 input[data-v10-tr="receive"]').first().check();
+    await p.waitForFunction(() => /Season rate/.test(document.querySelector('#fieV10 #v10TrResult')?.innerText || ''), null, { timeout: 30000 });
+    const res = await p.$$eval('#fieV10 #v10TrResult table.v10-table tbody tr', trs => trs.map(t => [...t.children].map(c => c.innerText.replace(/\s+/g, ' ').trim())));
+    const verdict = await text(p, '#fieV10 #v10TrResult > p');
+    await p.screenshot({ path: path.join(OUT, 'V-TRADES.png'), fullPage: true });
+    const navRedraft = await p.$$eval('#fieV10 nav.v10-tabs a', xs => xs.map(x => x.innerText.trim()));
+    await p.evaluate(id => { location.hash = `#/league/${id}/home`; }, L.dynastySF); await p.waitForFunction(id => document.querySelector(`#fieV10 [data-v10-league="${id}"] .v10-lhdr`), L.dynastySF, { timeout: 90000 });
+    const navDynasty = await p.$$eval('#fieV10 nav.v10-tabs a', xs => xs.map(x => x.innerText.trim()));
+    const pass = /Tick players/.test(before) && res.length >= 3 && res.some(r => /^W\d+$/.test(r[0]) && /→/.test(r[1]) && /→/.test(r[2])) && res.some(r => /Season rate/.test(r[0]))
+      && /helps|costs|neutral/.test(verdict) && navRedraft.includes('Trades') && !navRedraft.some(x => /^Draft/.test(x)) && navDynasty.some(x => /^Draft/.test(x)) && app.errors.length === 0;
+    return { pass, detail: { res, verdict: verdict.slice(0, 300), navRedraft, navDynasty, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
+check('V-LAB', 'v10', 'WP3.1: Research Lab — model state for every league, projection accuracy on a scored week, forecasts, rankings with the research board, documents; display only', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10('#/lab/state') });
+  try {
+    const p = app.page, go = async (h, re) => { await p.evaluate(x => { location.hash = x; }, h); await p.waitForFunction(r => new RegExp(r).test(document.querySelector('#fieV10Main')?.innerText || '') && !document.querySelector('#fieV10Main .v10-loading'), re, { timeout: 120000 }); return p.locator('#fieV10Main').innerText(); };
+    await p.waitForFunction(() => /Research pipeline/.test(document.querySelector('#fieV10Main')?.innerText || '') && !document.querySelector('#fieV10Main .v10-loading'), null, { timeout: 180000 });
+    const state = await p.locator('#fieV10Main').innerText(), leaguesRows = await p.locator('#fieV10Main table').first().locator('tbody tr').count();
+    const navLab = await p.locator('#fieV10 .v10-bar [data-nav="lab"].active').count();
+    const ev = await go(`#/lab/eval?league=${L.redraft}&week=5`, 'Mean abs\\. error');
+    const evRows = await p.$$eval('#fieV10Main table.v10-table tbody tr', trs => trs.map(t => [...t.children].map(c => c.innerText.trim())));
+    await p.screenshot({ path: path.join(OUT, 'V-LAB-eval.png'), fullPage: true });
+    const fc = await go(`#/lab/forecasts?league=${L.redraft}`, 'Forecasts, Week');
+    const games = await p.locator('#fieV10Main .v10-labgame').count();
+    const rk = await go(`#/lab/rankings?league=${L.redraft}&pos=WR`, 'Season p50');
+    const rkRows = await p.$$eval('#fieV10Main table.v10-table tbody tr', trs => trs.map(t => [...t.children].map(c => c.innerText.trim())));
+    const dc = await go(`#/lab/docs?league=${L.redraft}`, 'Documents');
+    const pass = /Sleeper-only mode|governed FIE projection/.test(state) && leaguesRows >= 20 && /Production model/.test(state) && navLab === 1
+      && evRows.some(r => r[0] === 'All' && Number(r[1]) > 20 && Number(String(r[2]).replace(',', '.')) > 0) && games > 3 && /Last 4/.test(fc)
+      && rkRows.length >= 20 && rkRows.filter(r => /\d/.test(r[4])).length >= 10 && /research/.test(rk) && (dc.match(/JSON ↗/g) || []).length >= 3 && app.errors.length === 0;
+    return { pass, detail: { leaguesRows, navLab, eval: evRows.slice(-3), games, rankings: rkRows.slice(0, 3), docs: dc.slice(0, 300), errors: app.errors.slice(0, 5) } };
   } finally { await app.context.close(); }
 });
 

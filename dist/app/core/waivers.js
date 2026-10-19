@@ -9,12 +9,20 @@
  * Rules
  *   · Current week: players whose game has started are locked — a locked free agent adds nothing
  *     this week, locked starters keep their slots, locked players are never dropped.
- *   · Status: this week the WeekModel's recValue applies (Doubtful = tie-break, Out/IR/… = 0);
- *     statuses in waivers.long_term_zero (IR, PUP, NA, Suspended) also zero the later weeks.
+ *   · Status: this week the WeekModel's recValue applies (Doubtful = tie-break, Out/IR/… = 0; a designation
+ *     left over from the last game is monitored at full value, WeekModel carry-over rule).
+ *     Later weeks (R3 WP3.7): Sleeper's published projection for that week decides — Sleeper projects 0 for
+ *     players it expects to miss the game and a value once it expects them back. waivers.long_term_zero
+ *     (default empty) can still force statuses to 0 for every week.
+ *   · Returning players: your injured players count again in the first week Sleeper projects them, including
+ *     players in an IR slot (activating them then needs a roster spot). An add whose gain disappears when one
+ *     of them returns is labelled a fill-in (`fillIn`), and `ifOut` gives the horizon gain if they stay out.
  *     Unavailable candidates are never "add" rows: they go to `watch` with WATCH, or STASH in
  *     dynasty when a legal reserve slot is free (same rule as R0 FIEStatus.addPolicy).
  *   · Drops: only active-roster players (not reserve/taxi), not locked; a free roster spot means no
- *     drop. Dynasty: players with dynasty ADP ≤ waivers.dynasty_protect_adp are never suggested.
+ *     drop. Dynasty: players with dynasty ADP ≤ waivers.dynasty_protect_adp are never suggested. An injured
+ *     player who is a starter when healthy (season projection per game ≥ your weakest starter) is never
+ *     suggested either (`protectedDrops` reason "injured").
  *     Among drops that do not change any week's optimal lineup, the lowest horizon value goes.
  *   · Future weeks without published projections are skipped (weeksAvailable tells how many).
  * Market (FAAB): median / p75 / max winning bid by position from completed waiver transactions,
@@ -22,7 +30,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.2.0';
+const VERSION='10.3.0';
 const W=()=>window;
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function round(v,d=2){const n=num(v);return n===null?null:Math.round(n*10**d)/10**d;}
@@ -81,10 +89,13 @@ function build(input){
   for(const id of active){const p=current(id);if(p?.game?.locked)lockedIds.add(id);}
   const openSlots=slots.filter((_,i)=>!lockedSlots.has(i));
   const val=(k,pid)=>{if(k===0&&curIsWeek){const p=current(pid);if(!p||p.game.locked)return 0;return p.recValue;}return valuers[k]?.(pid)?.value??0;};
-  const mk=(k,pid)=>({pid:String(pid),sleeperId:String(pid),player_id:String(pid),position:(current(pid)?.position)||'',v:val(k,pid)});
-  const poolFor=(k,ids)=>ids.filter(id=>!(k===0&&curIsWeek&&lockedIds.has(id))).map(id=>mk(k,id));
+  const future=k=>!(k===0&&curIsWeek);
+  const mk=(k,pid,vf)=>({pid:String(pid),sleeperId:String(pid),player_id:String(pid),position:(current(pid)?.position)||'',v:vf(k,pid)});
+  // Future weeks: players in your IR slot rejoin the pool in every week Sleeper projects them (they return).
+  const reserveIds=[...reserve];
+  const poolFor=(k,ids,vf)=>{const base=ids.filter(id=>!(k===0&&curIsWeek&&lockedIds.has(id)));if(future(k))for(const r of reserveIds)if(!base.includes(r)&&vf(k,r)>0)base.push(r);return base.map(id=>mk(k,id,vf));};
   const slotsFor=k=>k===0&&curIsWeek?openSlots:slots;
-  const opt=(k,ids)=>hasRows[k]?O.optimize(poolFor(k,ids),slotsFor(k),p=>p.v):{total:0,selectedPlayerIds:[]};
+  const opt=(k,ids,vf=val)=>hasRows[k]?O.optimize(poolFor(k,ids,vf),slotsFor(k),p=>p.v):{total:0,selectedPlayerIds:[]};
   const baseOpt=horizon.map((h,k)=>opt(k,active)),baseSel=baseOpt.map(o=>new Set((o.selectedPlayerIds||[]).map(String)));
   const baseline=horizon.map((h,k)=>({week:h.week,total:round(baseOpt[k].total),published:hasRows[k]}));
   const H=pid=>horizon.reduce((s,_,k)=>s+(hasRows[k]?val(k,pid):0),0);
@@ -96,17 +107,28 @@ function build(input){
   // Rest-of-season proxy per week for horizon weeks without published projections: Sleeper season
   // projection, league scoring, ÷ games (only when the season row carries a stat line).
   const rosCache=new Map(),seasonRows=input.seasonRows;
-  const rosProxy=pid=>{pid=String(pid);if(rosCache.has(pid))return rosCache.get(pid);let v=null;const r=seasonRows?.get?.(pid);
+  // D/ST is excluded: its scoring uses points-/yards-allowed buckets that cannot be applied to season totals
+  // (R2 gave e.g. JAX D/ST 91 pts/game, which made a D/ST practically undroppable — fixed in R3).
+  const rosProxy=pid=>{pid=String(pid);if(rosCache.has(pid))return rosCache.get(pid);let v=null;const r=current(pid)?.position==='DEF'||isTeamCode(pid)?null:seasonRows?.get?.(pid);
     if(r?.stats&&Object.keys(r.stats).some(k=>!/^(adp|pos_adp|gp)/.test(k))){const p=current(pid);const t=W().FIEScoringCore.score(r.stats,scoring,p?.position);const gp=num(r.stats.gp)||17;if(t!==null)v=t/gp;}
     if(longTermOut(pid))v=0;rosCache.set(pid,v);return v;};
   const unpublished=horizon.filter((_,k)=>!hasRows[k]).length;
-  const protectedDrops=[],drops=[];
-  for(const id of active){if(lockedIds.has(id))continue;if(fmt.dynasty){const a=adpOf(id);if(a!==null&&a<=P.protectAdp){protectedDrops.push({pid:id,name:current(id)?.name||id,adp:a});continue;}}drops.push(id);}
-  const keep=id=>H(id)+unpublished*(rosProxy(id)??0)+((adpOf(id)??999)<999?(1000-adpOf(id))/1e6:0);
-  const weakDrops=[...drops].sort((a,b)=>keep(a)-keep(b)).slice(0,4); // exhaustive drop search only among the 4 least valuable
   // Exact pruning: adding one player changes an optimal assignment by one augmenting path, so
   // gain_k ≤ v_k(x) − (lowest starter value in week k), or ≤ v_k(x) when a slot is unfilled.
   const floorK=horizon.map((_,k)=>{if(!hasRows[k])return Infinity;const o=opt(k,active),vals=(o.assignment||[]).map(a=>a.value??0);return (o.unfilledSlots||[]).length||vals.length<slotsFor(k).length?0:Math.min(...vals);});
+  // Your injured players (unavailable now, not a bye) and the first horizon week Sleeper has them back in your best lineup.
+  const injured=[...active,...reserveIds].filter(id=>{const s=status(id);return s.unavailable&&s.code!=='BYE';});
+  const returning=injured.map(id=>{const k=horizon.findIndex((_,j)=>future(j)&&hasRows[j]&&val(j,id)>0&&baseSel[j].has(id));
+    return{pid:id,name:current(id)?.name||id,position:current(id)?.position||'',code:status(id).code,inReserve:reserve.has(id),k:k<0?null:k,week:k<0?null:weeks[k]};});
+  const starterFloor=floorK.find(f=>Number.isFinite(f)&&f>0)??null;
+  const healthyValue=id=>Math.max(rosProxy(id)??0,...horizon.map((_,k)=>future(k)&&hasRows[k]?val(k,id):0));
+  const protectedDrops=[],drops=[];
+  for(const id of active){if(lockedIds.has(id))continue;
+    if(fmt.dynasty){const a=adpOf(id);if(a!==null&&a<=P.protectAdp){protectedDrops.push({pid:id,name:current(id)?.name||id,adp:a,reason:'adp'});continue;}}
+    if(injured.includes(id)&&starterFloor!==null&&healthyValue(id)>=starterFloor){protectedDrops.push({pid:id,name:current(id)?.name||id,adp:adpOf(id),reason:'injured',healthy:round(healthyValue(id))});continue;}
+    drops.push(id);}
+  const keep=id=>H(id)+unpublished*(rosProxy(id)??0)+((adpOf(id)??999)<999?(1000-adpOf(id))/1e6:0);
+  const weakDrops=[...drops].sort((a,b)=>keep(a)-keep(b)).slice(0,4); // exhaustive drop search only among the 4 least valuable
   // Candidates: unrostered, eligible for a starting slot, with an NFL team (or D/ST), projected in the horizon
   // Cheap preselection on Sleeper's published totals (no league scoring yet): top 40 per position.
   const fk=W().FIEScoringCore.fallbackKey(scoring),elig=new Map(),pre=new Map();
@@ -127,10 +149,13 @@ function build(input){
   cands.sort((a,b)=>b.h-a.h);if(input.limit)cands=cands.slice(0,input.limit);
   const rows=[],watch=[];
   const settings=league?.settings||{},stashFree=W().FIEStatus?.freeReserveSlots?.(roster,settings)??0;
+  const toWatch=(row,st)=>{const legal=W().FIEStatus?.irEligible?.(st.code,settings)&&stashFree>0;
+    row.action=fmt.dynasty&&legal?P.addPolicy.dynasty_stash_action:P.addPolicy.unavailable_action;row.reason=`${st.code}${legal?' · reserve (IR) slot free':''}`;row.tier='none';watch.push(row);};
   for(const {id} of cands){
     const p=current(id),st=p.status||{};
     const canGain=input.exhaustive||exact||horizon.some((_,k)=>hasRows[k]&&val(k,id)>floorK[k]+1e-9);
-    if(!canGain){rows.push({pid:id,name:p.name,position:p.position,team:p.team,status:st,game:p.game,values:horizon.map((_,k)=>hasRows[k]?round(val(k,id)):null),gains:horizon.map((_,k)=>hasRows[k]?0:null),gainWeek:curIsWeek?0:null,gainHorizon:0,freeSpot:freeSpots>0,noDrop:false,drop:null,adp:adpOf(id),tier:'none',pruned:true});continue;}
+    if(!canGain){const pr={pid:id,name:p.name,position:p.position,team:p.team,status:st,game:p.game,values:horizon.map((_,k)=>hasRows[k]?round(val(k,id)):null),gains:horizon.map((_,k)=>hasRows[k]?0:null),gainWeek:curIsWeek?0:null,gainHorizon:0,freeSpot:freeSpots>0,noDrop:false,drop:null,adp:adpOf(id),tier:'none',pruned:true};
+      if(st.unavailable&&st.code!=='BYE')toWatch(pr,st);else rows.push(pr);continue;}
     const L=horizon.map((_,k)=>opt(k,[...active,id]));
     let drop=null,noDrop=false,totals=L.map(x=>x.total),rule=null,finalOpt=L;
     const mustDropLegacy=legacyC&&legacyCap!==null&&isLegacy(id)&&legacyCount>=legacyCap;
@@ -149,19 +174,32 @@ function build(input){
     // Who the add replaces in each week's optimal lineup (one augmenting path → at most one leaver)
     const replaces=horizon.map((_,k)=>{if(!hasRows[k]||!(gains[k]>0))return null;const ns=new Set((finalOpt[k].selectedPlayerIds||[]).map(String));const out=[...baseSel[k]].filter(p=>!ns.has(p));
       return out.length?out.map(p=>({pid:p,name:current(p)?.name||p})):[{pid:null,name:'an empty slot'}];});
-    const row={pid:id,name:p.name,position:p.position,team:p.team,status:st,game:p.game,values,gains,replaces,gainWeek,gainHorizon,freeSpot:freeSpots>0,noDrop,
+    // Fill-in: the add helps only until one of your injured players is back (per Sleeper's projections). Causal check:
+    // in the return week, holding that player out must raise the add's gain by ≥ 0.5 (a D/ST is never a fill-in for an RB).
+    let fillIn=null;for(const r of returning){if(r.k===null||r.k===0||(fillIn&&r.k>=fillIn.k))continue;const before=gains.slice(0,r.k).reduce((a,g)=>a+(g??0),0),after=gains.slice(r.k);
+      if(!(before>=0.25&&after.every(g=>g===null||g<=0.25)))continue;
+      const one=(k,pid)=>String(pid)===r.pid?0:val(k,pid),ids1=drop?[...active.filter(x=>x!==drop),id]:[...active,id];
+      const gOut=opt(r.k,ids1,one).total-opt(r.k,active,one).total;
+      if(gOut-(gains[r.k]??0)>=0.5)fillIn={pid:r.pid,name:r.name,week:r.week,k:r.k,gainIfOut:round(gOut)};}
+    const row={pid:id,name:p.name,position:p.position,team:p.team,status:st,game:p.game,values,gains,replaces,gainWeek,gainHorizon,fillIn,_drop:drop,freeSpot:freeSpots>0,noDrop,
       drop:drop?{pid:drop,name:current(drop)?.name||drop,position:current(drop)?.position||'',values:horizon.map((_,k)=>hasRows[k]?round(val(k,drop)):null),adp:adpOf(drop),ros:round(rosProxy(drop)),costly:(adpOf(drop)??999)<=P.protectAdp}:null,adp:adpOf(id),rule,entry:entryOf(id)};
-    if(st.unavailable&&st.code!=='BYE'){
-      const legal=W().FIEStatus?.irEligible?.(st.code,settings)&&stashFree>0;
-      row.action=fmt.dynasty&&legal?P.addPolicy.dynasty_stash_action:P.addPolicy.unavailable_action;row.reason=`${st.code}${legal?' · reserve (IR) slot free':''}`;row.tier='none';watch.push(row);continue;}
+    if(st.unavailable&&st.code!=='BYE'){toWatch(row,st);continue;}
     row.tier=!noDrop&&((gainWeek??0)>=P.weekGain||gainHorizon>=P.horizonGain)?'recommended':'none';
     rows.push(row);
   }
   const order=(a,b)=>(b.gainHorizon-a.gainHorizon)||((b.gainWeek??0)-(a.gainWeek??0))||String(a.name).localeCompare(String(b.name));
   rows.sort(order);watch.sort(order);
+  // "If they stay out": horizon gain with your returning injured players held at 0 in every week (top rows only).
+  const back=returning.filter(r=>r.k!==null);
+  if(back.length){const outSet=new Set(back.map(r=>r.pid)),vOut=(k,pid)=>outSet.has(String(pid))?0:val(k,pid);
+    const baseOut=horizon.map((_,k)=>hasRows[k]?opt(k,active,vOut).total:0);
+    const top=new Set(rows.filter(x=>!x.pruned&&x.gainHorizon>0).slice(0,input.limit||20));for(const x of rows)if(x.fillIn)top.add(x);
+    for(const r of top){const ids=r._drop?[...active.filter(x=>x!==r._drop),r.pid]:[...active,r.pid];
+      r.ifOut={names:back.map(b=>b.name),gainHorizon:round(horizon.reduce((s,_,k)=>s+(hasRows[k]?opt(k,ids,vOut).total-baseOut[k]:0),0))};}}
+  for(const r of [...rows,...watch])delete r._drop;
   const best={};for(const r of rows)if(!best[r.position]&&r.gainHorizon>0)best[r.position]=r;
   const rules=[floor?`Only NFL entry class ${floor.minimum_entry_season} or newer can be added.`:null,legacyC&&legacyCap!==null?`Legacy players (entry ≤ ${Number(legacyC.unlimited_entry_season_min)-1}): ${legacyCount}/${legacyCap} on your roster.`:null].filter(Boolean);
-  return{VERSION,rows,watch,byPosition:best,baseline,freeSpots,rosterLimit,protectedDrops,weeks,weeksAvailable,rules,issues:[]};
+  return{VERSION,rows,watch,byPosition:best,baseline,freeSpots,rosterLimit,protectedDrops,returning:returning.map(({k,...r})=>r),weeks,weeksAvailable,rules,issues:[]};
 }
 
 /** FAAB market and budgets from Sleeper transactions (all weeks so far) and rosters. */

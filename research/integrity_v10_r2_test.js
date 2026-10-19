@@ -149,13 +149,14 @@ assert.ok(leaguesChecked >= 20 && rowsChecked > 500, `waivers covered ${leaguesC
   for (const [a, b] of [['LA', 'LAR'], ['JAC', 'JAX'], ['WSH', 'WAS'], ['OAK', 'LV'], ['SD', 'LAC']]) assert.strictEqual(w.FIEProjectionResolver.isVerifiedBye({ team: a }, 6, 2026), w.FIEProjectionResolver.isVerifiedBye({ team: b }, 6, 2026), `resolver ${a} = ${b}`);
   assert.strictEqual(w.FIEProjectionResolver.isVerifiedBye({ team: 'LAR' }, 6, 2026), false, 'Rams play in Week 6');
 }
-/* 7 · WP-V1 switch: default rule of thumb; calibrated mode → P10–P90 ranges and a wider (less extreme) win estimate */
+/* 7 · WP-V1 switch: calibrated is the shipped default (signed off 19 Oct, R3 WP3.0); rule of thumb → ±22 % ranges and a more extreme win estimate */
 {
-  const id = '1313697754907697152', base = model(W6, id), pol = JSON.parse(JSON.stringify(w.FIE_UI_POLICY));
-  assert.strictEqual(pol.variance.mode, 'rule_of_thumb', 'calibration is off until signed off');
-  pol.variance.mode = 'calibrated';
-  const cal = w.FIEWeekModel.build({ league: W6.J(L(id)), rosters: W6.J(`${L(id)}/rosters`), users: W6.J(`${L(id)}/users`), matchups: W6.J(`${L(id)}/matchups/6`), projRows: p6, catalog, schedule, week: 6, season: 2026,
+  const id = '1313697754907697152', cal = model(W6, id), pol = JSON.parse(JSON.stringify(w.FIE_UI_POLICY));
+  assert.strictEqual(pol.variance.mode, 'calibrated', 'WP-V1 signed off: calibrated by default');
+  pol.variance.mode = 'rule_of_thumb';
+  const base = w.FIEWeekModel.build({ league: W6.J(L(id)), rosters: W6.J(`${L(id)}/rosters`), users: W6.J(`${L(id)}/users`), matchups: W6.J(`${L(id)}/matchups/6`), projRows: p6, catalog, schedule, week: 6, season: 2026,
     now: Date.parse('2026-10-15T18:00:00Z'), fetchedAt: Date.parse('2026-10-15T18:00:00Z'), managedRosterId: myRoster(W6, id), format: w.FIECore.FormatRegistry.profile('REDRAFT'), policy: pol });
+  assert.ok(cal.winEstimate.calibrated && cal.winEstimate.dot === null && base.winEstimate.dot === 'amber', 'amber "uncalibrated" dot only in rule-of-thumb mode');
   const wr = cal.me.submitted.find(e => e.p && e.p.position === 'WR' && e.p.active.value > 3).p;
   assert.ok(wr.range.calibrated && wr.range.label === 'P10–P90' && Math.abs(wr.range.high - wr.active.value * 1.91) < 1e-9, 'WR P10–P90 from calibration');
   const dst = cal.me.submitted.find(e => e.p && e.p.position === 'DEF').p;
