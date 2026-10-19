@@ -284,7 +284,7 @@ check('V-CONSISTENCY', 'v10', 'A-03: the Overview row, League Home, Lineup and M
   } finally { await app.context.close(); }
 });
 
-check('V-LINEUP', 'v10', '§4.2: pregame suggestion with tier, Questionable caveat, Doubtful-as-out, Sleeper link; expand shows source and typical range', async ({ browser, origin }) => {
+check('V-LINEUP', 'v10', '§4.2: pregame suggestion with tier, Questionable caveat, Doubtful-as-out, Sleeper link; expand shows source and the calibrated P10–P90 range (WP-V1 on)', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w6-pregame', { path: V10(`#/league/${L.redraft}/lineup`) });
   try {
     await app.page.waitForSelector('#fieV10 .v10-lhdr', { timeout: 60000 });
@@ -295,7 +295,7 @@ check('V-LINEUP', 'v10', '§4.2: pregame suggestion with tier, Questionable cave
     const adv = await app.page.locator('#fieV10 .v10-prow[open] .v10-adv').count();
     const advOpenBefore = await app.page.locator('#fieV10 .v10-prow[open] .v10-adv[open]').count();
     const link = await app.page.locator('#fieV10 a[href*="sleeper.com/leagues/"]').count();
-    const pass = /Lamar Jackson/.test(rec) && /Questionable/.test(rec) && /(Urgent|Recommended)/.test(rec) && /Typical range/.test(body) && /Source/.test(body) && adv === 1 && advOpenBefore === 0 && link > 0;
+    const pass = /Lamar Jackson/.test(rec) && /Questionable/.test(rec) && /(Urgent|Recommended)/.test(rec) && /P10–P90/.test(body) && /calibrated, n=/.test(body) && !/Typical range/.test(body) && /Source/.test(body) && adv === 1 && advOpenBefore === 0 && link > 0;
     return { pass, detail: { rec: rec.slice(0, 400), expand: body.slice(0, 300), advancedInsideExpand: adv, advancedOpenByDefault: advOpenBefore } };
   } finally { await app.context.close(); }
 });

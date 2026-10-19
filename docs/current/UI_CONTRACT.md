@@ -32,6 +32,15 @@ labelled "research"; they never feed totals, the optimizer or recommendations.
 | N3 | Range/variance calibration is a separate research work package; until then "Typical range" |
 | N5 | Questionable = Monitor, never Urgent on its own |
 
+**Sign-off 2026-10-19 (R3 WP3.0):**
+
+| ID | Decision |
+|---|---|
+| S1 | WP-V1 calibrated spread **on** (`variance.mode = "calibrated"`): QB/RB/WR/TE ranges are P10–P90 and the win estimate loses its amber dot; K, D/ST and IDP keep the rule of thumb (marked *). The Week 6 out-of-sample check still runs; if coverage is far from 80 %, switching back is one policy value |
+| S2 | §5.8 portfolio grouping deviation **accepted**: actions one row per league, monitor items grouped per player |
+| S3 | Waiver alert thresholds unchanged (1.0 this week / 3.0 over the horizon), with injured starters assumed to return (§5.12 R3, WP3.7) so a healthy fill-in is not over-rated |
+| S4 | Doubtful keeps the tie-break factor 0.01 in classic and v10 (Doubtful = Out); the inactives reminder covers late activations |
+
 ## 2. Player status (implemented R0 · `app/core/status.js` → `window.FIEStatus`)
 
 **Source order** for the selected league week:
@@ -139,10 +148,10 @@ free agent. Status changes are not queue items: they appear in the Overview's "S
   `FIE_GOVERNED` and get a green dot.
 - Dot relative to the league/position **primary source** (`primary_source` in the policy):
   none = primary and fresh; green = higher-tier source; amber = lower-tier or stale
-  (> `freshness_minutes.projection_stale`). The win estimate always carries an amber dot until
-  WP-V1 calibrates the spread.
+  (> `freshness_minutes.projection_stale`). The win estimate carries an amber dot only in rule-of-thumb
+  mode; with WP-V1 on (S1) it has none, and its Expand note states the in-sample calibration.
 - Ranges: "Typical range" (×0.78–×1.22 rule of thumb) — never labelled P10/P90 until calibrated. R2: policy
-  `variance.mode = "calibrated"` (off by default; measurement and decision note in the project doc
+  `variance.mode = "calibrated"` (on since R3 WP3.0, S1; measurement and decision note in the project doc
   `claude/FIE_WPV1_VARIANCE_CALIBRATION_2026-10-18.md`, reproducible with `research/wpv1_measure_spread.py`) switches QB/RB/WR/TE to "P10–P90" = projection × the
   measured outcome ratios; the win estimate's spread follows (σ = (P90 − P10)/2.563). K and D/ST keep the rule of
   thumb. Lineups, recommendations and waiver gains use means only and never change with this switch.

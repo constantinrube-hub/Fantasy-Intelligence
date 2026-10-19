@@ -151,7 +151,7 @@ function build(input){
   let winEstimate=null;
   if(opponent){const a=W().FIEDistribution.team(myTotals.parts),b=W().FIEDistribution.team(opponent.totals.parts);
     const calibrated=pol.variance?.mode==='calibrated';
-    winEstimate={value:W().FIEDistribution.winProbability(a,b),method:'matchup-normal',dot:'amber',calibrated,note:calibrated?`Estimate — spread calibrated on 2026 Weeks 1–5 (n=${pol.variance?.calibration?.n??'?'}, in-sample; K/D/ST still rule of thumb); normal approximation.`:'Estimate — spread not yet calibrated (WP-V1); likely overconfident.',inputsHash:hash(JSON.stringify([a,b]))};
+    winEstimate={value:W().FIEDistribution.winProbability(a,b),method:'matchup-normal',dot:calibrated?null:'amber',calibrated,note:calibrated?`Estimate — spread calibrated on 2026 Weeks 1–5 (n=${pol.variance?.calibration?.n??'?'}, in-sample; K/D/ST still rule of thumb); normal approximation.`:'Estimate — spread not yet calibrated (WP-V1); likely overconfident.',inputsHash:hash(JSON.stringify([a,b]))};
     if(recTotals){const r=W().FIEDistribution.team(recTotals.parts);winEstimate.withRecommended=W().FIEDistribution.winProbability(r,b);}}
   // Chopped field
   let field=null;

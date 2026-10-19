@@ -17,7 +17,7 @@ function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v)
 function pts(v,d=1){const n=num(v);return n===null?'–':n.toFixed(d);}
 function signed(v,d=1){const n=num(v);return n===null?'–':`${n>=0?'+':'−'}${Math.abs(n).toFixed(d)}`;}
 function pct(v){const n=num(v);return n===null?'–':`${Math.round(n*100)}%`;}
-/** Win estimate display: the spread is not calibrated yet (WP-V1), so tails are shown as <5% / >95%. */
+/** Win estimate display: a normal approximation (spread calibrated in-sample, WP-V1); tails are shown as <5% / >95%. */
 function winPct(v){const n=num(v);if(n===null)return '–';if(n<.05)return '<5%';if(n>.95)return '>95%';return `${Math.round(n*100)}%`;}
 function time(ms,{weekday=true}={}){if(!ms)return '–';try{return new Intl.DateTimeFormat(undefined,{timeZone:TZ,weekday:weekday?'short':undefined,hour:'2-digit',minute:'2-digit'}).format(new Date(ms));}catch{return new Date(ms).toISOString().slice(0,16).replace('T',' ');}}
 function clock(ms){if(!ms)return '–';try{return new Intl.DateTimeFormat(undefined,{timeZone:TZ,hour:'2-digit',minute:'2-digit'}).format(new Date(ms));}catch{return '';}}

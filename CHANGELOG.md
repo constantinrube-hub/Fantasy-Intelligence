@@ -1,3 +1,20 @@
+# UI v10 · R3 Remaining views and waiver horizon (preview), 2026-10-19
+
+Release R3 of the UI v10 plan, stacked on R2 (still opt-in behind `?ui=v10`; `default_ui` stays `classic`). No
+projection, scoring rule, ranking, governance or research change. Classic removal (WP3.6) is **not** part of R3: per
+the guide it follows R3 plus two clean Sundays on v10.
+
+- **WP3.0 Sign-off decisions (19 Oct).**
+  - WP-V1 calibrated spread switched on (`config/ui-decision-policy.json › variance.mode = "calibrated"`, regenerated
+    `app/generated/ui-decision-policy.js`): QB/RB/WR/TE ranges are P10–P90; the win estimate drops its amber
+    "uncalibrated" dot (`app/core/week-model.js`), its Expand note keeps "in-sample, W1–W5". K, D/ST and IDP keep the
+    rule of thumb; the reader marks those ranges with * (`app/v10/v10-reader.js`). The classic simulation keeps its
+    amber dot (its spread is not calibrated).
+  - `UI_CONTRACT.md §1` sign-off table S1–S4 (calibration on, §5.8 grouping accepted, waiver thresholds unchanged
+    with the WP3.7 return assumption, Doubtful tie-break kept); §6 dot/range text updated.
+  - Tests: `integrity_v10_r2_test.js §7` and `integrity_v10_core_test.js` now expect calibrated as the default;
+    replay V-LINEUP expects "P10–P90 (calibrated, n=…)" in the Expand of the QB row.
+
 # UI v10 · R2 Explain & Act (preview), 2026-10-18
 
 Release R2 of the UI v10 plan, stacked on R1 (still opt-in behind `?ui=v10`; `default_ui` stays `classic`). No

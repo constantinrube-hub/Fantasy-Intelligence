@@ -86,7 +86,7 @@ const redraft = model('1313697754907697152');
 assert.strictEqual(redraft.slots.length, 9);
 near(redraft.me.recommended.optimizedTotal, 84.32, 0.05, 'optimal lineup total vs classic 84.32');
 assert.ok(redraft.me.submitted.every(e => e.p), 'submitted lineup complete');
-assert.ok(redraft.opponent && redraft.winEstimate && redraft.winEstimate.dot === 'amber', 'H2H opponent and amber win estimate');
+assert.ok(redraft.opponent && redraft.winEstimate && redraft.winEstimate.calibrated === true && redraft.winEstimate.dot === null, 'H2H opponent and calibrated win estimate (WP-V1 on: no amber dot)');
 assert.ok(redraft.me.recommended.gain >= 0 && Math.abs(redraft.me.recommended.gain - (redraft.me.recommended.optimizedTotal - redraft.me.recommended.submittedTotal)) < 0.02, 'gain = full re-optimisation delta');
 for (const c of redraft.me.recommended.changes) assert.ok(w.FIECore.PositionRegistry.eligible(redraft.player(c.inPid).position, c.slot), 'changes are slot-legal');
 /* 4b · Questionable swap-in gets a fallback (Lamar Q → Bryce Young if ruled out) */
