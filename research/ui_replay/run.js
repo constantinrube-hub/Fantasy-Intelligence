@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* FIE UI replay runner.
  *
- *   node research/ui_replay/run.js [--dist dist] [--suite classic|all] [--only ID[,ID]] [--out ui-replay-output]
+ *   node research/ui_replay/run.js [--dist dist] [--suite classic|v10|all] [--only ID[,ID]] [--out ui-replay-output]
  *
  * Runs the real application (built dist/) against immutable provider captures
  * with a frozen browser clock. Tests interact through the DOM only. Reading
@@ -27,7 +27,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const IGNORED_CONSOLE = [/Failed to load resource/i, /net::ERR_FAILED/i, /ERR_ABORTED/i];
 
-async function openApp(browser, origin, scenarioId, { width = 1440, height = 1000 } = {}) {
+async function openApp(browser, origin, scenarioId, { width = 1440, height = 1000, path: urlPath = '/' } = {}) {
   const scenario = SCENARIOS[scenarioId];
   const router = new ProviderRouter(scenario);
   const context = await browser.newContext({ viewport: { width, height }, timezoneId: 'Europe/Berlin' });
@@ -37,7 +37,7 @@ async function openApp(browser, origin, scenarioId, { width = 1440, height = 100
   page.on('pageerror', e => errors.push(`pageerror: ${String(e.message || e).slice(0, 300)}`));
   page.on('console', m => { if (m.type() === 'error' && !IGNORED_CONSOLE.some(r => r.test(m.text()))) errors.push(`console: ${m.text().slice(0, 300)}`); });
   await page.clock.install({ time: new Date(scenario.clock) });
-  await page.goto(origin + '/', { waitUntil: 'load' });
+  await page.goto(origin + urlPath, { waitUntil: 'load' });
   await page.waitForSelector('#savedLeagueSelect option', { state: 'attached', timeout: 20000 });
   await page.waitForTimeout(1500);
   return { context, page, errors, router, scenario };
@@ -223,6 +223,128 @@ check('C-REFRESH', 'classic', 'WP0.4: "Refresh weekly context" runs without a pa
     const rows = (await tableRows(app.page, '#mainArea')).rows.length;
     const errs = app.errors.filter(e => /syncSeasonSelectV89|ReferenceError/.test(e));
     return { pass: errs.length === 0 && rows > 0, detail: { errors: app.errors.slice(0, 5), lineupRows: rows } };
+  } finally { await app.context.close(); }
+});
+
+
+/* -------------------------------- v10 suite --------------------------------- */
+const V10 = (hash = '#/overview') => `/?ui=v10${hash}`;
+async function overviewReady(page) {
+  await page.waitForSelector('#fieV10 .v10-overview', { timeout: 30000 });
+  await page.waitForFunction(() => !document.querySelector('#fieV10 .v10-lrow.v10-loading') && document.querySelectorAll('#fieV10 .v10-lrow').length > 0, null, { timeout: 120000 });
+  await page.waitForTimeout(800);
+}
+async function leagueReady(page, id, tab) {
+  await page.evaluate(h => { location.hash = h; }, `#/league/${id}/${tab}`);
+  await page.waitForFunction(([id]) => !!document.querySelector(`#fieV10 .v10-league[data-v10-league="${id}"] .v10-lhdr`), [id], { timeout: 60000 });
+  await page.waitForTimeout(500);
+}
+const text = (page, sel) => page.locator(sel).first().innerText().catch(() => '');
+
+check('V-OVERVIEW', 'v10', 'A-15/A-16/§4.1: Overview lists every league, queues urgent tasks across leagues, no in-season draft task, no Best Ball lineup task', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame', { path: V10() });
+  try {
+    await overviewReady(app.page);
+    const info = await app.page.evaluate(() => {
+      const q = [...document.querySelectorAll('#fieV10 .v10-q > summary')].map(s => s.innerText.replace(/\s+/g, ' '));
+      const idp = document.querySelector('#fieV10 details[data-k="t:1331042152091766784"]');
+      const idpTask = idp ? { summary: idp.querySelector('summary').innerText.replace(/\s+/g, ' '), items: idp.querySelector('.v10-xbody').textContent.replace(/\s+/g, ' ') } : null;
+      const rows = [...document.querySelectorAll('#fieV10 .v10-lrow')].map(r => ({ k: r.dataset.k || '', tasks: r.querySelector('.v10-l-tasks')?.innerText.trim() || '', name: r.querySelector('.v10-l-name')?.innerText.trim() || '' }));
+      return { head: document.querySelector('#fieV10 .v10-ov-head')?.innerText || '', q, idpTask, rows, bodyV10: document.body.classList.contains('fie-v10'), classicHidden: getComputedStyle(document.querySelector('.shell')).display === 'none' };
+    });
+    await app.page.screenshot({ path: path.join(OUT, 'V-OVERVIEW.png'), fullPage: true });
+    const urgentIdp = !!info.idpTask && /Urgent/.test(info.idpTask.summary) && /can't play/.test(info.idpTask.summary) && /Hockenson/.test(info.idpTask.items) && /Goff/.test(info.idpTask.items);
+    const draft = info.q.filter(t => /Draft (in progress|not held)/.test(t));
+    const bb = info.rows.filter(r => /Best Ball|Dynasty BB/.test(r.name) && !/Chopped/.test(r.name));
+    const bbTasks = bb.filter(r => r.tasks !== '—');
+    const pass = info.bodyV10 && info.classicHidden && /Week 6/.test(info.head) && info.rows.length === 23 && urgentIdp && draft.length === 0 && bbTasks.length === 0 && app.errors.length === 0;
+    return { pass, detail: { head: info.head, leagues: info.rows.length, queueRows: info.q.length, queue: info.q.slice(0, 30), idpTask: info.idpTask, draft, bestBallWithTasks: bbTasks, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
+check('V-CONSISTENCY', 'v10', 'A-03: the Overview row, League Home, Lineup and Matchup show the same numbers; best lineup equals classic optimum', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame', { path: V10() });
+  try {
+    await overviewReady(app.page);
+    const ov = await text(app.page, `#fieV10 .v10-lrow[data-k="l:${L.redraft}"] .v10-l-match`);
+    await leagueReady(app.page, L.redraft, 'lineup');
+    const lineupTotal = await text(app.page, '#fieV10 .v10-total b');
+    const recBox = await text(app.page, '#fieV10 .v10-rec-h');
+    await app.page.screenshot({ path: path.join(OUT, 'V-LINEUP.png'), fullPage: true });
+    await leagueReady(app.page, L.redraft, 'matchup');
+    const bigs = await app.page.$$eval('#fieV10 .v10-h2h .v10-big', els => els.map(e => e.innerText.trim()));
+    await leagueReady(app.page, L.redraft, 'home');
+    const homeLine = await text(app.page, '#fieV10 .v10-grid2 p');
+    const nums = s => (String(s).match(/\d+\.\d/g) || []);
+    const [ovMe, ovOpp] = nums(ov), best = (recBox.match(/→\s*(\d+\.\d)/) || [])[1];
+    const pass = !!ovMe && ovMe === lineupTotal.trim() && ovMe === bigs[0] && ovOpp === bigs[2] && nums(homeLine)[0] === ovMe && nums(homeLine)[1] === ovOpp && best === '84.3';
+    return { pass, detail: { overview: ov, lineupTotal, matchup: bigs, home: homeLine, recBox, classicOptimum: '84.3' } };
+  } finally { await app.context.close(); }
+});
+
+check('V-LINEUP', 'v10', '§4.2: pregame suggestion with tier, Questionable caveat, Doubtful-as-out, Sleeper link; expand shows source and typical range', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame', { path: V10(`#/league/${L.redraft}/lineup`) });
+  try {
+    await app.page.waitForSelector('#fieV10 .v10-lhdr', { timeout: 60000 });
+    const rec = await text(app.page, '#fieV10 .v10-rec');
+    const first = app.page.locator('#fieV10 .v10-prow > summary').first();
+    await first.click();
+    const body = await text(app.page, '#fieV10 .v10-prow[open] .v10-xbody');
+    const adv = await app.page.locator('#fieV10 .v10-prow[open] .v10-adv').count();
+    const advOpenBefore = await app.page.locator('#fieV10 .v10-prow[open] .v10-adv[open]').count();
+    const link = await app.page.locator('#fieV10 a[href*="sleeper.com/leagues/"]').count();
+    const pass = /Lamar Jackson/.test(rec) && /Questionable/.test(rec) && /(Urgent|Recommended)/.test(rec) && /Typical range/.test(body) && /Source/.test(body) && adv === 1 && advOpenBefore === 0 && link > 0;
+    return { pass, detail: { rec: rec.slice(0, 400), expand: body.slice(0, 300), advancedInsideExpand: adv, advancedOpenByDefault: advOpenBefore } };
+  } finally { await app.context.close(); }
+});
+
+check('V-AFTER-TNF', 'v10', '§5.3: after Thursday night, locked players are marked and never part of a suggested change', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-after-tnf', { path: V10(`#/league/${L.redraft}/lineup`) });
+  try {
+    await app.page.waitForSelector('#fieV10 .v10-lhdr', { timeout: 60000 });
+    const rows = await app.page.$$eval('#fieV10 .v10-prow > summary', els => els.map(e => ({ t: e.innerText.replace(/\s+/g, ' '), cls: e.parentElement.className })));
+    const locked = rows.filter(r => /🔒|Final/.test(r.t));
+    const lockedChanged = locked.filter(r => /v10-in|v10-out/.test(r.cls));
+    return { pass: lockedChanged.length === 0 && app.errors.length === 0, detail: { lockedRows: locked.map(r => r.t.slice(0, 80)), lockedChanged } };
+  } finally { await app.context.close(); }
+});
+
+check('V-CHOPPED', 'v10', '§4.3: Chopped field shows only active teams, eliminations verified, cut margin, no head-to-head win estimate', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame', { path: V10(`#/league/${L.chopped}/matchup`) });
+  try {
+    await app.page.waitForSelector('#fieV10 .v10-lhdr', { timeout: 60000 });
+    const head = await text(app.page, '#fieV10 .v10-card h2');
+    const fieldRows = await app.page.$$eval('#fieV10 .v10-card:first-of-type table tbody tr', r => r.length).catch(() => 0);
+    const h2h = await app.page.locator('#fieV10 .v10-h2h').count();
+    await app.page.screenshot({ path: path.join(OUT, 'V-CHOPPED.png'), fullPage: true });
+    return { pass: /13 active · 5 chopped/.test(head) && fieldRows === 13 && h2h === 0, detail: { head, fieldRows, h2h } };
+  } finally { await app.context.close(); }
+});
+
+check('V-SWITCH', 'v10', 'A-06: fast league switching A → B → A shows the visible league only; ?ui=classic restores the classic UI', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame', { path: V10(`#/league/${L.redraft}/home`) });
+  try {
+    await app.page.waitForSelector('#fieV10 .v10-lhdr', { timeout: 60000 });
+    for (const id of [L.dynastySF, L.redraft, L.chopped, L.redraft]) await app.page.evaluate(h => { location.hash = h; }, `#/league/${id}/home`);
+    await app.page.waitForTimeout(6000);
+    const shown = await app.page.$eval('#fieV10 .v10-league', el => el.dataset.v10League).catch(() => null);
+    const sel = await app.page.$eval('#v10LeagueSelect', el => el.value);
+    await app.page.goto(origin + '/?ui=classic', { waitUntil: 'load' });
+    await app.page.waitForTimeout(1500);
+    const classic = await app.page.evaluate(() => !document.body.classList.contains('fie-v10') && !document.getElementById('fieV10'));
+    return { pass: shown === L.redraft && sel === L.redraft && classic && app.errors.length === 0, detail: { shown, sel, classicRestored: classic, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
+check('V-BRIDGE', 'v10', '§2: routes not rebuilt in R1 open the classic view for the same league and tab; the pill returns to v10', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w6-pregame', { path: V10(`#/classic/${L.redraft}/waivers`) });
+  try {
+    await app.page.waitForFunction(id => window.state?.league?.league_id === id && window.state?.activeTab === 'waivers', L.redraft, { timeout: 90000 });
+    const visible = await app.page.evaluate(() => getComputedStyle(document.querySelector('.shell')).display !== 'none' && !!document.querySelector('#fieV10Back:not([hidden])'));
+    await app.page.locator('#fieV10Back').click();
+    await overviewReady(app.page);
+    const back = await app.page.evaluate(() => document.body.classList.contains('fie-v10'));
+    return { pass: visible && back, detail: { classicVisible: visible, backToV10: back, errors: app.errors.slice(0, 5) } };
   } finally { await app.context.close(); }
 });
 

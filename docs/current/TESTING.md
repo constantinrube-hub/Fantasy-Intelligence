@@ -82,6 +82,7 @@ the deterministic browser layer between VM tests and the manual preview pass.
 ```bash
 python tools/release_build.py --mode personal          # builds dist/
 node research/ui_replay/run.js --dist dist --suite classic --out ui-replay-output
+node research/ui_replay/run.js --dist dist --suite v10 --out ui-replay-output
 node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 ```
 
@@ -110,6 +111,16 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | C-IRSTART | the Weekly lineup never starts a reserve (IR) or taxi player |
 | C-OUTSTART | the Weekly lineup never starts a player who cannot play (Out/IR/PUP/SUS/NA; Doubtful = Out) |
 | C-REFRESH | "Refresh weekly context" runs without a page error |
+| V-OVERVIEW | (v10) every league listed; urgent tasks per league; no in-season draft task; no Best Ball lineup task |
+| V-CONSISTENCY | (v10) Overview row = League Home = Lineup = Matchup; best lineup = classic optimum |
+| V-LINEUP | (v10) suggestion with tier, Questionable caveat + fallback, Sleeper link; Expand/Advanced layering |
+| V-AFTER-TNF | (v10) locked players marked and never part of a suggestion |
+| V-CHOPPED | (v10) only active teams, verified eliminations, cut margin, no H2H estimate |
+| V-SWITCH | (v10) A → B → A shows the visible league; `?ui=classic` restores classic |
+| V-BRIDGE | (v10) Waivers/Trades/Draft/Lab open classic for the same league; pill returns |
+
+The v10 checks open `/?ui=v10#…`; run them with `--suite v10`. Pure-module contracts of the v10 core run without a
+browser: `node research/integrity_v10_core_test.js` (release gate).
 
 ## Mandatory preview browser test
 
