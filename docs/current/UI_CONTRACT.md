@@ -4,8 +4,10 @@ Living contract for how the browser presents and recommends. Owner of the decisi
 behind every number a manager acts on. Status: **R0 implemented** (classic UI safety
 fixes) · **R1 implemented as opt-in preview** (`?ui=v10`: Overview, League Home, Lineup,
 Matchup & Standings on a pure core) · **R2 implemented in the preview** (Waivers, week picker and completed-week
-review, Overview v2, player reader and compare tray, Advanced content, switchable variance calibration). Sections
-still marked *planned* belong to R3.
+review, Overview v2, player reader and compare tray, Advanced content, switchable variance calibration) · **R3
+implemented in the preview** (calibrated spread on, waivers with returning injured players and last-game carry-over,
+Kicker & D/ST board, Players, Team, Trades, Research Lab v1 — §1 sign-off, §2.1, §5.12, §7.2, §7.3). Not built:
+WP3.6 classic removal (after two clean Sundays on the v10 default).
 
 Source of truth for tunable values: `config/ui-decision-policy.json`
 (browser copy generated to `app/generated/ui-decision-policy.js` by
@@ -326,7 +328,8 @@ Best Ball: submitted = hindsight by definition. A week without non-zero points i
 | Replay harness never injects app state | `node research/integrity_ui_replay_no_injection_test.js` |
 | v10 core contracts (scoring/distribution parity, kickoffs, WeekModel, alerts) | `node research/integrity_v10_core_test.js` |
 | v10 R2 contracts (waivers exactness and legality on 23 leagues, market, review, portfolio, context, aliases, calibration switch) | `node research/integrity_v10_r2_test.js` |
+| v10 R3 contracts (carry-over and its 108 h guard, returning players, fill-in causality, injured-starter protection, Players/Team, Trades reversibility, Lab evaluation) | `node research/integrity_v10_r3_test.js` |
 | WP-V1 spread measurement (research, read-only) | `python research/wpv1_measure_spread.py --weeks 1-5 [--check]` |
-| Browser replay on immutable captures | `node research/ui_replay/run.js --dist dist --suite classic` and `--suite v10` (see `TESTING.md`) |
+| Browser replay on immutable captures | `node research/ui_replay/run.js --dist dist --suite all` (classic 10, v10 17 checks; see `TESTING.md`) |
 
-All five integrity checks run in `research/release_gate.py`.
+All six integrity checks run in `research/release_gate.py`.

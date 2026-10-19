@@ -64,6 +64,11 @@ the guide it follows R3 plus two clean Sundays on v10.
   (`v10-shell.js`, `v10-league.js`); the classic Lab stays reachable. Display only. Unscored weeks are never
   evaluated. Tests: `integrity_v10_r3_test.js §6` (Week 5 fixture: 206 players, WR MAE/bias recomputed by hand,
   pregame payload "not scored", last-N skips unscored weeks, model-state counts); replay V-LAB.
+- Docs: `UI_CONTRACT.md` status line (R3 implemented, WP3.6 not built), §9 verification (R3 test, `--suite all`);
+  `TESTING.md` pure-module tests and the 27-check replay.
+- Verification: release build `DEPLOYABLE_SOURCE` 106/106 (the documentation check timed out once on a cold file
+  cache and passed on the re-run); replay `--suite all` 27/27; v10 vs classic Weekly totals identical in 19 of 21
+  active leagues (two documented sub-point drifts, unchanged since R2).
 
 # UI v10 · R2 Explain & Act (preview), 2026-10-18
 
