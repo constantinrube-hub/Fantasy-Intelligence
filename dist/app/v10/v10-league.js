@@ -1,5 +1,6 @@
 /* FIE UI v10 league views (R1 · WP1.4 Lineup, WP1.6 Matchup & Standings, WP1.7 League Home;
- * R2 · week picker, WP2.3 completed-week review in Lineup, WP2.4 Waivers tab). UI contract §4.2–§4.4, §5.12–§5.13.
+ * R2 · week picker, WP2.3 completed-week review in Lineup, WP2.4 Waivers tab;
+ * R3 · WP3.5 K/DST board in Lineup, WP3.2 Players, WP3.3 Team). UI contract §4.2–§4.4, §5.12–§5.13, §7.2.
  *
  * Week picker: the live Sleeper week by default; a past week turns Lineup into the review of that week
  * (submitted vs projection-best vs hindsight-best on actual points), a future week shows projections for
@@ -12,16 +13,20 @@
  */
 (function(){
 'use strict';
-const VERSION='10.2.0';
+const VERSION='10.3.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 let token=0;
 const sleeperUrl=id=>`https://sleeper.com/leagues/${encodeURIComponent(id)}/team`;
-const CLASSIC=[['trades','Trades'],['draft','Draft'],['lab','Research Lab']];
+// Routes still rendered by the classic UI (bridge). Draft only where it matters (WP3.4, lifecycle-aware):
+// leagues before/during their draft, and dynasty leagues (rookie drafts). Trades is a v10 tab since R3; the
+// Research Lab is a v10 route (#/lab, WP3.1) linked from every league.
+const CLASSIC=[['draft','Draft']];
+function classicFor(wm){return CLASSIC.filter(([t])=>t!=='draft'||!wm||['pre_draft','drafting'].includes(String(wm.league?.status||''))||!!wm.format?.dynasty);}
 function link(id,tab,week){return `#/league/${encodeURIComponent(id)}/${tab}${week?`?week=${week}`:''}`;}
 function tabs(id,active,wm,week){
-  const k=K(),t=[['home','Home'],['lineup',wm?.format?.bestBall?'Lineup (auto)':'Lineup'],['matchup',wm?.format?.chopped?'Field & standings':'Matchup & standings'],['waivers','Waivers']];
-  const classic=CLASSIC;
-  return `<nav class="v10-tabs">${t.map(([k2,l])=>`<a href="${link(id,k2,k2==='waivers'?null:week)}" class="${k2===active?'active':''}">${k.esc(l)}</a>`).join('')}<span class="v10-tabs-sep"></span>${classic.map(([k2,l])=>`<a class="v10-classic-link" href="#/classic/${encodeURIComponent(id)}/${k2}" title="Opens the classic view">${k.esc(l)} ↗</a>`).join('')}</nav>`;
+  const k=K(),t=[['home','Home'],['lineup',wm?.format?.bestBall?'Lineup (auto)':'Lineup'],['matchup',wm?.format?.chopped?'Field & standings':'Matchup & standings'],['waivers','Waivers'],['players','Players'],['team','Team'],['trades','Trades']];
+  const classic=classicFor(wm);
+  return `<nav class="v10-tabs">${t.map(([k2,l])=>`<a href="${link(id,k2,['waivers','players','team','trades'].includes(k2)?null:week)}" class="${k2===active?'active':''}">${k.esc(l)}</a>`).join('')}<span class="v10-tabs-sep"></span><a class="v10-classic-link" href="#/lab/state?league=${encodeURIComponent(id)}">Research Lab</a>${classic.map(([k2,l])=>`<a class="v10-classic-link" href="#/classic/${encodeURIComponent(id)}/${k2}" title="Opens the classic view">${k.esc(l)} ↗</a>`).join('')}</nav>`;
 }
 function weekPicker(wm,live){
   const k=K(),opts=[];for(let w=1;w<=18;w++)opts.push(`<option value="${w}"${w===wm.key.week?' selected':''}>Week ${w}${w===live?' · live':w<live?' · review':''}</option>`);
@@ -109,7 +114,7 @@ function home(wm,wv){
   const sum=wm.opponent?`${k.pts(wm.me.totals.projected)} – ${k.pts(wm.opponent.totals.projected)} vs ${k.esc(wm.opponent.name)} · win estimate ${k.winPct(wm.winEstimate?.value)} ${k.dot('amber',wm.winEstimate?.note)}`:wm.field?(wm.field.meEliminated?'Eliminated':`Projected #${wm.field.myRank} of ${wm.field.activeCount} · ${k.signed(wm.field.marginToCut)} vs the lowest team`):`${k.pts(wm.me.totals.projected)} projected`;
   const unavailable=wm.me.submitted.filter(e=>e.p?.status?.unavailable).length,q=wm.me.submitted.filter(e=>e.p?.status?.monitor).length;
   html+=`<section class="v10-card v10-grid2"><div><h3>This week</h3><p>${sum}</p><a href="#/league/${encodeURIComponent(wm.key.leagueId)}/matchup">Matchup & standings →</a></div><div><h3>Lineup</h3><p>${wm.format.bestBall?'Automatic (Best Ball)':`${wm.me.submitted.filter(e=>e.p).length}/${wm.slots.length} slots filled · ${unavailable} can't play · ${q} questionable`}</p><a href="#/league/${encodeURIComponent(wm.key.leagueId)}/lineup">Lineup →</a></div></section>`;
-  html+=`<section class="v10-card"><h3>More for this league</h3><p class="v10-muted">Not rebuilt yet in the new interface — these open the classic view for this league.</p><div class="v10-row">${CLASSIC.map(([t,l])=>`<a class="v10-btn" href="#/classic/${encodeURIComponent(wm.key.leagueId)}/${t}">${l} ↗</a>`).join('')}</div></section>`;
+  const more=classicFor(wm);if(more.length)html+=`<section class="v10-card"><h3>More for this league</h3><p class="v10-muted">Not rebuilt in the new interface — these open the classic view for this league.</p><div class="v10-row">${more.map(([t,l])=>`<a class="v10-btn" href="#/classic/${encodeURIComponent(wm.key.leagueId)}/${t}">${l} ↗</a>`).join('')}</div></section>`;
   return html;
 }
 async function oddsFor(id,root){
@@ -133,18 +138,24 @@ async function render(root,id,tab='home',week=null){
   let wm,live,body;
   try{
     const cur=await D().model(entry);live=cur.key.week;
-    const sel=tab==='waivers'?live:(week&&week>=1&&week<=18?week:live);
+    const sel=['waivers','players','team','trades'].includes(tab)?live:(week&&week>=1&&week<=18?week:live);
     wm=sel===live?cur:await D().model(entry,{week:sel});
     if(tab==='waivers'){const data=await D().waivers(entry,{market:true});body=window.FIEV10Waivers.body(data,{selectedWeek:week});}
+    else if(tab==='players'){const x=await window.FIEV10Team.players(entry);body=(week&&week!==live?`<div class="v10-note">Players always use the current week (${live}).</div>`:'')+window.FIEV10Team.playersBody(x.data,x.wm);}
+    else if(tab==='trades'){const i=await window.FIEV10Trades.load(entry);body=(week&&week!==live?`<div class="v10-note">Trades always use the current week (${live}).</div>`:'')+window.FIEV10Trades.body(i);}
+    else if(tab==='team'){const x=await window.FIEV10Team.team(entry);body=(week&&week!==live?`<div class="v10-note">Team always uses the current week (${live}).</div>`:'')+window.FIEV10Team.teamBody(x.data,x.wm);}
     else if(tab==='lineup'&&sel<live){const rv=window.FIEReview.build({wm,matchups:await D().matchups(id,sel)});body=review(rv,wm)+lineup(wm,{past:true});}
-    else if(tab==='lineup')body=(sel>live?`<div class="v10-note">Week ${sel} is in the future: projections for your current roster and starters; nothing is locked yet.</div>`:'')+lineup(wm);
+    else if(tab==='lineup'){body=(sel>live?`<div class="v10-note">Week ${sel} is in the future: projections for your current roster and starters; nothing is locked yet.</div>`:'')+lineup(wm);
+      if(sel===live&&window.FIEV10Specialists){try{body+=await window.FIEV10Specialists.board(entry,wm);}catch(e){body+=`<div class="v10-note">Kicker & D/ST board unavailable: ${k.esc(String(e?.message||e))}</div>`;}}}
     else if(tab==='matchup')body=matchup(wm);
     else{let wv=null;if(sel===live&&!wm.field?.meEliminated){try{wv=(await D().waivers(entry,{limit:Number(window.FIE_UI_POLICY?.waivers?.overview_candidates)||30})).result;}catch{}}body=home(wm,wv);}
   }catch(e){if(my===token)root.innerHTML=`<div class="v10-league">${tabs(id,tab,null,week)}${k.empty(`Could not load this league: ${String(e?.message||e)}`)}</div>`;return;}
   if(my!==token)return;
   k.repaint(root,`<div class="v10-league" data-v10-league="${k.esc(id)}" data-v10-week="${wm.key.week}">${headerBlock(wm,live)}${tabs(id,tab,wm,wm.key.week===live?null:wm.key.week)}${wm.issues.length?`<div class="v10-warn">${wm.issues.map(i=>k.esc(i.text)).join(' · ')}</div>`:''}${body}</div>`);
   root.querySelector('[data-v10-odds]')?.addEventListener('click',()=>oddsFor(id,root));
-  root.querySelector('select[data-v10-week]')?.addEventListener('change',e=>{const w=Number(e.target.value);location.hash=link(id,tab==='waivers'?'lineup':tab,w===live?null:w);});
+  if(tab==='players')window.FIEV10Team.bindPlayers(root);
+  if(tab==='trades')window.FIEV10Trades.bind(root);
+  root.querySelector('select[data-v10-week]')?.addEventListener('change',e=>{const w=Number(e.target.value);location.hash=link(id,['waivers','players','team','trades'].includes(tab)?'lineup':tab,w===live?null:w);});
 }
 function cancel(){token++;}
 window.FIEV10League={VERSION,render,cancel};

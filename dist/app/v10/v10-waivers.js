@@ -7,10 +7,12 @@
  * for that position and your budget. Advanced: provenance (sources, ADP, entry class, rules).
  * Sections: injured "watch / stash", last processed waiver run, FAAB budgets.
  * Numbers come from FIEWaivers.build on the same WeekModel the Lineup tab shows.
+ * R3 WP3.7: injured players count again from the week Sleeper projects them back; a "fill-in until X" chip marks adds
+ * whose gain ends when X returns, and Expand shows the horizon gain if X stays out.
  */
 (function(){
 'use strict';
-const VERSION='10.2.0';
+const VERSION='10.3.0';
 const K=()=>window.FIEV10Kit;
 function bidLine(m,pos){
   const k=K();if(!m?.faab)return m?`Waiver type: ${m.waiverType===0?'rolling priority':m.waiverType===1?'reverse standings':'—'} (no FAAB bids).`:'';
@@ -23,11 +25,13 @@ function row(r,res,m,{lid}){
   const sum=`<span class="v10-w-name">${k.playerLink(r,{leagueId:lid})} <span class="v10-muted">${k.esc(r.position)} · ${k.esc(r.team||'FA')}</span> ${k.statusChip(r.status)}</span>
     <span class="v10-num">${r.gainWeek===null?'–':r.gainWeek>0?`<b class="v10-good">${k.signed(r.gainWeek)}</b>`:'0.0'}</span>
     <span class="v10-num">${r.gainHorizon>0?`<b class="v10-good">${k.signed(r.gainHorizon)}</b>`:'0.0'}</span>
-    <span>${dropTxt}</span><span>${r.tier==='recommended'?k.tierChip('recommended'):''}</span>`;
+    <span>${dropTxt}</span><span>${r.tier==='recommended'?k.tierChip('recommended'):''}${r.fillIn?` <span class="v10-chip v10-tier-monitor" title="The gain ends when ${k.esc(r.fillIn.name)} is back (Sleeper projects him in W${k.esc(r.fillIn.week)})">fill-in until ${k.esc(r.fillIn.name.split(' ').slice(-1)[0])} W${k.esc(r.fillIn.week)}</span>`:''}</span>`;
   const perWeek=`<table class="v10-mini"><thead><tr><th>Week</th><th class="v10-num">${k.esc(r.name.split(' ').slice(-1)[0])} proj</th><th class="v10-num">Lineup gain</th><th>Replaces</th>${r.drop?`<th class="v10-num">${k.esc(r.drop.name.split(' ').slice(-1)[0])} (drop) proj</th>`:''}</tr></thead><tbody>${w.map((x,i)=>`<tr><td>W${x}${res.baseline[i]?.published?'':' <span class="v10-muted">(not published)</span>'}</td><td class="v10-num">${k.pts(r.values[i])}</td><td class="v10-num">${r.gains[i]===null?'–':k.signed(r.gains[i])}</td><td>${r.replaces?.[i]?r.replaces[i].map(z=>k.esc(z.name)).join(', '):'–'}</td>${r.drop?`<td class="v10-num">${k.pts(r.drop.values[i])}</td>`:''}</tr>`).join('')}</tbody></table>`;
-  const notes=[r.rule?k.esc(r.rule):null,r.drop?.adp&&r.drop.adp<999?`Drop ${k.esc(r.drop.name)}: ADP ${k.esc(Math.round(r.drop.adp))}${r.drop.costly?' — a high-value player; the gain only covers the weeks shown':''}${r.drop.ros!==null&&r.drop.ros!==undefined?` · season projection ${k.pts(r.drop.ros)} pts/week`:''}.`:null,m?bidLine(m,r.position):null].filter(Boolean);
+  const notes=[r.fillIn?`Fill-in: helps until ${k.esc(r.fillIn.name)} returns in W${k.esc(r.fillIn.week)} (per Sleeper's projections); in W${k.esc(r.fillIn.week)} it would add ${k.signed(r.fillIn.gainIfOut)} only if he is still out.`:null,
+    r.ifOut&&Math.abs(r.ifOut.gainHorizon-r.gainHorizon)>=0.1?`If ${k.esc(r.ifOut.names.join(', '))} ${r.ifOut.names.length>1?'stay':'stays'} out: ${k.signed(r.ifOut.gainHorizon)} over W${w[0]}–W${w[w.length-1]} (other players' projections unchanged — a backup's projection still assumes the starter plays).`:null,
+    r.rule?k.esc(r.rule):null,r.drop?.adp&&r.drop.adp<999?`Drop ${k.esc(r.drop.name)}: ADP ${k.esc(Math.round(r.drop.adp))}${r.drop.costly?' — a high-value player; the gain only covers the weeks shown':''}${r.drop.ros!==null&&r.drop.ros!==undefined?` · season projection ${k.pts(r.drop.ros)} pts/week`:''}.`:null,m?bidLine(m,r.position):null].filter(Boolean);
   const body=perWeek+(notes.length?`<p class="v10-muted">${notes.join('<br>')}</p>`:'');
-  const adv=k.kv([['Projection source','Sleeper weekly projections, league scoring (same as Lineup)'],['Horizon',`${w.map(x=>'W'+x).join(', ')} · ${res.weeksAvailable} published`],['ADP (add)',r.adp&&r.adp<999?k.esc(Math.round(r.adp)):'–'],['NFL entry class',r.entry??'–'],['Sleeper ID',k.esc(r.pid)],['Method','Full re-optimisation of your legal lineup per week (FIECore.LineupOptimizer); drop = least valuable legal player not needed in any week, else the best of your 4 weakest']]);
+  const adv=k.kv([['Projection source','Sleeper weekly projections, league scoring (same as Lineup)'],['Horizon',`${w.map(x=>'W'+x).join(', ')} · ${res.weeksAvailable} published`],['ADP (add)',r.adp&&r.adp<999?k.esc(Math.round(r.adp)):'–'],['NFL entry class',r.entry??'–'],['Sleeper ID',k.esc(r.pid)],['Method','Full re-optimisation of your legal lineup per week (FIECore.LineupOptimizer); drop = least valuable legal player not needed in any week, else the best of your 4 weakest; later weeks use Sleeper\'s projection for that week (injured players count from the week he is projected back)']]);
   return k.expand(sum,body,{adv,cls:'v10-wrow',key:`w:${lid}:${r.pid}`});
 }
 function head(res){const w=res.weeks;return `<div class="v10-whead"><span>Player</span><span class="v10-num">Gain this week</span><span class="v10-num">Gain W${w[0]}–W${w[w.length-1]}</span><span>Suggested drop</span><span></span></div>`;}
@@ -40,7 +44,13 @@ function body(data,{selectedWeek=null}={}){
   if(res.issues.length)html+=`<div class="v10-warn">${res.issues.map(k.esc).join(' · ')}</div>`;
   const pos=Object.entries(res.byPosition).sort((a,b)=>b[1].gainHorizon-a[1].gainHorizon);
   const chips=pos.length?`<div class="v10-row">${pos.map(([p,r])=>`<span class="v10-chip v10-poschip" title="${k.esc(r.name)}">${k.esc(p)} ${k.esc(r.name)} ${k.signed(r.gainHorizon)}</span>`).join('')}</div>`:'';
-  const rules=[...(res.rules||[]),res.freeSpots>0?`${res.freeSpots} free roster spot${res.freeSpots>1?'s':''} — adds need no drop.`:null,res.protectedDrops.length?`${res.protectedDrops.length} players protected from drop suggestions (dynasty ADP ≤ ${window.FIE_UI_POLICY?.waivers?.dynasty_protect_adp??150}): ${res.protectedDrops.map(x=>k.esc(x.name)).join(', ')}.`:null,
+  const byAdp=res.protectedDrops.filter(x=>x.reason!=='injured'),byInj=res.protectedDrops.filter(x=>x.reason==='injured');
+  const back=(res.returning||[]).filter(x=>x.week),away=(res.returning||[]).filter(x=>!x.week);
+  const rules=[...(res.rules||[]),res.freeSpots>0?`${res.freeSpots} free roster spot${res.freeSpots>1?'s':''} — adds need no drop.`:null,
+    byAdp.length?`${byAdp.length} players protected from drop suggestions (dynasty ADP ≤ ${window.FIE_UI_POLICY?.waivers?.dynasty_protect_adp??150}): ${byAdp.map(x=>k.esc(x.name)).join(', ')}.`:null,
+    byInj.length?`Injured starters never suggested as drops: ${byInj.map(x=>`${k.esc(x.name)} (${k.pts(x.healthy)} pts/wk when healthy)`).join(', ')}.`:null,
+    back.length?`Back per Sleeper's projections (counted from that week): ${back.map(x=>`${k.esc(x.name)} W${k.esc(x.week)}${x.inReserve?' — in your IR slot, activating him needs a roster spot':''}`).join('; ')}.`:null,
+    away.length?`Not projected back within W${res.weeks[0]}–W${res.weeks[res.weeks.length-1]}: ${away.map(x=>k.esc(x.name)).join(', ')}.`:null,
     res.weeksAvailable<res.weeks.length?`Projections published for ${res.weeksAvailable} of ${res.weeks.length} weeks.`:null].filter(Boolean);
   // At most 3 per position so one streamable position (D/ST, K) cannot crowd the list; chips show the rest.
   const perPos={},positive=res.rows.filter(r=>r.gainHorizon>0).filter(r=>(perPos[r.position]=(perPos[r.position]||0)+1)<=3).slice(0,15);
