@@ -17,7 +17,7 @@ const VERSION='10.1.0';
 const W=()=>window;
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function round(v,d=2){const n=num(v);return n===null?null:Math.round(n*10**d)/10**d;}
-function policy(p){const x=p||W().FIE_UI_POLICY||{};return{thresholds:{urgent:3,recommend:1,close_call:.25,...(x.thresholds||{})},escalation:{chopped_cut_margin:10,h2h_margin:null,...(x.escalation||{})},freshness:{projection_stale:720,...(x.freshness_minutes||{})},primary:x.primary_source||{'*':{'*':'SLEEPER'}},status:x.status||{}};}
+function policy(p){const x=p||W().FIE_UI_POLICY||{};return{variance:x.variance||{mode:'rule_of_thumb'},thresholds:{urgent:3,recommend:1,close_call:.25,...(x.thresholds||{})},escalation:{chopped_cut_margin:10,h2h_margin:null,...(x.escalation||{})},freshness:{projection_stale:720,...(x.freshness_minutes||{})},primary:x.primary_source||{'*':{'*':'SLEEPER'}},status:x.status||{}};}
 function primaryFor(pol,format,pos){const f=pol.primary[format]||pol.primary['*']||{};return f[pos]||f['*']||'SLEEPER';}
 const TIER_RANK={FIE_GOVERNED:1,FIE_WEEKLY:2,SLEEPER:3,BYE:4,ESTIMATE:5,UNAVAILABLE:6};
 function tierFor(gain,pol){const t=pol.thresholds;return gain>=t.urgent?'urgent':gain>=t.recommend?'recommended':gain>=t.close_call?'close':'none';}
@@ -50,7 +50,11 @@ function buildPlayers(input,pol){
     const recValue=v===null?0:unavail?(status.code==='Doubtful'?v*(num(pol.status.doubtful_tiebreak_factor)??.01):0):v;
     const published=row?W().FIEScoringCore.published(row.stats||{},scoring):null;
     const alternatives=[];if(published&&v!==null&&Math.abs(published.value-v)>=.1)alternatives.push({label:published.label,value:published.value});
-    const range=v===null?null:{low:Math.max(0,v*.78),high:v*1.22,calibrated:false,label:'Typical range'};
+    // Range (UI contract §5.3): rule of thumb ×0.78–×1.22 unless policy variance.mode = "calibrated" and the
+    // position has a WP-V1 calibration; then P10–P90 = projection × measured outcome ratios. The spread used by the
+    // win estimate follows automatically (FIEDistribution derives σ from the range).
+    const cal=pol.variance?.mode==='calibrated'?pol.variance?.calibration?.positions?.[position]:null;
+    const range=v===null?null:cal?{low:Math.max(0,v*cal.p10),high:v*cal.p90,median:v*cal.p50,calibrated:true,label:'P10–P90',n:cal.n}:{low:Math.max(0,v*.78),high:v*1.22,calibrated:false,label:'Typical range'};
     const p={pid,sleeperId:pid,player_id:pid,name,position,team,game,status,active:{...active,dot,ageMin,primary},recValue,alternatives,range,stats:row?.stats||null,opponent:row?.opponent||game.opp||null};
     cache.set(pid,p);return p;
   };
@@ -146,7 +150,8 @@ function build(input){
   }
   let winEstimate=null;
   if(opponent){const a=W().FIEDistribution.team(myTotals.parts),b=W().FIEDistribution.team(opponent.totals.parts);
-    winEstimate={value:W().FIEDistribution.winProbability(a,b),method:'matchup-normal',dot:'amber',note:'Estimate — spread not yet calibrated (WP-V1); likely overconfident.',inputsHash:hash(JSON.stringify([a,b]))};
+    const calibrated=pol.variance?.mode==='calibrated';
+    winEstimate={value:W().FIEDistribution.winProbability(a,b),method:'matchup-normal',dot:'amber',calibrated,note:calibrated?`Estimate — spread calibrated on 2026 Weeks 1–5 (n=${pol.variance?.calibration?.n??'?'}, in-sample; K/D/ST still rule of thumb); normal approximation.`:'Estimate — spread not yet calibrated (WP-V1); likely overconfident.',inputsHash:hash(JSON.stringify([a,b]))};
     if(recTotals){const r=W().FIEDistribution.team(recTotals.parts);winEstimate.withRecommended=W().FIEDistribution.winProbability(r,b);}}
   // Chopped field
   let field=null;
@@ -162,12 +167,28 @@ function build(input){
       myRank:me?.rank??null,cutLine:cut,marginToCut:me&&cut!==null?round(me.projected-cut):null,meEliminated:!!roster&&!(roster.players||[]).length};
     if(verified&&field.marginToCut!==null&&field.marginToCut<pol.escalation.chopped_cut_margin&&rec.tier==='recommended')rec.tier='urgent';
   }else if(opponent&&pol.escalation.h2h_margin!==null){const m=myTotals.projected-opponent.totals.projected;if(Math.abs(m)<pol.escalation.h2h_margin&&rec.tier==='recommended')rec.tier='urgent';}
+  // Lineup context (Advanced, R2 · WP2.1): what this player is worth to YOUR lineup this week —
+  // starter: points lost if he could not play (full re-optimisation); bench: points gained if he
+  // had to start (forced into the best legal slot). Locked players are fixed, as in recommendations.
+  // Who rosters a player in this league (reader / compare tray).
+  const owner=new Map();for(const r of rosters||[])for(const k of ['players','reserve','taxi'])for(const id of r[k]||[])owner.set(String(id),{rosterId:Number(r.roster_id),name:names[r.roster_id],me:Number(r.roster_id)===Number(managedRosterId),where:k==='players'?'roster':k});
+  const ownerOf=pid=>owner.get(String(pid))||null;
+  const ctxCache=new Map();
+  function lineupContext(pid){pid=String(pid);if(ctxCache.has(pid))return ctxCache.get(pid);
+    const O=W().FIECore.LineupOptimizer,lockedIdx=submitted.map((e,i)=>e.p&&e.p.game.locked?i:-1).filter(i=>i>=0);
+    const open=slots.filter((_,i)=>!lockedIdx.includes(i)),pool=[...submitted.map(e=>e.p),...benchPids.map(player)].filter(p=>p&&!p.game.locked);
+    const seen=new Set(),uniq=pool.filter(p=>!seen.has(p.pid)&&seen.add(p.pid)),me=uniq.find(p=>p.pid===pid);
+    let out=null;
+    if(me&&open.length){const base=O.optimize(uniq,open,p=>p.recValue),inLineup=base.selectedPlayerIds.map(String).includes(pid);
+      if(inLineup){const w=O.optimize(uniq.filter(p=>p.pid!==pid),open,p=>p.recValue);const nb=w.selectedPlayerIds.map(String).find(x=>!base.selectedPlayerIds.map(String).includes(x));out={role:'starter',delta:round(w.total-base.total),nextBest:nb?player(nb)?.name:null};}
+      else{const BIG=1e4,f=O.optimize(uniq,open,p=>p.recValue+(p.pid===pid?BIG:0)),a=f.assignment.find(x=>String(x.playerId)===pid);out={role:'bench',delta:round(f.total-BIG-base.total),slot:a?.slot||null};}}
+    ctxCache.set(pid,out);return out;}
   // Next lock among my starters and bench
   const kick=[...submitted.map(e=>e.p),...benchPids.map(player)].filter(p=>p&&!p.game.locked&&p.game.kickoff).map(p=>p.game.kickoff);
   const nextLock=kick.length?Math.min(...kick):null;
   return{VERSION,key:{leagueId:String(league?.league_id||''),season,week,rosterId:Number(managedRosterId)||null},format,
     league:{name:league?.name||'',teams:num(league?.total_rosters)??(rosters||[]).length,status:league?.status||null,scoring:league?.scoring_settings||{}},
-    slots,player,me:{rosterId:Number(managedRosterId)||null,name:names[managedRosterId]||null,submitted,bench:benchPids.map(player).filter(Boolean),reserve:reserve.map(player).filter(Boolean),taxi:taxi.map(player).filter(Boolean),
+    slots,player,lineupContext,ownerOf,me:{rosterId:Number(managedRosterId)||null,name:names[managedRosterId]||null,submitted,bench:benchPids.map(player).filter(Boolean),reserve:reserve.map(player).filter(Boolean),taxi:taxi.map(player).filter(Boolean),
       recommended:rec,totals:myTotals,recommendedTotals:recTotals,emptySlots,reportedPoints:num(mm?.points),matchupFound:!!mm},
     opponent,winEstimate,field,standings:standings(league,rosters,users,managedRosterId,!!format.chopped),nextLock,issues,builtAt:now};
 }
