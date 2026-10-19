@@ -39,8 +39,9 @@ async function fillLeagues(){
   if(current?.id)sel.value=current.id;
 }
 function asOf(){const el=root?.querySelector('#v10AsOf'),t=D().lastFetch();if(el)el.textContent=t?`data ${K().clock(t)}`:'';}
-function parse(){const h=(location.hash||'').replace(/^#\/?/,'').split('/').map(decodeURIComponent);
-  if(h[0]==='league'&&h[1])return{view:'league',id:h[1],tab:['home','lineup','matchup'].includes(h[2])?h[2]:'home'};
+function parse(){const [path,qs]=(location.hash||'').replace(/^#\/?/,'').split('?'),h=path.split('/').map(decodeURIComponent),q=new URLSearchParams(qs||'');
+  const week=Number(q.get('week'))||null;
+  if(h[0]==='league'&&h[1])return{view:'league',id:h[1],tab:['home','lineup','matchup','waivers'].includes(h[2])?h[2]:'home',week};
   if(h[0]==='classic'&&h[1])return{view:'classic',id:h[1],tab:h[2]||'weekly'};
   return{view:'overview'};}
 async function route(){
@@ -51,7 +52,7 @@ async function route(){
   show(true);
   root.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('active',r.view==='overview'));
   const sel=root.querySelector('#v10LeagueSelect');if(sel)sel.value=r.view==='league'?r.id:'';
-  try{if(r.view==='league')await window.FIEV10League.render(main,r.id,r.tab);else await window.FIEV10Overview.render(main);}
+  try{if(r.view==='league')await window.FIEV10League.render(main,r.id,r.tab,r.week);else await window.FIEV10Overview.render(main);}
   catch(e){main.innerHTML=K().empty(`Something went wrong: ${String(e?.message||e)}`);window.FIECore?.Diagnostics?.capture?.(e,{domain:'v10-route'});}
   asOf();
 }

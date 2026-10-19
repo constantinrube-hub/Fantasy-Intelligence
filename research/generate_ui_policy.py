@@ -26,6 +26,18 @@ def validate(policy: dict) -> None:
     assert 'Doubtful' in s['zero'], 'Doubtful is treated as out (user decision 2026-10-18)'
     assert 0 <= s['doubtful_tiebreak_factor'] < 0.1, 'doubtful tie-break must stay a tie-break'
     assert s['waiver_add_policy']['never_claim_unavailable'] is True
+    v = policy.get('variance', {})
+    if v:
+        assert v['mode'] in {'rule_of_thumb', 'calibrated'}, 'variance.mode is rule_of_thumb or calibrated'
+        for pos, q in v.get('calibration', {}).get('positions', {}).items():
+            assert 0 <= q['p10'] < q['p50'] < q['p90'], f'{pos}: p10 < p50 < p90'
+            assert q['n'] >= 30, f'{pos}: calibration needs at least 30 observations'
+    w = policy.get('waivers', {})
+    if w:
+        assert 1 <= w['horizon_weeks'] <= 6, 'waiver horizon 1-6 weeks'
+        assert 0 < w['alert_week_gain'] <= w['alert_horizon_gain'], 'waiver alert gains must be positive and week <= horizon'
+        assert set(w['long_term_zero']) <= set(s['zero']), 'long-term zero statuses must be zero-valued statuses'
+        assert w['dynasty_protect_adp'] >= 0 and w['candidates_per_position'] >= 1 and w['overview_candidates'] >= 1
 
 
 def render(policy: dict) -> str:

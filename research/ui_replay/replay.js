@@ -42,7 +42,7 @@ const NFLVERSE = {
 class ProviderRouter {
   constructor(scenario) {
     this.scenario = scenario;
-    this.store = new CaptureStore(scenario.capture, { seasonMarketFile: scenario.seasonMarket });
+    this.store = new CaptureStore(scenario.capture, { seasonMarketFile: scenario.seasonMarket, fallbacks: scenario.fallbackCaptures || [] });
     this.unmatched = new Set();
     this.served = 0;
   }
@@ -59,8 +59,11 @@ class ProviderRouter {
     }
     if (this.store.has(endpoint)) {
       const value = this.store.json(endpoint);
-      return this.json(ov[part] ? ov[part](value, { id, week }) : value);
+      const r = ov[part] ? ov[part](value, { id, week, store: this.store }) : value;
+      return this.json(r === undefined ? value : r);
     }
+    // A scenario may model a provider payload the capture lacks (e.g. a scored past week).
+    if (ov[part]) { const r = ov[part](null, { id, week, store: this.store }); if (r !== undefined && r !== null) return this.json(r); }
     // Weeks or league parts that the capture does not contain are empty, which is
     // Sleeper's own response for future/unknown periods.
     if (['matchups', 'transactions', 'drafts', 'traded_picks', 'winners_bracket', 'losers_bracket'].includes(part)) return this.json([]);
@@ -75,7 +78,7 @@ class ProviderRouter {
       if (parts[0] === 'sleeper' && parts[1] === 'projections') {
         if (parts.length === 3) return this.store.seasonProjections();
         const key = `https://api.sleeper.com/projections/nfl/${parts[2]}/${parts[3]}?season_type=regular`;
-        return this.store.raw(key) || this.json([]);
+        return this.store.raw(key) || this.store.frozenWeekProjections(parts[2], parts[3]) || this.json([]);
       }
       if (parts[0] === 'nflverse') {
         const legacy = /^(weekly|snaps)-20\d\d$/.exec(parts[1] || '');

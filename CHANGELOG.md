@@ -1,3 +1,54 @@
+# UI v10 · R2 Explain & Act (preview), 2026-10-18
+
+Release R2 of the UI v10 plan, stacked on R1 (still opt-in behind `?ui=v10`; `default_ui` stays `classic`). No
+projection, scoring rule, ranking, governance or research change. Contract: `docs/current/UI_CONTRACT.md` §4.5,
+§5.12–§5.14.
+
+- **WP2.4 Waivers v1.**
+  - `app/core/waivers.js` (`FIEWaivers`) ranks free agents by full legal lineup gain, this week and over a
+    3-week horizon. It handles lock-aware current weeks and status policy (unavailable players → watch / stash),
+    plus legal drops: free roster spot → none; never locked, IR or taxi players; dynasty ADP protection; season
+    projection for unpublished weeks.
+  - League roster rules are applied (entry-class floor, legacy cap) and eliminated teams get no adds.
+  - Exact pruning (one augmenting path) and memoised scoring take all 23 leagues from 80 s to 1.1 s.
+  - FAAB market: winning bids by position, last run, budgets.
+  - `app/v10/v10-waivers.js` adds the Waivers tab: no CLAIM and no bid in Basic, at most 3 rows per position.
+    Expand shows the per-week why and market context.
+- **Week picker + WP2.3 completed-week review.**
+  - The league header gets a week select.
+  - For a past week, Lineup shows `app/core/review.js` (`FIEReview`): submitted vs best-by-projection vs
+    best-in-hindsight on actual points, efficiency, points left on the bench, and per-player projected vs actual.
+  - For a future week, it shows projections for the current roster.
+- **WP2.5 Overview v2.**
+  - WAIVER_ADD tasks; Best Ball keeps waiver tasks.
+  - Empty / unavailable starters without a bench fill name the best free agent.
+  - "Since your last visit" feed (`app/core/portfolio.js`): status changes (byes excluded), your claims, trades
+    and moves.
+  - "My players this week" shows cross-league exposure.
+- **WP2.1 Advanced content.**
+  - The §5.2 order: projected stat line → scoring under league rules → distribution → lineup context → provenance.
+  - The WeekModel gains `lineupContext` and `ownerOf`.
+- **WP2.2 Player reader + compare tray.** `app/v10/v10-reader.js`: every name opens one side panel (horizon
+  values, owner, lineup impact via exact-mode waivers, your leagues). Pin up to 3 and compare in one league's
+  scoring.
+- **WP-V1 variance calibration (switch, OFF).**
+  - `research/wpv1_measure_spread.py`: frozen Thursday Sleeper projections vs nflverse outcomes, Weeks 1–5,
+    n = 985. The ×0.78–1.22 band holds only 16–29 % of outcomes; real SD is 0.48–0.79 × projection.
+  - Policy `variance` block with measured P10/P50/P90 ratios by position. `mode: "calibrated"` switches ranges to
+    P10–P90 and widens the win estimate; recommendations are unchanged (tested).
+  - Decision note: `claude/FIE_WPV1_VARIANCE_CALIBRATION_2026-10-18.md`.
+- **WP2.6 copy pass:** units in headers ("Proj (pts)", "Gain this week", "Suggested drop"); best/not-best lineup
+  wording; "not yet" for unpublished weeks.
+- **Scoring core:** rule-family lookup memoised (identical output; parity test unchanged).
+- **Replay harness:**
+  - fallback captures, frozen weekly projections for past weeks, and a labelled Week 5 points fixture from nflverse
+    stats;
+  - scenario `w7-tuesday`;
+  - checks V-WAIVERS, V-REVIEW, V-WEEKPICK, V-READER, V-FEED; V-OVERVIEW allows Best Ball waiver tasks.
+- **Release gate:** `integrity_v10_r2_test.js` (waivers exact on 23 leagues / 1,125 rows, legality, rules, market,
+  review, portfolio, context, alerts, team-code aliases, calibration switch). The build manifest registers all
+  new files.
+
 # UI v10 · R1 Lean Interface Preview, 2026-10-18
 
 Release R1 of the UI v10 plan (`claude/FIE_V10_IMPLEMENTATION_GUIDE_2026-10-18.md`), stacked on R0. **Opt-in

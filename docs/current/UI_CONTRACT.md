@@ -3,7 +3,9 @@
 Living contract for how the browser presents and recommends. Owner of the decisions
 behind every number a manager acts on. Status: **R0 implemented** (classic UI safety
 fixes) · **R1 implemented as opt-in preview** (`?ui=v10`: Overview, League Home, Lineup,
-Matchup & Standings on a pure core). Sections still marked *planned* belong to R2–R3.
+Matchup & Standings on a pure core) · **R2 implemented in the preview** (Waivers, week picker and completed-week
+review, Overview v2, player reader and compare tray, Advanced content, switchable variance calibration). Sections
+still marked *planned* belong to R3.
 
 Source of truth for tunable values: `config/ui-decision-policy.json`
 (browser copy generated to `app/generated/ui-decision-policy.js` by
@@ -122,7 +124,10 @@ because every league's fixes were split across status, swap and empty-slot lines
 happens league by league in Sleeper, so v10 groups **actions per league** (one row, all items in
 its Expand, `FIEAlerts.queue().actions`) and keeps **monitor items grouped per player** across
 leagues (`FIEAlerts.queue().monitor`, e.g. "Questionable · starting in 2 leagues").
-Not yet: `STATUS_CHANGED`, `WAIVER_ADD` (R2).
+**R2 additions.** `WAIVER_ADD` (Recommended, never Urgent): the best free agent when its lineup gain is ≥
+`waivers.alert_week_gain` this week or ≥ `waivers.alert_horizon_gain` over the horizon; Best Ball leagues keep
+waiver tasks (no lineup tasks). `EMPTY_SLOT` / `STARTER_UNAVAILABLE` without a bench replacement name the best
+free agent. Status changes are not queue items: they appear in the Overview's "Since your last visit" feed.
 
 ## 6. Projection display, dots and layers (implemented R1 in v10 views)
 
@@ -136,10 +141,16 @@ Not yet: `STATUS_CHANGED`, `WAIVER_ADD` (R2).
   none = primary and fresh; green = higher-tier source; amber = lower-tier or stale
   (> `freshness_minutes.projection_stale`). The win estimate always carries an amber dot until
   WP-V1 calibrates the spread.
-- Ranges: "Typical range" (×0.78–×1.22 rule of thumb) — never labelled P10/P90 until calibrated.
+- Ranges: "Typical range" (×0.78–×1.22 rule of thumb) — never labelled P10/P90 until calibrated. R2: policy
+  `variance.mode = "calibrated"` (off by default; measurement and decision note in the project doc
+  `claude/FIE_WPV1_VARIANCE_CALIBRATION_2026-10-18.md`, reproducible with `research/wpv1_measure_spread.py`) switches QB/RB/WR/TE to "P10–P90" = projection × the
+  measured outcome ratios; the win estimate's spread follows (σ = (P90 − P10)/2.563). K and D/ST keep the rule of
+  thumb. Lineups, recommendations and waiver gains use means only and never change with this switch.
 - Layers: Basic row → Expand (native `<details>`, several open at once: game, status, typical
-  range, source, inactive alternatives such as Sleeper's own published total) → Advanced inside
-  Expand (projection age, primary source, status source, IDs, lock, per-rule scoring breakdown).
+  range, source, inactive alternatives such as Sleeper's own published total, or "No alternative projection
+  differs") → Advanced inside Expand in the §5.2 order (R2 · WP2.1): projected stat line → scoring under your
+  league rules → distribution (mean, σ, range, calibration) → lineup context (in your best lineup: cost if he
+  can't play; otherwise: gain if forced to start, best slot) → provenance (sources, ages, kickoff UTC, IDs).
   Expansion never changes values. Live re-renders keep open rows open (`FIEV10Kit.repaint`).
 
 ## 7. v10 interface (R1 preview)
@@ -159,6 +170,85 @@ Known R1 limitations: no week picker (current Sleeper week + last week's results
 Trades, Draft and Research Lab open the classic view; the classic Weekly win probability (Monte
 Carlo on classic inputs) and the v10 estimate can differ by a few points.
 
+### 7.1 R2 additions (preview)
+
+| Item | Implementation |
+|---|---|
+| Week picker | League header select (W1–W18; live / review marked); `#/league/<id>/<tab>?week=N`. Past week → Lineup shows the completed-week review; future week → projections for the current roster; Waivers always use the live week |
+| Waivers (§5.12) | `app/core/waivers.js` + `app/v10/v10-waivers.js`, tab replaces the classic bridge |
+| Review (§5.13) | `app/core/review.js`, shown in Lineup for past weeks |
+| Overview v2 (§5.14) | WAIVER_ADD in the queue; "Since your last visit" feed; "My players this week" |
+| Reader / compare (§4.5) | `app/v10/v10-reader.js`: every player name opens one side panel; pin up to 3; Compare in the current league's scoring |
+
+### 4.5 Player reader and compare tray (R2 · WP2.2)
+
+One reader for every view. It shows the player in the league being viewed:
+- this week and the next weeks of the waiver horizon (league scoring), with "not yet" for unpublished weeks;
+- who rosters him;
+- his value to your lineup: on your roster, the lineup context; elsewhere, the gain if you added or acquired him
+  and the drop (FIEWaivers in exact mode);
+- your other leagues (from the Overview);
+- the shared Expand/Advanced.
+
+"Pin" keeps up to 3 players for this browser session; "Compare" shows them side by side with the same rows.
+
+### 5.12 Waivers (R2 · WP2.4 · `app/core/waivers.js`)
+
+- **Pool:** players with a Sleeper projection in the horizon, not on any roster (players, reserve, taxi), with
+  a position eligible for a starting slot and an NFL team (or a team D/ST). League rules apply: an entry-class
+  floor removes ineligible players; a legacy cap forces a legacy drop. Pre-selection takes the top 40 per position
+  by Sleeper's published points, then exact league scoring.
+- **Gain:** for each week of the horizon (`waivers.horizon_weeks`, default 3; unpublished weeks are reported and
+  never counted), optimal legal lineup with the add (and the drop) minus without it, using the same
+  status-adjusted values as the Lineup tab. In the current week, started games are locked: locked free agents add
+  0, locked starters keep their slots, locked players are never dropped.
+- **Exact pruning:** adding one player changes an optimal assignment by one augmenting path, so the gain is at most
+  the add's value minus the lowest starter value that week. Candidates that cannot gain in any week are not
+  optimised. Equality with exhaustive search is tested on every captured league.
+- **Drop:**
+  - none if there is a free roster spot;
+  - otherwise the least valuable legal player (active roster, not locked) who is not in any week's optimal
+    lineup with the add, else the best of the 4 weakest.
+  - "Value" = horizon value + the season projection per game for unpublished weeks, ties broken by ADP.
+  - Dynasty: dynasty ADP ≤ `waivers.dynasty_protect_adp` (150) is never suggested. Any drop with ADP ≤ 150 shows
+    a "costly" chip.
+- **Status:**
+  - Out / IR / Doubtful / … players are never adds; they go to "Injured — watch / stash" (STASH only in dynasty
+    with a legal reserve slot).
+  - IR, PUP, NA and Suspended also zero the later weeks.
+- **Display:**
+  - Basic: up to 15 rows, at most 3 per position (one streamable position cannot crowd the list), per-position
+    chips; **no CLAIM and no bid** (A-25).
+  - Expand: per-week projection, gain, whom the add replaces, drop values, the league's FAAB market for the
+    position (median / P75 / max winning bid this season) and your budget.
+  - Advanced: provenance.
+  - Sections: last processed waiver run, FAAB budgets. An eliminated team gets no adds.
+
+### 5.13 Completed-week review (R2 · WP2.3 · `app/core/review.js`)
+
+On actual points from Sleeper's matchup payload of that week:
+1. **Submitted** — Sleeper's official points.
+2. **Best by Sleeper projection** — the optimal legal lineup by the projection for that week (Sleeper's endpoint
+   as published now; status-adjusted), scored with actual points.
+3. **Best in hindsight** — the optimal lineup by actual points (upper bound).
+
+Also shown: lineup efficiency, points left on the bench, best unused players, and every player's projected vs
+actual. Pool = the players in that week's matchup without current IR/taxi (approximation for mid-season moves).
+Best Ball: submitted = hindsight by definition. A week without non-zero points is "not scored yet".
+
+### 5.14 Overview v2 (R2 · WP2.5 · `app/core/portfolio.js`)
+
+- **Since your last visit:**
+  - status changes of your players (Urgent when he now can't play and starts somewhere; a bye is not a status
+    change);
+  - your processed waiver claims (won with bid / failed), trades and free-agent moves since the previous visit
+    (transactions of the previous and current week).
+  - The baseline is the previous visit's snapshot in this browser (localStorage), frozen for the browser session
+    so live re-renders keep the same feed.
+- **My players this week:** every player on your rosters with the number of leagues he starts in and is rostered
+  in, status and game; Expand lists the leagues with slot and projection. A-26: counts equal roster contents
+  (tested).
+
 ## 8. Classic findings recorded during R1 (not changed in R1)
 
 - `index.html › weeklyLineupValue` treats a weekly projection of 0 as missing and falls back to the
@@ -176,6 +266,8 @@ Carlo on classic inputs) and the v10 estimate can differ by a few points.
 | Policy file ↔ generated copy | `python research/integrity_ui_policy_test.py` |
 | Replay harness never injects app state | `node research/integrity_ui_replay_no_injection_test.js` |
 | v10 core contracts (scoring/distribution parity, kickoffs, WeekModel, alerts) | `node research/integrity_v10_core_test.js` |
+| v10 R2 contracts (waivers exactness and legality on 23 leagues, market, review, portfolio, context, aliases, calibration switch) | `node research/integrity_v10_r2_test.js` |
+| WP-V1 spread measurement (research, read-only) | `python research/wpv1_measure_spread.py --weeks 1-5 [--check]` |
 | Browser replay on immutable captures | `node research/ui_replay/run.js --dist dist --suite classic` and `--suite v10` (see `TESTING.md`) |
 
-All four integrity checks run in `research/release_gate.py`.
+All five integrity checks run in `research/release_gate.py`.

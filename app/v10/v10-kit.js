@@ -10,7 +10,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.1.0';
+const VERSION='10.2.0';
 const TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Berlin';}catch{return 'Europe/Berlin';}})();
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
@@ -47,16 +47,37 @@ function kv(rows){return `<dl class="v10-kv">${rows.filter(r=>r&&r[1]!==undefine
 function empty(text){return `<div class="v10-empty">${esc(text)}</div>`;}
 function sourceLabel(active){const m={SLEEPER:'Sleeper weekly projection (league scoring)',FIE_GOVERNED:'FIE governed projection',FIE_WEEKLY:'FIE weekly model',BYE:'Verified bye week (schedule)',ESTIMATE:'Labelled estimate',UNAVAILABLE:'No projection available'};return m[active?.tier]||active?.tier||'–';}
 /** Player expand body + advanced for any view (identical everywhere by construction). */
+// Human labels for the projected stat line (Advanced §5.2 item 1); other keys show raw.
+const STAT_LABEL={pass_att:'pass att',pass_cmp:'cmp',pass_yd:'pass yd',pass_td:'pass TD',pass_int:'INT',rush_att:'rush att',rush_yd:'rush yd',rush_td:'rush TD',rec_tgt:'targets',rec:'rec',rec_yd:'rec yd',rec_td:'rec TD',fum_lost:'fum lost',
+  fgm:'FG made',fgm_0_19:'FG 0–19',fgm_20_29:'FG 20–29',fgm_30_39:'FG 30–39',fgm_40_49:'FG 40–49',fgm_50p:'FG 50+',fgmiss:'FG miss',xpm:'XP',xpmiss:'XP miss',
+  sack:'sacks',int:'INT',fum_rec:'fum rec',def_td:'def TD',pts_allow:'pts allowed',yds_allow:'yds allowed',safe:'safety',blk_kick:'blocked kicks',
+  idp_tkl_solo:'solo tkl',idp_tkl_ast:'ast tkl',idp_tkl:'tackles',idp_sack:'sacks',idp_int:'INT',idp_ff:'FF',idp_pass_def:'PD',idp_qb_hit:'QB hits',idp_tkl_loss:'TFL'};
+const STAT_ORDER=Object.keys(STAT_LABEL);
+function statLine(stats){
+  if(!stats)return '';const xs=Object.entries(stats).filter(([k,v])=>STAT_LABEL[k]&&Number(v)!==0&&Number.isFinite(Number(v)));
+  xs.sort((a,b)=>STAT_ORDER.indexOf(a[0])-STAT_ORDER.indexOf(b[0]));
+  return xs.length?`<div class="v10-statline">${xs.map(([k,v])=>`<span><b>${Number(v)>=10?Math.round(Number(v)):Number(v).toFixed(1)}</b> ${esc(STAT_LABEL[k])}</span>`).join('')}</div>`:'';
+}
+/** Name that opens the shared player reader (WP2.2). */
+function playerLink(p,{leagueId=''}={}){return p?`<a class="v10-plink" href="#" data-v10-player="${esc(p.pid)}" data-v10-league="${esc(leagueId)}">${esc(p.name)}</a>`:'';}
+/** Player expand body + advanced for any view (identical everywhere by construction).
+ *  Advanced order (UI contract §5.2): stat line → scoring → distribution → lineup context → provenance. */
 function playerDetail(p,wm){
   if(!p)return{body:'',adv:''};
   const body=kv([['Game',esc(gameText(p.game))||'–'],['Status',p.status?.code?`${esc(p.status.label||p.status.code)}${p.status.unavailable?' — not counted':''}`:'Active'],
-    ['Typical range',p.range?`${pts(p.range.low)}–${pts(p.range.high)} <span class="v10-muted">(rule-of-thumb, not calibrated)</span>`:'–'],
+    [p.range?.calibrated?'P10–P90':'Typical range',p.range?`${pts(p.range.low)}–${pts(p.range.high)} <span class="v10-muted">${p.range.calibrated?`(calibrated, n=${esc(p.range.n)})`:'(rule-of-thumb, not calibrated)'}</span>`:'–'],
     ['Source',`${esc(sourceLabel(p.active))}${p.active?.dot?' '+dot(p.active.dot):''}`],
-    ...(p.alternatives||[]).map(a=>[a.label,`${pts(a.value)} <span class="v10-muted">(inactive)</span>`])]);
-  const rows=(window.FIEScoringCore?.breakdown?.(p.stats,wm?.league?.scoring||{},p.position)||[]).slice(0,8);
-  const adv=kv([['Projection age',p.active?.ageMin!==null&&p.active?.ageMin!==undefined?`${p.active.ageMin} min`:'–'],['Primary source',esc(p.active?.primary||'–')],['Status source',esc(p.status?.source||'–')],['Sleeper ID',esc(p.pid)],['Lock',p.game?.locked?'locked':esc(until(p.game?.kickoff))]])+
-    (rows.length?`<table class="v10-mini"><thead><tr><th>Scoring rule</th><th>Stat</th><th>×</th><th>Pts</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.key)}</td><td>${pts(r.stat,2)}</td><td>${esc(r.weight)}</td><td>${pts(r.points,2)}</td></tr>`).join('')}</tbody></table>`:'');
+    ...(p.alternatives||[]).map(a=>[a.label,`${pts(a.value)} <span class="v10-muted">(inactive)</span>`])])+(p.alternatives?.length?'':'<div class="v10-muted">No alternative projection differs.</div>');
+  const rows=(window.FIEScoringCore?.breakdown?.(p.stats,wm?.league?.scoring||{},p.position)||[]).slice(0,10);
+  const d=p.active?.value!==null&&p.active?.value!==undefined?window.FIEDistribution?.player?.({mu:p.active.value,low:p.range?.low,high:p.range?.high}):null;
+  const ctx=wm?.lineupContext?.(p.pid)||null;
+  const ctxTxt=!ctx?'–':ctx.role==='starter'?`In your best lineup: losing him costs ${pts(-ctx.delta)} pts this week${ctx.nextBest?` (next best: ${esc(ctx.nextBest)})`:''}`:`Not in your best lineup: starting him ${ctx.delta>=0?'adds':'costs'} ${pts(Math.abs(ctx.delta))} pts${ctx.slot?` (best slot ${esc(ctx.slot)})`:''}`;
+  const adv=`<h4>Projected stat line</h4>${statLine(p.stats)||'<div class="v10-muted">No stat line in the projection.</div>'}`+
+    (rows.length?`<h4>Scoring under your league rules</h4><table class="v10-mini"><thead><tr><th>Rule</th><th class="v10-num">Stat</th><th class="v10-num">×</th><th class="v10-num">Pts</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(STAT_LABEL[r.key]||r.key)}</td><td class="v10-num">${pts(r.stat,2)}</td><td class="v10-num">${esc(r.weight)}</td><td class="v10-num">${pts(r.points,2)}</td></tr>`).join('')}</tbody></table>`:'')+
+    `<h4>Distribution</h4>`+kv([['Mean',pts(p.active?.value)],['Spread (sd)',d?pts(d.sd):'–'],[p.range?.calibrated?'P10–P90':'Typical range',p.range?`${pts(p.range.low)}–${pts(p.range.high)}${p.range.median!==undefined?` · median ${pts(p.range.median)}`:''}`:'–'],['Calibration',p.range?.calibrated?`WP-V1 (2026 W1–W5, n=${esc(p.range.n)}, in-sample)`:'not calibrated yet (WP-V1) '+dot('amber','Spread is a rule of thumb')]])+
+    `<h4>Lineup context</h4><div>${ctxTxt}</div>`+
+    `<h4>Provenance</h4>`+kv([['Projection',esc(sourceLabel(p.active))],['Projection age',p.active?.ageMin!==null&&p.active?.ageMin!==undefined?`${p.active.ageMin} min`:'–'],['Primary source',esc(p.active?.primary||'–')],['Status source',esc(p.status?.source||'–')],['Kickoff (UTC)',p.game?.kickoff?esc(new Date(p.game.kickoff).toISOString().slice(0,16).replace('T',' ')):'–'],['Lock',p.game?.locked?'locked':esc(until(p.game?.kickoff))],['Sleeper ID',esc(p.pid)]]);
   return{body,adv};
 }
-window.FIEV10Kit={VERSION,TZ,esc,num,pts,signed,pct,winPct,time,clock,until,dot,tierChip,statusChip,formatChip,gameText,expand,repaint,kv,empty,sourceLabel,playerDetail,TIER_LABEL};
+window.FIEV10Kit={VERSION,TZ,esc,num,pts,signed,pct,winPct,time,clock,until,dot,tierChip,statusChip,formatChip,gameText,expand,repaint,kv,empty,sourceLabel,playerDetail,playerLink,statLine,TIER_LABEL};
 })();

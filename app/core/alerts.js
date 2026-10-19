@@ -14,19 +14,29 @@
  */
 (function(){
 'use strict';
-const VERSION='10.1.1';
+const VERSION='10.2.0';
 const TIER={urgent:0,recommended:1,monitor:2};
 const PRIORITY={VERY_HIGH:0,HIGH:1,MEDIUM:2,LOW:3};
 function fmt(v){const n=Number(v);return Number.isFinite(n)?n.toFixed(1):'–';}
 function inactivesAt(kickoff,policy){const m=Number(policy?.status?.inactives_minutes_before_kickoff)||90;return kickoff?kickoff-m*60000:null;}
 function earliest(...xs){const v=xs.flat().filter(x=>Number.isFinite(x));return v.length?Math.min(...v):null;}
 
-function forLeague(wm,{leagueId,leagueName,priority='MEDIUM',policy=window.FIE_UI_POLICY}={}){
+/** WAIVER_ADD (R2): the best free agent when it clears policy waivers.alert_* (Recommended, never Urgent). */
+function waiverAlert(wv,base,policy){
+  const top=(wv?.rows||[]).find(r=>r.tier==='recommended');if(!top)return null;
+  const wk=wv.weeks||[],span=wk.length>1?`Weeks ${wk[0]}–${wk[wk.length-1]}`:`Week ${wk[0]}`;
+  const parts=[top.gainWeek>0?`+${fmt(top.gainWeek)} this week`:null,`+${fmt(top.gainHorizon)} over ${span}${wv.weeksAvailable<wk.length?` (${wv.weeksAvailable} published)`:''}`].filter(Boolean);
+  return{...base,code:'WAIVER_ADD',tier:'recommended',playerId:top.pid,playerName:top.name,title:`Add ${top.name} (${top.position})${top.drop?` for ${top.drop.name}`:top.freeSpot?' (free roster spot)':''}`,
+    detail:parts.join(', '),gain:top.gainHorizon,lockAt:top.game?.kickoff??null,dedupKey:`${base.leagueId}:waiver`,route:'waivers'};
+}
+function bestFreeAgent(wv){const r=(wv?.rows||[]).find(x=>(x.gainWeek??0)>0);return r?`Best free agent: ${r.name} (${r.position}, +${fmt(r.gainWeek)} this week)`:null;}
+function forLeague(wm,{leagueId,leagueName,priority='MEDIUM',policy=window.FIE_UI_POLICY,waivers=null}={}){
   const out=[],base={leagueId:String(leagueId||wm?.key?.leagueId||''),leagueName:leagueName||wm?.league?.name||'',priority};
   if(!wm)return out;
   for(const i of wm.issues||[])out.push({...base,code:'DATA_ISSUE',tier:'urgent',quiet:true,title:i.text,lockAt:wm.nextLock,dedupKey:`${base.leagueId}:data:${i.code}`,route:'home'});
   if(wm.field?.meEliminated)return out;
-  if(wm.format?.bestBall){chopRisk(wm,base,policy,out);return out;} // automatic lineup: no lineup tasks
+  const wa=waiverAlert(waivers,base,policy);
+  if(wm.format?.bestBall){chopRisk(wm,base,policy,out);if(wa)out.push(wa);return out;} // automatic lineup: no lineup tasks, waivers still matter
   const kick=pid=>pid?wm.player(pid)?.game?.kickoff??null:null;
   const changes=wm.me?.recommended?.changes||[],rec=wm.me?.recommended;
   const changeFor=pid=>changes.find(c=>c.outPid===pid);
@@ -34,13 +44,13 @@ function forLeague(wm,{leagueId,leagueName,priority='MEDIUM',policy=window.FIE_U
   const emptySlots=open.filter(e=>!e.p).map(e=>e.slot);
   if(emptySlots.length){const fills=changes.filter(c=>!c.outPid);
     out.push({...base,code:'EMPTY_SLOT',tier:'urgent',title:`${emptySlots.length} empty starter slot${emptySlots.length>1?'s':''} (${emptySlots.join(', ')})`,
-      detail:fills.length?`Start ${fills.map(c=>`${wm.player(c.inPid)?.name} (${c.slot})`).join(', ')}`:'No eligible player on the bench — check waivers',
+      detail:fills.length?`Start ${fills.map(c=>`${wm.player(c.inPid)?.name} (${c.slot})`).join(', ')}`:(bestFreeAgent(waivers)||'No eligible player on the bench — check waivers'),
       lockAt:earliest(fills.map(c=>kick(c.inPid)))??wm.nextLock,gain:fills.reduce((s,c)=>s+(c.delta||0),0)||null,dedupKey:`${base.leagueId}:empty`,route:'lineup'});}
   for(const e of open){if(!e.p)continue;const s=e.p.status;
     if(s.unavailable){const c=changeFor(e.pid),alt=c?wm.player(c.inPid):null,doubt=s.code==='Doubtful';
       out.push({...base,code:doubt?'STARTER_DOUBTFUL':'STARTER_UNAVAILABLE',tier:'urgent',playerId:e.pid,playerName:e.p.name,status:s.code,
         title:doubt?`${e.p.name} Doubtful — treated as out`:`${e.p.name} can't play (${s.code})`,
-        detail:alt?`Start ${alt.name} instead (+${fmt(c.delta)})`:'No eligible replacement on the bench — check waivers',
+        detail:alt?`Start ${alt.name} instead (+${fmt(c.delta)})`:(bestFreeAgent(waivers)||'No eligible replacement on the bench — check waivers'),
         lockAt:earliest(e.p.game.kickoff,c?kick(c.inPid):null)??wm.nextLock,inactivesAt:doubt?inactivesAt(e.p.game.kickoff,policy):null,gain:c?.delta??null,dedupKey:`player:${e.pid}:${s.code}`,route:'lineup'});}
     else if(s.monitor)out.push({...base,code:'MONITOR_Q',tier:'monitor',playerId:e.pid,playerName:e.p.name,status:'Questionable',title:`${e.p.name} Questionable`,detail:`Starting at ${e.slot}`,lockAt:e.p.game.kickoff,dedupKey:`player:${e.pid}:Q`,route:'lineup'});
   }
@@ -57,6 +67,7 @@ function forLeague(wm,{leagueId,leagueName,priority='MEDIUM',policy=window.FIE_U
         lockAt:earliest(swaps.map(c=>[kick(c.inPid),kick(c.outPid)]))??wm.nextLock,dedupKey:`${base.leagueId}:swap`,route:'lineup'});}
   }
   chopRisk(wm,base,policy,out);
+  if(wa)out.push(wa);
   return out;
 }
 function chopRisk(wm,base,policy,out){
@@ -79,8 +90,8 @@ function portfolio(perLeague){
 function leagueTask(alerts){
   const xs=sort(alerts.filter(a=>!a.quiet&&a.code!=='MONITOR_Q'));if(!xs.length)return null;
   const first=xs[0],n=c=>xs.filter(a=>c.includes(a.code)).length;
-  const out=n(['STARTER_UNAVAILABLE','STARTER_DOUBTFUL']),empty=xs.find(a=>a.code==='EMPTY_SLOT'),swap=xs.find(a=>['SWAP','SWAP_URGENT','CLOSE_CALL'].includes(a.code)),chop=xs.find(a=>a.code==='CHOP_RISK'),draft=xs.find(a=>a.code==='DRAFT');
-  const parts=[out?`${out} starter${out>1?'s':''} can't play`:'',empty?empty.title:'',swap?`${swap.code==='CLOSE_CALL'?'close call':'better lineup'} ${swap.detail.split(' · ')[0]}`:'',chop?'chop risk':'',draft?draft.title:''].filter(Boolean);
+  const out=n(['STARTER_UNAVAILABLE','STARTER_DOUBTFUL']),empty=xs.find(a=>a.code==='EMPTY_SLOT'),swap=xs.find(a=>['SWAP','SWAP_URGENT','CLOSE_CALL'].includes(a.code)),chop=xs.find(a=>a.code==='CHOP_RISK'),draft=xs.find(a=>a.code==='DRAFT'),waiver=xs.find(a=>a.code==='WAIVER_ADD');
+  const parts=[out?`${out} starter${out>1?'s':''} can't play`:'',empty?empty.title:'',swap?`${swap.code==='CLOSE_CALL'?'close call':'better lineup'} ${swap.detail.split(' · ')[0]}`:'',chop?'chop risk':'',draft?draft.title:'',waiver?`waiver add ${waiver.playerName} ${waiver.detail.split(',').pop().trim()}`:''].filter(Boolean);
   return{...first,code:'LEAGUE_TASKS',tier:first.tier==='monitor'?'monitor':first.tier,close:first.code==='CLOSE_CALL'&&xs.length===1,title:parts.join(' · '),items:xs,lockAt:earliest(xs.map(a=>a.lockAt)),gain:xs.reduce((s,a)=>s+(a.gain||0),0),dedupKey:`${first.leagueId}:tasks`};
 }
 /** Overview queue: one action row per league + monitor items grouped per player. */
@@ -90,5 +101,5 @@ function queue(perLeague){
   const quiet=perLeague.flat().filter(a=>a.quiet);
   return{actions:sort(actions),monitor,quiet};
 }
-window.FIEAlerts={VERSION,forLeague,portfolio,leagueTask,queue,sort};
+window.FIEAlerts={VERSION,forLeague,portfolio,leagueTask,queue,sort,waiverAlert};
 })();

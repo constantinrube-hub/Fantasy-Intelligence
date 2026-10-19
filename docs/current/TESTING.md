@@ -117,9 +117,18 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | V-AFTER-TNF | (v10) locked players marked and never part of a suggestion |
 | V-CHOPPED | (v10) only active teams, verified eliminations, cut margin, no H2H estimate |
 | V-SWITCH | (v10) A → B → A shows the visible league; `?ui=classic` restores classic |
-| V-BRIDGE | (v10) Waivers/Trades/Draft/Lab open classic for the same league; pill returns |
+| V-BRIDGE | (v10) Trades/Draft/Lab (and the old Waivers route) open classic for the same league; pill returns |
+| V-WAIVERS | (v10, Tuesday scenario) best adds by lineup gain with legal drop, ≤ 3 per position, no CLAIM/bid in Basic, market + budgets |
+| V-REVIEW | (v10) Week 5 review: submitted ≤ hindsight, projection-best ≤ hindsight |
+| V-WEEKPICK | (v10) past → review, future → projections, live → normal lineup |
+| V-READER | (v10) reader from a name, pin two, compare with lineup impact |
+| V-FEED | (v10) second visit lists status changes; My players counts |
 
-The v10 checks open `/?ui=v10#…`; run them with `--suite v10`. Pure-module contracts of the v10 core run without a
+The v10 checks open `/?ui=v10#…`; run them with `--suite v10`. Scenario `w7-tuesday` (R2) uses the Sunday
+Week 7 capture with Thursday's Week 6 capture as fallback (processed FAAB claims), the frozen Thursday projections
+for past weeks (`data/research/market/sleeper/2026/week_NN.jsonl.gz`), and a **test fixture** for a scored Week 5
+(lineups from the Tuesday-after-Week-5 capture, points rebuilt from real nflverse stats, D/ST = 0) until WP-T2
+captures post-week matchups. Pure-module contracts of the v10 core run without a
 browser: `node research/integrity_v10_core_test.js` (release gate).
 
 ## Mandatory preview browser test
