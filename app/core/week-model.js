@@ -33,13 +33,23 @@ function buildPlayers(input,pol){
     const team=String(row?.team||rp.team||cat?.team||(isTeamCode(pid)?pid:'')||'')||null;
     const name=cat?.full_name||[rp.first_name,rp.last_name].filter(Boolean).join(' ')||(isTeamCode(pid)?`${pid} D/ST`:pid);
     const game=W().FIEGameState.forTeam(schedule,team,{week,season,now});
-    const statusP={sleeperId:pid,team,injuryStatus:cat?.injury_status??null,weeklyStatusFeed:row?{status:rp.injury_status??null,week,season,at:fetchedAt}:null};
-    let status=W().FIEStatus.resolve(statusP,{week,season,now,scheduleBye:false}); // bye comes from this model's schedule (below)
-    if(game.bye)status={...status,code:'BYE',short:'BYE',label:'BYE',source:'schedule',unavailable:true,monitor:false};
     let active;
     if(game.bye)active={value:0,tier:'BYE',sourceClass:'BYE'};
     else if(row){const v=W().FIEScoringCore.score(row.stats||{},scoring,position);active=v===null?{value:null,tier:'UNAVAILABLE',sourceClass:'UNAVAILABLE'}:{value:v,tier:'SLEEPER',sourceClass:'SLEEPER'};}
     else active={value:null,tier:'UNAVAILABLE',sourceClass:'UNAVAILABLE'};
+    const statusP={sleeperId:pid,team,injuryStatus:cat?.injury_status??null,weeklyStatusFeed:row?{status:rp.injury_status??null,week,season,at:fetchedAt}:null};
+    let status=W().FIEStatus.resolve(statusP,{week,season,now,scheduleBye:false}); // bye comes from this model's schedule (below)
+    if(game.bye)status={...status,code:'BYE',short:'BYE',label:'BYE',source:'schedule',unavailable:true,monitor:false};
+    // R3 WP3.7 · last-game carry-over (UI contract §2.1): Sleeper keeps a game designation (Out/Doubtful) until the next
+    // injury report, but projects 0 for every Out/Doubtful player in the week the designation is for (verified on all
+    // captures). A positive Sleeper projection for THIS week next to Out/Doubtful therefore means the tag refers to the
+    // previous game: the player is monitored at full value instead of being treated as out. Only before the week's first
+    // injury report: kickoff more than last_game_carry_over_min_hours (108 h ≈ Wednesday morning for a Sunday game) away.
+    // From the first report on every tag counts (Sleeper is not perfectly consistent: Thursday of Week 6 it still projected
+    // Doubtful IDP Marques Sigle, 102 h before kickoff).
+    else if((pol.status.last_game_carry_over||[]).includes(status.code)&&status.source==='projection-feed'&&num(active.value)>0&&game.state==='pregame'
+      &&num(game.kickoff)!==null&&game.kickoff-now>(num(pol.status.last_game_carry_over_min_hours)??108)*3600e3)
+      status={...status,unavailable:false,monitor:true,carriedOver:true,short:`${status.short}·prev`,label:`${status.code} last game — Sleeper projects him this week`};
     const ageMin=fetchedAt?Math.max(0,Math.round((now-fetchedAt)/60000)):null,primary=primaryFor(pol,format?.key||'*',position);
     let dot=null;
     if(active.tier==='SLEEPER'||active.tier==='FIE_GOVERNED'||active.tier==='FIE_WEEKLY'||active.tier==='ESTIMATE'){

@@ -14,6 +14,24 @@ the guide it follows R3 plus two clean Sundays on v10.
     with the WP3.7 return assumption, Doubtful tie-break kept); §6 dot/range text updated.
   - Tests: `integrity_v10_r2_test.js §7` and `integrity_v10_core_test.js` now expect calibrated as the default;
     replay V-LINEUP expects "P10–P90 (calibrated, n=…)" in the Expand of the QB row.
+- **WP3.7 Waivers: injured starters return (your 19 Oct question).** R2 zeroed IR/PUP/NA/Suspended players in every
+  horizon week and ignored players in an IR slot, so a healthy fill-in collected "gain" in weeks the injured starter
+  would be back (e.g. BestBall – Prime: Efton Chism +15.3 in R2, +13.0 with Omar Cooper and David Montgomery back in
+  W7), and an injured starter could be the suggested drop (Stoned Lack Bestball Dynasty 3: Tank Dell for three adds).
+  - `app/core/waivers.js` 10.3.0: later weeks use Sleeper's projection for that week (`waivers.long_term_zero` now
+    `[]`); IR-slot players rejoin future-week pools when projected; `returning`, `fillIn` (causal check),
+    `ifOut`, injured-starter drop protection (`protectedDrops[].reason = "injured"`); value-function-aware optimiser
+    pools; pruned injured candidates now go to watch/stash (previously they could appear as zero-gain rows).
+  - `app/core/week-model.js`: last-game carry-over (`status.last_game_carry_over`, `…_min_hours` 108; §2.1) — Out/
+    Doubtful tags with a positive Sleeper projection for the modelled week, before the week's first injury report,
+    are monitored at full value (`O·prev`). `app/core/alerts.js`: monitor wording for carried-over tags.
+  - `app/v10/v10-waivers.js` 10.3.0: fill-in chip, "if he stays out" line, returning players and IR-slot
+    activation note, injured-protected drops.
+  - Policy generator validates the new keys (carry-over only for game designations; window ≥ 96 h).
+  - `research/integrity_v10_r3_test.js` (release gate): no carry-over in the game week (W6 capture), carry-over on
+    Tuesday of Week 7 and the 108 h guard; returns only where Sleeper projects; IR-slot return (Omar Cooper, Genesis
+    NFL GM League) vs the `long_term_zero` override; injured starters never drops; constructed fill-ins (top RB/WR
+    ruled out for W6 in every league: 35 fill-ins in 14 leagues, all causal, all inflated under R2 rules).
 
 # UI v10 · R2 Explain & Act (preview), 2026-10-18
 

@@ -64,6 +64,16 @@ labelled "research"; they never feed totals, the optimizer or recommendations.
 | Out, IR, Suspended, PUP, NA | 0 | never CLAIM; dynasty `STASH` when a legal reserve slot is free | Urgent if starting |
 | BYE | 0 this week | allowed (rest-of-season value) | Urgent if starting |
 
+**§2.1 Last-game carry-over (v10 WeekModel only · R3 WP3.7).** Sleeper keeps a game designation until the next
+injury report, so on Monday–Wednesday "Out" usually refers to last Sunday. Evidence (committed captures): in the
+game week Sleeper projects 0 for 56 of 57 Out/Doubtful players; during Week 6 it already projected Week 7 for about
+half of them (e.g. Lamar Jackson: Out, 23.1). Rule: an `Out`/`Doubtful` tag from the projection feed (policy
+`status.last_game_carry_over`) next to a **positive Sleeper projection for the modelled week**, while the game is
+pregame and kickoff is more than `status.last_game_carry_over_min_hours` (108 h ≈ before Wednesday's first report for
+a Sunday game) away, is shown as `O·prev` / `D·prev` and treated like Questionable (Monitor, full value, alert "Out
+last game — check this week's report"). From the first report of the week every tag counts again; TNF teams never
+carry over. IR, PUP, Suspended and NA never carry over. Classic (`FIEStatus`, R0) is unchanged.
+
 `FIEStatus` API: `resolve(p, {week, season})`, `recommendationValue(p, value)`,
 `irEligible(code, leagueSettings)`, `freeReserveSlots(roster, leagueSettings)`,
 `addPolicy(p, {rosterId, league, rosters, dynasty})`, `normalize(raw)`, `policy()`.
@@ -224,7 +234,22 @@ One reader for every view. It shows the player in the league being viewed:
 - **Status:**
   - Out / IR / Doubtful / … players are never adds; they go to "Injured — watch / stash" (STASH only in dynasty
     with a legal reserve slot).
-  - IR, PUP, NA and Suspended also zero the later weeks.
+  - **R3 WP3.7 — later weeks follow Sleeper.** The current week uses the status policy (§2, §2.1). For every later
+    week the value is Sleeper's published projection for that week: Sleeper projects 0 (or nothing) for players it
+    expects to miss that game and a value once it expects them back. `waivers.long_term_zero` (now empty; R2 had
+    IR/PUP/NA/Suspended) can still force statuses to 0 in all weeks.
+  - **Returning players:** your injured players (unavailable now, not on bye) count again from the first week Sleeper
+    projects them into your best lineup — **including players in an IR slot**, who rejoin the pool (activating
+    them then needs a roster spot; the Waivers card says so). `returning` lists each with that week or "not within
+    the horizon".
+  - **Fill-in:** an add whose gain is ≥ 0.25 before such a return and ≤ 0.25 from the return week on is labelled
+    "fill-in until X Wn" — only if holding X out in that week would raise the add's gain by ≥ 0.5 (causal check; a
+    D/ST is never a fill-in for an RB).
+  - **If he stays out:** Expand shows the horizon gain with all returning players held at 0. Other players'
+    projections are unchanged, so a backup's projection still assumes the starter plays (handcuffs are understated).
+  - **Injured starters are never drop suggestions:** an injured player whose healthy value (season projection per
+    game, or a later-week projection) is at least your weakest starter is listed under protected drops.
+  - Ranking (horizon gain) and alert thresholds (S3) are unchanged; they now use the return-aware gains.
 - **Display:**
   - Basic: up to 15 rows, at most 3 per position (one streamable position cannot crowd the list), per-position
     chips; **no CLAIM and no bid** (A-25).

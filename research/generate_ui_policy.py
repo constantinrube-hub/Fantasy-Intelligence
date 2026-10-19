@@ -26,6 +26,8 @@ def validate(policy: dict) -> None:
     assert 'Doubtful' in s['zero'], 'Doubtful is treated as out (user decision 2026-10-18)'
     assert 0 <= s['doubtful_tiebreak_factor'] < 0.1, 'doubtful tie-break must stay a tie-break'
     assert s['waiver_add_policy']['never_claim_unavailable'] is True
+    assert set(s.get('last_game_carry_over', [])) <= {'Out', 'Doubtful'}, 'only game designations can carry over from the last game (never IR/PUP/SUS/NA)'
+    assert s.get('last_game_carry_over_min_hours', 108) >= 96, 'carry-over only before the week\'s first injury report (Wednesday for Sunday games): at least 96 h before kickoff'
     v = policy.get('variance', {})
     if v:
         assert v['mode'] in {'rule_of_thumb', 'calibrated'}, 'variance.mode is rule_of_thumb or calibrated'

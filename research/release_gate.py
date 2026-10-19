@@ -29,6 +29,7 @@ def main():
   run(['node','research/integrity_ui_replay_no_injection_test.js']),
   run(['node','research/integrity_v10_core_test.js']),
   run(['node','research/integrity_v10_r2_test.js']),
+  run(['node','research/integrity_v10_r3_test.js']),
   run([sys.executable,'research/integrity_structural_profile_test.py']),
   run([sys.executable,'research/integrity_release_versions_test.py']),
   run([sys.executable,'research/integrity_dist_hygiene_test.py']),

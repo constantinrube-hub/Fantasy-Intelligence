@@ -52,7 +52,7 @@ function forLeague(wm,{leagueId,leagueName,priority='MEDIUM',policy=window.FIE_U
         title:doubt?`${e.p.name} Doubtful — treated as out`:`${e.p.name} can't play (${s.code})`,
         detail:alt?`Start ${alt.name} instead (+${fmt(c.delta)})`:(bestFreeAgent(waivers)||'No eligible replacement on the bench — check waivers'),
         lockAt:earliest(e.p.game.kickoff,c?kick(c.inPid):null)??wm.nextLock,inactivesAt:doubt?inactivesAt(e.p.game.kickoff,policy):null,gain:c?.delta??null,dedupKey:`player:${e.pid}:${s.code}`,route:'lineup'});}
-    else if(s.monitor)out.push({...base,code:'MONITOR_Q',tier:'monitor',playerId:e.pid,playerName:e.p.name,status:'Questionable',title:`${e.p.name} Questionable`,detail:`Starting at ${e.slot}`,lockAt:e.p.game.kickoff,dedupKey:`player:${e.pid}:Q`,route:'lineup'});
+    else if(s.monitor)out.push({...base,code:'MONITOR_Q',tier:'monitor',playerId:e.pid,playerName:e.p.name,status:s.carriedOver?`${s.code} last game`:'Questionable',title:`${e.p.name} ${s.carriedOver?`${s.code} last game — check this week's report`:'Questionable'}`,detail:`Starting at ${e.slot}`,lockAt:e.p.game.kickoff,dedupKey:`player:${e.pid}:Q`,route:'lineup'});
   }
   if(rec&&rec.tier!=='none'&&changes.length){
     const covered=new Set(out.filter(a=>a.playerId).map(a=>a.playerId));
@@ -83,7 +83,7 @@ function portfolio(perLeague){
   const all=perLeague.flat(),groups=new Map(),rest=[];
   for(const a of all){if(a.dedupKey?.startsWith('player:')){if(!groups.has(a.dedupKey))groups.set(a.dedupKey,[]);groups.get(a.dedupKey).push(a);}else rest.push(a);}
   const merged=[...groups.values()].map(xs=>{if(xs.length===1)return xs[0];const first=sort(xs)[0];
-    return{...first,grouped:sort(xs),leagueName:`${xs.length} leagues`,title:`${first.playerName} ${first.code==='MONITOR_Q'?'Questionable':first.code==='STARTER_DOUBTFUL'?'Doubtful — treated as out':`can't play (${first.status})`} · starting in ${xs.length} leagues`};});
+    return{...first,grouped:sort(xs),leagueName:`${xs.length} leagues`,title:`${first.playerName} ${first.code==='MONITOR_Q'?(first.status||'Questionable'):first.code==='STARTER_DOUBTFUL'?'Doubtful — treated as out':`can't play (${first.status})`} · starting in ${xs.length} leagues`};});
   return sort([...rest,...merged]);
 }
 /** Action items (urgent / recommended / close call) of one league folded into one row. */
