@@ -107,7 +107,9 @@ function build(input){
   // Rest-of-season proxy per week for horizon weeks without published projections: Sleeper season
   // projection, league scoring, ÷ games (only when the season row carries a stat line).
   const rosCache=new Map(),seasonRows=input.seasonRows;
-  const rosProxy=pid=>{pid=String(pid);if(rosCache.has(pid))return rosCache.get(pid);let v=null;const r=seasonRows?.get?.(pid);
+  // D/ST is excluded: its scoring uses points-/yards-allowed buckets that cannot be applied to season totals
+  // (R2 gave e.g. JAX D/ST 91 pts/game, which made a D/ST practically undroppable — fixed in R3).
+  const rosProxy=pid=>{pid=String(pid);if(rosCache.has(pid))return rosCache.get(pid);let v=null;const r=current(pid)?.position==='DEF'||isTeamCode(pid)?null:seasonRows?.get?.(pid);
     if(r?.stats&&Object.keys(r.stats).some(k=>!/^(adp|pos_adp|gp)/.test(k))){const p=current(pid);const t=W().FIEScoringCore.score(r.stats,scoring,p?.position);const gp=num(r.stats.gp)||17;if(t!==null)v=t/gp;}
     if(longTermOut(pid))v=0;rosCache.set(pid,v);return v;};
   const unpublished=horizon.filter((_,k)=>!hasRows[k]).length;

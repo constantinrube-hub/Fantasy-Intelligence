@@ -5,7 +5,7 @@
  * accepts the preview). The classic application keeps running underneath, unchanged: v10 hides it
  * with one body class and never patches its functions (CHANGE_GUIDE: no monkey-patch layer).
  *
- * Routes: #/overview · #/league/<id>/<home|lineup|matchup> · #/classic/<id>/<waivers|trades|draft|lab>
+ * Routes: #/overview · #/league/<id>/<home|lineup|matchup|waivers|players|team> · #/classic/<id>/<trades|draft|lab>
  * The classic route is the bridge for views not rebuilt in R1: it shows the classic UI, loads that
  * league through FIELeagueController and opens the tab by clicking its real navigation.
  * A "New view" pill returns to v10. While visible, the current view re-renders every 2 minutes
@@ -41,7 +41,7 @@ async function fillLeagues(){
 function asOf(){const el=root?.querySelector('#v10AsOf'),t=D().lastFetch();if(el)el.textContent=t?`data ${K().clock(t)}`:'';}
 function parse(){const [path,qs]=(location.hash||'').replace(/^#\/?/,'').split('?'),h=path.split('/').map(decodeURIComponent),q=new URLSearchParams(qs||'');
   const week=Number(q.get('week'))||null;
-  if(h[0]==='league'&&h[1])return{view:'league',id:h[1],tab:['home','lineup','matchup','waivers'].includes(h[2])?h[2]:'home',week};
+  if(h[0]==='league'&&h[1])return{view:'league',id:h[1],tab:['home','lineup','matchup','waivers','players','team'].includes(h[2])?h[2]:'home',week};
   if(h[0]==='classic'&&h[1])return{view:'classic',id:h[1],tab:h[2]||'weekly'};
   return{view:'overview'};}
 async function route(){

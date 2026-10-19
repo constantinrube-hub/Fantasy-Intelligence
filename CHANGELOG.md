@@ -37,6 +37,18 @@ the guide it follows R3 plus two clean Sundays on v10.
   with the Waivers engine's lineup gain and drop, bye chip when no rostered player covers a week. `v10-league.js`
   renders it for the live week; `v10.css` board styles. Replay V-SPECIAL (Genesis Dynasty, w7-tuesday): both boards,
   gains equal `FIEWaivers` (e.g. Tennessee Titans +9.0 = 8.97), no PAY/WAIT/STREAM.
+- **WP3.2 Players, WP3.3 Team.** New pure module `app/core/team-views.js` (`FIETeamViews.players / team`), view
+  `app/v10/v10-team.js`, data loader `FIEV10Data.inputs()` (rosters, projection rows, horizon, schedule, catalog,
+  season rows — shared by later views). League tabs `players` and `team` (`v10-league.js`, router in
+  `v10-shell.js`); styles in `v10.css`; policy `team.thin_recovery` (0.4) with generator validation.
+  - Players: filters position / owner / horizon / search, reset per league, 50 + 50 rows, shared detail and reader.
+  - Team: position strength and rank vs every active team, depth and thin positions, byes in the horizon, roster
+    with Sleeper slots, season projection per game, ADP, replacement gap vs the best free agent (VOR proxy).
+  - **R2 bug fixed on the way:** `FIEWaivers` used a season-per-game proxy for D/ST built from season totals; D/ST
+    scoring uses points-/yards-allowed buckets, so it produced e.g. 91 pts/game for JAX D/ST and made D/STs
+    practically undroppable in weeks Sleeper had not published. D/ST now has no season proxy (both modules).
+  - Tests: `integrity_v10_r3_test.js §4` (21 leagues, 11,608 player rows: owners = rosters, values = Lineup, ranks,
+    depth = lineup context, bye costs ≥ 0, Sleeper slots, no D/ST proxy); replay V-PLAYERS, V-TEAM.
 
 # UI v10 · R2 Explain & Act (preview), 2026-10-18
 

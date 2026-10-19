@@ -124,6 +124,8 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | V-READER | (v10) reader from a name, pin two, compare with lineup impact |
 | V-FEED | (v10) second visit lists status changes; My players counts |
 | V-SPECIAL | (v10, R3) Kicker and D/ST boards in Lineup; free-agent gains equal the Waivers engine; no PAY/WAIT/STREAM |
+| V-PLAYERS | (v10, R3) Players filters (position, owner, search), expand, defaults reset on league change |
+| V-TEAM | (v10, R3) Team: strength ranks, depth, byes, roster with Sleeper slots |
 
 The v10 checks open `/?ui=v10#…`; run them with `--suite v10`. Scenario `w7-tuesday` (R2) uses the Sunday
 Week 7 capture with Thursday's Week 6 capture as fallback (processed FAAB claims), the frozen Thursday projections

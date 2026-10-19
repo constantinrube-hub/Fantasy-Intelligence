@@ -12,7 +12,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.2.0';
+const VERSION='10.3.0';
 const SLEEPER='https://api.sleeper.app/v1';
 const W=()=>window;
 const P=()=>W().FIE_UI_POLICY||{};
@@ -82,6 +82,15 @@ async function waivers(entry,{week=null,market=false,limit=null,pids=null}={}){
   let mkt=null;
   if(market){const tx=await transactions(id,wm.key.week);mkt=W().FIEWaivers.market({league,rosters,users,transactions:tx,positionOf:pid=>wm.player(pid)?.position||cat.get(String(pid))?.position,nameOf:pid=>wm.player(pid)?.name||cat.get(String(pid))?.full_name||pid,managedRosterId:wm.key.rosterId});}
   return{wm,result,market:mkt};
+}
+/** Everything a league view needs beyond the WeekModel (R3: Players, Team, Trades): live rosters/users, this week's
+ *  projection rows, the waiver horizon, schedule, catalog and Sleeper season rows (ADP + stat line). Cached like model(). */
+async function inputs(entry,{week=null}={}){
+  const wm=await model(entry,{week}),id=wm.key.leagueId,base=`${SLEEPER}/league/${id}`;
+  const n=Number(P().waivers?.horizon_weeks)||3;
+  const [league,rosters,users,proj,hz,sched,cat,adp]=await Promise.all([json(base,{ttlMs:ttl('league',3600),sourceId:'v10-league',live:true}),json(`${base}/rosters`,{ttlMs:ttl('rosters',300),sourceId:'v10-rosters',live:true}),json(`${base}/users`,{ttlMs:ttl('league',3600),sourceId:'v10-users',live:true}),
+    projections(wm.key.season,wm.key.week),horizon(wm.key.season,wm.key.week,n),schedule(),catalog(),seasonAdp(wm.key.season)]);
+  return{wm,league,rosters,users,projRows:proj.rows,horizon:hz,schedule:sched,catalog:cat,adp,seasonRows:adp,season:wm.key.season};
 }
 function savedLeagues(){try{const x=JSON.parse(localStorage.getItem('fieSavedLeaguesV71')||'[]');return Array.isArray(x)?x:[];}catch{return [];}}
 async function leagues(){
@@ -158,5 +167,5 @@ function refresh(){forceGen++;models.clear();shared.proj.clear();}
 /** Matchups of any week for one league (review, results). */
 async function matchups(id,week){return json(`${SLEEPER}/league/${id}/matchups/${week}`,{ttlMs:ttl('matchups',600),sourceId:'v10-matchups',live:true}).catch(()=>[]);}
 function lastFetch(){return Math.max(0,...fetchedAt.values());}
-window.FIEV10Data={VERSION,leagues,model,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
+window.FIEV10Data={VERSION,leagues,model,inputs,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
 })();

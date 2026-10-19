@@ -392,6 +392,41 @@ check('V-SPECIAL', 'v10', 'WP3.5: Lineup shows a Kicker and a D/ST board (yours 
   } finally { await app.context.close(); }
 });
 
+check('V-PLAYERS', 'v10', 'WP3.2: Players tab — visible filters work (position, owner, horizon, search), defaults reset on league change, rows expand', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/players`) });
+  try {
+    const p = app.page; await p.waitForSelector('#fieV10 .v10-plrow', { timeout: 90000 });
+    const rows = () => p.$$eval('#fieV10 .v10-plrow > summary', xs => xs.map(x => x.innerText.replace(/\s+/g, ' ')));
+    const all = await rows();
+    await p.selectOption('#fieV10 select[data-v10-pf="pos"]', 'RB'); const rb = await rows();
+    await p.selectOption('#fieV10 select[data-v10-pf="own"]', 'FA'); const rbFa = await rows();
+    await p.fill('#fieV10 input[data-v10-pf="q"]', 'zzzz-nobody'); const none = await p.locator('#fieV10 .v10-plrow').count();
+    await p.fill('#fieV10 input[data-v10-pf="q"]', '');
+    await p.locator('#fieV10 .v10-plrow > summary').first().click(); const expand = await text(p, '#fieV10 .v10-plrow[open] .v10-xbody');
+    await p.screenshot({ path: path.join(OUT, 'V-PLAYERS.png'), fullPage: false });
+    await p.evaluate(id => { location.hash = `#/league/${id}/players`; }, L.dynastySF); await p.waitForFunction(id => document.querySelector(`#fieV10 [data-v10-league="${id}"] .v10-plrow`), L.dynastySF, { timeout: 90000 });
+    const reset = await p.$eval('#fieV10 select[data-v10-pf="pos"]', e => e.value) === 'ALL' && await p.$eval('#fieV10 select[data-v10-pf="own"]', e => e.value) === 'ALL';
+    const pass = all.length === 50 && rb.length > 0 && rb.every(r => /\bRB · /.test(r)) && rbFa.length > 0 && rbFa.every(r => /free agent/.test(r) && /\bRB · /.test(r)) && none === 0
+      && /Source|Projection|range/i.test(expand) && reset && app.errors.length === 0;
+    return { pass, detail: { first: all.slice(0, 3), rb: rb.slice(0, 2), rbFa: rbFa.slice(0, 2), none, expand: expand.slice(0, 200), reset, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
+check('V-TEAM', 'v10', 'WP3.3: Team tab — position strength with ranks, depth/thin, byes, roster with real Sleeper slots', async ({ browser, origin }) => {
+  const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/team`) });
+  try {
+    const p = app.page; await p.waitForSelector('#fieV10 .v10-card h2', { timeout: 90000 }); await p.waitForFunction(() => /Roster/.test(document.querySelector('#fieV10Main')?.innerText || ''), null, { timeout: 90000 });
+    const h2 = await p.$$eval('#fieV10 .v10-card h2', xs => xs.map(x => x.innerText.split('\n')[0]));
+    const tables = await p.$$eval('#fieV10 .v10-card table', ts => ts.map(t => [...t.querySelectorAll('tbody tr')].map(tr => [...tr.children].map(td => td.innerText.trim()))));
+    const strength = tables[0] || [], roster = tables[tables.length - 1] || [];
+    const slots = roster.map(r => r[0]);
+    await p.screenshot({ path: path.join(OUT, 'V-TEAM.png'), fullPage: true });
+    const pass = ['Team strength', 'Depth', 'Byes', 'Roster'].every(x => h2.some(h => h.startsWith(x))) && strength.length >= 4 && strength.every(r => /^\d+\/\d+$/.test(r[2]))
+      && slots.includes('QB') && slots.includes('BN') && slots.some(s => s === 'FLEX') && app.errors.length === 0;
+    return { pass, detail: { h2, strength, rosterSlots: slots, errors: app.errors.slice(0, 5) } };
+  } finally { await app.context.close(); }
+});
+
 check('V-REVIEW', 'v10', 'A-23/§5.13: a past week shows submitted vs projection-best vs hindsight-best on actual points', async ({ browser, origin }) => {
   const app = await openApp(browser, origin, 'w7-tuesday', { path: V10(`#/league/${L.redraft}/lineup?week=5`) });
   try {

@@ -3,6 +3,8 @@
  *   · WP3.7 waiver horizon with injured players: last-game carry-over (72 h guard), Sleeper decides returns in
  *     later weeks, IR-slot players rejoin the pool, injured starters are never suggested as drops, fill-in label
  *     with a causal check, "if he stays out" gain, long_term_zero override.
+ *   · WP3.2/3.3 Players and Team (FIETeamViews): owners equal rosters, values equal the Lineup's, position ranks,
+ *     depth = full re-optimisation, bye costs, real Sleeper slots, no season proxy for D/ST.
  * Later R3 work packages append their sections below.
  */
 'use strict';
@@ -22,7 +24,7 @@ const window = { state: {} };
 const ctx = vm.createContext({ window, console, Math, Number, String, Object, Array, Map, Set, JSON, Date, Intl });
 for (const f of ['app/generated/runtime-contracts.js', 'app/core/core-services.js', 'app/generated/ui-decision-policy.js', 'app/core/status.js', 'app/core/projection-service.js',
   'app/core/scoring-core.js', 'app/core/distribution.js', 'app/core/game-state.js', 'app/core/week-model.js', 'app/core/alerts.js',
-  'app/core/waivers.js', 'app/core/review.js', 'app/core/portfolio.js']) vm.runInContext(read(f), ctx, { filename: f });
+  'app/core/waivers.js', 'app/core/review.js', 'app/core/portfolio.js', 'app/core/team-views.js']) vm.runInContext(read(f), ctx, { filename: f });
 const w = window;
 const pmap = rows => new Map((rows || []).map(r => [String(r.player_id), r]));
 const schedule = w.FIEGameState.index(W6.raw('https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv'));
@@ -120,6 +122,34 @@ const results = {};
   }
   assert.ok(leagues >= 5 && fills.length >= 1 && inflated >= 1, `fill-ins found (${fills.length}) in ${leagues} constructed leagues`);
   results.fillIn = `${fills.length} fill-ins in ${leagues} leagues, e.g. ${fills[0]}`;
+}
+
+/* 4 · Players and Team (WP3.2/3.3) on every captured league */
+{
+  let leagues = 0, players = 0, thin = 0;
+  for (const id of ids) {
+    const wm = model(W6, id), rosters = W6.J(`${L(id)}/rosters`), mine = rosters.find(r => r.roster_id === myRoster(W6, id));
+    if (!(mine.players || []).length) continue; leagues++;
+    const inp = { wm, rosters, projRows: p6, horizon: [{ week: 6, projRows: p6 }, { week: 7, projRows: p7 }], schedule, catalog, season: 2026, seasonRows: adp, adp };
+    const pl = w.FIETeamViews.players(inp), rostered = new Map();
+    for (const r of rosters) for (const k of ['players', 'reserve', 'taxi']) for (const x of r[k] || []) if (!rostered.has(String(x))) rostered.set(String(x), r.roster_id);
+    for (const r of pl.rows) { players++;
+      assert.strictEqual(r.fa, !rostered.has(r.pid), `${id} ${r.name}: free agent ⇔ on no roster`);
+      if (!r.fa) assert.strictEqual(r.mine, rostered.get(r.pid) === mine.roster_id, `${id} ${r.name}: "yours" ⇔ on my roster`);
+      const p = wm.player(r.pid); assert.ok(Math.abs((r.week ?? 0) - (p.status.unavailable ? 0 : (p.active.value ?? 0))) < 0.006, `${id} ${r.name}: this week's value equals the Lineup's`);
+      assert.ok(Math.abs(r.next - r.values.reduce((a, v) => a + (v ?? 0), 0)) < 0.02, `${r.name}: horizon sum`); }
+    const t = w.FIETeamViews.team(inp);
+    for (const x of t.strength) assert.ok(x.rank >= 1 && x.rank <= x.of && x.points <= x.best + 1e-9, `${id} ${x.position}: rank ${x.rank}/${x.of}`);
+    for (const d of t.depth) { if (d.recovered !== null) assert.ok(d.recovered >= 0 && d.recovered <= 1, `${d.name}: recovered share`);
+      const c = wm.lineupContext(d.pid); if (c && c.role === 'starter') assert.ok(Math.abs(d.loss + c.delta) < 0.006, `${d.name}: loss = lineup context`); }
+    for (const b of t.byes) assert.ok(b.cost >= -1e-9, `${id} W${b.week}: bye cost ≥ 0`);
+    assert.strictEqual(t.roster.filter(r => !['BN', 'IR', 'TAXI'].includes(r.slot)).length, wm.me.submitted.filter(e => e.p).length, `${id}: starters keep their Sleeper slots`);
+    assert.strictEqual(t.roster.filter(r => r.slot === 'IR').length, (mine.reserve || []).length, `${id}: IR slots`);
+    assert.ok(t.roster.filter(r => r.position === 'DEF').every(r => r.ros === null), `${id}: no season-per-game proxy for D/ST (bucket scoring)`);
+    thin += t.thin.length;
+  }
+  assert.ok(leagues >= 15 && players > 3000, `players/team on ${leagues} leagues, ${players} player rows`);
+  results.team = `players/team on ${leagues} leagues (${players} rows, ${thin} thin positions)`;
 }
 
 console.log(`UI v10 R3: PASS (${Object.values(results).join(' · ')})`);

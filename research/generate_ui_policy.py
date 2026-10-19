@@ -34,6 +34,9 @@ def validate(policy: dict) -> None:
         for pos, q in v.get('calibration', {}).get('positions', {}).items():
             assert 0 <= q['p10'] < q['p50'] < q['p90'], f'{pos}: p10 < p50 < p90'
             assert q['n'] >= 30, f'{pos}: calibration needs at least 30 observations'
+    tm = policy.get('team', {})
+    if tm:
+        assert 0 < tm['thin_recovery'] < 1, 'team.thin_recovery is a share of the starter\'s points (0-1)'
     w = policy.get('waivers', {})
     if w:
         assert 1 <= w['horizon_weeks'] <= 6, 'waiver horizon 1-6 weeks'
