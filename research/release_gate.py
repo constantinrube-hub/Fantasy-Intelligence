@@ -31,6 +31,7 @@ def main():
   run(['node','research/integrity_v10_r2_test.js']),
   run(['node','research/integrity_v10_r3_test.js']),
   run(['node','research/integrity_v10_r4_test.js']),
+  run(['node','research/integrity_v10_r5_test.js']),
   run([sys.executable,'research/integrity_structural_profile_test.py']),
   run([sys.executable,'research/integrity_release_versions_test.py']),
   run([sys.executable,'research/integrity_dist_hygiene_test.py']),

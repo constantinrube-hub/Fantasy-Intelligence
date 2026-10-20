@@ -365,9 +365,9 @@ check('V-WAIVERS', 'v10', 'A-24/A-25/§5.12: Waivers rank free agents by lineup 
     const expand = await text(app.page, '#fieV10 .v10-wrow[open] .v10-xbody');
     await app.page.screenshot({ path: path.join(OUT, 'V-WAIVERS.png'), fullPage: true });
     const counts = info.perPos.reduce((m, p) => (m[p] = (m[p] || 0) + 1, m), {});
-    const noClaim = info.rows.every(r => !/\bCLAIM\b|\$\d/.test(r));
+    const noClaim = info.rows.every(r => !/\bCLAIM\b/.test(r) && (!/\$\d/.test(r) || /\$\d+–\d+/.test(r))); // R5.1: a bid RANGE is allowed, never a claim
     const pass = info.rows.length > 0 && noClaim && Object.values(counts).every(n => n <= 3) && /Replaces/.test(expand) && /budget/i.test(expand)
-      && info.cards.some(c => /Last waiver run/.test(c)) && info.cards.some(c => /FAAB budgets/.test(c)) && app.errors.length === 0;
+      && info.cards.some(c => /This week's waiver runs|Last waiver run/.test(c)) && info.cards.some(c => /FAAB budgets/.test(c)) && app.errors.length === 0;
     return { pass, detail: { rows: info.rows.slice(0, 6), perPosition: counts, cards: info.cards, expand: expand.slice(0, 400), errors: app.errors.slice(0, 5) } };
   } finally { await app.context.close(); }
 });
@@ -422,7 +422,7 @@ check('V-TEAM', 'v10', 'WP3.3: Team tab — position strength with ranks, depth/
     const strength = tables[0] || [], roster = tables[tables.length - 1] || [];
     const slots = roster.map(r => r[0]);
     await p.screenshot({ path: path.join(OUT, 'V-TEAM.png'), fullPage: true });
-    const pass = ['Team strength', 'Depth', 'Byes', 'Roster'].every(x => h2.some(h => h.startsWith(x))) && strength.length >= 4 && strength.every(r => /^\d+\/\d+$/.test(r[2]))
+    const pass = ['Team strength', 'Depth', 'Byes', 'Roster'].every(x => h2.some(h => h.startsWith(x))) && strength.length >= 4 && strength.every(r => /^\d+$/.test(r[1]) && /^\d+\/\d+$/.test(r[3])) /* R5.6: Position · Top-N · Your pts · Rank */
       && slots.includes('QB') && slots.includes('BN') && slots.some(s => s === 'FLEX') && app.errors.length === 0;
     return { pass, detail: { h2, strength, rosterSlots: slots, errors: app.errors.slice(0, 5) } };
   } finally { await app.context.close(); }
@@ -521,7 +521,7 @@ check('V-READER', 'v10', 'A-22/WP2.2: one player reader from any name; pin up to
   } finally { await app.context.close(); }
 });
 
-check('V-FEED', 'v10', 'A-26/WP2.5: second visit shows status changes since the first; My players counts are listed', async ({ browser, origin }) => {
+check('V-FEED', 'v10', 'A-26/WP2.5: second visit shows status changes since the first; the exposure table (R5.3) is listed', async ({ browser, origin }) => {
   // Visit 1 on the Thursday Week 6 capture, visit 2 (same browser profile) on the Sunday Week 7 capture.
   const app = await openApp(browser, origin, 'w6-pregame', { path: V10() });
   try {
@@ -534,10 +534,10 @@ check('V-FEED', 'v10', 'A-26/WP2.5: second visit shows status changes since the 
     await page2.goto(origin + V10(), { waitUntil: 'load' });
     await overviewReady(page2);
     const feed = await text(page2, '#fieV10 #v10Feed'), mp = await text(page2, '#fieV10 .v10-mphead');
-    const mpHead = await page2.$$eval('#fieV10 .v10-card h2', hs => hs.map(h => h.innerText).find(t => /My players/.test(t)) || '');
+    const mpHead = await page2.$$eval('#fieV10 .v10-card h2', hs => hs.map(h => h.innerText).find(t => /Exposure this week/.test(t)) || '');
     await page2.screenshot({ path: path.join(OUT, 'V-FEED.png'), fullPage: true });
     const items = (feed.match(/→/g) || []).length;
-    const pass = /First visit/.test(firstFeed) && items > 0 && /\d+ players · \d+ starting slots/.test(mpHead) && /Starts/.test(mp) && app.errors.length === 0;
+    const pass = /First visit/.test(firstFeed) && items > 0 && /\d+ rostered players · \d+ of your starting slots/.test(mpHead) && /Started by me/.test(mp) && /Started vs me/.test(mp) && app.errors.length === 0;
     return { pass, detail: { firstFeed: firstFeed.slice(0, 160), feed: feed.slice(0, 600), statusChanges: items, myPlayers: mpHead, errors: app.errors.slice(0, 5) } };
   } finally { await app.context.close(); }
 });
