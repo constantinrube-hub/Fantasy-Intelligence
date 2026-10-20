@@ -142,6 +142,8 @@ simulation guards, refresh cadence, to-do columns, FAAB context, byes this week;
 `node research/integrity_v10_r5_test.js` (R5: bid ranges incl. the Weeks 3–6 backtest on the auction-history capture
 `target_week_07/20261020T175951784034Z`, waiver runs, exposure, opponent mode, team strength top-N, depth, deciles,
 wiring). Research: `node research/v10_bid_backtest.js` (bid range coverage, `--own-only` for the own-league baseline).
+`node research/integrity_v10_r6_test.js` (R6: v10 season simulation — Σ playoff = playoff teams, Σ title = 1, rank
+distributions, determinism, Best Ball not degenerate, chopped survival monotone, schedule pairs, samplers, wiring).
 The whole replay (`--suite all`) has 27 checks after R3: classic 10, v10 17. Classic checks open `/?ui=classic` explicitly (they keep testing classic when
 `default_ui` becomes `v10`); v10 checks open `/?ui=v10#…`.
 

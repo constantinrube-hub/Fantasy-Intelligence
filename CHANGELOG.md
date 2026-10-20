@@ -1,3 +1,20 @@
+# UI v10 · R6 Season simulation (preview), 2026-10-21
+
+Release R6 of the UI v10 plan (your decision of 20 Oct: v10-native engine instead of patching the classic one).
+
+- **New `app/core/season-sim.js`** (FIESeasonSim 10.6.0; `index.html`, manifest `v10_season_sim`): seeded Monte Carlo over
+  the rest of the season from the WeekModel's inputs — calibrated tier deciles, Sleeper schedule, median games,
+  playoff bracket with byes, chopped eliminations, Best Ball lineups on sampled scores. Outputs playoff / bye / title /
+  rank distribution / expected wins and a "why" panel (record, remaining games, weekly score, remaining opponents,
+  wins needed for 75 %); chopped survival by week, win league, expected elimination.
+- **`app/v10/v10-data.js` 10.6.0** `seasonSim()` / `simCached()` (per league and week, session cache);
+  `app/core/team-views.js` exports `rosPerGame`.
+- **`app/v10/v10-league.js` 10.6.0**: "Simulate the rest of the season" fills the standings columns and an expandable
+  details table (rank heat strip); the classic engine remains a comparison button. **`app/v10/v10-waivers.js` 10.6.0**:
+  FAAB table shows survival / playoff odds after a run. `app/v10/v10.css`: heat strip.
+- **Tests / docs**: `research/integrity_v10_r6_test.js` (gate, 180 s; manifest), `UI_CONTRACT.md §7.2c`, `§9`,
+  `TESTING.md`.
+
 # UI v10 · R5 Decide better (preview), 2026-10-21
 
 Release R5 of the UI v10 plan (`FIE_V10_FEEDBACK_PLAN_2026-10-20.md`, your decisions of 20 Oct). Still opt-in behind

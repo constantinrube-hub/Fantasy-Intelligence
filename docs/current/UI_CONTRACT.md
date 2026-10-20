@@ -246,6 +246,23 @@ reaches `team.thin_recovery` (policy, 0.25; S6). (3) **Byes** in the later horiz
 | Compare (R5.7) | Outcome curve P10…P90 per pinned player (inline SVG) from `range.deciles`: position × projection tier (policy `variance.calibration.tiers`, WP-V1 Weeks 1–6, tercile edges), labelled as such; `variance.calibration.player_level` switches to per-player deciles when they exist (backlog). The win-estimate range stays position-level P10/P90. Projection breakdown: Sleeper's stat line × league scoring per stat (`FIEScoringCore.breakdown`) |
 | Lab forecasts (R5.7) | Week picker over the live week and the next two; a week is selectable once Sleeper has published projections for it |
 
+### 7.2c R6 v10 season simulation (21 Oct 2026)
+
+`app/core/season-sim.js › FIESeasonSim.simulate` (pure, seeded, yields to the browser), data `FIEV10Data.seasonSim`
+(inputs of the WeekModel; cached per league and week for the session). Replaces the classic engine call on Matchup /
+Field (the classic engine stays as a small "classic engine" comparison button, with the R4 guards).
+
+| Item | Rule |
+|---|---|
+| Teams | Active rosters (chopped: teams still in the field), roster without IR/taxi; record and points from Sleeper |
+| Player value per week | This week = WeekModel value (status-adjusted); published later weeks = Sleeper's projection for that week (`FIEWaivers.futureValuer`); unpublished weeks = this week's projection, or the season projection per game when he is out this week but not long-term; byes 0; IR/PUP/Suspended/NA 0 |
+| Spread | Deciles by position × projection tier (policy `variance.calibration.tiers`) as an inverse CDF with linear tails; K/D/ST/IDP: normal from the rule-of-thumb range |
+| Lineups | Non-Best-Ball: best lineup by base value (fixed before the week), starters' scores sampled; Best Ball: best lineup of the sampled values (greedy, specific slots before flex) |
+| Schedule | Sleeper matchup pairs per week where published, random pairing otherwise (shown: "schedule known for X of Y weeks"); median games; seeding by wins (ties ½), then points; bracket over `playoff_week_start` + ⌈log₂ teams⌉ weeks with byes for top seeds |
+| Chopped | Lowest team(s) of each week eliminated (count = eliminations so far ÷ chopped weeks, ≥ 1) until one remains |
+| Output | H2H: Playoffs, Bye, Title, expected wins, final-rank distribution, **why**: record now, remaining games, weekly score mean ± sd, average remaining opponent, wins needed for 75 % playoff odds. Chopped: survival per week (this week first), win league, expected elimination week, weekly score. FAAB table shows survival / playoff odds once a simulation ran |
+| Limits (shown) | Independent player scores (no game/team correlation); rosters as today (no waivers, trades, chopped redistribution); unpublished weeks reuse this week's projections. Iterations 3 000 (H2H) / 2 000 (chopped), deterministic per league + week |
+
 ### 7.3 Research Lab v1 (R3 · WP3.1)
 
 Route `#/lab/<state|eval|forecasts|rankings|docs>?league=<id>` (`app/v10/v10-lab.js`, computations
@@ -367,7 +384,8 @@ Best Ball: submitted = hindsight by definition. A week without non-zero points i
 | v10 R4 contracts (lineup changes per slot, Best Ball bench, adds disabled, chopped results, simulation guards, refresh cadence, to-do columns, FAAB context, byes this week) | `node research/integrity_v10_r4_test.js` |
 | v10 R5 contracts (bid ranges + backtest, waiver runs, exposure, opponent mode, team strength top-N, depth, deciles, wiring) | `node research/integrity_v10_r5_test.js` |
 | Bid range backtest (research, read-only) | `node research/v10_bid_backtest.js [--from 3 --to 6] [--own-only] [--json]` |
+| v10 R6 season simulation (consistency, determinism, Best Ball not degenerate, chopped survival, schedule, samplers, wiring) | `node research/integrity_v10_r6_test.js` |
 | WP-V1 spread measurement (research, read-only) | `python research/wpv1_measure_spread.py --weeks 1-5 [--check] [--tiers]` |
 | Browser replay on immutable captures | `node research/ui_replay/run.js --dist dist --suite all` (classic 10, v10 17 checks; see `TESTING.md`) |
 
-All eight integrity checks run in `research/release_gate.py`.
+All nine integrity checks run in `research/release_gate.py`.
