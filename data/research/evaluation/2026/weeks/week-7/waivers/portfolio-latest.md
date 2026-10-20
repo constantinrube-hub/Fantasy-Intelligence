@@ -1,6 +1,6 @@
 # FIE Window 1D Waiver Plan · Week 7
 
-Generated: `2026-10-20T16:36:50.236101+00:00`
+Generated: `2026-10-20T21:36:02.323250+00:00`
 
 Research-only decision support. M9 production and canonical rankings are unchanged.
 
@@ -20,7 +20,7 @@ Portfolio readiness is not proof of model activation, complete position coverage
 
 ### Chopped - Drive 🏉 Football League · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.86 h**.
+Input week: **7**; target: **7**; snapshot age: **0.9 h**.
 Governed waiver eligible rows: **351**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -38,7 +38,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### 🪓 MinusPPR Knockout · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.466 h**.
+Input week: **7**; target: **7**; snapshot age: **0.482 h**.
 Governed waiver eligible rows: **128**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -56,7 +56,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Guillotine - last team standing · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.404 h**.
+Input week: **7**; target: **7**; snapshot age: **0.418 h**.
 Governed waiver eligible rows: **351**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -74,7 +74,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### The Hunger Games · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.342 h**.
+Input week: **7**; target: **7**; snapshot age: **0.353 h**.
 Governed waiver eligible rows: **351**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -92,7 +92,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Ultimate ITN Chopped League · CHOPPED · NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY
 
-Input week: **7**; target: **7**; snapshot age: **0.281 h**.
+Input week: **7**; target: **7**; snapshot age: **0.289 h**.
 Governed waiver eligible rows: **351**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -110,7 +110,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY
 
 ### 🪓 The Final Cut · CHOPPED · NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY
 
-Input week: **7**; target: **7**; snapshot age: **0.25 h**.
+Input week: **7**; target: **7**; snapshot age: **0.258 h**.
 Governed waiver eligible rows: **351**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -128,7 +128,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY
 
 ### 🪓 Among Us Guillotine 3 · CHOPPED_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.22 h**.
+Input week: **7**; target: **7**; snapshot age: **0.226 h**.
 Governed waiver eligible rows: **351**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -146,7 +146,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Dynasty 29 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.89 h**.
+Input week: **7**; target: **7**; snapshot age: **0.932 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -164,7 +164,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### ReDraft – Pro 🎯 XVI Football  · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.829 h**.
+Input week: **7**; target: **7**; snapshot age: **0.868 h**.
 Governed waiver eligible rows: **500**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -182,7 +182,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Dynasty - Prime 💎 XVI Football  · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.798 h**.
+Input week: **7**; target: **7**; snapshot age: **0.835 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -200,7 +200,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### BestBall - Pro 🎖️XVI League · REDRAFT_BESTBALL · NOT_APPLICABLE_ADDS_DISABLED
 
-Input week: **7**; target: **7**; snapshot age: **0.768 h**.
+Input week: **7**; target: **7**; snapshot age: **0.803 h**.
 Governed waiver eligible rows: **500**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -218,7 +218,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ADDS_DISABLED`
 
 ### BestBall - Prime 🏆 XVI League · REDRAFT_BESTBALL · NOT_APPLICABLE_ADDS_DISABLED
 
-Input week: **7**; target: **7**; snapshot age: **0.737 h**.
+Input week: **7**; target: **7**; snapshot age: **0.77 h**.
 Governed waiver eligible rows: **500**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -236,7 +236,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ADDS_DISABLED`
 
 ### Crazy tryhards · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.706 h**.
+Input week: **7**; target: **7**; snapshot age: **0.737 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -254,7 +254,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Genesis Dynasty - sixteen now & for the future · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.675 h**.
+Input week: **7**; target: **7**; snapshot age: **0.704 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -272,7 +272,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack IDP Dynasty 39 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.645 h**.
+Input week: **7**; target: **7**; snapshot age: **0.671 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -290,7 +290,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball Dynasty 4 · DYNASTY_BESTBALL · NOT_APPLICABLE_ADDS_DISABLED
 
-Input week: **7**; target: **7**; snapshot age: **0.614 h**.
+Input week: **7**; target: **7**; snapshot age: **0.637 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -308,7 +308,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ADDS_DISABLED`
 
 ### Stoned Lack Dynasty 30 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.585 h**.
+Input week: **7**; target: **7**; snapshot age: **0.606 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -326,7 +326,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball Dynasty 3 · DYNASTY_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.555 h**.
+Input week: **7**; target: **7**; snapshot age: **0.573 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -344,7 +344,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball 2 · DYNASTY_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.526 h**.
+Input week: **7**; target: **7**; snapshot age: **0.542 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -362,7 +362,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Genesis NFL GM League Dynasty 2025 4 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.497 h**.
+Input week: **7**; target: **7**; snapshot age: **0.513 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -380,7 +380,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### German Football League · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.435 h**.
+Input week: **7**; target: **7**; snapshot age: **0.45 h**.
 Governed waiver eligible rows: **500**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -398,8 +398,8 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### SLR2026 - Liga 38 · REDRAFT · READY
 
-Input week: **7**; target: **7**; snapshot age: **0.373 h**.
-Governed waiver eligible rows: **592**.
+Input week: **7**; target: **7**; snapshot age: **0.386 h**.
+Governed waiver eligible rows: **593**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
 
@@ -416,20 +416,20 @@ FAAB remaining: **98.0 / 100.0**
 
 | Player | Pos | Add→Drop signal | Bid | Range | Win P | Confidence |
 |---|---:|---:|---:|---:|---:|---|
-| CAR D/ST | DEF | 0.38675 | 5 | 2–10 | 0.956522 | MEDIUM |
-| CLE D/ST | DEF | 0.3853 | 5 | 2–10 | 0.956522 | MEDIUM |
-| TEN D/ST | DEF | 0.366275 | 5 | 2–10 | 0.956522 | MEDIUM |
-| DAL D/ST | DEF | 0.29725 | 5 | 2–9 | 0.956522 | MEDIUM |
-| MIA D/ST | DEF | 0.143125 | 2 | 2–5 | 0.913043 | MEDIUM |
-| Wil Lutz | K | 0.113625 | 1 | 1–2 | 0.944444 | MEDIUM |
-| Jake Bates | K | 0.062675 | 1 | 1–1 | 0.944444 | MEDIUM |
-| Cairo Santos | K | 0.0428 | 1 | 1–1 | 0.944444 | MEDIUM |
-| Evan McPherson | K | 0.0271 | 1 | 1–1 | 0.944444 | MEDIUM |
-| Jason Sanders | K | 0.019925 | 1 | 0–1 | 0.944444 | MEDIUM |
+| Evan McPherson | K | 1.4938 | 1 | 1–6 | 0.944444 | MEDIUM |
+| Lenny Krieg | K | 1.3161 | 1 | 1–6 | 0.944444 | MEDIUM |
+| Wil Lutz | K | 1.221825 | 1 | 1–5 | 0.944444 | MEDIUM |
+| Harrison Butker | K | 1.0935 | 1 | 1–5 | 0.944444 | MEDIUM |
+| Jake Bates | K | 1.085975 | 1 | 1–5 | 0.944444 | MEDIUM |
+| Jake Moody | K | 1.014775 | 1 | 1–4 | 0.944444 | MEDIUM |
+| Blake Grupe | K | 0.8973 | 1 | 1–4 | 0.944444 | MEDIUM |
+| Harrison Mevis | K | 0.8973 | 1 | 1–4 | 0.944444 | MEDIUM |
+| Cairo Santos | K | 0.8473 | 1 | 1–4 | 0.944444 | MEDIUM |
+| Jason Sanders | K | 0.710725 | 1 | 1–3 | 0.944444 | MEDIUM |
 
 ### AEF - FFLeague · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **7**; target: **7**; snapshot age: **0.312 h**.
+Input week: **7**; target: **7**; snapshot age: **0.321 h**.
 Governed waiver eligible rows: **500**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
