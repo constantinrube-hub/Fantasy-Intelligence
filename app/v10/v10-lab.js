@@ -88,7 +88,7 @@ async function forecasts(lid,week=null){
   for(const id of ids){const p=wm.player(id);if(!p||!(p.active.value>=3)||!p.game?.opp)continue;const key=p.game.gameId||`${[p.team,p.game.opp].sort().join('-')}`;if(!games.has(key))games.set(key,{kickoff:p.game.kickoff,label:`${[p.team,p.game.opp].sort().join(' – ')}`,players:[]});games.get(key).players.push(p);}
   const list=[...games.values()].sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
   const own=wm.ownerOf;
-  return `<section class="v10-card"><h2>Forecasts ${picker} <span class="v10-muted">${k.esc(entry.name)} · rostered players projected ≥ 3 · league scoring</span></h2>
+  return `<section class="v10-card"><h2>Forecasts, Week ${k.esc(w)} ${picker} <span class="v10-muted">${k.esc(entry.name)} · rostered players projected ≥ 3 · league scoring</span></h2>
     <p class="v10-muted">Active = the value the app uses (Sleeper re-scored to this league). Sleeper = Sleeper's own published total (its default scoring). Last 4 = average league-scored points in the last ${past.length} weeks this player was rostered here (Sleeper matchups; 0 if he did not play). FIE research (M10): not shown — the weekly research view is blocked (Model state).</p>
     ${list.map(g=>k.expand(`<b>${k.esc(g.label)}</b> <span class="v10-muted">${k.esc(k.time(g.kickoff))} · ${g.players.length} players</span>`,
       `<table class="v10-table"><thead><tr><th>Player</th><th>Owner</th><th class="v10-num">Active</th><th class="v10-num">Sleeper</th><th class="v10-num">Last 4</th><th class="v10-num">Active − last 4</th></tr></thead><tbody>${g.players.sort((a,b)=>b.active.value-a.active.value).map(p=>{const x=l4.get(p.pid),pub=p.alternatives?.[0]?.value??p.active.value,o=own(p.pid);

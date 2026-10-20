@@ -70,7 +70,7 @@ function curve(ps){const k=K(),xs=ps.filter(p=>p?.range?.deciles);if(!xs.length)
 function statTable(ps,wm){const k=K(),xs=ps.filter(p=>p?.stats);if(!xs.length)return '';
   const sc=wm.league.scoring||{},rows=xs.map(p=>new Map((window.FIEScoringCore.breakdown(p.stats,sc,p.position)||[]).filter(r=>Math.abs(r.points)>=0.05).map(r=>[r.key,r]))),keys=[...new Set(rows.flatMap(m=>[...m.keys()]))];
   keys.sort((a,b)=>Math.max(...rows.map(m=>Math.abs(m.get(b)?.points||0)))-Math.max(...rows.map(m=>Math.abs(m.get(a)?.points||0))));
-  return `<h3>Projection breakdown <span class="v10-muted">Sleeper stat line × ${k.esc(wm.entry.name)} scoring</span></h3><table class="v10-table v10-cmp"><thead><tr><th>Stat (points per unit)</th>${xs.map(p=>`<th class="v10-num">${k.esc(p.name)}</th>`).join('')}</tr></thead><tbody>
+  return `<h3>Projection breakdown <span class="v10-muted">Sleeper stat line × ${k.esc(wm.entry.name)} scoring</span></h3><table class="v10-table v10-cmpstats"><thead><tr><th>Stat (points per unit)</th>${xs.map(p=>`<th class="v10-num">${k.esc(p.name)}</th>`).join('')}</tr></thead><tbody>
     ${keys.map(key=>`<tr><td>${k.esc(key)} <span class="v10-muted">×${k.esc(rows.find(m=>m.get(key))?.get(key)?.weight)}</span></td>${rows.map(m=>{const r=m.get(key);return `<td class="v10-num">${r?`${k.pts(r.points)} <span class="v10-muted v10-small">(${k.esc(Math.round(r.stat*10)/10)})</span>`:'–'}</td>`;}).join('')}</tr>`).join('')}
     <tr><td><b>Total</b></td>${xs.map(p=>`<td class="v10-num"><b>${k.pts(p.active.value)}</b></td>`).join('')}</tr></tbody></table>`;}
 async function compare(){
