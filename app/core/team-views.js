@@ -125,5 +125,5 @@ function team(input){
   return{VERSION,strength,strengthCounts:N,totalRank,teams:perTeam.length,myTotal:round(mine?.total),medianTotal:round(median(perTeam.map(t=>t.total))),depth,thin,thinAt,byes,roster,
     weeks:(input.horizon||[]).map(h=>h.week),faBest:Object.fromEntries(Object.entries(faBest).map(([k,v])=>[k,{name:v.name,value:round(v.v)}]))};
 }
-window.FIETeamViews={VERSION,players,team,horizonValuer,strengthCounts};
+window.FIETeamViews={VERSION,players,team,horizonValuer,strengthCounts,rosPerGame};
 })();
