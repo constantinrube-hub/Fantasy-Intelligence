@@ -30,7 +30,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.4.0';
+const VERSION='10.5.0';
 const W=()=>window;
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function round(v,d=2){const n=num(v);return n===null?null:Math.round(n*10**d)/10**d;}
@@ -206,7 +206,7 @@ function build(input){
 }
 
 /** FAAB market and budgets from Sleeper transactions (all weeks so far) and rosters. */
-function market({league,rosters,users,transactions,positionOf,nameOf,managedRosterId,lastWeek=null}){
+function market({league,rosters,users,transactions,positionOf,nameOf,managedRosterId,lastWeek=null,since=null}){
   const s=league?.settings||{},faab=Number(s.waiver_type)===2,budget=num(s.waiver_budget)??0;
   const names={};const u=new Map((users||[]).map(x=>[String(x.user_id),x]));for(const r of rosters||[]){const x=u.get(String(r.owner_id));names[r.roster_id]=x?.metadata?.team_name||x?.display_name||x?.username||`Roster ${r.roster_id}`;}
   const tx=(transactions||[]).filter(Boolean);
@@ -227,7 +227,12 @@ function market({league,rosters,users,transactions,positionOf,nameOf,managedRost
     return{rosterId:Number(r.roster_id),team:names[r.roster_id],used,remaining:Math.max(0,budget-used),active:(r.players||[]).length>0,mine:Number(r.roster_id)===Number(managedRosterId),
       avgPoints:weeks>0?round(pf/weeks,1):null,lastWeekRank:lwRank(r.roster_id),lastWeekTeams:lw.length||null};}).sort((a,b)=>b.remaining-a.remaining);
   const mine=budgets.find(b=>b.mine)||null,actives=budgets.filter(b=>b.active).map(b=>b.remaining);
-  return{faab,budget,byPosition,lastRun,lastRunAt:lastAt||null,budgets,mine,medianRemaining:round(quantile(actives,.5),0),waiverType:num(s.waiver_type)};
+  // R5.2 · This week's waiver runs: every waiver claim since the previous week's last game, grouped by processing time
+  // (gap > 1 h = new run), the main run (most claims) first — "last run" alone hid the main run behind later small ones.
+  const fmt=t=>({rosterId:Number(t.roster_ids?.[0]),team:names[t.roster_ids?.[0]]||'',status:t.status,bid:num(t.settings?.waiver_bid),mine:(t.roster_ids||[]).map(Number).includes(Number(managedRosterId)),note:t.metadata?.notes||null,
+    adds:Object.keys(t.adds||{}).map(pid=>({pid,name:nameOf(pid),position:positionOf(pid)})),drops:Object.keys(t.drops||{}).map(pid=>({pid,name:nameOf(pid),position:positionOf(pid)})),at:num(t.status_updated)});
+  const weekRuns=since!==null&&W().FIEBids?W().FIEBids.runs({transactions:tx,since}).map(r=>({at:r.at,items:r.items.map(fmt).sort((a,b)=>(a.status==='complete'?0:1)-(b.status==='complete'?0:1)||(b.bid??0)-(a.bid??0))})):null;
+  return{faab,budget,byPosition,lastRun,lastRunAt:lastAt||null,weekRuns,since,budgets,mine,medianRemaining:round(quantile(actives,.5),0),waiverType:num(s.waiver_type)};
 }
 window.FIEWaivers={VERSION,build,market,quantile,futureValuer};
 })();

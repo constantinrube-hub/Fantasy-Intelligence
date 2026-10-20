@@ -28,7 +28,7 @@ function waiverAlert(wv,base,policy){
   // R4.4 · With only the current week published (most of the week), the horizon number is a one-week number: say so.
   const parts=wv.weeksAvailable<=1?[`+${fmt(top.gainWeek>0?top.gainWeek:top.gainHorizon)} this week${wk.length>1?` (W${wk[1]}${wk.length>2?`–W${wk[wk.length-1]}`:''} not published yet)`:''}`]
     :[top.gainWeek>0?`+${fmt(top.gainWeek)} this week`:null,`+${fmt(top.gainHorizon)} over ${span}${wv.weeksAvailable<wk.length?` (${wv.weeksAvailable} published)`:''}`].filter(Boolean);
-  return{...base,code:'WAIVER_ADD',tier:'recommended',playerId:top.pid,playerName:top.name,title:`Add ${top.name} (${top.position})${top.drop?` for ${top.drop.name}`:top.freeSpot?' (free roster spot)':''}`,
+  return{...base,code:'WAIVER_ADD',tier:'recommended',playerId:top.pid,playerName:top.name,position:top.position,dropName:top.drop?.name||null,freeSpot:!!top.freeSpot,title:`Add ${top.name} (${top.position})${top.drop?` for ${top.drop.name}`:top.freeSpot?' (free roster spot)':''}`,
     detail:parts.join(', '),gain:top.gainHorizon,lockAt:top.game?.kickoff??null,dedupKey:`${base.leagueId}:waiver`,route:'waivers'};
 }
 function bestFreeAgent(wv){const r=(wv?.rows||[]).find(x=>(x.gainWeek??0)>0);return r?`Best free agent: ${r.name} (${r.position}, +${fmt(r.gainWeek)} this week)`:null;}
@@ -99,7 +99,7 @@ function leagueTask(alerts){
   const issueParts=parts.map(x=>waiver&&x.startsWith(`waiver add ${waiver.playerName} `)?`waiver upgrade ${x.slice(`waiver add ${waiver.playerName} `.length)}`:x);
   // R4.7 · Separate "issue" and "proposed action" columns for the Overview to-do grid (League · Issue · Action · Lock).
   const outs=xs.filter(a=>['STARTER_UNAVAILABLE','STARTER_DOUBTFUL'].includes(a.code));
-  const actions=[...outs.map(a=>a.detail),empty?.detail,swap?`${swap.title} (${swap.detail.split(' · ')[0]})`:'',chop?'Maximise your lineup — see Field':'',draft?'Open the draft':'',waiver?waiver.title:''].filter(Boolean);
+  const actions=[...outs.map(a=>a.detail),empty?.detail,swap?`${swap.title} (${swap.detail.split(' · ')[0]})`:'',chop?'Maximise your lineup — see Field':'',draft?'Open the draft':'',waiver?(waiver.bidText||waiver.title):''].filter(Boolean);
   return{...first,code:'LEAGUE_TASKS',tier:first.tier==='monitor'?'monitor':first.tier,close:first.code==='CLOSE_CALL'&&xs.length===1,title:parts.join(' · '),issue:issueParts.join(' · '),action:[...new Set(actions)].join(' · '),items:xs,lockAt:earliest(xs.map(a=>a.lockAt)),gain:xs.reduce((s,a)=>s+(a.gain||0),0),dedupKey:`${first.leagueId}:tasks`};
 }
 /** Overview queue: one action row per league + monitor items grouped per player. */
