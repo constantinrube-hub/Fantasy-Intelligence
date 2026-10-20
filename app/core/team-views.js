@@ -17,7 +17,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.4.0';
+const VERSION='10.5.0';
 const W=()=>window;
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function round(v,d=2){const n=num(v);return n===null?null:Math.round(n*10**d)/10**d;}
@@ -33,6 +33,20 @@ function horizonValuer({wm,horizon,schedule,catalog,season,now=Date.now()}){
 /** Sleeper season projection per game in league scoring (rest-of-season proxy); null for D/ST (bucket scoring). */
 function rosPerGame(input,wm,pid){if(wm.player(pid)?.position==='DEF'||isTeamCode(pid))return null;
   const r=input.seasonRows?.get?.(String(pid));if(!r?.stats||!Object.keys(r.stats).some(k=>!/^(adp|pos_adp|gp)/.test(k)))return null;const p=wm.player(pid);const t=W().FIEScoringCore.score(r.stats,wm.league.scoring,p?.position);const gp=num(r.stats.gp)||17;return t===null?null:round(t/gp);}
+const canon=pos=>{const p=String(pos||'').toUpperCase();return p==='DE'||p==='DT'?'DL':p==='CB'||p==='S'?'DB':p==='DST'?'DEF':p;};
+/** R5.6 · Players counted per position for team strength (rules above). rosterPositions = Sleeper roster_positions. */
+function strengthCounts(rosterPositions){
+  const c={};for(const s of rosterPositions||[])c[String(s).toUpperCase()]=(c[String(s).toUpperCase()]||0)+1;const g=k=>c[k]||0,out={};
+  const add=(pos,n)=>{if(n>0)out[pos]=n;};
+  if(g('QB')+g('SUPER_FLEX')>0)add('QB',g('QB')+g('SUPER_FLEX')+1);
+  if(g('RB')+g('FLEX')+g('WRRB_FLEX')>0)add('RB',g('RB')+g('FLEX')+g('WRRB_FLEX'));
+  if(g('WR')+g('FLEX')+g('WRRB_FLEX')+g('REC_FLEX')>0)add('WR',g('WR')+g('FLEX')+g('WRRB_FLEX')+g('REC_FLEX'));
+  if(g('TE')+g('FLEX')+g('REC_FLEX')>0)add('TE',g('TE')+Math.ceil((g('FLEX')+g('REC_FLEX'))/2));
+  add('K',g('K'));add('DEF',g('DEF')+g('DST'));
+  const idpFlex=g('IDP_FLEX')>0,idp=(pos,ded,bonus)=>{if(ded>0)add(pos,ded+bonus);else if(idpFlex)add(pos,bonus);};
+  idp('DL',g('DL')+g('DE')+g('DT'),1);idp('LB',g('LB'),2);idp('DB',g('DB')+g('CB')+g('S'),1);
+  return out;
+}
 function owners(wm,rosters){const m=new Map();for(const r of rosters||[])for(const k of ['players','reserve','taxi'])for(const id of r[k]||[])if(!m.has(String(id)))m.set(String(id),{...wm.ownerOf(id)});return m;}
 
 function players(input){
@@ -57,10 +71,16 @@ function team(input){
     const o=O.optimize(pool,slots,p=>p.recValue),by={};
     for(const a of o.assignment||[]){const p=wm.player(a.playerId);if(!p)continue;by[p.position]=(by[p.position]||0)+(a.value??p.recValue??0);}
     return{rosterId:Number(r.roster_id),me:Number(r.roster_id)===Number(wm.key.rosterId),total:o.total,by};});
-  const positions=[...new Set(perTeam.flatMap(t=>Object.keys(t.by)))].sort((a,b)=>{const ord=['QB','RB','WR','TE','K','DEF','DL','LB','DB'];return (ord.indexOf(a)+99)%99-(ord.indexOf(b)+99)%99;});
-  const mine=perTeam.find(t=>t.me)||null;
-  const strength=positions.map(pos=>{const xs=perTeam.map(t=>t.by[pos]||0),my=mine?(mine.by[pos]||0):null;
-    return{position:pos,points:round(my),rank:my===null?null:1+xs.filter(x=>x>my+1e-9).length,of:xs.length,median:round(median(xs)),best:round(Math.max(...xs))};});
+  // R5.6 · Position strength = sum of each team's top-N players at the position by this week's value, with N fixed per
+  // league from its slots (user rules 20 Oct): QB = QB + SUPER_FLEX + 1; RB = RB + FLEX + WRRB_FLEX; WR = WR + FLEX +
+  // WRRB_FLEX + REC_FLEX; TE = TE + ⌈(FLEX + REC_FLEX) / 2⌉; K / DEF = slots; IDP: DL / DB = their slots + 1, LB = slots + 2
+  // (IDP_FLEX ignored; a position with no dedicated slot but IDP_FLEX counts 1, LB 2). Each position counts its own
+  // players only (a FLEX RB never counts for WR). Depth indices, not a lineup: the total rank stays the optimal lineup.
+  const N=strengthCounts(slots),mine=perTeam.find(t=>t.me)||null;
+  const pools=active.map(r=>{const off=new Set([...(r.reserve||[]),...(r.taxi||[])].map(String));return{rosterId:Number(r.roster_id),me:Number(r.roster_id)===Number(wm.key.rosterId),players:(r.players||[]).map(String).filter(id=>!off.has(id)).map(id=>wm.player(id)).filter(Boolean)};});
+  const topN=(pl,pos,n)=>pl.filter(p=>canon(p.position)===pos).map(p=>p.recValue||0).sort((a,b)=>b-a).slice(0,n).reduce((x,y)=>x+y,0);
+  const strength=Object.entries(N).map(([pos,n])=>{const xs=pools.map(t=>topN(t.players,pos,n)),meP=pools.find(t=>t.me),my=meP?topN(meP.players,pos,n):null;
+    return{position:pos,count:n,points:round(my),rank:my===null?null:1+xs.filter(x=>x>my+1e-9).length,of:xs.length,median:round(median(xs)),best:round(Math.max(...xs))};});
   const totalRank=mine?1+perTeam.filter(t=>t.total>mine.total+1e-9).length:null;
   // 2 · Depth per starter (current week, locks respected by WeekModel.lineupContext)
   const myPool=[...wm.me.submitted.map(e=>e.p),...wm.me.bench].filter(Boolean),uniq=[...new Map(myPool.map(p=>[p.pid,p])).values()];
@@ -74,7 +94,12 @@ function team(input){
   const depth=starters.map(({slot,p})=>{const c=wm.lineupContext(p.pid),v=p.recValue||0;
     const loss=c&&c.role==='starter'?-c.delta:null,recovered=loss===null||!(v>0)?null:Math.max(0,Math.min(1,(v-loss)/v));
     const fb=faBest[p.position],faRecovered=fb&&v>0?Math.max(0,Math.min(1,fb.v/v)):0;
-    return{pid:p.pid,name:p.name,position:p.position,slot,value:round(v),loss:round(loss),recovered:round(recovered,3),nextBest:c?.nextBest||null,faRecovered:round(faRecovered,3),bestFa:fb?{name:fb.name,value:round(fb.v)}:null};});
+    // R5.6 · Separate bench and free agent: best bench player at the same position, his share of this starter and of
+    // your WORST starter at the position (can the bench hold the weakest spot), best free agent likewise.
+    const sameStarters=starters.filter(x=>canon(x.p.position)===canon(p.position)).map(x=>x.p.recValue||0),worst=sameStarters.length?Math.min(...sameStarters):v;
+    const bb=uniq.filter(q=>!starters.some(x=>x.p.pid===q.pid)&&canon(q.position)===canon(p.position)).sort((a,b)=>(b.recValue||0)-(a.recValue||0))[0]||null,bv=bb?bb.recValue||0:0;
+    return{pid:p.pid,name:p.name,position:p.position,slot,value:round(v),loss:round(loss),recovered:round(recovered,3),nextBest:c?.nextBest||null,faRecovered:round(faRecovered,3),bestFa:fb?{name:fb.name,value:round(fb.v)}:null,
+      bench:bb?{name:bb.name,value:round(bv),vsStarter:v>0?round(Math.min(1,bv/v),3):null,vsWorst:worst>0?round(Math.min(1,bv/worst),3):null}:null,worstStarter:round(worst),faVsWorst:fb&&worst>0?round(Math.min(1,fb.v/worst),3):null};});
   const isThin=d=>d.recovered!==null&&d.value>=1&&Math.max(d.recovered,d.faRecovered)<thinAt;
   const thin=[...new Set(depth.filter(isThin).map(d=>d.position))].map(pos=>({position:pos,starters:depth.filter(d=>d.position===pos&&isThin(d)).map(d=>({name:d.name,recovered:d.recovered,nextBest:d.nextBest,faRecovered:d.faRecovered,bestFa:d.bestFa}))}));
   // 3 · Byes in the horizon: points lost if this week's values held (bye players → 0) — works before a week is published.
@@ -97,8 +122,8 @@ function team(input){
       gap:fb?round(v-fb.v):null,bestFa:fb?{name:fb.name,value:round(fb.v)}:null,inBest:starters.some(s=>s.p.pid===p.pid)};};
   const roster=[...wm.me.submitted.filter(e=>e.p).map(e=>entry(e.slot,e.p)),...wm.me.bench.filter(p=>!wm.me.submitted.some(e=>e.pid===p.pid)).map(p=>entry('BN',p)),
     ...wm.me.reserve.map(p=>entry('IR',p)),...wm.me.taxi.map(p=>entry('TAXI',p))];
-  return{VERSION,strength,totalRank,teams:perTeam.length,myTotal:round(mine?.total),medianTotal:round(median(perTeam.map(t=>t.total))),depth,thin,thinAt,byes,roster,
+  return{VERSION,strength,strengthCounts:N,totalRank,teams:perTeam.length,myTotal:round(mine?.total),medianTotal:round(median(perTeam.map(t=>t.total))),depth,thin,thinAt,byes,roster,
     weeks:(input.horizon||[]).map(h=>h.week),faBest:Object.fromEntries(Object.entries(faBest).map(([k,v])=>[k,{name:v.name,value:round(v.v)}]))};
 }
-window.FIETeamViews={VERSION,players,team,horizonValuer};
+window.FIETeamViews={VERSION,players,team,horizonValuer,strengthCounts};
 })();
