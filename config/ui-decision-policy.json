@@ -50,7 +50,22 @@
     "candidates_per_position": 12,
     "overview_candidates": 30,
     "dynasty_protect_adp": 150,
-    "long_term_zero": []
+    "long_term_zero": [],
+    "bids": {
+      "own": 1.0,
+      "same_type": 0.15,
+      "other_type": 0.05,
+      "recent_weeks": 3,
+      "recent_factor": 2,
+      "low_q": 0.5,
+      "high_q": 0.8,
+      "min_own": 3,
+      "min_weight": 2,
+      "rank_cap": 3
+    }
+  },
+  "opponents": {
+    "optimal_until": { "weekday": 4, "hour_utc": 18 }
   },
   "variance": {
     "mode": "calibrated",
@@ -62,7 +77,31 @@
         "RB": { "p10": 0.24, "p50": 0.77, "p90": 1.70, "sd": 0.652, "n": 269 },
         "WR": { "p10": 0.00, "p50": 0.80, "p90": 1.91, "sd": 0.737, "n": 402 },
         "TE": { "p10": 0.02, "p50": 0.78, "p90": 2.07, "sd": 0.785, "n": 156 }
-      }
+      },
+      "tiers_source": "R5.7 research/wpv1_measure_spread.py --weeks 1-6 --tiers: deciles P10..P90 of actual/projection per position x projection tier (tercile edges), same data rules as above; shapes the Compare curve only, not the win estimate",
+      "tiers": {
+        "QB": [
+          { "min": 5.0, "max": 16, "n": 71, "q": [0.31, 0.57, 0.67, 0.78, 0.84, 0.93, 1.11, 1.49, 1.61] },
+          { "min": 16, "max": 18, "n": 55, "q": [0.24, 0.44, 0.59, 0.74, 0.91, 1.03, 1.19, 1.32, 1.47] },
+          { "min": 18, "max": null, "n": 60, "q": [0.64, 0.72, 0.74, 0.80, 0.95, 1.07, 1.24, 1.38, 1.47] }
+        ],
+        "RB": [
+          { "min": 5.0, "max": 8, "n": 98, "q": [0.15, 0.31, 0.39, 0.51, 0.66, 0.80, 1.15, 1.49, 1.91] },
+          { "min": 8, "max": 14, "n": 124, "q": [0.08, 0.38, 0.50, 0.64, 0.79, 0.94, 1.11, 1.42, 1.69] },
+          { "min": 14, "max": null, "n": 95, "q": [0.40, 0.50, 0.61, 0.75, 0.92, 1.07, 1.18, 1.42, 1.56] }
+        ],
+        "WR": [
+          { "min": 5.0, "max": 8, "n": 137, "q": [0.00, 0.00, 0.37, 0.54, 0.67, 0.92, 1.16, 1.74, 2.16] },
+          { "min": 8, "max": 12, "n": 175, "q": [0.15, 0.37, 0.55, 0.68, 0.84, 0.95, 1.17, 1.47, 1.79] },
+          { "min": 12, "max": null, "n": 158, "q": [0.14, 0.40, 0.54, 0.65, 0.86, 1.03, 1.26, 1.59, 1.88] }
+        ],
+        "TE": [
+          { "min": 5.0, "max": 8, "n": 53, "q": [0.00, 0.07, 0.32, 0.51, 0.65, 1.16, 1.38, 1.85, 2.21] },
+          { "min": 8, "max": 10, "n": 59, "q": [0.17, 0.35, 0.51, 0.65, 0.80, 0.95, 1.22, 1.54, 2.46] },
+          { "min": 10, "max": null, "n": 73, "q": [0.12, 0.30, 0.51, 0.68, 0.82, 1.02, 1.23, 1.53, 1.93] }
+        ]
+      },
+      "player_level": false
     }
   },
   "team": {

@@ -34,9 +34,22 @@ def validate(policy: dict) -> None:
         for pos, q in v.get('calibration', {}).get('positions', {}).items():
             assert 0 <= q['p10'] < q['p50'] < q['p90'], f'{pos}: p10 < p50 < p90'
             assert q['n'] >= 30, f'{pos}: calibration needs at least 30 observations'
+    bd = policy.get('waivers', {}).get('bids', {})
+    if bd:
+        assert bd['own'] >= bd['same_type'] >= bd['other_type'] >= 0, 'bids: own league weighs most (user decision 2026-10-20)'
+        assert 0 < bd['low_q'] < bd['high_q'] < 1, 'bids: 0 < low_q < high_q < 1'
+        assert bd['rank_cap'] >= 1 and bd['recent_factor'] >= 1, 'bids: rank_cap >= 1, recent_factor >= 1'
+    op = policy.get('opponents', {}).get('optimal_until', {})
+    if op:
+        assert op['weekday'] in range(7) and op['hour_utc'] in range(24), 'opponents.optimal_until: weekday 0-6 (0 = Sunday), hour_utc 0-23'
     rf = policy.get('refresh_seconds', {})
     if rf:
         assert 60 <= rf['live'] <= rf['idle'] <= rf['offseason'], 'refresh_seconds: 60 <= live <= idle <= offseason'
+    for pos, ts in v.get('calibration', {}).get('tiers', {}).items():
+        for t in ts:
+            assert len(t['q']) == 9 and all(a <= b for a, b in zip(t['q'], t['q'][1:])), f'{pos}: tier deciles P10..P90 must be 9 non-decreasing ratios'
+            assert t['n'] >= 30, f'{pos}: a tier needs at least 30 observations'
+    assert v.get('calibration', {}).get('player_level', False) is False or v['calibration'].get('players'), 'player_level needs a players block'
     tm = policy.get('team', {})
     if tm:
         assert 0 < tm['thin_recovery'] < 1, 'team.thin_recovery is a share of the starter\'s points (0-1)'
