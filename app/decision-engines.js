@@ -478,7 +478,10 @@ function playoffChampion(seedRows,models,rng){
 
 function simulateRedraftSeason(matchups,models,iterations=1600){
   const start=activeWeek(),end=leagueRegularSeasonEnd(),playoffN=Math.min(leaguePlayoffTeams(),(state.rosters||[]).length),base=baseStandings(),ids=(state.rosters||[]).map(r=>Number(r.roster_id)),counts=Object.fromEntries(ids.map(id=>[id,{playoffs:0,bye:0,title:0,rankSum:0,winsSum:0}]));
-  const scheduleWeeks=[];for(let w=start;w<=end;w++)if((matchups[w]||[]).length)scheduleWeeks.push(w);
+  // UI v10 R4.5: never simulate a week Sleeper has already scored — its result is in baseStandings() (on Tuesdays
+  // currentWeek() can still be the finished week, which counted that week twice).
+  const lastScored=Number(state.league?.settings?.last_scored_leg)||0;
+  const scheduleWeeks=[];for(let w=Math.max(start,lastScored+1);w<=end;w++)if((matchups[w]||[]).length)scheduleWeeks.push(w);
   for(let it=0;it<iterations;it++){
     const rng=rngFor(`${state.league?.league_id}|season|${start}|${it}`),st={};for(const id of ids)st[id]={...base[id]};
     for(const w of scheduleWeeks){
@@ -520,7 +523,9 @@ function buildHybridChoppedPlan(ids,initialPools,baseModels){
   return{baseModels,baseObjective,marginal,candidateCount:candidates.size,evaluations,method:'bounded hybrid marginal table'};
 }
 function choppedSimulationContext(initialPoolsOverride=null,{baseModels=null}={}){
-  const ids=(state.rosters||[]).map(r=>Number(r.roster_id)),elim=Math.max(1,Number(state.leagueRules?.chopped?.eliminatedPerPeriod)||1),initialPools=initialPoolsOverride||Object.fromEntries(ids.map(id=>[id,rosterPoolFor(id)])),fp=choppedFormatProfile(),hybrid=fp.chopped&&fp.bestBall,models=hybrid?(baseModels||allTeamModels(initialPools)):null;
+  // UI v10 R4.5: only teams still in the field. Already-chopped rosters (empty) were simulated as 0-point teams, so the
+  // first periods "eliminated" them again and every survival curve was shifted by the number of chopped teams.
+  const ids=(state.rosters||[]).filter(r=>(r.players||[]).length>0).map(r=>Number(r.roster_id)),elim=Math.max(1,Number(state.leagueRules?.chopped?.eliminatedPerPeriod)||1),initialPools=initialPoolsOverride||Object.fromEntries(ids.map(id=>[id,rosterPoolFor(id)])),fp=choppedFormatProfile(),hybrid=fp.chopped&&fp.bestBall,models=hybrid?(baseModels||allTeamModels(initialPools)):null;
   return{ids,elim,initialPools,baseBudgets:choppedBudgetMap(),maxPeriods:Math.ceil((ids.length-1)/elim),hybrid,models,hybridPlan:hybrid?buildHybridChoppedPlan(ids,initialPools,models):null,modelCache:new Map()};
 }
 function emptyChoppedCounts(ids){return Object.fromEntries(ids.map(id=>[id,{survive:[],winner:0,elimPeriod:0}]));}
