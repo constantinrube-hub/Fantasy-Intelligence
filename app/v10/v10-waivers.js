@@ -12,7 +12,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.5.0';
+const VERSION='10.6.0';
 const K=()=>window.FIEV10Kit;
 function bidLine(m,pos){
   const k=K();if(!m?.faab)return m?`Waiver type: ${m.waiverType===0?'rolling priority':m.waiverType===1?'reverse standings':'—'} (no FAAB bids).`:'';
@@ -73,9 +73,10 @@ function body(data,{selectedWeek=null}={}){
         runs.length?runs.map((r,i)=>`<h3>${i===0?'Main run':'Run'} · ${k.esc(k.time(r.at))} <span class="v10-muted">${r.items.length} claims · ${r.items.filter(t=>t.status==='complete').length} won</span></h3>${table(r.items)}`).join(''):k.empty('No waiver claims processed since the last game of last week.'),{cls:'v10-card',key:`run:${lid}`});}
     else{const run=m.lastRun||[];
       html+=k.expand(`<b>Last waiver run</b> <span class="v10-muted">${m.lastRunAt?k.esc(k.time(m.lastRunAt)):'none yet'} · ${run.length} claims</span>`,run.length?table(run):k.empty('No processed waiver claims this season.'),{cls:'v10-card',key:`run:${lid}`});}
+    const sim=window.FIEV10Data?.simCached?.(lid,wm.key.week)||null;
     if(m.faab)html+=k.expand(`<b>FAAB budgets</b> <span class="v10-muted">you: $${k.esc(m.mine?.remaining??'–')} of $${k.esc(m.budget)}</span>`,
-      `<table class="v10-table"><thead><tr><th>Team</th><th class="v10-num">Remaining</th><th class="v10-num" title="Points per scored week (Sleeper points for ÷ weeks played)">Avg pts / week</th><th class="v10-num">Rank W${k.esc(wm.key.week-1)}</th></tr></thead><tbody>${m.budgets.filter(b=>b.active||!wm.format.chopped).map(b=>`<tr class="${b.mine?'v10-me':''}"><td>${k.esc(b.team)}${b.mine?' (you)':''}</td><td class="v10-num">$${k.esc(b.remaining)}</td><td class="v10-num">${b.avgPoints===null?'–':k.pts(b.avgPoints,1)}</td><td class="v10-num">${b.lastWeekRank?`${k.esc(b.lastWeekRank)}/${k.esc(b.lastWeekTeams)}`:'–'}</td></tr>`).join('')}</tbody></table>
-       <p class="v10-muted">Strong teams (high average, top ranks) with money left are the likeliest big bidders; survival / playoff odds per team follow with the v10 season simulation (R6).</p>`,{cls:'v10-card',key:`faab:${lid}`});
+      `<table class="v10-table"><thead><tr><th>Team</th><th class="v10-num">Remaining</th><th class="v10-num" title="Points per scored week (Sleeper points for ÷ weeks played)">Avg pts / week</th><th class="v10-num">Rank W${k.esc(wm.key.week-1)}</th>${sim?`<th class="v10-num">${sim.kind==='chopped'?`Survive W${k.esc(wm.key.week)}`:'Playoffs'}</th>`:''}</tr></thead><tbody>${m.budgets.filter(b=>b.active||!wm.format.chopped).map(b=>{const sr=sim?.rows.find(r=>r.rosterId===b.rosterId);return `<tr class="${b.mine?'v10-me':''}"><td>${k.esc(b.team)}${b.mine?' (you)':''}</td><td class="v10-num">$${k.esc(b.remaining)}</td><td class="v10-num">${b.avgPoints===null?'–':k.pts(b.avgPoints,1)}</td><td class="v10-num">${b.lastWeekRank?`${k.esc(b.lastWeekRank)}/${k.esc(b.lastWeekTeams)}`:'–'}</td>${sim?`<td class="v10-num">${sr?k.pct(sim.kind==='chopped'?sr.survival[0]??0:sr.playoff):'–'}</td>`:''}</tr>`;}).join('')}</tbody></table>
+       <p class="v10-muted">Strong teams (high average, top ranks) with money left are the likeliest big bidders; teams fighting for survival or a playoff spot may spend more. ${sim?`Odds from the v10 season simulation of ${k.esc(k.clock(sim.at))}.`:`Survival / playoff odds per team appear here after you run the season simulation (Matchup / Field tab).`}</p>`,{cls:'v10-card',key:`faab:${lid}`});
   }
   return html;
 }
