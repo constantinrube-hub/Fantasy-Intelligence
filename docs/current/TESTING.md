@@ -135,7 +135,10 @@ for past weeks (`data/research/market/sleeper/2026/week_NN.jsonl.gz`), and a **t
 (lineups from the Tuesday-after-Week-5 capture, points rebuilt from real nflverse stats, D/ST = 0) until WP-T2
 captures post-week matchups. Pure-module contracts run without a browser (all in the release gate):
 `node research/integrity_v10_core_test.js` (R1), `node research/integrity_v10_r2_test.js` (R2) and
-`node research/integrity_v10_r3_test.js` (R3: carry-over, returning players, fill-ins, Players/Team, Trades, Lab).
+`node research/integrity_v10_r3_test.js` (R3: carry-over, returning players, fill-ins, Players/Team, Trades, Lab) and
+`node research/integrity_v10_r4_test.js` (R4: lineup changes per slot, Best Ball bench, adds disabled, chopped results,
+simulation guards, refresh cadence, to-do columns, FAAB context, byes this week; Week 7 Tuesday capture
+`20261020T175919279901Z` plus synthetic fixtures).
 The whole replay (`--suite all`) has 27 checks after R3: classic 10, v10 17. Classic checks open `/?ui=classic` explicitly (they keep testing classic when
 `default_ui` becomes `v10`); v10 checks open `/?ui=v10#…`.
 
