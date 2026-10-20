@@ -13,7 +13,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.4.0';
+const VERSION='10.5.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 let token=0;
 const sleeperUrl=id=>`https://sleeper.com/leagues/${encodeURIComponent(id)}/team`;
@@ -73,17 +73,20 @@ function lineup(wm,{past=false}={}){
 function matchup(wm){
   const k=K();let html='';
   if(wm.opponent){
-    const w=wm.winEstimate,o=wm.opponent;
+    const w=wm.winEstimate,o=wm.opponent,x=k.opp(wm),optDiff=o.optimal&&Math.abs(o.optimal.totals.projected-o.totals.projected)>=0.05;
     html+=`<section class="v10-card v10-h2h"><div class="v10-h2h-side"><div class="v10-muted">You</div><div class="v10-big">${k.pts(wm.me.totals.projected)}</div>${wm.me.totals.banked?`<div class="v10-muted">${k.pts(wm.me.totals.banked)} scored</div>`:''}</div>
-      <div class="v10-h2h-mid"><div class="v10-big">${k.winPct(w?.value)} ${k.dot('amber',w?.note)}</div><div class="v10-muted">win estimate</div>${w?.withRecommended!==undefined?`<div class="v10-muted">${k.winPct(w.withRecommended)} with suggested lineup</div>`:''}</div>
-      <div class="v10-h2h-side"><div class="v10-muted">${k.esc(o.name)}</div><div class="v10-big">${k.pts(o.totals.projected)}</div>${o.totals.banked?`<div class="v10-muted">${k.pts(o.totals.banked)} scored</div>`:''}</div></section>`;
-    html+=k.expand(`<b>Opponent lineup</b> <span class="v10-muted">${k.esc(o.name)}</span>`,`${rowsHead()}${o.starters.map((e,i)=>playerRow(e,wm,{keyPrefix:'o',actual:scored(o.totals.parts[i])})).join('')}`,{cls:'v10-card',key:`opp:${wm.key.leagueId}`,adv:k.kv([['Win estimate method',k.esc(w?.method)],['Note',k.esc(w?.note)],['Inputs',k.esc(w?.inputsHash)]])});
+      <div class="v10-h2h-mid"><div class="v10-big">${k.winPct(x.win)} ${k.dot('amber',w?.note)}</div><div class="v10-muted">win estimate · opponent ${x.mode==='optimal'?'optimal until lock':'as set'}</div>${x.winRec!==undefined&&x.winRec!==null?`<div class="v10-muted">${k.winPct(x.winRec)} with suggested lineup</div>`:''}</div>
+      <div class="v10-h2h-side"><div class="v10-muted">${k.esc(o.name)}</div><div class="v10-big">${k.pts(x.oppProjected)}</div><div class="v10-muted">as set ${k.pts(o.totals.projected)} · optimal ${k.pts(o.optimal?.totals?.projected)}</div>${o.totals.banked?`<div class="v10-muted">${k.pts(o.totals.banked)} scored</div>`:''}</div></section>
+      <div class="v10-row">${k.oppToggle(wm)}</div>`;
+    html+=k.expand(`<b>Opponent lineup</b> <span class="v10-muted">${k.esc(o.name)} · as set</span>`,`${rowsHead()}${o.starters.map((e,i)=>playerRow(e,wm,{keyPrefix:'o',actual:scored(o.totals.parts[i])})).join('')}`,{cls:'v10-card',key:`opp:${wm.key.leagueId}`,adv:k.kv([['Win estimate method',k.esc(w?.method)],['Note',k.esc(w?.note)],['Inputs',k.esc(w?.inputsHash)]])});
+    if(optDiff)html+=k.expand(`<b>Opponent optimal lineup</b> <span class="v10-muted">${k.signed(o.optimal.totals.projected-o.totals.projected)} if ${k.esc(o.name)} sets his best lineup (unlocked slots)</span>`,`${rowsHead()}${o.optimal.starters.map((e,i)=>playerRow(e,wm,{keyPrefix:'oo',actual:scored(o.optimal.totals.parts[i])})).join('')}`,{cls:'v10-card',key:`oppopt:${wm.key.leagueId}`});
   }
   if(wm.field){
-    const f=wm.field;
+    const f=wm.field,fv={...k.opp(wm)},fr=(fv.field?.rows||f.rows);
     html+=`<section class="v10-card"><h2>Field <span class="v10-muted">${f.activeCount} active · ${f.eliminatedCount} chopped${f.verified?'':' '+k.dot('amber',`Sleeper reports ${f.scoredWeeks} scored weeks but ${f.eliminatedCount} empty rosters`)}</span></h2>
-      <table class="v10-table"><thead><tr><th>#</th><th>Team</th><th class="v10-num">Projected</th><th class="v10-num">vs lowest</th></tr></thead><tbody>${f.rows.map(r=>`<tr class="${r.me?'v10-me':''}${r.rank===f.rows.length?' v10-cut':''}"><td>${r.rank}</td><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td class="v10-num">${k.pts(r.projected)}</td><td class="v10-num">${f.cutLine===null?'–':k.signed(r.projected-Math.min(...f.rows.map(x=>x.projected)))}</td></tr>`).join('')}</tbody></table>
-      ${f.marginToCut!==null?`<p>${f.marginToCut<10?'<b class="v10-bad">Chop risk</b> — ':''}You are projected ${k.signed(f.marginToCut)} pts above the lowest other team.</p>`:''}
+      <div class="v10-row">${k.oppToggle(wm)}</div>
+      <table class="v10-table"><thead><tr><th>#</th><th>Team</th><th class="v10-num">${fv.mode==='optimal'?'Optimal (until lock)':'As set'}</th><th class="v10-num">${fv.mode==='optimal'?'As set':'Optimal'}</th><th class="v10-num">vs lowest</th></tr></thead><tbody>${fr.map(r=>`<tr class="${r.me?'v10-me':''}${r.rank===fr.length?' v10-cut':''}"><td>${r.rank}</td><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td class="v10-num"><b>${k.pts(r.projected)}</b></td><td class="v10-num v10-muted">${k.pts(fv.mode==='optimal'?r.asSet:r.optimal)}</td><td class="v10-num">${fv.field.cutLine===null?'–':k.signed(r.projected-Math.min(...fr.map(x=>x.projected)))}</td></tr>`).join('')}</tbody></table>
+      ${fv.field.marginToCut!==null?`<p>${fv.field.marginToCut<10?'<b class="v10-bad">Chop risk</b> — ':''}You are projected ${k.signed(fv.field.marginToCut)} pts above the lowest other team (${fv.mode==='optimal'?'others at their best lineup until lock':'lineups as set'}). Your own lineup: as set.</p>`:''}
       ${f.eliminated.length?`<div class="v10-muted">Chopped: ${f.eliminated.map(x=>k.esc(x.name)).join(', ')}</div>`:''}</section>`;
   }
   const s=wm.standings,po=s.playoffTeams,ties=s.rows.some(r=>r.ties);
@@ -179,8 +182,10 @@ async function render(root,id,tab='home',week=null){
   if(my!==token)return;
   k.repaint(root,`<div class="v10-league" data-v10-league="${k.esc(id)}" data-v10-week="${wm.key.week}">${headerBlock(wm,live)}${tabs(id,tab,wm,wm.key.week===live?null:wm.key.week)}${wm.issues.length?`<div class="v10-warn">${wm.issues.map(i=>k.esc(i.text)).join(' · ')}</div>`:''}${body}</div>`);
   root.querySelector('[data-v10-odds]')?.addEventListener('click',()=>oddsFor(id,root,wm.key.week));
+  root.querySelectorAll('[data-v10-opp]').forEach(b=>b.addEventListener('click',()=>{k.setOppPref(b.dataset.v10Opp);render(root,id,tab,week);}));
   {const c=oddsCache.get(`${id}:${wm.key.week}`);if(c&&tab==='matchup')paintOdds(root,c);}
   if(tab==='players')window.FIEV10Team.bindPlayers(root);
+  if(tab==='team')window.FIEV10Team.bindTeam?.(root);
   if(tab==='trades')window.FIEV10Trades.bind(root);
   root.querySelector('select[data-v10-week]')?.addEventListener('change',e=>{const w=Number(e.target.value);location.hash=link(id,['waivers','players','team','trades'].includes(tab)?'lineup':tab,w===live?null:w);});
 }

@@ -10,7 +10,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.2.0';
+const VERSION='10.5.0';
 const TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Berlin';}catch{return 'Europe/Berlin';}})();
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
@@ -79,5 +79,16 @@ function playerDetail(p,wm){
     `<h4>Provenance</h4>`+kv([['Projection',esc(sourceLabel(p.active))],['Projection age',p.active?.ageMin!==null&&p.active?.ageMin!==undefined?`${p.active.ageMin} min`:'–'],['Primary source',esc(p.active?.primary||'–')],['Status source',esc(p.status?.source||'–')],['Kickoff (UTC)',p.game?.kickoff?esc(new Date(p.game.kickoff).toISOString().slice(0,16).replace('T',' ')):'–'],['Lock',p.game?.locked?'locked':esc(until(p.game?.kickoff))],['Sleeper ID',esc(p.pid)]]);
   return{body,adv};
 }
-window.FIEV10Kit={VERSION,TZ,esc,num,pts,signed,pct,winPct,time,clock,until,dot,tierChip,statusChip,formatChip,gameText,expand,repaint,kv,empty,sourceLabel,playerDetail,playerLink,statLine,TIER_LABEL};
+// R5.5 · Opponent lineup mode. auto = WeekModel's policy mode (optimal until Thursday 18:00 UTC, as set after); the viewer
+// can pin "optimal" or "asSet" (this browser only). opp(wm) returns the effective view used by Overview, Matchup and Field.
+const OPP_KEY='fieV10OppMode';
+function oppPref(){try{const v=localStorage.getItem(OPP_KEY);return ['optimal','asSet'].includes(v)?v:'auto';}catch{return 'auto';}}
+function setOppPref(v){try{v==='auto'?localStorage.removeItem(OPP_KEY):localStorage.setItem(OPP_KEY,v);}catch{}}
+function opp(wm){const pref=oppPref(),mode=pref==='auto'?(wm?.opponentMode?.mode||'asSet'):pref,o=wm?.opponent,w=wm?.winEstimate,f=wm?.field;
+  return{pref,mode,auto:wm?.opponentMode?.mode||'asSet',cutoff:wm?.opponentMode?.cutoff??null,
+    oppProjected:o?(mode==='optimal'?o.optimal?.totals?.projected:o.totals.projected):null,win:w?(mode==='optimal'?w.vsOptimal:w.asSet)??w.value:null,
+    winRec:w?(mode==='optimal'?w.withRecommendedVsOptimal:w.withRecommendedAsSet)??w.withRecommended:null,field:f?(f[mode]||f):null};}
+function oppToggle(wm){const x=opp(wm),b=(v,l)=>`<button class="v10-chip${x.pref===v?' v10-chip-on':''}" data-v10-opp="${v}">${l}</button>`;
+  return `<span class="v10-row v10-small">Opponents: ${b('auto',`auto (${x.auto==='optimal'?'optimal':'as set'}${x.cutoff?` until ${esc(time(x.cutoff))}`:''})`)} ${b('optimal','optimal')} ${b('asSet','as set')}</span>`;}
+window.FIEV10Kit={VERSION,opp,oppPref,setOppPref,oppToggle,TZ,esc,num,pts,signed,pct,winPct,time,clock,until,dot,tierChip,statusChip,formatChip,gameText,expand,repaint,kv,empty,sourceLabel,playerDetail,playerLink,statLine,TIER_LABEL};
 })();

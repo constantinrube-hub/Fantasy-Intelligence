@@ -15,7 +15,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.3.0';
+const VERSION='10.5.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 const TABS=[['state','Model state'],['eval','Evaluations'],['forecasts','Forecasts'],['rankings','Rankings'],['docs','Documents']];
 let token=0;
@@ -73,9 +73,14 @@ async function reviewAll(week,el){
     <tr class="v10-me"><td>All ${rows.length} leagues</td><td class="v10-num">${k.pts(sum(r=>r.submitted.points),1)}</td><td class="v10-num">${k.pts(sum(r=>r.bestBall?r.submitted.points:r.projectionBest.points),1)}</td><td class="v10-num">${k.pts(sum(r=>r.hindsight.points),1)}</td><td class="v10-num">${k.pts(sum(r=>r.bestBall?0:r.leftOnBench),1)}</td><td></td></tr></tbody></table>
     <p class="v10-muted">"By projection" = what starting the best lineup by Sleeper's projection would have scored (Best Ball: Sleeper picks the lineup). "Submitted − by projection" across leagues is the cost (or gain) of deviating from the projections.</p>`:k.empty('No scored matchups for that week.');
 }
-async function forecasts(lid){
+// R5.7 · Week picker over the current week and the next two: a week is selectable once Sleeper has published projections
+// for it (FIE research forecasts stay blocked — Model state). Last-4 averages always end at the current week.
+async function forecasts(lid,week=null){
   const k=K(),entry=(await D().leagues()).find(x=>String(x.id)===String(lid));if(!entry)return k.empty('Pick a league.');
-  const wm=await D().model(entry),i=await D().inputs(entry),w=wm.key.week;
+  const cur=await D().model(entry),i=await D().inputs(entry),live=cur.key.week;
+  const opts=await Promise.all([0,1,2].map(d=>live+d).filter(x=>x<=18).map(async x=>({week:x,published:x===live||((await D().projections(cur.key.season,x).catch(()=>null))?.rows?.size>0)})));
+  const sel=week&&opts.some(o=>o.week===week&&o.published)?week:live,wm=sel===live?cur:await D().model(entry,{week:sel}),w=sel;
+  const picker=`<select data-v10-lab-fweek aria-label="Week">${opts.map(o=>`<option value="${o.week}"${o.week===sel?' selected':''}${o.published?'':' disabled'}>Week ${o.week}${o.week===live?' · live':o.published?'':' · not published yet'}</option>`).join('')}</select>`;
   const past=await Promise.all([1,2,3,4].map(d=>w-d).filter(x=>x>=1).map(async x=>({week:x,matchups:await D().matchups(lid,x)})));
   const ids=new Set();for(const r of i.rosters||[])for(const id of r.players||[])ids.add(String(id));
   const l4=window.FIELab.lastN({weeks:past,pids:ids,n:4});
@@ -83,7 +88,7 @@ async function forecasts(lid){
   for(const id of ids){const p=wm.player(id);if(!p||!(p.active.value>=3)||!p.game?.opp)continue;const key=p.game.gameId||`${[p.team,p.game.opp].sort().join('-')}`;if(!games.has(key))games.set(key,{kickoff:p.game.kickoff,label:`${[p.team,p.game.opp].sort().join(' – ')}`,players:[]});games.get(key).players.push(p);}
   const list=[...games.values()].sort((a,b)=>(a.kickoff||0)-(b.kickoff||0));
   const own=wm.ownerOf;
-  return `<section class="v10-card"><h2>Forecasts, Week ${k.esc(w)} <span class="v10-muted">${k.esc(entry.name)} · rostered players projected ≥ 3 · league scoring</span></h2>
+  return `<section class="v10-card"><h2>Forecasts ${picker} <span class="v10-muted">${k.esc(entry.name)} · rostered players projected ≥ 3 · league scoring</span></h2>
     <p class="v10-muted">Active = the value the app uses (Sleeper re-scored to this league). Sleeper = Sleeper's own published total (its default scoring). Last 4 = average league-scored points in the last ${past.length} weeks this player was rostered here (Sleeper matchups; 0 if he did not play). FIE research (M10): not shown — the weekly research view is blocked (Model state).</p>
     ${list.map(g=>k.expand(`<b>${k.esc(g.label)}</b> <span class="v10-muted">${k.esc(k.time(g.kickoff))} · ${g.players.length} players</span>`,
       `<table class="v10-table"><thead><tr><th>Player</th><th>Owner</th><th class="v10-num">Active</th><th class="v10-num">Sleeper</th><th class="v10-num">Last 4</th><th class="v10-num">Active − last 4</th></tr></thead><tbody>${g.players.sort((a,b)=>b.active.value-a.active.value).map(p=>{const x=l4.get(p.pid),pub=p.alternatives?.[0]?.value??p.active.value,o=own(p.pid);
@@ -118,12 +123,13 @@ async function render(root,tab='state',lid=null,pos=null,week=null){
   if(!['state','eval','forecasts','rankings','docs'].includes(tab))tab='state';
   root.innerHTML=`<div class="v10-league" data-v10-lab="${k.esc(tab)}"><header class="v10-lhdr"><div><h1>Research Lab</h1><div class="v10-muted">Research display only — nothing here changes a lineup, recommendation or projection. ${await leaguePicker(lid,tab)}</div></div></header>${nav(tab,lid)}<div class="v10-loading">Loading…</div></div>`;
   let body;
-  try{body=tab==='state'?await state(lid):tab==='eval'?await evals(lid,week):tab==='forecasts'?await forecasts(lid):tab==='rankings'?await rankings(lid,pos):await docs(lid);}
+  try{body=tab==='state'?await state(lid):tab==='eval'?await evals(lid,week):tab==='forecasts'?await forecasts(lid,week):tab==='rankings'?await rankings(lid,pos):await docs(lid);}
   catch(e){body=k.empty(`Could not load: ${String(e?.message||e)}`);}
   if(my!==token)return;
   const ld=root.querySelector('.v10-loading');if(ld)ld.outerHTML=body;
   root.querySelector('select[data-v10-lab-league]')?.addEventListener('change',e=>{location.hash=href(tab,e.target.value);});
   root.querySelector('select[data-v10-lab-week]')?.addEventListener('change',e=>{location.hash=`${href('eval',lid)}&week=${e.target.value}`;});
+  root.querySelector('select[data-v10-lab-fweek]')?.addEventListener('change',e=>{location.hash=`${href('forecasts',lid)}&week=${e.target.value}`;});
   root.querySelector('[data-v10-lab-review]')?.addEventListener('click',e=>{const el=root.querySelector('#v10LabReview');if(el)reviewAll(Number(e.target.dataset.v10LabReview),el);});
 }
 function cancel(){token++;}
