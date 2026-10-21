@@ -94,7 +94,8 @@ check('C-WEEK', 'classic', 'A-01: the live Sleeper week wins over an older bundl
     const selected = await app.page.$eval('#weekSelect', el => el.value);
     const notice = await app.page.locator('#fieWeekSourceNotice').count() ? await app.page.locator('#fieWeekSourceNotice').innerText() : '';
     await app.page.screenshot({ path: path.join(OUT, 'C-WEEK.png'), fullPage: false });
-    return { pass: selected === '7' && /Week 6/.test(notice), detail: { selectedWeek: selected, notice } };
+    const S = SCENARIOS['live-week-ahead'];
+    return { pass: selected === String(S.week) && new RegExp(`Week ${S.snapshotWeek}\\b`).test(notice), detail: { selectedWeek: selected, notice, expectWeek: S.week, snapshotWeek: S.snapshotWeek } };
   } finally { await app.context.close(); }
 });
 

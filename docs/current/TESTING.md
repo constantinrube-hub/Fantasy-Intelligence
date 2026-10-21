@@ -102,7 +102,7 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | Check | Contract |
 |---|---|
 | C-LOAD | reference leagues load; Weekly/Waivers render with no page error |
-| C-WEEK | live Sleeper week wins over the snapshot week; notice shown |
+| C-WEEK | live Sleeper week wins over the snapshot week; notice shown (scenario `live-week-ahead`: live week = committed snapshot week + 1, so the bots' snapshot refreshes cannot break it) |
 | C-WAIVER | no CLAIM for Doubtful/Out/IR/…; status column; unavailable adds below CLAIMs |
 | C-DRAFT | no draft-preparation task for in-season leagues |
 | C-BANNER | submitted starter who cannot play → red Weekly alert |
