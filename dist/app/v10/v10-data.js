@@ -12,7 +12,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.5.0';
+const VERSION='10.6.0';
 const SLEEPER='https://api.sleeper.app/v1';
 const W=()=>window;
 const P=()=>W().FIE_UI_POLICY||{};
@@ -200,9 +200,34 @@ async function portfolio({week=null,limit=4,onEach,withWaivers=true,withTx=true}
   await Promise.all(Array.from({length:Math.min(limit,list.length)},worker));
   return out;
 }
+// R6 · Season simulation input + run (FIESeasonSim). Results are cached per league and week for the session (a
+// refresh repaints from the cache; "Re-run" forces a new run).
+const simCache=new Map();
+function simCached(id,week){return simCache.get(`${id}:${week}`)||null;}
+async function seasonSim(entry,{iterations=null,onProgress=null,force=false}={}){
+  const i=await inputs(entry),wm=i.wm,lg=i.league||{},s=lg.settings||{},id=wm.key.leagueId,W0=wm.key.week,season=wm.key.season,key=`${id}:${W0}`;
+  if(!force&&simCache.has(key))return simCache.get(key);
+  const chopped=!!wm.format.chopped,pws=Number(s.playoff_week_start)||0,last=Number(s.last_scored_leg)||0,start=Math.max(W0,last+1);
+  const regEnd=chopped?18:(pws>0?pws-1:17),weeks=[];for(let w=start;w<=regEnd;w++)weeks.push(w);
+  const pt=Number(s.playoff_teams)||0,playoffWeeks=[];if(!chopped&&pws>0&&pt>1)for(let k=0;k<Math.ceil(Math.log2(pt));k++)playoffWeeks.push(pws+k);
+  const pairs={};if(!chopped)await Promise.all(weeks.map(async w=>{const mm=await matchups(id,w);const g=new Map();for(const m of mm||[]){if(m?.matchup_id===null||m?.matchup_id===undefined)continue;const k=m.matchup_id;(g.get(k)||g.set(k,[]).get(k)).push(Number(m.roster_id));}const pp=[...g.values()].filter(x=>x.length===2);pairs[w]=pp.length?pp:null;}));
+  const fv=new Map();for(const h of i.horizon||[])if(h.week!==W0&&h.projRows?.size)fv.set(h.week,W().FIEWaivers.futureValuer({projRows:h.projRows,scoring:lg.scoring_settings||{},schedule:i.schedule,week:h.week,season,now:Date.now(),catalog:i.catalog,longTermOut:()=>false}));
+  const LONG=new Set(['IR','PUP','Suspended','SUS','NA']),now=Date.now();
+  const valueFor=(pid,w)=>{const p=wm.player(pid);if(!p)return 0;if(w===W0)return p.recValue||0;const f=fv.get(w);if(f)return f(pid).value??0;
+    if(W().FIEGameState.forTeam(i.schedule,p.team,{week:w,season,now}).bye)return 0;if(p.status?.unavailable&&LONG.has(p.status.code))return 0;
+    const v=Number(p.active?.value)||0;return v>0?v:(W().FIETeamViews.rosPerGame(i,wm,pid)??0);};
+  const act=(i.rosters||[]).filter(r=>(r.players||[]).length),names=Object.fromEntries((wm.standings?.rows||[]).map(r=>[r.rosterId,r.name]));
+  const teams=act.map(r=>{const st=r.settings||{},off=new Set([...(r.reserve||[]),...(r.taxi||[])].map(String));return{rosterId:Number(r.roster_id),name:names[r.roster_id]||`Roster ${r.roster_id}`,me:Number(r.roster_id)===Number(wm.key.rosterId),
+    pool:(r.players||[]).map(String).filter(x=>!off.has(x)),wins:Number(st.wins)||0,losses:Number(st.losses)||0,ties:Number(st.ties)||0,pf:(Number(st.fpts)||0)+(Number(st.fpts_decimal)||0)/100};});
+  const elimSoFar=(i.rosters||[]).length-act.length,per=chopped?Math.max(1,Math.round(elimSoFar/Math.max(1,Number(s.last_chopped_leg)||last||1))):null;
+  const n=iterations||(chopped?2000:3000);
+  const res=await W().FIESeasonSim.simulate({teams,player:wm.player,valueFor,slots:wm.slots,bestBall:!!wm.format.bestBall,weeks,pairs,median:Number(s.league_average_match)===1,playoffTeams:chopped?0:pt,playoffWeeks,
+    chopped:chopped?{perWeek:per}:null,iterations:n,seed:W().FIESeasonSim.hash(`${id}|${W0}|${season}`),onProgress});
+  res.week=W0;res.leagueId=id;simCache.set(key,res);return res;
+}
 function refresh(){forceGen++;models.clear();shared.proj.clear();}
 /** Matchups of any week for one league (review, results). */
 async function matchups(id,week){return json(`${SLEEPER}/league/${id}/matchups/${week}`,{ttlMs:ttl('matchups',600),sourceId:'v10-matchups',live:true}).catch(()=>[]);}
 function lastFetch(){return Math.max(0,...fetchedAt.values());}
-window.FIEV10Data={VERSION,drafts,bidBook,bidAdvice,leagues,model,inputs,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
+window.FIEV10Data={VERSION,seasonSim,simCached,drafts,bidBook,bidAdvice,leagues,model,inputs,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
 })();

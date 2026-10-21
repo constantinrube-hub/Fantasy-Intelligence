@@ -13,7 +13,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.5.0';
+const VERSION='10.6.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 let token=0;
 const sleeperUrl=id=>`https://sleeper.com/leagues/${encodeURIComponent(id)}/team`;
@@ -95,7 +95,8 @@ function matchup(wm){
   const row=r=>s.chopped?`<tr class="${r.me?'v10-me':''}${r.active?'':' v10-muted'}"><td>${r.rank}</td><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td class="v10-num">${k.pts(r.pf,1)}</td><td>${r.active?'Active':'Chopped'}</td><td class="v10-num" data-odds="${r.rosterId}"></td><td class="v10-num" data-odds2="${r.rosterId}"></td></tr>`
     :`<tr class="${r.me?'v10-me':''}${po&&r.rank===po?' v10-line':''}"><td>${r.rank}</td><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td>${r.wins}-${r.losses}${ties?`-${r.ties}`:''}</td><td class="v10-num">${k.pts(r.pf,1)}</td><td class="v10-num">${k.pts(r.pa,1)}</td><td class="v10-num" data-odds="${r.rosterId}"></td><td class="v10-num" data-odds2="${r.rosterId}"></td></tr>`;
   html+=`<section class="v10-card"><h2>Standings</h2><table class="v10-table"><thead><tr>${head}</tr></thead><tbody>${s.rows.map(row).join('')}</tbody></table>
-    <div class="v10-row"><button class="v10-btn" data-v10-odds="${k.esc(wm.key.leagueId)}">${s.chopped?'Compute survival odds':'Compute playoff odds'}</button><span class="v10-muted" id="v10OddsStatus">Runs the classic league simulation on demand (≈10–60 s). ${k.dot('amber','Simulation spread not yet calibrated (WP-V1)')}</span></div>${s.medianGames?'<div class="v10-muted">This league also plays against the weekly median.</div>':''}${po?`<div class="v10-muted">Line under rank ${po}: playoff cut.</div>`:''}</section>`;
+    <div class="v10-row"><button class="v10-btn" data-v10-sim="${k.esc(wm.key.leagueId)}">${s.chopped?'Simulate the rest of the season (survival)':'Simulate the rest of the season (playoffs)'}</button><span class="v10-muted" id="v10SimStatus">v10 season simulation on this page's numbers (a few seconds).</span>
+      <button class="v10-btn v10-ghost v10-small" data-v10-odds="${k.esc(wm.key.leagueId)}" title="Runs the classic engine for comparison (loads the league in the classic app)">classic engine</button><span class="v10-muted v10-small" id="v10OddsStatus"></span></div><div id="v10SimDetail"></div>${s.medianGames?'<div class="v10-muted">This league also plays against the weekly median.</div>':''}${po?`<div class="v10-muted">Line under rank ${po}: playoff cut.</div>`:''}</section>`;
   return html;
 }
 function review(rv,wm){
@@ -140,6 +141,28 @@ async function poolsReady(timeoutMs=30000){
     if(rs.length&&typeof fn==='function'&&rs.every(r=>(fn(r.roster_id)||[]).length>0))return true;
     if(Date.now()-t0>timeoutMs)return false;await new Promise(r=>setTimeout(r,500));}
 }
+// R6 · v10 season simulation (FIESeasonSim via FIEV10Data.seasonSim): fills the standings columns and the details card;
+// cached per league/week so a refresh repaints it. The classic engine stays available as a comparison button.
+function paintSim(root,res){const k=K();
+  for(const r of res.rows){const x=root.querySelector(`[data-odds="${r.rosterId}"]`),y=root.querySelector(`[data-odds2="${r.rosterId}"]`);
+    if(res.kind==='chopped'){if(x)x.textContent=k.pct(r.survival[0]??0);if(y)y.textContent=k.pct(r.winner);}else{if(x){x.textContent=k.pct(r.playoff);x.title=`Bye ${k.pct(r.bye)} · expected wins ${k.pts(r.expectedWins,1)}`;}if(y)y.textContent=k.pct(r.title);}}
+  const st=root.querySelector('#v10SimStatus');if(st)st.innerHTML=`${k.esc(res.iterations)} simulated seasons · v10 · ${k.esc(k.clock(res.at))} · <a href="#" data-v10-sim-rerun>re-run</a>`;
+  const d=root.querySelector('#v10SimDetail');if(d)d.innerHTML=simDetail(res);
+  root.querySelector('[data-v10-sim-rerun]')?.addEventListener('click',e=>{e.preventDefault();runSim(root,res.leagueId,true);});}
+function heat(ps){return `<span class="v10-heat">${ps.map((v,i)=>`<i title="#${i+1}: ${K().pct(v)}" style="opacity:${Math.max(0.06,Math.min(1,v*3)).toFixed(2)}"></i>`).join('')}</span>`;}
+function simDetail(res){const k=K();
+  if(res.kind==='chopped'){const ws=res.weeks.slice(0,4),rows=res.rows.slice().sort((a,b)=>b.winner-a.winner||(b.survival[0]??0)-(a.survival[0]??0));
+    return k.expand(`<b>Simulation details</b> <span class="v10-muted">survival by week, win probability, why</span>`,`<table class="v10-table"><thead><tr><th>Team</th>${ws.map(w=>`<th class="v10-num">Survive W${w}</th>`).join('')}<th class="v10-num">Win league</th><th class="v10-num">Exp. elimination</th><th class="v10-num" title="Mean ± sd of the team's weekly score in the simulation">Weekly score</th><th class="v10-num">PF so far</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr class="${r.me?'v10-me':''}"><td>${k.esc(r.name)}${r.me?' (you)':''}</td>${ws.map((w,i)=>`<td class="v10-num">${k.pct(r.survival[i]??0)}</td>`).join('')}<td class="v10-num">${k.pct(r.winner)}</td><td class="v10-num">${r.expectedElimWeek?`W${k.pts(r.expectedElimWeek,1)}`:'–'}</td><td class="v10-num">${k.pts(r.why.teamMean,1)} ± ${k.pts(r.why.teamSd,1)}</td><td class="v10-num">${k.pts(r.why.pf,1)}</td></tr>`).join('')}</tbody></table>
+      <p class="v10-muted">${k.esc(res.perWeek)} team(s) chopped per week. Why: survival is driven by the weekly score distribution relative to the field — mean (this week's projections, byes and published later weeks) and spread (calibrated by position and projection level). Limits: ${res.limits.map(k.esc).join('; ')}.</p>`,{cls:'v10-card',key:`sim:${res.leagueId}`});}
+  const rows=res.rows.slice().sort((a,b)=>(b.playoff??0)-(a.playoff??0)||b.expectedWins-a.expectedWins);
+  return k.expand(`<b>Simulation details</b> <span class="v10-muted">rank distribution, bye, title, why</span>`,`<table class="v10-table"><thead><tr><th>Team</th><th class="v10-num">Playoffs</th><th class="v10-num">Bye</th><th class="v10-num">Title</th><th class="v10-num">Exp. wins</th><th>Final rank 1 → ${k.esc(rows.length)}</th><th class="v10-num">Record now</th><th class="v10-num" title="Mean ± sd of the team's weekly score in the simulation">Weekly score</th><th class="v10-num" title="Average weekly score of the remaining scheduled opponents">Avg opponent</th><th class="v10-num" title="Final wins at which ≥ 75 % of simulated seasons made the playoffs">Wins for 75 %</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr class="${r.me?'v10-me':''}"><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td class="v10-num">${k.pct(r.playoff)}</td><td class="v10-num">${k.pct(r.bye)}</td><td class="v10-num">${k.pct(r.title)}</td><td class="v10-num">${k.pts(r.expectedWins,1)}</td><td>${heat(r.ranks)}</td><td class="v10-num">${k.esc(r.why.wins)}-${k.esc(r.why.losses)}${r.why.ties?`-${k.esc(r.why.ties)}`:''}</td><td class="v10-num">${k.pts(r.why.teamMean,1)} ± ${k.pts(r.why.teamSd,1)}</td><td class="v10-num">${r.why.oppMean===null?'–':k.pts(r.why.oppMean,1)}</td><td class="v10-num">${r.why.winsFor75===null?'–':k.esc(r.why.winsFor75)}</td></tr>`).join('')}</tbody></table>
+    <p class="v10-muted">Weeks ${k.esc(res.weeks[0]??'–')}–${k.esc(res.weeks[res.weeks.length-1]??'–')} (${k.esc(res.weeks.length)} left${res.median?', each with a median game':''}); Sleeper schedule known for ${k.esc(res.scheduleKnown)} of ${k.esc(res.weeks.length)} weeks (others paired at random). Playoffs: top ${k.esc(res.playoffTeams)} by wins, then points; bracket in weeks ${k.esc(res.playoffWeeks.join(', ')||'–')}. <b>Why two teams differ:</b> record now + remaining games + weekly score (roster strength today) + remaining opponents; points for so far only break ties. Limits: ${res.limits.map(k.esc).join('; ')}.</p>`,{cls:'v10-card',key:`sim:${res.leagueId}`,open:true});}
+async function runSim(root,id,force=false){const btn=root.querySelector('[data-v10-sim]'),st=root.querySelector('#v10SimStatus');if(btn)btn.disabled=true;
+  try{const entry=(await D().leagues()).find(x=>String(x.id)===String(id))||{id};if(st)st.textContent='Simulating…';
+    const res=await D().seasonSim(entry,{force,onProgress:(d,n)=>{if(st)st.textContent=`Simulating… ${Math.round(100*d/n)} %`;}});paintSim(root,res);}
+  catch(e){if(st)st.textContent=`Could not simulate: ${String(e?.message||e)}`;}finally{if(btn)btn.disabled=false;}}
 async function oddsFor(id,root,week){
   const st=root.querySelector('#v10OddsStatus'),btn=root.querySelector(`[data-v10-odds]`);if(btn)btn.disabled=true;if(st)st.textContent='Loading the league in the classic engine…';
   try{
@@ -182,6 +205,8 @@ async function render(root,id,tab='home',week=null){
   if(my!==token)return;
   k.repaint(root,`<div class="v10-league" data-v10-league="${k.esc(id)}" data-v10-week="${wm.key.week}">${headerBlock(wm,live)}${tabs(id,tab,wm,wm.key.week===live?null:wm.key.week)}${wm.issues.length?`<div class="v10-warn">${wm.issues.map(i=>k.esc(i.text)).join(' · ')}</div>`:''}${body}</div>`);
   root.querySelector('[data-v10-odds]')?.addEventListener('click',()=>oddsFor(id,root,wm.key.week));
+  root.querySelector('[data-v10-sim]')?.addEventListener('click',()=>runSim(root,id));
+  {const c=D().simCached?.(id,wm.key.week);if(c&&tab==='matchup')paintSim(root,c);}
   root.querySelectorAll('[data-v10-opp]').forEach(b=>b.addEventListener('click',()=>{k.setOppPref(b.dataset.v10Opp);render(root,id,tab,week);}));
   {const c=oddsCache.get(`${id}:${wm.key.week}`);if(c&&tab==='matchup')paintOdds(root,c);}
   if(tab==='players')window.FIEV10Team.bindPlayers(root);
