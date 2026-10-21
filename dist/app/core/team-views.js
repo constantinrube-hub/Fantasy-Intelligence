@@ -17,7 +17,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.3.0';
+const VERSION='10.4.0';
 const W=()=>window;
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function round(v,d=2){const n=num(v);return n===null?null:Math.round(n*10**d)/10**d;}
@@ -30,6 +30,9 @@ function horizonValuer({wm,horizon,schedule,catalog,season,now=Date.now()}){
   const published=(horizon||[]).map(h=>!!h.projRows&&h.projRows.size>0);
   return pid=>(horizon||[]).map((h,k)=>{if(!vals[k]){const p=wm.player(pid);return p?(p.status.unavailable?0:(p.active.value??0)):0;}return published[k]?(vals[k](pid).value??0):null;});
 }
+/** Sleeper season projection per game in league scoring (rest-of-season proxy); null for D/ST (bucket scoring). */
+function rosPerGame(input,wm,pid){if(wm.player(pid)?.position==='DEF'||isTeamCode(pid))return null;
+  const r=input.seasonRows?.get?.(String(pid));if(!r?.stats||!Object.keys(r.stats).some(k=>!/^(adp|pos_adp|gp)/.test(k)))return null;const p=wm.player(pid);const t=W().FIEScoringCore.score(r.stats,wm.league.scoring,p?.position);const gp=num(r.stats.gp)||17;return t===null?null:round(t/gp);}
 function owners(wm,rosters){const m=new Map();for(const r of rosters||[])for(const k of ['players','reserve','taxi'])for(const id of r[k]||[])if(!m.has(String(id)))m.set(String(id),{...wm.ownerOf(id)});return m;}
 
 function players(input){
@@ -75,14 +78,19 @@ function team(input){
   const isThin=d=>d.recovered!==null&&d.value>=1&&Math.max(d.recovered,d.faRecovered)<thinAt;
   const thin=[...new Set(depth.filter(isThin).map(d=>d.position))].map(pos=>({position:pos,starters:depth.filter(d=>d.position===pos&&isThin(d)).map(d=>({name:d.name,recovered:d.recovered,nextBest:d.nextBest,faRecovered:d.faRecovered,bestFa:d.bestFa}))}));
   // 3 · Byes in the horizon: points lost if this week's values held (bye players → 0) — works before a week is published.
-  const pv=p=>p.recValue||0,base=O.optimize(uniq.filter(p=>can(p.position)),slots,pv).total;
-  const byes=(input.horizon||[]).slice(1).map(h=>{const on=uniq.filter(p=>W().FIEGameState.forTeam(schedule,p.team,{week:h.week,season,now:Date.now()}).bye);
-    const set=new Set(on.map(p=>p.pid)),t=O.optimize(uniq.filter(p=>can(p.position)),slots,p=>set.has(p.pid)?0:pv(p)).total;
-    return{week:h.week,players:on.map(p=>({pid:p.pid,name:p.name,position:p.position,starter:starters.some(s=>s.p.pid===p.pid)})),cost:round(base-t),published:!!h.projRows&&h.projRows.size>0};});
+  // R4.7 · The current week is included (it was skipped with horizon.slice(1), so Week 7 byes were missing). This week a
+  // bye player's value is already 0, so his "healthy" value for the cost is his next published week's projection, else
+  // his Sleeper season projection per game.
+  const pv=p=>p.recValue||0,base=O.optimize(uniq.filter(p=>can(p.position)),slots,pv).total,hv0=horizonValuer(input);
+  const byes=(input.horizon||[]).map((h,hi)=>{const on=uniq.filter(p=>W().FIEGameState.forTeam(schedule,p.team,{week:h.week,season,now:Date.now()}).bye);
+    const set=new Set(on.map(p=>p.pid)),pool=uniq.filter(p=>can(p.position));
+    const healthy=hi===0?p=>set.has(p.pid)?((hv0(p.pid).slice(1).find(v=>v!==null&&v>0))??rosPerGame(input,wm,p.pid)??0):pv(p):pv;
+    const b=hi===0?O.optimize(pool,slots,healthy).total:base,t=O.optimize(pool,slots,p=>set.has(p.pid)?0:healthy(p)).total;
+    const inBest=hi===0?new Set((O.optimize(pool,slots,healthy).assignment||[]).map(a=>String(a.playerId))):null;
+    return{week:h.week,current:hi===0,players:on.map(p=>({pid:p.pid,name:p.name,position:p.position,starter:inBest?inBest.has(p.pid):starters.some(s=>s.p.pid===p.pid)})),cost:round(b-t),published:!!h.projRows&&h.projRows.size>0};});
   // 4 · Roster with real Sleeper slots; replacement gap = value − best free agent at the position this week.
   const hv=horizonValuer(input),sf=slots.some(s=>/SUPER/.test(s));
-  const ros=pid=>{if(wm.player(pid)?.position==='DEF'||isTeamCode(pid))return null; // bucket scoring: not valid on season totals
-    const r=input.seasonRows?.get?.(String(pid));if(!r?.stats||!Object.keys(r.stats).some(k=>!/^(adp|pos_adp|gp)/.test(k)))return null;const p=wm.player(pid);const t=W().FIEScoringCore.score(r.stats,wm.league.scoring,p?.position);const gp=num(r.stats.gp)||17;return t===null?null:round(t/gp);};
+  const ros=pid=>rosPerGame(input,wm,pid);
   const adpOf=pid=>{const a=input.adp?.get?.(String(pid));if(!a)return null;return wm.format?.dynasty?(num(sf?a.dynasty2qb:a.dynasty)??num(a.dynasty)):num(a.redraft);};
   const entry=(slot,p)=>{const v=p.status.unavailable?0:(p.active.value??0),fb=faBest[p.position];
     return{slot,pid:p.pid,name:p.name,position:p.position,team:p.team,status:p.status,game:p.game,value:round(v),values:hv(p.pid).map(x=>x===null?null:round(x)),ros:ros(p.pid),adp:adpOf(p.pid),

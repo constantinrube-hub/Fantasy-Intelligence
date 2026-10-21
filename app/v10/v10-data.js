@@ -12,7 +12,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.3.0';
+const VERSION='10.4.0';
 const SLEEPER='https://api.sleeper.app/v1';
 const W=()=>window;
 const P=()=>W().FIE_UI_POLICY||{};
@@ -28,6 +28,9 @@ async function json(url,{ttlMs,sourceId,live=false,persist}={}){
   const value=await client().json(url,{sourceId,ttlMs:f?0:ttlMs,live,persist,cache:f?'no-store':'default'});
   fetchedAt.set(url,Date.now());return value;
 }
+/** R4.3 · Sleeper drafts of a league (status pre_draft / drafting / complete), cached 1 h — decides whether the classic
+ *  Draft link is offered (dynasty leagues between rookie drafts have none to prepare). */
+async function drafts(id){try{return await json(`${SLEEPER}/league/${String(id)}/drafts`,{ttlMs:ttl('league',3600),sourceId:'v10-drafts',live:true})||[];}catch{return null;}}
 async function nflState(){
   try{const s=await json(`${SLEEPER}/state/nfl`,{ttlMs:ttl('nfl_state',600),sourceId:'v10-nfl-state',live:true});shared.state=s;return s;}catch{return shared.state;}
 }
@@ -80,7 +83,7 @@ async function waivers(entry,{week=null,market=false,limit=null,pids=null}={}){
   const [hz,sched,cat,adp]=await Promise.all([horizon(wm.key.season,wm.key.week,n),schedule(),catalog(),seasonAdp(wm.key.season)]);
   const result=W().FIEWaivers.build({wm,league,rosters,managedRosterId:wm.key.rosterId,horizon:hz,schedule:sched,season:wm.key.season,now:Date.now(),catalog:cat,adp,seasonRows:adp,policy:P(),constraints:constraintsFor(id),limit,...(pids?{pids}:{})});
   let mkt=null;
-  if(market){const tx=await transactions(id,wm.key.week);mkt=W().FIEWaivers.market({league,rosters,users,transactions:tx,positionOf:pid=>wm.player(pid)?.position||cat.get(String(pid))?.position,nameOf:pid=>wm.player(pid)?.name||cat.get(String(pid))?.full_name||pid,managedRosterId:wm.key.rosterId});}
+  if(market){const [tx,prev]=await Promise.all([transactions(id,wm.key.week),wm.key.week>1?matchups(id,wm.key.week-1).catch(()=>null):null]);mkt=W().FIEWaivers.market({league,rosters,users,transactions:tx,lastWeek:prev?{week:wm.key.week-1,matchups:prev}:null,positionOf:pid=>wm.player(pid)?.position||cat.get(String(pid))?.position,nameOf:pid=>wm.player(pid)?.name||cat.get(String(pid))?.full_name||pid,managedRosterId:wm.key.rosterId});}
   return{wm,result,market:mkt};
 }
 /** Everything a league view needs beyond the WeekModel (R3: Players, Team, Trades): live rosters/users, this week's
@@ -146,8 +149,14 @@ async function results(entry,week){
   try{const [rosters,users,mm]=await Promise.all([json(`${SLEEPER}/league/${id}/rosters`,{ttlMs:ttl('rosters',300),sourceId:'v10-rosters',live:true}),json(`${SLEEPER}/league/${id}/users`,{ttlMs:ttl('league',3600),sourceId:'v10-users',live:true}),json(`${SLEEPER}/league/${id}/matchups/${week}`,{ttlMs:ttl('matchups',600),sourceId:'v10-matchups-final',live:true})]);
     const rid=managedRoster(rosters,users),me=(mm||[]).find(m=>Number(m.roster_id)===rid);if(!me)return null;
     const opp=me.matchup_id!==null&&me.matchup_id!==undefined?(mm||[]).find(m=>m.matchup_id===me.matchup_id&&Number(m.roster_id)!==rid):null;
-    const all=(mm||[]).map(m=>Number(m.points)||0).sort((a,b)=>b-a);
-    return{week,points:Number(me.points)||0,oppPoints:opp?Number(opp.points)||0:null,rank:all.indexOf(Number(me.points)||0)+1,teams:all.length,median:all.length?all[Math.floor(all.length/2)]:null};
+    // R4.4 · Teams eliminated before this week (chopped) have an empty matchup row (0 players, 0 points). They are not
+    // part of the week: rank and team count use only teams that had players. An empty row for me = already eliminated
+    // (it said "Survived 1/18" before, because 0 points ranked "first" among the other eliminated teams' zeros).
+    // "lowest" = chopped this week: last among active teams, or my roster is empty now although I played that week
+    // (several teams can be chopped per week; R5's week picker refines this for older weeks).
+    const inWeek=(mm||[]).filter(m=>(m.players||[]).length>0),eliminated=!(me.players||[]).length;
+    const all=inWeek.map(m=>Number(m.points)||0).sort((a,b)=>b-a),pts=Number(me.points)||0;
+    return{week,points:pts,oppPoints:opp?Number(opp.points)||0:null,eliminated,rank:eliminated?null:all.indexOf(pts)+1,lowest:!eliminated&&((all.length>1&&all[0]>0&&pts<=all[all.length-1])||!(((rosters||[]).find(r=>Number(r.roster_id)===rid)||{}).players||[]).length),teams:all.length,median:all.length?all[Math.floor(all.length/2)]:null};
   }catch{return null;}
 }
 /** Light pass over all leagues with limited concurrency; onEach(i, result) streams rows. */
@@ -167,5 +176,5 @@ function refresh(){forceGen++;models.clear();shared.proj.clear();}
 /** Matchups of any week for one league (review, results). */
 async function matchups(id,week){return json(`${SLEEPER}/league/${id}/matchups/${week}`,{ttlMs:ttl('matchups',600),sourceId:'v10-matchups',live:true}).catch(()=>[]);}
 function lastFetch(){return Math.max(0,...fetchedAt.values());}
-window.FIEV10Data={VERSION,leagues,model,inputs,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
+window.FIEV10Data={VERSION,drafts,leagues,model,inputs,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
 })();

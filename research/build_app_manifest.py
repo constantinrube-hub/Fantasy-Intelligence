@@ -61,6 +61,7 @@ COMPONENTS={
  'v10_r2_test':'research/integrity_v10_r2_test.js',
  'wpv1_measure_spread':'research/wpv1_measure_spread.py',
  'v10_r3_test':'research/integrity_v10_r3_test.js',
+ 'v10_r4_test':'research/integrity_v10_r4_test.js',
  'draft_state_service':'app/core/draft-state-service.js',
  'surface_router':'app/core/surface-router.js',
  'special_teams_series':'app/core/special-teams-series.js',

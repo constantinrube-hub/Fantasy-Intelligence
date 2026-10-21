@@ -12,7 +12,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.3.0';
+const VERSION='10.4.0';
 const K=()=>window.FIEV10Kit;
 function bidLine(m,pos){
   const k=K();if(!m?.faab)return m?`Waiver type: ${m.waiverType===0?'rolling priority':m.waiverType===1?'reverse standings':'—'} (no FAAB bids).`:'';
@@ -40,7 +40,7 @@ function body(data,{selectedWeek=null}={}){
   const k=K(),{wm,result:res,market:m}=data,lid=wm.key.leagueId;
   let html='';
   if(selectedWeek&&selectedWeek!==wm.key.week)html+=`<div class="v10-note">Waivers always use the current week (${wm.key.week}).</div>`;
-  if(res.eliminated)return html+k.empty(res.issues[0]);
+  if(res.eliminated||res.addsDisabled)return html+k.empty(res.issues[0]);
   if(res.issues.length)html+=`<div class="v10-warn">${res.issues.map(k.esc).join(' · ')}</div>`;
   const pos=Object.entries(res.byPosition).sort((a,b)=>b[1].gainHorizon-a[1].gainHorizon);
   const chips=pos.length?`<div class="v10-row">${pos.map(([p,r])=>`<span class="v10-chip v10-poschip" title="${k.esc(r.name)}">${k.esc(p)} ${k.esc(r.name)} ${k.signed(r.gainHorizon)}</span>`).join('')}</div>`:'';
@@ -63,8 +63,8 @@ function body(data,{selectedWeek=null}={}){
     html+=k.expand(`<b>Last waiver run</b> <span class="v10-muted">${m.lastRunAt?k.esc(k.time(m.lastRunAt)):'none yet'} · ${run.length} claims</span>`,
       run.length?`<table class="v10-table"><thead><tr><th>Team</th><th>Added</th><th>Dropped</th>${m.faab?'<th class="v10-num">Bid</th>':''}<th>Result</th></tr></thead><tbody>${run.map(t=>`<tr class="${t.mine?'v10-me':''}"><td>${k.esc(t.team)}${t.mine?' (you)':''}</td><td>${t.adds.map(a=>`${k.esc(a.name)} <span class="v10-muted">${k.esc(a.position||'')}</span>`).join(', ')}</td><td>${t.drops.map(a=>k.esc(a.name)).join(', ')||'–'}</td>${m.faab?`<td class="v10-num">${t.bid===null?'–':'$'+k.esc(t.bid)}</td>`:''}<td>${t.status==='complete'?'won':k.esc(t.status)}</td></tr>`).join('')}</tbody></table>`:k.empty('No processed waiver claims this season.'),{cls:'v10-card',key:`run:${lid}`});
     if(m.faab)html+=k.expand(`<b>FAAB budgets</b> <span class="v10-muted">you: $${k.esc(m.mine?.remaining??'–')} of $${k.esc(m.budget)}</span>`,
-      `<table class="v10-table"><thead><tr><th>Team</th><th class="v10-num">Remaining</th><th class="v10-num">Spent</th></tr></thead><tbody>${m.budgets.filter(b=>b.active||!wm.format.chopped).map(b=>`<tr class="${b.mine?'v10-me':''}"><td>${k.esc(b.team)}${b.mine?' (you)':''}</td><td class="v10-num">$${k.esc(b.remaining)}</td><td class="v10-num">$${k.esc(b.used)}</td></tr>`).join('')}</tbody></table>
-       <p class="v10-muted">Winning bids by position: ${Object.entries(m.byPosition).map(([p,b])=>`${k.esc(p)} median $${k.esc(b.median)} (n=${b.n})`).join(' · ')||'none yet'}.</p>`,{cls:'v10-card',key:`faab:${lid}`});
+      `<table class="v10-table"><thead><tr><th>Team</th><th class="v10-num">Remaining</th><th class="v10-num" title="Points per scored week (Sleeper points for ÷ weeks played)">Avg pts / week</th><th class="v10-num">Rank W${k.esc(wm.key.week-1)}</th></tr></thead><tbody>${m.budgets.filter(b=>b.active||!wm.format.chopped).map(b=>`<tr class="${b.mine?'v10-me':''}"><td>${k.esc(b.team)}${b.mine?' (you)':''}</td><td class="v10-num">$${k.esc(b.remaining)}</td><td class="v10-num">${b.avgPoints===null?'–':k.pts(b.avgPoints,1)}</td><td class="v10-num">${b.lastWeekRank?`${k.esc(b.lastWeekRank)}/${k.esc(b.lastWeekTeams)}`:'–'}</td></tr>`).join('')}</tbody></table>
+       <p class="v10-muted">Strong teams (high average, top ranks) with money left are the likeliest big bidders; survival / playoff odds per team follow with the v10 season simulation (R6).</p>`,{cls:'v10-card',key:`faab:${lid}`});
   }
   return html;
 }

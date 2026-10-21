@@ -1,3 +1,38 @@
+# UI v10 · R4 Fix & tidy (preview), 2026-10-21
+
+Release R4 of the UI v10 plan (`FIE_V10_FEEDBACK_PLAN_2026-10-20.md`, your review of R3). Still opt-in behind
+`?ui=v10`; `default_ui` stays `classic`. No projection, scoring rule, ranking, governance or research change. Two
+guards in the classic simulation engine (below) make the classic Matchup & Survival engine more correct as well.
+
+- **R4.1 Lineup changes per slot** (`app/core/week-model.js` 10.4.0, `app/v10/v10-league.js`). The suggestion list
+  was a set difference paired greedily; when the optimizer shifted a starter (FLEX → WR) it could show a player at an
+  ineligible slot with his full value as the gain ("Start Stevenson (RB) at WR for Boston", real net +0.1). Now per
+  slot from the optimal assignment, with the displaced player found along the chain of moved starters and the moves
+  listed ("move X FLEX → WR"). Deltas add up to the gain.
+- **R4.2 Best Ball bench complete** (`week-model.js`): bench = everyone not in the projected optimal lineup (Among Us
+  Guillotine 3 hid Dalton Kincaid and, in your view, the Out/BYE players).
+- **R4.3 Adds disabled / Draft link** (`app/core/waivers.js` 10.4.0, `app/v10/v10-waivers.js` 10.4.0,
+  `v10-league.js`, `app/v10/v10-data.js` 10.4.0): `settings.disable_adds = 1` → no waiver rows or to-dos; Draft link only
+  with an open Sleeper draft.
+- **R4.4 Results and wording** (`v10-data.js`, `app/v10/v10-overview.js` 10.4.0, `app/core/alerts.js` 10.4.0): chopped
+  results count only teams that played (Eliminated / Chopped / Survived, rank among them); "Week N" header; one-week
+  horizon wording.
+- **R4.5 On-demand simulation** (`v10-league.js`, `app/decision-engines.js`): waits for classic rosters (Best Ball
+  100 %/0 % fixed), refuses empty team models, shows Survive this week + Win league (chopped) and Playoffs + Title
+  (H2H), caches results per league/week. Classic engine: scored weeks are never re-simulated (Tuesday double count
+  of the finished week); chopped simulations contain only teams still in the field (survival curves were shifted by
+  the number of already-chopped teams).
+- **R4.6 Refresh cadence** (`app/v10/v10-shell.js` 10.4.0, `config/ui-decision-policy.json › refresh_seconds`,
+  regenerated `app/generated/ui-decision-policy.js`, validator in `research/generate_ui_policy.py`): 2 min while a game
+  is live, 15 min otherwise, 6 h off-season; paused while a simulation runs or an Advanced panel is open; next refresh
+  shown in the bar.
+- **R4.7 Polish** (`v10-overview.js`, `app/v10/v10.css`, `v10-waivers.js`, `app/core/team-views.js` 10.4.0,
+  `app/v10/v10-team.js` 10.4.0): to-do grid League · Issue · Proposed action · Locks in with one header and the same order
+  in every group; "yours" chip and row tint; FAAB table with average points and last week's rank (Spent and the
+  median line removed); Team byes include the current week.
+- **Tests**: new `research/integrity_v10_r4_test.js` (registered in `research/release_gate.py` and
+  `research/build_app_manifest.py`); `docs/current/UI_CONTRACT.md §7.2a`, `§9`; `docs/current/TESTING.md`.
+
 # UI v10 · R3 Remaining views and waiver horizon (preview), 2026-10-19
 
 Release R3 of the UI v10 plan, stacked on R2 (still opt-in behind `?ui=v10`; `default_ui` stays `classic`). No

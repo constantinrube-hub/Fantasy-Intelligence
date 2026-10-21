@@ -9,7 +9,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.2.0';
+const VERSION='10.4.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 let token=0,last=null;
 function draftAlert(r){const st=r.wm?.league?.status;if(st!=='drafting'&&st!=='pre_draft')return null;
@@ -17,7 +17,7 @@ function draftAlert(r){const st=r.wm?.league?.status;if(st!=='drafting'&&st!=='p
 function alertRow(a,now){
   const k=K(),lock=a.lockAt?`<span class="v10-lock" title="${k.esc(k.time(a.lockAt))}">${k.esc(k.until(a.lockAt,now))}</span>`:'';
   const where=a.grouped?`${a.grouped.length} leagues`:k.esc(a.leagueName);
-  const sum=`<span class="v10-q-tier">${k.tierChip(a.code==='CLOSE_CALL'?'close':a.tier)}</span><span class="v10-q-title">${k.esc(a.title)}</span><span class="v10-q-league">${where}</span>${lock}`;
+  const sum=`<span class="v10-q-tier">${k.tierChip(a.code==='CLOSE_CALL'?'close':a.tier)}</span><span class="v10-q-title">${where}</span><span class="v10-q-issue">${k.esc(a.issue||a.title)}</span><span class="v10-q-action">${k.esc(a.action||a.detail||'')}</span>${lock||'<span></span>'}`;
   const links=(a.grouped||[a]).map(x=>`<li><a href="${href(x)}">${k.esc(x.leagueName)}</a>${x.detail?` — ${k.esc(x.detail)}`:''}${x.inactivesAt?` · inactives ${k.esc(k.time(x.inactivesAt))}`:''}</li>`).join('');
   const body=`<ul class="v10-q-links">${links}</ul>`;
   const adv=k.kv([['Rule',k.esc(a.code)],['Lock',a.lockAt?k.esc(k.time(a.lockAt)):'–'],['League priority',k.esc(a.priority||'–')],['Gain',a.gain!==undefined&&a.gain!==null?k.signed(a.gain):'–']]);
@@ -55,7 +55,7 @@ function header(rows,now){
 }
 function taskRow(t,now){
   const k=K(),lock=t.lockAt?`<span class="v10-lock" title="${k.esc(k.time(t.lockAt))}">${k.esc(k.until(t.lockAt,now))}</span>`:'';
-  const sum=`<span class="v10-q-tier">${k.tierChip(t.close?'close':t.tier)}</span><span class="v10-q-title"><a href="#/league/${encodeURIComponent(t.leagueId)}/lineup">${k.esc(t.leagueName)}</a></span><span class="v10-q-league">${k.esc(t.title)}</span>${lock}`;
+  const sum=`<span class="v10-q-tier">${k.tierChip(t.close?'close':t.tier)}</span><span class="v10-q-title"><a href="#/league/${encodeURIComponent(t.leagueId)}/lineup">${k.esc(t.leagueName)}</a></span><span class="v10-q-issue">${k.esc(t.issue||t.title)}</span><span class="v10-q-action">${k.esc(t.action||'')}</span>${lock||'<span></span>'}`;
   const body=`<ul class="v10-q-links">${t.items.map(a=>`<li>${k.tierChip(a.code==='CLOSE_CALL'?'close':a.tier)} <a href="${href(a)}">${k.esc(a.title)}</a>${a.detail?` — ${k.esc(a.detail)}`:''}${a.inactivesAt?` · inactives ${k.esc(k.time(a.inactivesAt))}`:''}${a.lockAt?` <span class="v10-lock">${k.esc(k.time(a.lockAt))}</span>`:''}</li>`).join('')}</ul>`;
   const adv=k.kv([['Rules',t.items.map(a=>k.esc(a.code)).join(', ')],['League priority',k.esc(t.priority||'–')],['Projected gain (sum)',k.signed(t.gain)]]);
   return k.expand(sum,body,{adv,cls:`v10-q v10-q-${t.tier}`,key:`t:${t.leagueId}`});
@@ -67,7 +67,10 @@ function queue(rows,now){
   const body=sec(actions.filter(a=>a.tier==='urgent'),'Urgent',taskRow)+sec(actions.filter(a=>a.tier==='recommended'),'Recommended',taskRow)+sec(actions.filter(a=>a.tier==='monitor'),'Close calls',taskRow)+sec(monitor,'Monitor',alertRow)
     ||k.empty('Nothing to do right now. Lineups match the best projected lineup in every league.');
   const q=quiet.length?k.expand(`<span class="v10-muted">Data issues (${quiet.length})</span>`,quiet.map(a=>`<div>${k.esc(a.leagueName)}: ${k.esc(a.title)}</div>`).join(''),{cls:'v10-quietbox',key:'quiet'}):'';
-  return `<section class="v10-card"><h2>To do</h2>${body}${q}</section>`;
+  // R4.7 · One header for all groups; every row reads League · Issue · Proposed action · Locks in (Monitor used to put the
+  // player first and the league second).
+  const headRow=body.startsWith('<h3')?'<div class="v10-qhead"><span></span><span>League</span><span>Issue</span><span>Proposed action</span><span>Locks in</span></div>':'';
+  return `<section class="v10-card"><h2>To do</h2>${headRow}${body}${q}</section>`;
 }
 // ---- R2 · WP2.5: changes since last visit + my players this week ----
 const LAST='fieV10LastVisit',BASE='fieV10FeedBase';
@@ -95,14 +98,14 @@ function myPlayersSection(rows){
     ${mp.rows.length>top.length?k.expand(`<span class="v10-muted">${mp.rows.length-top.length} more players (bench / IR / taxi only)</span>`,mp.rows.filter(r=>!top.includes(r)).map(line).join(''),{key:'mp:rest'}):''}</section>`;
 }
 function leaguesTable(rows,now){
-  const k=K();return `<section class="v10-card"><h2>Leagues</h2><div class="v10-lhead"><span>League</span><span>This week</span><span>Win est.</span><span>Record</span><span>Tasks</span><span>Lock</span></div>${rows.map(r=>r?leagueRow(r,now):`<div class="v10-lrow v10-loading">Loading…</div>`).join('')}</section>`;
+  const k=K(),wk=rows.find(r=>r?.wm)?.wm.key.week;return `<section class="v10-card"><h2>Leagues</h2><div class="v10-lhead"><span>League</span><span>${wk?`Week ${k.esc(wk)}`:'This week'}</span><span>Win est.</span><span>Record</span><span>Tasks</span><span>Lock</span></div>${rows.map(r=>r?leagueRow(r,now):`<div class="v10-lrow v10-loading">Loading…</div>`).join('')}</section>`;
 }
 function resultsSection(res){
   const k=K();if(!res)return `<section class="v10-card" id="v10Results"><h2>Latest results</h2>${k.empty('Loading last week…')}</section>`;
   const rows=res.filter(x=>x&&x.r);if(!rows.length)return `<section class="v10-card" id="v10Results"><h2>Latest results</h2>${k.empty('No completed week yet.')}</section>`;
   return `<section class="v10-card" id="v10Results"><h2>Latest results <span class="v10-muted">Week ${k.esc(rows[0].r.week)}</span></h2><table class="v10-table"><thead><tr><th>League</th><th>Result</th><th class="v10-num">Points</th><th class="v10-num">Rank of week</th></tr></thead><tbody>${rows.map(({entry,r,chopped})=>{
-    const res=r.oppPoints!==null&&!chopped?(r.points>r.oppPoints?'<b class="v10-good">W</b>':r.points<r.oppPoints?'<b class="v10-bad">L</b>':'T'):chopped?(r.rank===r.teams?'<b class="v10-bad">Chopped</b>':'Survived'):'';
-    return `<tr><td><a href="#/league/${encodeURIComponent(entry.id)}/matchup">${k.esc(entry.name)}</a></td><td>${res}</td><td class="v10-num">${k.pts(r.points,2)}${r.oppPoints!==null&&!chopped?` – ${k.pts(r.oppPoints,2)}`:''}</td><td class="v10-num">${r.rank}/${r.teams}</td></tr>`;}).join('')}</tbody></table></section>`;
+    const res=r.eliminated?'<span class="v10-muted">Eliminated</span>':r.oppPoints!==null&&!chopped?(r.points>r.oppPoints?'<b class="v10-good">W</b>':r.points<r.oppPoints?'<b class="v10-bad">L</b>':'T'):chopped?(r.lowest?'<b class="v10-bad">Chopped</b>':'Survived'):'';
+    return `<tr><td><a href="#/league/${encodeURIComponent(entry.id)}/matchup">${k.esc(entry.name)}</a></td><td>${res}</td><td class="v10-num">${r.eliminated?'–':k.pts(r.points,2)}${!r.eliminated&&r.oppPoints!==null&&!chopped?` – ${k.pts(r.oppPoints,2)}`:''}</td><td class="v10-num">${r.eliminated?'–':`${r.rank}/${r.teams}`}</td></tr>`;}).join('')}</tbody></table></section>`;
 }
 async function render(root){
   const my=++token,now=Date.now(),list=await D().leagues();if(my!==token)return;

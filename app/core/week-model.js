@@ -13,7 +13,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.1.0';
+const VERSION='10.4.0';
 const W=()=>window;
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function round(v,d=2){const n=num(v);return n===null?null:Math.round(n*10**d)/10**d;}
@@ -87,7 +87,7 @@ function totals(lineup,actualOf){
 }
 
 function recommend({slots,submitted,benchPids,player,pol,format}){
-  const empty={changes:[],gain:0,tier:'none',fallbacks:[],starters:submitted,optimizedTotal:null,submittedTotal:null};
+  const empty={changes:[],moves:[],gain:0,tier:'none',fallbacks:[],starters:submitted,optimizedTotal:null,submittedTotal:null};
   if(format?.bestBall)return empty;
   const openIdx=submitted.map((e,i)=>(!e.p||!e.p.game.locked)?i:-1).filter(i=>i>=0);if(!openIdx.length)return empty;
   const openSlots=openIdx.map(i=>slots[i]),submittedOpen=openIdx.map(i=>submitted[i]).filter(e=>e.p);
@@ -96,25 +96,39 @@ function recommend({slots,submitted,benchPids,player,pol,format}){
   const opt=W().FIECore.LineupOptimizer.optimize(uniq,openSlots,p=>p.recValue);
   const submittedTotal=submittedOpen.reduce((s,e)=>s+e.p.recValue,0),gain=round(opt.total-submittedTotal);
   const tier=tierFor(gain,pol);if(tier==='none')return{...empty,optimizedTotal:round(opt.total),submittedTotal:round(submittedTotal)};
-  const sel=new Set(opt.selectedPlayerIds.map(String)),sub=new Set(submittedOpen.map(e=>e.pid));
-  const ins=[...sel].filter(id=>!sub.has(id)).map(player).sort((a,b)=>b.recValue-a.recValue);
-  const outs=openIdx.map(i=>({i,e:submitted[i]})).filter(x=>!x.e.p||!sel.has(x.e.pid));
-  const changes=[],usedOut=new Set();
-  for(const pin of ins){
-    let best=null;for(const o of outs){if(usedOut.has(o.i))continue;if(!W().FIECore.PositionRegistry.eligible(pin.position,slots[o.i]))continue;const d=pin.recValue-(o.e.p?.recValue??0);if(!best||d>best.d)best={o,d};}
-    if(!best){best={o:outs.find(o=>!usedOut.has(o.i))||null,d:pin.recValue};}
-    if(best.o)usedOut.add(best.o.i);
-    changes.push({slot:best.o?slots[best.o.i]:null,inPid:pin.pid,outPid:best.o?.e.pid||null,delta:round(best.d)});
-  }
+  // R4.1 · Changes are derived per SLOT from the optimal assignment, not by set difference. The optimizer may shift a
+  // starter between slots (FLEX → WR) to make room; a 1:1 "X for Y" pairing then put players into slots they are not
+  // eligible for (Week 7: "Start Stevenson (RB) at WR for Boston"). Now: every open slot gets its optimal occupant,
+  // same-named slots keep their current occupant where possible (no churn between WR1/WR2), and each player entering
+  // from the bench is paired with the player he finally displaces by following the chain of moved starters.
+  const sub=new Set(submittedOpen.map(e=>e.pid)),rec=submitted.map(e=>({...e}));
+  const byName=new Map();for(const a of opt.assignment){const k=a.slot;(byName.get(k)||byName.set(k,[]).get(k)).push(String(a.playerId));}
+  for(const [slotName,pids] of byName){const idx=openIdx.filter(i=>slots[i]===slotName),left=[...pids],free=[];
+    for(const i of idx){const cur=submitted[i].pid,j=cur?left.indexOf(cur):-1;if(j>=0){left.splice(j,1);rec[i]={slot:slotName,pid:cur,p:player(cur)};}else free.push(i);}
+    for(const i of free){const pid=left.shift()||null;rec[i]={slot:slotName,pid,p:pid?player(pid):null};}}
+  for(const i of openIdx)if(!byName.has(slots[i]))rec[i]={slot:slots[i],pid:null,p:null};
+  const before=new Map(openIdx.map(i=>[i,submitted[i].p?submitted[i].pid:null])),after=new Map(openIdx.map(i=>[i,rec[i].pid]));
+  const slotOf=(map,pid)=>{for(const [i,x] of map)if(x===pid)return i;return -1;};
+  const moves=[];
+  for(const i of openIdx){const b=before.get(i),a=after.get(i);if(a===b)continue;
+    if(a&&sub.has(a))moves.push({kind:'move',pid:a,from:slots[slotOf(before,a)],to:slots[i]});
+    else if(a)moves.push({kind:'start',pid:a,to:slots[i]});}
+  for(const i of openIdx){const b=before.get(i);if(b&&slotOf(after,b)<0)moves.push({kind:'bench',pid:b,from:slots[i]});}
+  const changes=[];
+  for(const m of moves.filter(x=>x.kind==='start')){
+    let i=slotOf(after,m.pid),guard=0,outPid=null;
+    while(i>=0&&guard++<slots.length){const b=before.get(i);if(!b)break;if(slotOf(after,b)<0){outPid=b;break;}i=slotOf(after,b);}
+    const via=[];let k=slotOf(after,m.pid);guard=0;while(k>=0&&guard++<slots.length){const b=before.get(k);if(!b||b===outPid)break;via.push({pid:b,from:slots[k],to:slots[slotOf(after,b)]});k=slotOf(after,b);}
+    const pin=player(m.pid),pout=outPid?player(outPid):null;
+    changes.push({slot:m.to,inPid:m.pid,outPid,outSlot:outPid?slots[slotOf(before,outPid)]:null,via,delta:round((pin?.recValue??0)-(pout?.recValue??0))});}
+  changes.sort((a,b)=>b.delta-a.delta);
   // Questionable swap-ins: the best lineup if that player is ruled out (hedge for the inactives list).
   const fallbacks=[];
   for(const c of changes){const pin=player(c.inPid);if(!pin?.status?.monitor)continue;
     const opt2=W().FIECore.LineupOptimizer.optimize(uniq.filter(p=>p.pid!==pin.pid),openSlots,p=>p.recValue),sel2=new Set(opt2.selectedPlayerIds.map(String));
     const alt=[...sel2].filter(id=>!sub.has(id)).map(player).sort((a,b)=>b.recValue-a.recValue)[0]||null;
     fallbacks.push({forPid:pin.pid,pid:alt?.pid||null,total:round(opt2.total),gain:round(opt2.total-submittedTotal)});}
-  const rec=submitted.map(e=>({...e}));
-  for(const a of opt.assignment){const idx=openIdx.find(i=>slots[i]===a.slot&&!rec[i].__filled);if(idx===undefined)continue;rec[idx]={slot:a.slot,pid:String(a.playerId),p:player(a.playerId),__filled:true};}
-  return{changes,gain,tier,fallbacks,starters:rec.map(({__filled,...e})=>e),optimizedTotal:round(opt.total),submittedTotal:round(submittedTotal)};
+  return{changes,moves,gain,tier,fallbacks,starters:rec,optimizedTotal:round(opt.total),submittedTotal:round(submittedTotal)};
 }
 
 function standings(league,rosters,users,meId,chopped=false){
@@ -138,13 +152,18 @@ function build(input){
   const reserve=(roster?.reserve||[]).map(String),taxi=(roster?.taxi||[]).map(String);
   const starterIds=(mm?.starters||roster?.starters||[]).map(String);
   const all=(mm?.players||roster?.players||[]).map(String);
-  const benchPids=all.filter(id=>!starterIds.includes(id)&&!reserve.includes(id)&&!taxi.includes(id));
+  let benchPids=all.filter(id=>!starterIds.includes(id)&&!reserve.includes(id)&&!taxi.includes(id));
   const actualOf=pid=>{const v=mm?.players_points?.[pid];return num(v);};
   let submitted=lineupFrom({slots,starters:starterIds,player});
   if(format.bestBall){ // automatic optimal lineup: display it as the lineup
     const pool=all.filter(id=>!reserve.includes(id)&&!taxi.includes(id)).map(player).filter(Boolean);
     const opt=W().FIECore.LineupOptimizer.optimize(pool,slots,p=>p.recValue),used=new Set();
     submitted=slots.map(slot=>{const a=opt.assignment.find(x=>x.slot===slot&&!used.has(x.playerId));if(a)used.add(a.playerId);return{slot,pid:a?String(a.playerId):null,p:a?player(a.playerId):null};});
+    // R4.2 · The bench is everyone not in the projected optimal lineup. It was "roster minus Sleeper's starters" (last
+    // week's automatic lineup), so a player who started last week but not in this week's optimum appeared nowhere
+    // (Among Us Guillotine 3, Week 7: Dalton Kincaid). IR/taxi stay separate.
+    const inLine=new Set(submitted.filter(e=>e.pid).map(e=>e.pid));
+    benchPids=all.filter(id=>!inLine.has(id)&&!reserve.includes(id)&&!taxi.includes(id));
   }
   const rec=recommend({slots,submitted,benchPids,player,pol,format});
   const myTotals=totals(submitted,actualOf),recTotals=rec.changes.length?totals(rec.starters,actualOf):null;

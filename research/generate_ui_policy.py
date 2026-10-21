@@ -34,6 +34,9 @@ def validate(policy: dict) -> None:
         for pos, q in v.get('calibration', {}).get('positions', {}).items():
             assert 0 <= q['p10'] < q['p50'] < q['p90'], f'{pos}: p10 < p50 < p90'
             assert q['n'] >= 30, f'{pos}: calibration needs at least 30 observations'
+    rf = policy.get('refresh_seconds', {})
+    if rf:
+        assert 60 <= rf['live'] <= rf['idle'] <= rf['offseason'], 'refresh_seconds: 60 <= live <= idle <= offseason'
     tm = policy.get('team', {})
     if tm:
         assert 0 < tm['thin_recovery'] < 1, 'team.thin_recovery is a share of the starter\'s points (0-1)'

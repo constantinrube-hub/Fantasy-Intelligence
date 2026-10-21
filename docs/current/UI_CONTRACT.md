@@ -215,6 +215,23 @@ reaches `team.thin_recovery` (policy, 0.25; S6). (3) **Byes** in the later horiz
 | Trades (WP3.4) | League tab `trades` (`app/v10/v10-trades.js`, numbers `app/core/trades.js › FIETrades.evaluate`): choose a partner, tick players on both sides (reserve/taxi marked); the effect on **both** teams' optimal legal lineups per horizon week and in total, plus a **season rate** (Sleeper season projection in league scoring ÷ games, optimal lineup per game; D/ST excluded) and a one-line verdict that flags when short-term and season effects disagree. Rules: reserve/taxi players don't start; if a traded player is locked this week, this week is not counted; drops needed for roster size are reported (lineups assume the weakest bench players go); entry-class floor and legacy cap are checked. Expand "Assets" = Sleeper market ADP (dynasty ADP in dynasty), season rate, age — labelled "market view, not an FIE value". **No fairness score, no offer is sent.** Picks are not valued in v10: dynasty leagues link to the classic evaluator (asset index) |
 | Draft placement (WP3.4) | No v10 Draft view; the classic Draft link appears only where the lifecycle needs it — leagues `pre_draft`/`drafting` and dynasty leagues (rookie drafts). In-season redraft leagues no longer show it |
 
+### 7.2a R4 fixes and tidy-up (21 Oct 2026, from the R3 review of 20 Oct)
+
+| Item | Rule / implementation |
+|---|---|
+| Lineup changes per slot (R4.1) | `WeekModel.recommend` derives changes from the optimal **assignment per slot**: same-named slots keep their occupant where possible; every player entering from the bench is paired with the player he finally displaces by following the chain of moved starters (`changes[].via` = moved starters, `moves[]` = start / move / bench). A player is never shown at a slot he is not eligible for (Week 7: "Start Stevenson (RB) at WR"); a change's delta = entering − displaced value, so the deltas add up to the lineup gain |
+| Best Ball bench (R4.2) | Bench = all roster players (without IR/taxi) not in the projected optimal lineup. It was "roster − Sleeper starters (last week's auto-lineup)", which hid players who started last week but not in this week's optimum (Among Us Guillotine 3: Dalton Kincaid) |
+| Adds disabled (R4.3) | Sleeper `settings.disable_adds = 1` → `FIEWaivers.build` returns `addsDisabled` with one line, no rows, no to-do item (BestBall – Pro, BestBall – Prime, Stoned Lack Bestball Dynasty 4) |
+| Draft link (R4.3) | Classic Draft link only when the league is `pre_draft`/`drafting` or Sleeper lists a draft for it with that status (`FIEV10Data.drafts`, 1 h cache); it was shown for every dynasty league |
+| Results (R4.4) | Last-week results count only teams that played that week (non-empty matchup row): eliminated before the week → "Eliminated", no rank; lowest among those who played, or my roster is empty now although I played → "Chopped"; else "Survived"; rank = among teams that played (e.g. 7/12, not 7/18). An unscored week (all zero) is never "Chopped" |
+| One-week horizon wording (R4.4) | With only the current week published, waiver to-dos say "+X this week (W8–W9 not published yet)" instead of "+X over Weeks 7–9 (1 published)"; the Leagues table header says "Week N" |
+| On-demand simulation (R4.5) | Waits until the classic engine has players on every active roster (it simulated empty rosters right after `switchLeague()` → Best Ball 100 %/0 %); an empty team model is an error, never odds. Columns: H2H Playoffs + Title (tooltip: bye, expected wins), chopped Survive W*n* + Win league (tooltip: expected elimination). Classic engine guards: weeks ≤ `last_scored_leg` are never simulated (they are in the standings), chopped simulations contain only teams still in the field (empty rosters were re-eliminated first, shifting every survival curve). Results cached per league and week for the session and repainted after a refresh. R6 replaces this with a v10-native simulation |
+| Refresh cadence (R4.6) | Policy `refresh_seconds`: `live` 120 s while a scheduled NFL game is live (10 min before kickoff to 4.5 h after, unless final), `idle` 900 s otherwise in season, `offseason` 21 600 s (Sleeper `season_type` not regular/post). No auto-refresh while a simulation runs or an Advanced panel is open; the bar shows the next refresh time and mode. Validated by the generator (60 ≤ live ≤ idle ≤ offseason) |
+| To-do grid (R4.7) | One header row; every row reads **League · Issue · Proposed action · Locks in** (Monitor rows used to start with the player). League tasks carry `issue` and `action` (`FIEAlerts.leagueTask`), monitor rows carry the status and the report to check |
+| "Yours" (R4.7) | Players: accent chip "yours" and tinted row (was bold text only) |
+| FAAB budgets (R4.7) | Columns Team · Remaining · Avg points / week (Sleeper points for ÷ weeks played; median leagues count two results per week) · Rank of last week (among teams that played). "Spent" and the winning-bids-by-position line removed (the bid distribution moves into the R5 bid ranges) |
+| Team byes (R4.7) | Byes start with the current week (was skipped). This week's lineup cost uses a bye player's next published projection, else his Sleeper season projection per game |
+
 ### 7.3 Research Lab v1 (R3 · WP3.1)
 
 Route `#/lab/<state|eval|forecasts|rankings|docs>?league=<id>` (`app/v10/v10-lab.js`, computations
@@ -333,7 +350,8 @@ Best Ball: submitted = hindsight by definition. A week without non-zero points i
 | v10 core contracts (scoring/distribution parity, kickoffs, WeekModel, alerts) | `node research/integrity_v10_core_test.js` |
 | v10 R2 contracts (waivers exactness and legality on 23 leagues, market, review, portfolio, context, aliases, calibration switch) | `node research/integrity_v10_r2_test.js` |
 | v10 R3 contracts (carry-over and its 108 h guard, returning players, fill-in causality, injured-starter protection, Players/Team, Trades reversibility, Lab evaluation) | `node research/integrity_v10_r3_test.js` |
+| v10 R4 contracts (lineup changes per slot, Best Ball bench, adds disabled, chopped results, simulation guards, refresh cadence, to-do columns, FAAB context, byes this week) | `node research/integrity_v10_r4_test.js` |
 | WP-V1 spread measurement (research, read-only) | `python research/wpv1_measure_spread.py --weeks 1-5 [--check]` |
 | Browser replay on immutable captures | `node research/ui_replay/run.js --dist dist --suite all` (classic 10, v10 17 checks; see `TESTING.md`) |
 
-All six integrity checks run in `research/release_gate.py`.
+All seven integrity checks run in `research/release_gate.py`.

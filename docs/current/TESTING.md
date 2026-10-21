@@ -126,7 +126,7 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | V-SPECIAL | (v10, R3) Kicker and D/ST boards in Lineup; free-agent gains equal the Waivers engine; no PAY/WAIT/STREAM |
 | V-PLAYERS | (v10, R3) Players filters (position, owner, search), expand, defaults reset on league change |
 | V-TEAM | (v10, R3) Team: strength ranks, depth, byes, roster with Sleeper slots |
-| V-TRADES | (v10, R3) Trades: both lineups per week + season rate, verdict; Draft link only for drafting/dynasty leagues |
+| V-TRADES | (v10, R3) Trades: both lineups per week + season rate, verdict; Draft link only with an open Sleeper draft (R4.3: none in the capture, so neither redraft nor dynasty shows it) |
 | V-LAB | (v10, R3) Research Lab: model state (all leagues), accuracy on the scored Week 5 fixture, forecasts, rankings with the research board, documents; no console errors |
 
 The v10 checks open `/?ui=v10#…`; run them with `--suite v10`. Scenario `w7-tuesday` (R2) uses the Sunday
@@ -135,7 +135,10 @@ for past weeks (`data/research/market/sleeper/2026/week_NN.jsonl.gz`), and a **t
 (lineups from the Tuesday-after-Week-5 capture, points rebuilt from real nflverse stats, D/ST = 0) until WP-T2
 captures post-week matchups. Pure-module contracts run without a browser (all in the release gate):
 `node research/integrity_v10_core_test.js` (R1), `node research/integrity_v10_r2_test.js` (R2) and
-`node research/integrity_v10_r3_test.js` (R3: carry-over, returning players, fill-ins, Players/Team, Trades, Lab).
+`node research/integrity_v10_r3_test.js` (R3: carry-over, returning players, fill-ins, Players/Team, Trades, Lab) and
+`node research/integrity_v10_r4_test.js` (R4: lineup changes per slot, Best Ball bench, adds disabled, chopped results,
+simulation guards, refresh cadence, to-do columns, FAAB context, byes this week; Week 7 Tuesday capture
+`20261020T175919279901Z` plus synthetic fixtures).
 The whole replay (`--suite all`) has 27 checks after R3: classic 10, v10 17. Classic checks open `/?ui=classic` explicitly (they keep testing classic when
 `default_ui` becomes `v10`); v10 checks open `/?ui=v10#…`.
 
