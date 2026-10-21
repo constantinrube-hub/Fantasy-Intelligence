@@ -9,12 +9,12 @@
  *         · #/classic/<id>/<trades|draft|lab|waivers|weekly> (bridge)
  * The classic route is the bridge for views not rebuilt in R1: it shows the classic UI, loads that
  * league through FIELeagueController and opens the tab by clicking its real navigation.
- * A "New view" pill returns to v10. While visible, the current view re-renders every 2 minutes
- * (data-client TTLs decide what is re-fetched).
+ * A "New view" pill returns to v10. While visible, the current view re-renders on the policy cadence
+ * (refresh_seconds: live game / idle / off-season, R4.6); data-client TTLs decide what is re-fetched.
  */
 (function(){
 'use strict';
-const VERSION='10.3.0';
+const VERSION='10.4.0';
 const KEY='fieUiMode';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 const CLASSIC_TABS={waivers:['market','waivers'],trades:['market','trades'],draft:['draft','draft'],lab:['lab',null],weekly:['weekly','startsit']};
@@ -30,7 +30,7 @@ function mode(){
 function bar(){
   return `<div class="v10-bar"><a class="v10-brand" href="#/overview">FIE</a><a class="v10-nav" href="#/overview" data-nav="overview">Overview</a><a class="v10-nav" href="#/lab/state" data-nav="lab">Research Lab</a>
   <select id="v10LeagueSelect" aria-label="League"><option value="">League…</option></select>
-  <span class="v10-spacer"></span><span class="v10-muted" id="v10AsOf"></span>
+  <span class="v10-spacer"></span><span class="v10-muted" id="v10AsOf"></span><span class="v10-muted v10-small" id="v10Next"></span>
   <button class="v10-btn" id="v10Refresh" title="Re-read Sleeper rosters, matchups and projections">Refresh</button>
   <button class="v10-btn v10-ghost" id="v10Classic" title="Switch this browser back to the classic interface">Classic view</button></div>`;
 }
@@ -74,7 +74,24 @@ async function openClassic(id,tab){
     window.scrollTo(0,0);
   }catch(e){window.FIECore?.Diagnostics?.capture?.(e,{domain:'v10-open-classic',leagueId:id});}
 }
-function tick(){clearInterval(timer);timer=setInterval(()=>{if(document.visibilityState==='visible'&&document.body.classList.contains('fie-v10')&&!document.querySelector('.v10-x[open] .v10-adv[open]'))route();},120000);}
+// R4.6 · Refresh cadence (policy refresh_seconds): every 2 min while an NFL game of the schedule is live (from 10 min
+// before kickoff to 4.5 h after, unless final), 15 min otherwise in season, 6 h in the off-season (Sleeper season_type
+// not regular/post). No auto-refresh while a simulation runs or an Advanced panel is open; the next refresh time is
+// shown in the bar. It was a fixed 2 min, which repainted the page constantly on non-game days.
+let refreshMode=null,nextAt=null;
+async function cadence(){
+  const r=window.FIE_UI_POLICY?.refresh_seconds||{},live=(Number(r.live)||120)*1e3,idle=(Number(r.idle)||900)*1e3,off=(Number(r.offseason)||21600)*1e3;
+  try{const st=await D().nflState();if(st&&!['regular','post'].includes(String(st.season_type||'regular')))return{ms:off,mode:'off-season'};
+    const idx=await D().schedule(),now=Date.now();
+    for(const g of new Set(idx?.games?.values?.()||[]))if(g.kickoff&&!g.final&&now>=g.kickoff-10*60e3&&now<=g.kickoff+4.5*3600e3)return{ms:live,mode:'game live'};
+    return{ms:idle,mode:'no game live'};}catch{return{ms:live,mode:'game live'};}
+}
+function busy(){return !!document.querySelector('.v10-x[open] .v10-adv[open]')||!!document.querySelector('[data-v10-odds][disabled]');}
+function showNext(){const el=root?.querySelector('#v10Next');if(el)el.textContent=nextAt?`auto-refresh ${K().clock(nextAt)} (${refreshMode})`:'';}
+function tick(){clearTimeout(timer);
+  cadence().then(({ms,mode:m})=>{refreshMode=m;nextAt=Date.now()+ms;showNext();
+    timer=setTimeout(()=>{if(document.visibilityState==='visible'&&document.body.classList.contains('fie-v10')&&!busy())route();tick();},ms);});}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&nextAt&&Date.now()>nextAt&&document.body.classList.contains('fie-v10')&&!busy()){route();tick();}});
 function install(){
   root=document.createElement('div');root.id='fieV10';root.innerHTML=`${bar()}<main id="fieV10Main" class="v10-main"></main>`;document.body.insertBefore(root,document.body.firstChild);main=root.querySelector('#fieV10Main');
   root.querySelector('#v10Refresh').addEventListener('click',()=>{D().refresh();route();});

@@ -30,7 +30,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.3.0';
+const VERSION='10.4.0';
 const W=()=>window;
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function round(v,d=2){const n=num(v);return n===null?null:Math.round(n*10**d)/10**d;}
@@ -64,6 +64,9 @@ function build(input){
   const empty={VERSION,rows:[],watch:[],byPosition:{},baseline:[],freeSpots:0,rosterLimit:0,protectedDrops:[],weeks,weeksAvailable:0,issues:[]};
   if(!roster||!slots.length){empty.issues.push('Your roster was not found in this league.');return empty;}
   if(!(roster.players||[]).length){empty.eliminated=true;empty.issues.push('Your team has been eliminated in this league — no waiver moves to make.');return empty;}
+  // R4.3 · Sleeper "disable_adds" (BestBall – Pro / – Prime, Stoned Lack Bestball Dynasty 3): no waiver claims and no
+  // free-agent adds are possible, so nothing is recommended (the research pipeline marks these NOT_APPLICABLE_ADDS_DISABLED).
+  if(Number(league?.settings?.disable_adds)===1){empty.addsDisabled=true;empty.issues.push('Adds are disabled in this league (Sleeper setting) — no waiver claims or free-agent adds possible.');return empty;}
   // League roster rules (config/league-portfolio.json › research_constraints, same rules as FIEPortfolioConfig):
   // nfl_entry_cohort_floor → only NFL entry class ≥ minimum; cohort_floor_with_legacy_cap → at the cap,
   // adding a legacy player (entry ≤ legacy_entry_season_max) requires dropping a legacy player.
@@ -203,7 +206,7 @@ function build(input){
 }
 
 /** FAAB market and budgets from Sleeper transactions (all weeks so far) and rosters. */
-function market({league,rosters,users,transactions,positionOf,nameOf,managedRosterId}){
+function market({league,rosters,users,transactions,positionOf,nameOf,managedRosterId,lastWeek=null}){
   const s=league?.settings||{},faab=Number(s.waiver_type)===2,budget=num(s.waiver_budget)??0;
   const names={};const u=new Map((users||[]).map(x=>[String(x.user_id),x]));for(const r of rosters||[]){const x=u.get(String(r.owner_id));names[r.roster_id]=x?.metadata?.team_name||x?.display_name||x?.username||`Roster ${r.roster_id}`;}
   const tx=(transactions||[]).filter(Boolean);
@@ -215,7 +218,14 @@ function market({league,rosters,users,transactions,positionOf,nameOf,managedRost
   const lastRun=run.sort((a,b)=>(a.status==='complete'?0:1)-(b.status==='complete'?0:1)||(num(b.settings?.waiver_bid)??0)-(num(a.settings?.waiver_bid)??0)).map(t=>({
     rosterId:Number(t.roster_ids?.[0]),team:names[t.roster_ids?.[0]]||'',status:t.status,bid:num(t.settings?.waiver_bid),mine:(t.roster_ids||[]).map(Number).includes(Number(managedRosterId)),
     adds:Object.keys(t.adds||{}).map(pid=>({pid,name:nameOf(pid),position:positionOf(pid)})),drops:Object.keys(t.drops||{}).map(pid=>({pid,name:nameOf(pid),position:positionOf(pid)})),at:num(t.status_updated)}));
-  const budgets=(rosters||[]).map(r=>{const used=num(r.settings?.waiver_budget_used)??0;return{rosterId:Number(r.roster_id),team:names[r.roster_id],used,remaining:Math.max(0,budget-used),active:(r.players||[]).length>0,mine:Number(r.roster_id)===Number(managedRosterId)};}).sort((a,b)=>b.remaining-a.remaining);
+  // R4.7 · Budget table context: average points per scored week (Sleeper fpts ÷ weeks the team played) and last week's
+  // rank among teams that played (chopped: active that week) — who is strong / desperate and may bid big.
+  const scored=num(s.last_scored_leg)??0,lw=(lastWeek?.matchups||[]).filter(m=>(m.players||[]).length>0),lwSorted=lw.map(m=>num(m.points)??0).sort((a,b)=>b-a);
+  const lwRank=rid=>{const m=lw.find(x=>Number(x.roster_id)===Number(rid));return m?lwSorted.indexOf(num(m.points)??0)+1:null;};
+  const budgets=(rosters||[]).map(r=>{const used=num(r.settings?.waiver_budget_used)??0,st=r.settings||{},pf=(num(st.fpts)??0)+(num(st.fpts_decimal)??0)/100,gp=(num(st.wins)??0)+(num(st.losses)??0)+(num(st.ties)??0);
+    const weeks=s.league_average_match===1&&gp?gp/2:gp||scored;
+    return{rosterId:Number(r.roster_id),team:names[r.roster_id],used,remaining:Math.max(0,budget-used),active:(r.players||[]).length>0,mine:Number(r.roster_id)===Number(managedRosterId),
+      avgPoints:weeks>0?round(pf/weeks,1):null,lastWeekRank:lwRank(r.roster_id),lastWeekTeams:lw.length||null};}).sort((a,b)=>b.remaining-a.remaining);
   const mine=budgets.find(b=>b.mine)||null,actives=budgets.filter(b=>b.active).map(b=>b.remaining);
   return{faab,budget,byPosition,lastRun,lastRunAt:lastAt||null,budgets,mine,medianRemaining:round(quantile(actives,.5),0),waiverType:num(s.waiver_type)};
 }

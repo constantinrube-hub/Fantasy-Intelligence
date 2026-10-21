@@ -13,7 +13,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.3.0';
+const VERSION='10.4.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 let token=0;
 const sleeperUrl=id=>`https://sleeper.com/leagues/${encodeURIComponent(id)}/team`;
@@ -21,7 +21,10 @@ const sleeperUrl=id=>`https://sleeper.com/leagues/${encodeURIComponent(id)}/team
 // leagues before/during their draft, and dynasty leagues (rookie drafts). Trades is a v10 tab since R3; the
 // Research Lab is a v10 route (#/lab, WP3.1) linked from every league.
 const CLASSIC=[['draft','Draft']];
-function classicFor(wm){return CLASSIC.filter(([t])=>t!=='draft'||!wm||['pre_draft','drafting'].includes(String(wm.league?.status||''))||!!wm.format?.dynasty);}
+// R4.3 · The classic Draft link only when there is a draft to prepare: the league itself is pre-draft/drafting, or Sleeper
+// lists a draft for it that is pre_draft/drafting (dynasty rookie drafts). It was shown for every dynasty league before.
+const draftOpen=new Map();
+function classicFor(wm){const id=String(wm?.key?.leagueId||'');return CLASSIC.filter(([t])=>t!=='draft'||(!!wm&&(['pre_draft','drafting'].includes(String(wm.league?.status||''))||draftOpen.get(id)===true)));}
 function link(id,tab,week){return `#/league/${encodeURIComponent(id)}/${tab}${week?`?week=${week}`:''}`;}
 function tabs(id,active,wm,week){
   const k=K(),t=[['home','Home'],['lineup',wm?.format?.bestBall?'Lineup (auto)':'Lineup'],['matchup',wm?.format?.chopped?'Field & standings':'Matchup & standings'],['waivers','Waivers'],['players','Players'],['team','Team'],['trades','Trades']];
@@ -57,7 +60,7 @@ function lineup(wm,{past=false}={}){
   else if(wm.format.bestBall)html+=`<div class="v10-note">Best Ball: Sleeper sets the optimal lineup automatically after the games. Shown is the projected best lineup; there is nothing to change.</div>`;
   else if(rec.changes.length){
     const q=rec.changes.map(c=>wm.player(c.inPid)).filter(p=>p?.status?.monitor);
-    html+=`<div class="v10-rec v10-rec-${k.esc(rec.tier)}"><div class="v10-rec-h">${k.tierChip(rec.tier)} <b>Suggested lineup: ${k.signed(rec.gain)} projected pts</b> <span class="v10-muted">(${k.pts(rec.submittedTotal)} → ${k.pts(rec.optimizedTotal)} on unlocked slots)</span></div><ul>${rec.changes.map(c=>`<li>Start <b>${k.esc(wm.player(c.inPid)?.name)}</b> ${c.slot?`at ${k.esc(c.slot)} `:''}for ${c.outPid?k.esc(wm.player(c.outPid)?.name):'the empty slot'} <span class="v10-muted">(${k.signed(c.delta)})</span></li>`).join('')}</ul>${q.length?`<div class="v10-warn">${q.map(p=>{const fb=(rec.fallbacks||[]).find(f=>f.forPid===p.pid),alt=fb?.pid?wm.player(fb.pid):null;return `<b>${k.esc(p.name)}</b> is Questionable — confirm before lock (${k.esc(k.time(p.game.kickoff))}, inactives ~${k.esc(k.clock(p.game.kickoff-90*60000))}). If ruled out: ${alt?`start <b>${k.esc(alt.name)}</b> instead (${k.signed(fb.gain)} vs your lineup)`:'keep your current lineup'}.`;}).join('<br>')}</div>`:''}<a class="v10-btn" href="${sleeperUrl(wm.key.leagueId)}" target="_blank" rel="noopener">Change lineup in Sleeper ↗</a></div>`;
+    html+=`<div class="v10-rec v10-rec-${k.esc(rec.tier)}"><div class="v10-rec-h">${k.tierChip(rec.tier)} <b>Suggested lineup: ${k.signed(rec.gain)} projected pts</b> <span class="v10-muted">(${k.pts(rec.submittedTotal)} → ${k.pts(rec.optimizedTotal)} on unlocked slots)</span></div><ul>${rec.changes.map(c=>`<li>Start <b>${k.esc(wm.player(c.inPid)?.name)}</b> <span class="v10-muted">${k.esc(wm.player(c.inPid)?.position||'')}</span> ${c.slot?`at ${k.esc(c.slot)} `:''}for ${c.outPid?`${k.esc(wm.player(c.outPid)?.name)}${c.outSlot&&c.outSlot!==c.slot?` <span class="v10-muted">(${k.esc(c.outSlot)})</span>`:''}`:'the empty slot'} <span class="v10-muted">(${k.signed(c.delta)})</span>${(c.via||[]).length?`<div class="v10-muted v10-small">${c.via.map(v=>`move ${k.esc(wm.player(v.pid)?.name)} ${k.esc(v.from)} → ${k.esc(v.to)}`).join(' · ')}</div>`:''}</li>`).join('')}</ul>${q.length?`<div class="v10-warn">${q.map(p=>{const fb=(rec.fallbacks||[]).find(f=>f.forPid===p.pid),alt=fb?.pid?wm.player(fb.pid):null;return `<b>${k.esc(p.name)}</b> is Questionable — confirm before lock (${k.esc(k.time(p.game.kickoff))}, inactives ~${k.esc(k.clock(p.game.kickoff-90*60000))}). If ruled out: ${alt?`start <b>${k.esc(alt.name)}</b> instead (${k.signed(fb.gain)} vs your lineup)`:'keep your current lineup'}.`;}).join('<br>')}</div>`:''}<a class="v10-btn" href="${sleeperUrl(wm.key.leagueId)}" target="_blank" rel="noopener">Change lineup in Sleeper ↗</a></div>`;
   }else if(wm.me.matchupFound)html+=`<div class="v10-ok">Your Sleeper lineup is the best projected lineup for the unlocked slots${rec.tier==='none'&&rec.optimizedTotal!==null&&rec.optimizedTotal-rec.submittedTotal>0.005?` (best alternative only ${k.signed(rec.optimizedTotal-rec.submittedTotal,2)})`:''}.</div>`;
   else html+=`<div class="v10-note">No Sleeper matchup for this week yet — showing roster starters.</div>`;
   html+=`<section class="v10-card"><h2>${past?`Week ${k.esc(wm.key.week)} lineup`:wm.format.bestBall?'Projected best lineup':'Your Sleeper lineup'}</h2>${past?`<div class="v10-total"><span>Final</span><b>${k.pts(wm.me.reportedPoints??wm.me.totals.projected,2)}</b></div>`:totalsLine(wm.me.totals,'Projected total')}${rowsHead()}${wm.me.submitted.map((e,i)=>playerRow(e,wm,{actual:scored(parts[i]),mark:outs.has(e.pid)?`<span class="v10-chip v10-tier-${outs.get(e.pid).delta>=0?'recommended':'monitor'}">bench</span>`:'',cls:outs.has(e.pid)?'v10-out':''})).join('')}</section>`;
@@ -84,10 +87,10 @@ function matchup(wm){
       ${f.eliminated.length?`<div class="v10-muted">Chopped: ${f.eliminated.map(x=>k.esc(x.name)).join(', ')}</div>`:''}</section>`;
   }
   const s=wm.standings,po=s.playoffTeams,ties=s.rows.some(r=>r.ties);
-  const head=s.chopped?`<th>#</th><th>Team</th><th class="v10-num">Points for</th><th>Status</th><th class="v10-num" id="v10OddsHead">Survival</th>`
-    :`<th>#</th><th>Team</th><th>W-L${ties?'-T':''}</th><th class="v10-num">PF</th><th class="v10-num">PA</th><th class="v10-num" id="v10OddsHead">Playoff odds</th>`;
-  const row=r=>s.chopped?`<tr class="${r.me?'v10-me':''}${r.active?'':' v10-muted'}"><td>${r.rank}</td><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td class="v10-num">${k.pts(r.pf,1)}</td><td>${r.active?'Active':'Chopped'}</td><td class="v10-num" data-odds="${r.rosterId}"></td></tr>`
-    :`<tr class="${r.me?'v10-me':''}${po&&r.rank===po?' v10-line':''}"><td>${r.rank}</td><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td>${r.wins}-${r.losses}${ties?`-${r.ties}`:''}</td><td class="v10-num">${k.pts(r.pf,1)}</td><td class="v10-num">${k.pts(r.pa,1)}</td><td class="v10-num" data-odds="${r.rosterId}"></td></tr>`;
+  const head=s.chopped?`<th>#</th><th>Team</th><th class="v10-num">Points for</th><th>Status</th><th class="v10-num" title="Survives this week's chop">Survive W${k.esc(wm.key.week)}</th><th class="v10-num">Win league</th>`
+    :`<th>#</th><th>Team</th><th>W-L${ties?'-T':''}</th><th class="v10-num">PF</th><th class="v10-num">PA</th><th class="v10-num">Playoffs</th><th class="v10-num">Title</th>`;
+  const row=r=>s.chopped?`<tr class="${r.me?'v10-me':''}${r.active?'':' v10-muted'}"><td>${r.rank}</td><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td class="v10-num">${k.pts(r.pf,1)}</td><td>${r.active?'Active':'Chopped'}</td><td class="v10-num" data-odds="${r.rosterId}"></td><td class="v10-num" data-odds2="${r.rosterId}"></td></tr>`
+    :`<tr class="${r.me?'v10-me':''}${po&&r.rank===po?' v10-line':''}"><td>${r.rank}</td><td>${k.esc(r.name)}${r.me?' (you)':''}</td><td>${r.wins}-${r.losses}${ties?`-${r.ties}`:''}</td><td class="v10-num">${k.pts(r.pf,1)}</td><td class="v10-num">${k.pts(r.pa,1)}</td><td class="v10-num" data-odds="${r.rosterId}"></td><td class="v10-num" data-odds2="${r.rosterId}"></td></tr>`;
   html+=`<section class="v10-card"><h2>Standings</h2><table class="v10-table"><thead><tr>${head}</tr></thead><tbody>${s.rows.map(row).join('')}</tbody></table>
     <div class="v10-row"><button class="v10-btn" data-v10-odds="${k.esc(wm.key.leagueId)}">${s.chopped?'Compute survival odds':'Compute playoff odds'}</button><span class="v10-muted" id="v10OddsStatus">Runs the classic league simulation on demand (≈10–60 s). ${k.dot('amber','Simulation spread not yet calibrated (WP-V1)')}</span></div>${s.medianGames?'<div class="v10-muted">This league also plays against the weekly median.</div>':''}${po?`<div class="v10-muted">Line under rank ${po}: playoff cut.</div>`:''}</section>`;
   return html;
@@ -117,17 +120,39 @@ function home(wm,wv){
   const more=classicFor(wm);if(more.length)html+=`<section class="v10-card"><h3>More for this league</h3><p class="v10-muted">Not rebuilt in the new interface — these open the classic view for this league.</p><div class="v10-row">${more.map(([t,l])=>`<a class="v10-btn" href="#/classic/${encodeURIComponent(wm.key.leagueId)}/${t}">${l} ↗</a>`).join('')}</div></section>`;
   return html;
 }
-async function oddsFor(id,root){
+// R4.5 · Classic simulation, called on demand. Fixes: (1) wait until the classic engine has put players on every active
+// roster — called right after switchLeague() it simulated empty rosters (0 points for everyone, every week a tie), which
+// gave Best Ball leagues exactly 100 % / 0 % (Week 7); an empty pool is now an error, never a number. (2) Chopped
+// returns survival per remaining week as an array → this week's value + win-league (it printed "–"). (3) Title / win
+// league shown as columns. (4) Results are cached per league and week (R4.6) so a refresh repaint keeps them.
+// R6 replaces this with the v10-native season simulation.
+const oddsCache=new Map();
+function paintOdds(root,c){
+  for(const [rid,[a,b,t]] of Object.entries(c.cells)){const x=root.querySelector(`[data-odds="${rid}"]`),y=root.querySelector(`[data-odds2="${rid}"]`);if(x){x.textContent=a===null?'–':K().pct(a);if(t)x.title=t;}if(y)y.textContent=b===null?'–':K().pct(b);}
+  const st=root.querySelector('#v10OddsStatus');if(st)st.innerHTML=`${K().esc(c.iterations)} simulated seasons · classic engine · ${K().esc(K().clock(c.at))} ${K().dot('amber','Simulation spread not yet calibrated (WP-V1); future weeks use this week\'s projections')}`;
+}
+async function poolsReady(timeoutMs=30000){
+  const t0=Date.now();
+  for(;;){const rs=(window.state?.rosters||[]).filter(r=>(r.players||[]).length),fn=window.rosterPlayers;
+    if(rs.length&&typeof fn==='function'&&rs.every(r=>(fn(r.roster_id)||[]).length>0))return true;
+    if(Date.now()-t0>timeoutMs)return false;await new Promise(r=>setTimeout(r,500));}
+}
+async function oddsFor(id,root,week){
   const st=root.querySelector('#v10OddsStatus'),btn=root.querySelector(`[data-v10-odds]`);if(btn)btn.disabled=true;if(st)st.textContent='Loading the league in the classic engine…';
   try{
     const ctl=window.FIELeagueController;if(!ctl?.switchLeague)throw new Error('classic engine not available');
     if(String(window.state?.league?.league_id||'')!==String(id)){const ok=await ctl.switchLeague(String(id));if(!ok)throw new Error('league did not load');}
+    if(st)st.textContent='Waiting for rosters in the classic engine…';
+    if(!await poolsReady())throw new Error('rosters not loaded in the classic engine yet — try again in a few seconds');
     if(st)st.textContent='Simulating…';
     const data=await window.FIEDecisionEngines.runLeagueSimulation(true);const rows=data?.strategic?.rows||[];
     if(!rows.length)throw new Error('simulation returned no rows');
-    for(const r of rows){const cell=root.querySelector(`[data-odds="${Number(r.rosterId)}"]`);if(!cell)continue;const v=r.playoff??r.survival??r.winner;cell.textContent=v===undefined?'–':K().pct(v);cell.title=r.title!==undefined?`Title ${K().pct(r.title)}`:r.winner!==undefined?`Win league ${K().pct(r.winner)}`:'';}
-    const head=root.querySelector('#v10OddsHead');if(head&&data.chopped)head.textContent='Survival';
-    if(st)st.innerHTML=`${K().esc(data.strategic.iterations||'')} simulated seasons · classic engine ${K().dot('amber','Simulation spread not yet calibrated (WP-V1)')}`;
+    const activeIds=(window.state?.rosters||[]).filter(r=>(r.players||[]).length).map(r=>String(r.roster_id)); // eliminated (empty) chopped rosters have no model by design
+    if(activeIds.some(rid=>{const m=data.models?.[rid];return !m||(!(m.pool||[]).length&&!(m.starters||[]).length&&!(m.mu>0));}))throw new Error('a team has no players in the simulation — not shown');
+    const cells={};
+    for(const r of rows){const sv=Array.isArray(r.survival)?r.survival[0]:r.survival;
+      cells[Number(r.rosterId)]=data.chopped?[sv??null,r.winner??null,r.meanElimPeriod?`Expected elimination: period ${K().pts(r.meanElimPeriod,1)}`:'']:[r.playoff??null,r.title??null,r.bye!==undefined?`Bye ${K().pct(r.bye)} · expected wins ${K().pts(r.expectedWins,1)}`:''];}
+    const c={cells,iterations:data.strategic.iterations||'',at:Date.now()};oddsCache.set(`${id}:${week}`,c);paintOdds(root,c);
   }catch(e){if(st)st.textContent=`Could not compute: ${String(e?.message||e)}`;}
   finally{if(btn)btn.disabled=false;}
 }
@@ -138,6 +163,7 @@ async function render(root,id,tab='home',week=null){
   let wm,live,body;
   try{
     const cur=await D().model(entry);live=cur.key.week;
+    if(!draftOpen.has(String(id))&&D().drafts){const ds=await D().drafts(id);if(ds)draftOpen.set(String(id),ds.some(d=>['pre_draft','drafting'].includes(String(d?.status||''))));}
     const sel=['waivers','players','team','trades'].includes(tab)?live:(week&&week>=1&&week<=18?week:live);
     wm=sel===live?cur:await D().model(entry,{week:sel});
     if(tab==='waivers'){const data=await D().waivers(entry,{market:true});body=window.FIEV10Waivers.body(data,{selectedWeek:week});}
@@ -152,7 +178,8 @@ async function render(root,id,tab='home',week=null){
   }catch(e){if(my===token)root.innerHTML=`<div class="v10-league">${tabs(id,tab,null,week)}${k.empty(`Could not load this league: ${String(e?.message||e)}`)}</div>`;return;}
   if(my!==token)return;
   k.repaint(root,`<div class="v10-league" data-v10-league="${k.esc(id)}" data-v10-week="${wm.key.week}">${headerBlock(wm,live)}${tabs(id,tab,wm,wm.key.week===live?null:wm.key.week)}${wm.issues.length?`<div class="v10-warn">${wm.issues.map(i=>k.esc(i.text)).join(' · ')}</div>`:''}${body}</div>`);
-  root.querySelector('[data-v10-odds]')?.addEventListener('click',()=>oddsFor(id,root));
+  root.querySelector('[data-v10-odds]')?.addEventListener('click',()=>oddsFor(id,root,wm.key.week));
+  {const c=oddsCache.get(`${id}:${wm.key.week}`);if(c&&tab==='matchup')paintOdds(root,c);}
   if(tab==='players')window.FIEV10Team.bindPlayers(root);
   if(tab==='trades')window.FIEV10Trades.bind(root);
   root.querySelector('select[data-v10-week]')?.addEventListener('change',e=>{const w=Number(e.target.value);location.hash=link(id,['waivers','players','team','trades'].includes(tab)?'lineup':tab,w===live?null:w);});
