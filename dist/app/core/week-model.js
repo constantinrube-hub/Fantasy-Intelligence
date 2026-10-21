@@ -17,7 +17,7 @@ const VERSION='10.4.0';
 const W=()=>window;
 function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function round(v,d=2){const n=num(v);return n===null?null:Math.round(n*10**d)/10**d;}
-function policy(p){const x=p||W().FIE_UI_POLICY||{};return{variance:x.variance||{mode:'rule_of_thumb'},thresholds:{urgent:3,recommend:1,close_call:.25,...(x.thresholds||{})},escalation:{chopped_cut_margin:10,h2h_margin:null,...(x.escalation||{})},freshness:{projection_stale:720,...(x.freshness_minutes||{})},primary:x.primary_source||{'*':{'*':'SLEEPER'}},status:x.status||{}};}
+function policy(p){const x=p||W().FIE_UI_POLICY||{};return{opponents:x.opponents||{},variance:x.variance||{mode:'rule_of_thumb'},thresholds:{urgent:3,recommend:1,close_call:.25,...(x.thresholds||{})},escalation:{chopped_cut_margin:10,h2h_margin:null,...(x.escalation||{})},freshness:{projection_stale:720,...(x.freshness_minutes||{})},primary:x.primary_source||{'*':{'*':'SLEEPER'}},status:x.status||{}};}
 function primaryFor(pol,format,pos){const f=pol.primary[format]||pol.primary['*']||{};return f[pos]||f['*']||'SLEEPER';}
 const TIER_RANK={FIE_GOVERNED:1,FIE_WEEKLY:2,SLEEPER:3,BYE:4,ESTIMATE:5,UNAVAILABLE:6};
 function tierFor(gain,pol){const t=pol.thresholds;return gain>=t.urgent?'urgent':gain>=t.recommend?'recommended':gain>=t.close_call?'close':'none';}
@@ -65,6 +65,12 @@ function buildPlayers(input,pol){
     // win estimate follows automatically (FIEDistribution derives σ from the range).
     const cal=pol.variance?.mode==='calibrated'?pol.variance?.calibration?.positions?.[position]:null;
     const range=v===null?null:cal?{low:Math.max(0,v*cal.p10),high:v*cal.p90,median:v*cal.p50,calibrated:true,label:'P10–P90',n:cal.n}:{low:Math.max(0,v*.78),high:v*1.22,calibrated:false,label:'Typical range'};
+    // R5.7 · Deciles P10…P90 for the Compare curve: player-level when policy variance.calibration.player_level is on and
+    // the player has a block (backlog), else position × projection tier (WP-V1 Weeks 1–6). Display only: the win estimate
+    // keeps the position-level P10/P90 above.
+    if(range&&pol.variance?.mode==='calibrated'){const C=pol.variance.calibration||{},pl=C.player_level?C.players?.[pid]:null,ts=C.tiers?.[position]||null;
+      const t=pl?null:ts?(ts.find(x=>v>=x.min&&(x.max===null||v<x.max))||(v<ts[0].min?ts[0]:ts[ts.length-1])):null;
+      if(pl?.q||t)range.deciles={q:(pl?.q||t.q).map(r=>Math.max(0,v*r)),source:pl?'player':'position × projection tier',n:pl?.n??t.n,tier:t?{min:t.min,max:t.max}:null};}
     const p={pid,sleeperId:pid,player_id:pid,name,position,team,game,status,active:{...active,dot,ageMin,primary},recValue,alternatives,range,stats:row?.stats||null,opponent:row?.opponent||game.opp||null};
     cache.set(pid,p);return p;
   };
@@ -79,6 +85,24 @@ function partFor(e,actualOf){
   if(p.game.state==='final')return{mu:a??0,sd:0,team:p.team,fixed:true,value:a??0,kind:'final'};
   if(p.game.locked){const rem=Math.max(0,proj-(a??0)),d=rem>0?W().FIEDistribution.player({mu:rem,low:rem*.78,high:rem*1.22}):{sd:0};return{mu:(a??0)+rem,sd:d.sd,team:p.team,fixed:rem===0,value:(a??0)+rem,kind:'live',actual:a??0};}
   const d=W().FIEDistribution.player({mu:proj,low:p.range?.low,high:p.range?.high});return{mu:d.mu,sd:d.sd,team:p.team,fixed:false,value:proj,kind:'pregame'};
+}
+/** R5.5 · A team's best legal lineup "until lock": locked slots keep their player, unlocked slots are re-optimised from
+ *  the roster (without IR/taxi, without locked players). Used for opponents and the chopped field. */
+function optimalUntilLock({slots,line,pool,player}){
+  const locked=line.map((e,i)=>e.p&&e.p.game.locked?i:-1).filter(i=>i>=0),used=new Set(locked.map(i=>line[i].pid));
+  const open=slots.map((s,i)=>i).filter(i=>!locked.includes(i)),cand=[...new Set(pool.map(String))].filter(id=>!used.has(id)).map(player).filter(p=>p&&!p.game.locked);
+  const opt=W().FIECore.LineupOptimizer.optimize(cand,open.map(i=>slots[i]),p=>p.recValue),out=line.map(e=>({...e})),taken=new Set();
+  for(const i of open){const a=opt.assignment.find(x=>x.slot===slots[i]&&!taken.has(String(x.playerId)));if(a){taken.add(String(a.playerId));out[i]={slot:slots[i],pid:String(a.playerId),p:player(a.playerId)};}else out[i]={slot:slots[i],pid:null,p:null};}
+  return out;
+}
+/** R5.5 · Opponent lineup mode: "optimal" until policy opponents.optimal_until (default Thursday 18:00 UTC before the
+ *  week's first kickoff), "asSet" after — early in the week many managers have not fixed byes/injuries yet. */
+function opponentMode(pol,schedule,week,season,now){
+  const cfg={weekday:4,hour_utc:18,...(pol.opponents?.optimal_until||{})};let first=null;
+  for(const g of new Set(schedule?.games?.values?.()||[]))if(g.season===Number(season)&&g.week===Number(week)&&g.kickoff)first=first===null?g.kickoff:Math.min(first,g.kickoff);
+  if(first===null)return{mode:'asSet',cutoff:null};
+  const d=new Date(first);let c=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),Number(cfg.hour_utc)||0)-((d.getUTCDay()-Number(cfg.weekday)+7)%7)*864e5;if(c>first)c-=7*864e5;
+  return{mode:now<c?'optimal':'asSet',cutoff:c};
 }
 function totals(lineup,actualOf){
   let projected=0,banked=0,remaining=0;const parts=[];
@@ -175,13 +199,17 @@ function build(input){
     const om=(matchups||[]).find(m=>m.matchup_id===mm.matchup_id&&Number(m.roster_id)!==Number(managedRosterId));
     if(om){const oActual=pid=>num(om.players_points?.[pid]);let oLine=lineupFrom({slots,starters:(om.starters||[]).map(String),player});
       if(format.bestBall){const pool=(om.players||[]).map(player).filter(Boolean),opt=W().FIECore.LineupOptimizer.optimize(pool,slots,p=>p.recValue),used=new Set();oLine=slots.map(slot=>{const a=opt.assignment.find(x=>x.slot===slot&&!used.has(x.playerId));if(a)used.add(a.playerId);return{slot,pid:a?String(a.playerId):null,p:a?player(a.playerId):null};});}
-      opponent={rosterId:Number(om.roster_id),name:names[om.roster_id],starters:oLine,totals:totals(oLine,oActual),reportedPoints:num(om.points)};}
+      const oRoster=(rosters||[]).find(r=>Number(r.roster_id)===Number(om.roster_id)),oOff=new Set([...(oRoster?.reserve||[]),...(oRoster?.taxi||[])].map(String));
+      const oOpt=format.bestBall?oLine:optimalUntilLock({slots,line:oLine,pool:(om.players||oRoster?.players||[]).map(String).filter(id=>!oOff.has(id)),player});
+      opponent={rosterId:Number(om.roster_id),name:names[om.roster_id],starters:oLine,totals:totals(oLine,oActual),reportedPoints:num(om.points),optimal:{starters:oOpt,totals:totals(oOpt,oActual)}};}
   }
+  const om5=opponentMode(pol,input.schedule,week,season,now);
   let winEstimate=null;
-  if(opponent){const a=W().FIEDistribution.team(myTotals.parts),b=W().FIEDistribution.team(opponent.totals.parts);
+  if(opponent){const a=W().FIEDistribution.team(myTotals.parts),bSet=W().FIEDistribution.team(opponent.totals.parts),bOpt=W().FIEDistribution.team(opponent.optimal.totals.parts),b=om5.mode==='optimal'?bOpt:bSet;
     const calibrated=pol.variance?.mode==='calibrated';
     winEstimate={value:W().FIEDistribution.winProbability(a,b),method:'matchup-normal',dot:calibrated?null:'amber',calibrated,note:calibrated?`Estimate — spread calibrated on 2026 Weeks 1–5 (n=${pol.variance?.calibration?.n??'?'}, in-sample; K/D/ST still rule of thumb); normal approximation.`:'Estimate — spread not yet calibrated (WP-V1); likely overconfident.',inputsHash:hash(JSON.stringify([a,b]))};
-    if(recTotals){const r=W().FIEDistribution.team(recTotals.parts);winEstimate.withRecommended=W().FIEDistribution.winProbability(r,b);}}
+    winEstimate.mode=om5.mode;winEstimate.asSet=W().FIEDistribution.winProbability(a,bSet);winEstimate.vsOptimal=W().FIEDistribution.winProbability(a,bOpt);
+    if(recTotals){const r=W().FIEDistribution.team(recTotals.parts);winEstimate.withRecommended=W().FIEDistribution.winProbability(r,b);winEstimate.withRecommendedAsSet=W().FIEDistribution.winProbability(r,bSet);winEstimate.withRecommendedVsOptimal=W().FIEDistribution.winProbability(r,bOpt);}}
   // Chopped field
   let field=null;
   if(format.chopped){
@@ -189,11 +217,16 @@ function build(input){
     const scored=num(league?.settings?.last_scored_leg)??Math.max(0,(num(league?.settings?.leg)??week)-1);
     const verified=eliminated.length===scored;
     const proj=active.map(r=>{const m=(matchups||[]).find(x=>Number(x.roster_id)===Number(r.roster_id));const act=pid=>num(m?.players_points?.[pid]);
-      const line=lineupFrom({slots,starters:(m?.starters||r.starters||[]).map(String),player});return{rosterId:Number(r.roster_id),name:names[r.roster_id],projected:totals(line,act).projected};});
-    proj.sort((a,b)=>b.projected-a.projected);proj.forEach((x,i)=>{x.rank=i+1;x.me=x.rosterId===Number(managedRosterId);});
-    const me=proj.find(x=>x.me)||null,others=proj.filter(x=>!x.me),cut=others.length?Math.min(...others.map(x=>x.projected)):null;
+      const line=lineupFrom({slots,starters:(m?.starters||r.starters||[]).map(String),player}),off=new Set([...(r.reserve||[]),...(r.taxi||[])].map(String));
+      const isMe=Number(r.roster_id)===Number(managedRosterId),opt=isMe||format.bestBall?line:optimalUntilLock({slots,line,pool:(m?.players||r.players||[]).map(String).filter(id=>!off.has(id)),player});
+      return{rosterId:Number(r.roster_id),name:names[r.roster_id],asSet:totals(line,act).projected,optimal:totals(opt,act).projected,starterPids:line.filter(e=>e.pid).map(e=>e.pid)};});
+    // Ranking and cut line follow the opponent mode (R5.5): others at their optimal-until-lock lineup early in the week.
+    const view=mode=>{const rows=proj.map(x=>({...x,projected:mode==='optimal'?x.optimal:x.asSet}));rows.sort((a,b)=>b.projected-a.projected);rows.forEach((x,i)=>{x.rank=i+1;x.me=x.rosterId===Number(managedRosterId);});
+      const me=rows.find(x=>x.me)||null,others=rows.filter(x=>!x.me),cut=others.length?Math.min(...others.map(x=>x.projected)):null;return{rows,myRank:me?.rank??null,cutLine:cut,marginToCut:me&&cut!==null?round(me.projected-cut):null};};
+    const vSet=view('asSet'),vOpt=view('optimal');proj.length=0;proj.push(...(om5.mode==='optimal'?vOpt:vSet).rows);
+    const cur=om5.mode==='optimal'?vOpt:vSet;
     field={verified,activeCount:active.length,eliminatedCount:eliminated.length,scoredWeeks:scored,rows:proj,eliminated:eliminated.map(r=>({rosterId:Number(r.roster_id),name:names[r.roster_id]})),
-      myRank:me?.rank??null,cutLine:cut,marginToCut:me&&cut!==null?round(me.projected-cut):null,meEliminated:!!roster&&!(roster.players||[]).length};
+      myRank:cur.myRank,cutLine:cur.cutLine,marginToCut:cur.marginToCut,mode:om5.mode,asSet:vSet,optimal:vOpt,meEliminated:!!roster&&!(roster.players||[]).length};
     if(verified&&field.marginToCut!==null&&field.marginToCut<pol.escalation.chopped_cut_margin&&rec.tier==='recommended')rec.tier='urgent';
   }else if(opponent&&pol.escalation.h2h_margin!==null){const m=myTotals.projected-opponent.totals.projected;if(Math.abs(m)<pol.escalation.h2h_margin&&rec.tier==='recommended')rec.tier='urgent';}
   // Lineup context (Advanced, R2 · WP2.1): what this player is worth to YOUR lineup this week —
@@ -219,7 +252,7 @@ function build(input){
     league:{name:league?.name||'',teams:num(league?.total_rosters)??(rosters||[]).length,status:league?.status||null,scoring:league?.scoring_settings||{}},
     slots,player,lineupContext,ownerOf,me:{rosterId:Number(managedRosterId)||null,name:names[managedRosterId]||null,submitted,bench:benchPids.map(player).filter(Boolean),reserve:reserve.map(player).filter(Boolean),taxi:taxi.map(player).filter(Boolean),
       recommended:rec,totals:myTotals,recommendedTotals:recTotals,emptySlots,reportedPoints:num(mm?.points),matchupFound:!!mm},
-    opponent,winEstimate,field,standings:standings(league,rosters,users,managedRosterId,!!format.chopped),nextLock,issues,builtAt:now};
+    opponent,winEstimate,field,opponentMode:om5,standings:standings(league,rosters,users,managedRosterId,!!format.chopped),nextLock,issues,builtAt:now};
 }
 window.FIEWeekModel={VERSION,build,tierFor:(g,p)=>tierFor(g,policy(p))};
 })();

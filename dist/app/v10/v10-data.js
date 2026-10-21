@@ -12,7 +12,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.4.0';
+const VERSION='10.5.0';
 const SLEEPER='https://api.sleeper.app/v1';
 const W=()=>window;
 const P=()=>W().FIE_UI_POLICY||{};
@@ -69,6 +69,33 @@ async function transactions(id,upTo){
   const parts=await Promise.all(ws.map(w=>json(`${SLEEPER}/league/${id}/transactions/${w}`,{sourceId:'v10-transactions',ttlMs:w<upTo?6*3600e3:ttl('matchups',600),live:true}).catch(()=>[])));
   return parts.flat().filter(Boolean);
 }
+// R5.1 · Bid book: completed priced FAAB claims of every managed FAAB league (own league = baseline, other leagues with
+// lower weights, FIEBids). Loaded once per session on demand (≈ 7 transaction calls per league, past weeks cached 6 h).
+let bidBookP=null;
+async function bidBook(){
+  if(bidBookP)return bidBookP;
+  bidBookP=(async()=>{const list=await leagues(),cat=await catalog(),week=currentWeek(await nflState());
+    const pos=pid=>cat.get(String(pid))?.position||(/^[A-Z]{2,3}$/.test(String(pid))?'DEF':'?'),out=new Map();let next=0;
+    async function worker(){while(next<list.length){const e=list[next++],id=String(e.id);
+      try{const lg=await json(`${SLEEPER}/league/${id}`,{ttlMs:ttl('league',3600),sourceId:'v10-league',live:true}),st=lg?.settings||{};
+        if(Number(st.waiver_type)!==2||Number(st.disable_adds)===1)continue;
+        const tx=await transactions(id,week);out.set(id,{budget:Number(st.waiver_budget)||0,chopped:Number(st.type)===3,tx,claims:W().FIEBids.claims({leagueId:id,budget:st.waiver_budget,transactions:tx,positionOf:pos})});}catch{}}}
+    await Promise.all(Array.from({length:4},worker));return out;})();
+  try{return await bidBookP;}catch(e){bidBookP=null;throw e;}
+}
+/** End of the previous NFL week (last kickoff + 4 h) — waiver claims after it belong to this week's runs. */
+async function prevWeekEnd(wm){const idx=await schedule().catch(()=>null);let e=null;if(idx)for(const g of new Set(idx.games.values()))if(g.season===Number(wm.key.season)&&g.week===wm.key.week-1&&g.kickoff)e=Math.max(e??0,g.kickoff+4*3600e3);return e;}
+/** Bid ranges for waiver rows of one league + when its waivers run. null for non-FAAB / adds-disabled leagues. */
+async function bidAdvice(wm,rows){
+  const book=await bidBook(),id=String(wm.key.leagueId),me=book.get(id);if(!me)return null;
+  const others=[...book].filter(([o])=>o!==id).map(([,x])=>({claims:x.claims,sameType:x.chopped===me.chopped}));
+  const rs=await json(`${SLEEPER}/league/${id}/rosters`,{ttlMs:ttl('rosters',300),sourceId:'v10-rosters',live:true}).catch(()=>[]);
+  const mine=(rs||[]).find(r=>Number(r.roster_id)===Number(wm.key.rosterId)),remaining=mine?Math.max(0,me.budget-(Number(mine.settings?.waiver_budget_used)||0)):null;
+  const prevEnd=await prevWeekEnd(wm);
+  const ws=W().FIEBids.schedule({transactions:me.tx,since:prevEnd}),rk=W().FIEBids.ranks(rows),byPid=new Map();
+  for(const r of rows||[])if(rk.has(r.pid)){const e=W().FIEBids.estimate({position:r.position,rank:rk.get(r.pid),week:wm.key.week,budget:me.budget,remaining,own:me.claims,others});if(e)byPid.set(r.pid,e);}
+  return{byPid,schedule:ws,nextRun:W().FIEBids.nextRun(ws.usual,Date.now()),remaining,budget:me.budget,since:prevEnd,tx:me.tx};
+}
 /** Transactions of selected weeks only (changes feed: current and previous week). */
 async function txWeeks(id,weeks){
   const parts=await Promise.all(weeks.filter(w=>w>=1&&w<=18).map(w=>json(`${SLEEPER}/league/${id}/transactions/${w}`,{sourceId:'v10-transactions',ttlMs:ttl('matchups',600),live:true}).catch(()=>[])));
@@ -83,8 +110,9 @@ async function waivers(entry,{week=null,market=false,limit=null,pids=null}={}){
   const [hz,sched,cat,adp]=await Promise.all([horizon(wm.key.season,wm.key.week,n),schedule(),catalog(),seasonAdp(wm.key.season)]);
   const result=W().FIEWaivers.build({wm,league,rosters,managedRosterId:wm.key.rosterId,horizon:hz,schedule:sched,season:wm.key.season,now:Date.now(),catalog:cat,adp,seasonRows:adp,policy:P(),constraints:constraintsFor(id),limit,...(pids?{pids}:{})});
   let mkt=null;
-  if(market){const [tx,prev]=await Promise.all([transactions(id,wm.key.week),wm.key.week>1?matchups(id,wm.key.week-1).catch(()=>null):null]);mkt=W().FIEWaivers.market({league,rosters,users,transactions:tx,lastWeek:prev?{week:wm.key.week-1,matchups:prev}:null,positionOf:pid=>wm.player(pid)?.position||cat.get(String(pid))?.position,nameOf:pid=>wm.player(pid)?.name||cat.get(String(pid))?.full_name||pid,managedRosterId:wm.key.rosterId});}
-  return{wm,result,market:mkt};
+  if(market){const [tx,prev]=await Promise.all([transactions(id,wm.key.week),wm.key.week>1?matchups(id,wm.key.week-1).catch(()=>null):null]);mkt=W().FIEWaivers.market({league,rosters,users,transactions:tx,lastWeek:prev?{week:wm.key.week-1,matchups:prev}:null,since:await prevWeekEnd(wm),positionOf:pid=>wm.player(pid)?.position||cat.get(String(pid))?.position,nameOf:pid=>wm.player(pid)?.name||cat.get(String(pid))?.full_name||pid,managedRosterId:wm.key.rosterId});}
+  const bids=market&&mkt?.faab&&!result.addsDisabled?await bidAdvice(wm,result.rows).catch(()=>null):null;
+  return{wm,result,market:mkt,bids};
 }
 /** Everything a league view needs beyond the WeekModel (R3: Players, Team, Trades): live rosters/users, this week's
  *  projection rows, the waiver horizon, schedule, catalog and Sleeper season rows (ADP + stat line). Cached like model(). */
@@ -176,5 +204,5 @@ function refresh(){forceGen++;models.clear();shared.proj.clear();}
 /** Matchups of any week for one league (review, results). */
 async function matchups(id,week){return json(`${SLEEPER}/league/${id}/matchups/${week}`,{ttlMs:ttl('matchups',600),sourceId:'v10-matchups',live:true}).catch(()=>[]);}
 function lastFetch(){return Math.max(0,...fetchedAt.values());}
-window.FIEV10Data={VERSION,drafts,leagues,model,inputs,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
+window.FIEV10Data={VERSION,drafts,bidBook,bidAdvice,leagues,model,inputs,portfolio,results,waivers,horizon,seasonAdp,transactions,txWeeks,matchups,projections,schedule,catalog,nflState,refresh,lastFetch,managedRoster,currentWeek,constraintsFor,_models:models};
 })();

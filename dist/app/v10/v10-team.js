@@ -9,10 +9,10 @@
  */
 (function(){
 'use strict';
-const VERSION='10.4.0';
+const VERSION='10.5.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 const DEF={pos:'ALL',own:'ALL',hz:'week',q:'',n:50};
-let ps={...DEF,leagueId:null},last=null;
+let ps={...DEF,leagueId:null},last=null,ts={depth:'all',leagueId:null};
 function filtered(data){
   const q=ps.q.trim().toLowerCase(),key=ps.hz==='week'?'week':'next';
   return data.rows.filter(r=>(ps.pos==='ALL'||r.position===ps.pos)&&(ps.own==='ALL'||(ps.own==='FA'&&r.fa)||(ps.own==='ME'&&r.mine)||(ps.own==='OTHER'&&!r.fa&&!r.mine))&&(!q||r.name.toLowerCase().includes(q)||String(r.team||'').toLowerCase()===q))
@@ -45,14 +45,23 @@ function bindPlayers(root){
   if(!root.__v10PlMore){root.__v10PlMore=true;root.addEventListener('click',e=>{if(e.target.closest?.('[data-v10-more]')&&root.querySelector('#v10PlTable')){ps.n+=50;const t=root.querySelector('#v10PlTable');if(t&&last)K().repaint(t,playersTable(last.data,last.wm));}});}
 }
 function teamBody(t,wm){
+  if(ts.leagueId!==wm.key.leagueId)ts={depth:'all',leagueId:wm.key.leagueId};
   const k=K(),w=t.weeks;
-  let html=`<section class="v10-card"><h2>Team strength <span class="v10-muted">optimal lineup this week, status-adjusted</span></h2>
+  // R5.6 · Strength = top-N per position (fixed per league), Depth = one filterable table, bench and free agent separate.
+  let html=`<section class="v10-card"><h2>Team strength <span class="v10-muted">top players per position this week, status-adjusted</span></h2>
     <p>Your best lineup: <b>${k.pts(t.myTotal)}</b> pts · rank <b>${k.esc(t.totalRank??'–')}</b> of ${k.esc(t.teams)} active teams · league median ${k.pts(t.medianTotal)}</p>
-    <table class="v10-table"><thead><tr><th>Position</th><th class="v10-num">Your pts</th><th class="v10-num">Rank</th><th class="v10-num">League median</th><th class="v10-num">Best team</th></tr></thead><tbody>
-    ${t.strength.map(s=>`<tr class="${s.rank&&s.rank>Math.ceil(s.of*0.75)?'v10-weak':''}"><td>${k.esc(s.position)}</td><td class="v10-num">${k.pts(s.points)}</td><td class="v10-num">${k.esc(s.rank??'–')}/${k.esc(s.of)}</td><td class="v10-num">${k.pts(s.median)}</td><td class="v10-num">${k.pts(s.best)}</td></tr>`).join('')}</tbody></table>
-    <p class="v10-muted">Points are credited to the player's position (a FLEX RB counts as RB). Bottom quarter shaded.</p></section>`;
-  html+=`<section class="v10-card"><h2>Depth</h2>${t.thin.length?`<div class="v10-warn">Thin: ${t.thin.map(x=>`<b>${k.esc(x.position)}</b> — if ${x.starters.map(s=>`${k.esc(s.name)} can't play, your bench recovers ${k.pct(s.recovered)}${s.nextBest?` (${k.esc(s.nextBest)})`:''} and the best free agent ${k.pct(s.faRecovered)}${s.bestFa?` (${k.esc(s.bestFa.name)})`:''}`).join('; ')}`).join(' · ')}</div>`:`<div class="v10-ok">No thin position: for every starter your bench or the best free agent recovers at least ${k.pct(t.thinAt)} of his points.</div>`}
-    ${k.expand('<b>Every starter</b> <span class="v10-muted">points lost if he can\'t play (full re-optimisation)</span>',`<table class="v10-table"><thead><tr><th>Slot</th><th>Starter</th><th class="v10-num">Proj</th><th class="v10-num">Lost if out</th><th class="v10-num">Bench recovers</th><th>Next best</th><th class="v10-num">Best FA recovers</th></tr></thead><tbody>${t.depth.map(d=>`<tr><td>${k.esc(d.slot)}</td><td>${k.esc(d.name)} <span class="v10-muted">${k.esc(d.position)}</span></td><td class="v10-num">${k.pts(d.value)}</td><td class="v10-num">${d.loss===null?'–':k.pts(d.loss)}</td><td class="v10-num">${d.recovered===null?'–':k.pct(d.recovered)}</td><td>${k.esc(d.nextBest||'–')}</td><td class="v10-num" title="${d.bestFa?k.esc(d.bestFa.name):''}">${k.pct(d.faRecovered)}</td></tr>`).join('')}</tbody></table>`,{key:`depth:${wm.key.leagueId}`})}</section>`;
+    <table class="v10-table"><thead><tr><th>Position</th><th class="v10-num" title="Players counted per team (fixed for this league)">Top-N</th><th class="v10-num">Your pts</th><th class="v10-num">Rank</th><th class="v10-num">League median</th><th class="v10-num">Best team</th></tr></thead><tbody>
+    ${t.strength.map(s=>`<tr class="${s.rank&&s.rank>Math.ceil(s.of*0.75)?'v10-weak':''}"><td>${k.esc(s.position)}</td><td class="v10-num">${k.esc(s.count)}</td><td class="v10-num">${k.pts(s.points)}</td><td class="v10-num">${k.esc(s.rank??'–')}/${k.esc(s.of)}</td><td class="v10-num">${k.pts(s.median)}</td><td class="v10-num">${k.pts(s.best)}</td></tr>`).join('')}</tbody></table>
+    <p class="v10-muted">Each position = the sum of a team's top-N players at that position by this week's value (bye or out = 0). N per league: QB = QB + Superflex slots + 1 · RB = RB + FLEX slots · WR = WR + FLEX slots · TE = TE + half the FLEX slots (rounded up) · K / D/ST = slots · IDP: own slots + 1, LB + 2 (IDP-FLEX not counted). A FLEX RB counts only as RB. These are depth indices, not a lineup — never add them up; the total rank is your best lineup. Bottom quarter shaded.</p></section>`;
+  const posList=[...new Set(t.depth.map(d=>d.position))],flex=t.depth.some(d=>/FLEX/.test(d.slot));
+  const chip=(v,l)=>`<button class="v10-chip v10-poschip${(ts.depth||'all')===v?' v10-chip-on':''}" data-v10-depth="${k.esc(v)}">${k.esc(l)}</button>`;
+  const rows=t.depth.filter(d=>{const f=ts.depth||'all';return f==='all'||(f==='FLEX'?/FLEX/.test(d.slot):d.position===f);});
+  const cell=x=>x===null||x===undefined?'–':k.pct(x),thin=d=>Math.max(d.bench?.vsStarter??0,d.faRecovered??0)<t.thinAt;
+  html+=`<section class="v10-card"><h2>Depth <span class="v10-muted">who replaces a starter who can't play</span></h2>
+    <div class="v10-row">${chip('all','All')}${posList.map(p=>chip(p,p)).join('')}${flex?chip('FLEX','FLEX'):''}</div>
+    <table class="v10-table"><thead><tr><th>Slot</th><th>Starter</th><th class="v10-num">Proj</th><th>Best bench (same position)</th><th class="v10-num" title="Bench player's points ÷ this starter's">Bench vs him</th><th class="v10-num" title="Bench player's points ÷ your weakest starter at this position">Bench vs weakest</th><th class="v10-num" title="Full lineup re-optimisation (any eligible bench player)">Lineup recovers</th><th>Best free agent</th><th class="v10-num">FA vs him</th></tr></thead><tbody>
+    ${rows.map(d=>`<tr class="${thin(d)?'v10-weak':''}"><td>${k.esc(d.slot)}</td><td>${k.esc(d.name)} <span class="v10-muted">${k.esc(d.position)}</span></td><td class="v10-num">${k.pts(d.value)}</td><td>${d.bench?`${k.esc(d.bench.name)} <span class="v10-muted">${k.pts(d.bench.value)}</span>`:'<span class="v10-muted">none</span>'}</td><td class="v10-num">${cell(d.bench?.vsStarter)}</td><td class="v10-num">${cell(d.bench?.vsWorst)}</td><td class="v10-num">${cell(d.recovered)}</td><td>${d.bestFa?`${k.esc(d.bestFa.name)} <span class="v10-muted">${k.pts(d.bestFa.value)}</span>`:'–'}</td><td class="v10-num">${cell(d.faRecovered)}</td></tr>`).join('')||`<tr><td colspan="9">${k.empty('No starter in this filter.')}</td></tr>`}</tbody></table>
+    <p class="v10-muted">Shaded: neither your best bench player at the position nor the best free agent reaches ${k.pct(t.thinAt)} of the starter's points (policy team.thin_recovery) — a hint, not a verdict. "Lineup recovers" re-optimises the whole lineup (a WR can cover a FLEX RB). Adding the free agent needs a roster spot.</p></section>`;
   html+=`<section class="v10-card"><h2>Byes W${w[0]??''}–W${w[w.length-1]}</h2>${t.byes.length?`<table class="v10-table"><thead><tr><th>Week</th><th>On bye</th><th class="v10-num">Lineup cost</th></tr></thead><tbody>${t.byes.map(b=>`<tr><td>W${k.esc(b.week)}${b.current?' <span class="v10-muted">(this week)</span>':b.published?'':' <span class="v10-muted">(not published)</span>'}</td><td>${b.players.length?b.players.map(p=>`${p.starter?'<b>':''}${k.esc(p.name)}${p.starter?'</b>':''} <span class="v10-muted">${k.esc(p.position)}</span>`).join(', '):'–'}</td><td class="v10-num">${b.cost>0?`<b class="v10-bad">−${k.pts(b.cost)}</b>`:'0.0'}</td></tr>`).join('')}</tbody></table><p class="v10-muted">Lineup cost = your best lineup with this week's values, minus the same with bye players at 0 (works before Sleeper publishes the week). Bold = in your best lineup now.</p>`:k.empty('No later weeks in the horizon.')}</section>`;
   html+=`<section class="v10-card"><h2>Roster <span class="v10-muted">Sleeper slots</span></h2><table class="v10-table"><thead><tr><th>Slot</th><th>Player</th>${w.map((x,i)=>`<th class="v10-num">${i===0?'Proj':'W'+x}</th>`).join('')}<th class="v10-num">Season /gm</th><th class="v10-num">${wm.format?.dynasty?'Dynasty ADP':'ADP'}</th><th class="v10-num" title="This week's value minus the best free agent at the position">vs best FA</th></tr></thead><tbody>
     ${t.roster.map(r=>`<tr class="${r.inBest?'':'v10-muted-row'}"><td>${k.esc(r.slot)}</td><td>${k.playerLink(r,{leagueId:wm.key.leagueId})} <span class="v10-muted">${k.esc(r.position)} · ${k.esc(r.team||'FA')}</span> ${k.statusChip(r.status)}</td>${r.values.map(v=>`<td class="v10-num">${v===null?'<span class="v10-muted">–</span>':k.pts(v)}</td>`).join('')}<td class="v10-num">${r.ros===null?'–':k.pts(r.ros)}</td><td class="v10-num">${r.adp&&r.adp<999?k.esc(Math.round(r.adp)):'–'}</td><td class="v10-num" title="${r.bestFa?`Best free agent: ${k.esc(r.bestFa.name)} (${k.pts(r.bestFa.value)})`:''}">${r.gap===null?'–':k.signed(r.gap)}</td></tr>`).join('')}</tbody></table>
@@ -61,5 +70,6 @@ function teamBody(t,wm){
 }
 async function players(entry){const i=await D().inputs(entry);return{wm:i.wm,data:window.FIETeamViews.players(i)};}
 async function team(entry){const i=await D().inputs(entry);return{wm:i.wm,data:window.FIETeamViews.team(i)};}
-window.FIEV10Team={VERSION,players,team,playersBody,teamBody,bindPlayers,_state:()=>({...ps})};
+function bindTeam(root){root.querySelectorAll('[data-v10-depth]').forEach(b=>b.addEventListener('click',()=>{ts.depth=b.dataset.v10Depth;window.FIEV10?.route?.();}));}
+window.FIEV10Team={VERSION,players,team,playersBody,teamBody,bindPlayers,bindTeam,_state:()=>({...ps})};
 })();

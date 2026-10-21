@@ -11,28 +11,33 @@
  */
 (function(){
 'use strict';
-const VERSION='10.2.0';
+const VERSION='10.5.0';
 function myPlayers(results){
-  const by=new Map();
+  const by=new Map(),fieldOnly=new Map();
   for(const r of results||[]){const wm=r?.wm;if(!wm||wm.field?.meEliminated)continue;
     const add=(p,role,slot)=>{if(!p)return;const x=by.get(p.pid)||{pid:p.pid,name:p.name,position:p.position,team:p.team,status:p.status,game:p.game,leagues:[]};
       x.leagues.push({leagueId:wm.key.leagueId,leagueName:wm.entry?.name||wm.league.name,role,slot,value:role==='start'?(p.status?.unavailable?0:p.active?.value):p.active?.value,bestBall:!!wm.format?.bestBall});by.set(p.pid,x);};
     const started=new Set();for(const e of wm.me.submitted)if(e.p){add(e.p,'start',e.slot);started.add(e.pid);}
     for(const p of wm.me.bench)if(!started.has(p.pid))add(p,'bench','BN');
-    for(const p of wm.me.reserve)add(p,'IR','IR');for(const p of wm.me.taxi)add(p,'taxi','TAXI');}
-  const rows=[...by.values()].map(x=>({...x,starts:x.leagues.filter(l=>l.role==='start').length,rostered:x.leagues.length}));
+    for(const p of wm.me.reserve)add(p,'IR','IR');for(const p of wm.me.taxi)add(p,'taxi','TAXI');
+    // R5.3 · Exposure: the H2H opponent's submitted starters ("started vs me", also for players I don't roster) and, in
+    // chopped leagues, how many other active teams start the player (counted only for players listed anyway).
+    for(const e of wm.opponent?.starters||[])if(e.p)add(e.p,'vs',e.slot);
+    if(wm.field)for(const fr of wm.field.rows||[])if(!fr.me)for(const pid of fr.starterPids||[]){const x=by.get(pid);if(x)(x.fieldStarts=(x.fieldStarts||0)+1);else fieldOnly.set(pid,(fieldOnly.get(pid)||0)+1);}}
+  for(const [pid,n] of fieldOnly){const x=by.get(pid);if(x)x.fieldStarts=(x.fieldStarts||0)+n;}
+  const rows=[...by.values()].map(x=>{const starts=x.leagues.filter(l=>l.role==='start').length,vs=x.leagues.filter(l=>l.role==='vs').length;return{...x,starts,vs,fieldStarts:x.fieldStarts||0,net:starts-vs,rostered:x.leagues.filter(l=>l.role!=='vs').length};});
   rows.sort((a,b)=>(b.starts-a.starts)||(b.rostered-a.rostered)||String(a.name).localeCompare(String(b.name)));
-  return{rows,players:rows.length,startSlots:rows.reduce((s,r)=>s+r.starts,0),unavailableStarters:rows.filter(r=>r.starts&&r.status?.unavailable)};
+  return{rows,players:rows.filter(r=>r.rostered).length,startSlots:rows.reduce((s,r)=>s+r.starts,0),unavailableStarters:rows.filter(r=>r.starts&&r.status?.unavailable),vsSlots:rows.reduce((s,r)=>s+r.vs,0)};
 }
 function snapshot(results,now=Date.now()){
-  const statuses={};for(const x of myPlayers(results).rows)statuses[x.pid]=x.status?.code||null;
+  const statuses={};for(const x of myPlayers(results).rows)if(x.rostered)statuses[x.pid]=x.status?.code||null;
   return{schema:1,at:now,statuses};
 }
 const TX_LABEL={waiver:'Waiver',free_agent:'Free agent',trade:'Trade',commissioner:'Commissioner'};
 function changes(prev,results,txByLeague={},{now=Date.now(),names={}}={}){
   if(!prev||!prev.at)return{firstVisit:true,since:null,items:[]};
   const items=[],mp=myPlayers(results);
-  for(const x of mp.rows){const before=prev.statuses?.[x.pid],after=x.status?.code||null;
+  for(const x of mp.rows){if(!x.rostered)continue;const before=prev.statuses?.[x.pid],after=x.status?.code||null;
     // BYE is a schedule fact of one week, not an availability change (bye starters are already Urgent in To do).
     if(before===undefined||before===after||before==='BYE'||after==='BYE')continue;
     const urgent=!!x.status?.unavailable&&x.starts>0;
