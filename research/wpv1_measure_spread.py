@@ -11,6 +11,11 @@ mean bias, and the JSON block for config/ui-decision-policy.json > variance.cali
 
     python research/wpv1_measure_spread.py --weeks 1-5
     python research/wpv1_measure_spread.py --weeks 6 --check   # out-of-sample coverage of the current policy block
+    python research/wpv1_measure_spread.py --weeks 1-6 --tiers # R5.7: deciles P10..P90 per position × projection tier
+                                                               # (tercile edges, rounded) → variance.calibration.tiers
+
+The tier block shapes the P10..P90 curve in the v10 Compare chart: a 6-point WR has a relatively wider spread than a
+20-point WR. It is position × projection level, not player-specific (that needs per-player history — backlog).
 """
 from __future__ import annotations
 import argparse, csv, gzip, io, json, statistics
@@ -53,6 +58,7 @@ def main() -> None:
     ap.add_argument('--min-proj', type=float, default=5.0)
     ap.add_argument('--capture', default=None, help='weekly-source capture dir with nflverse stats (default: latest)')
     ap.add_argument('--check', action='store_true', help='report coverage of the policy calibration on these weeks')
+    ap.add_argument('--tiers', action='store_true', help='deciles per position x projection tier (R5.7)')
     a = ap.parse_args()
     lo, _, hi = a.weeks.partition('-')
     weeks = list(range(int(lo), int(hi or lo) + 1))
@@ -96,6 +102,22 @@ def main() -> None:
         print(line)
         block[pos] = {'p10': round(q10, 2), 'p50': round(q50, 2), 'p90': round(q90, 2), 'sd': round(statistics.pstdev(rel), 3), 'n': len(xs)}
     print(json.dumps(block, indent=2))
+    if a.tiers:
+        tiers = {}
+        for pos in ('QB', 'RB', 'WR', 'TE'):
+            xs = sorted((p, act) for q, p, act in rows if q == pos)
+            if len(xs) < 90:
+                continue
+            e1, e2 = round(quantile([p for p, _ in xs], 1 / 3)), round(quantile([p for p, _ in xs], 2 / 3))
+            out = []
+            for lo_, hi_ in ((a.min_proj, e1), (e1, e2), (e2, None)):
+                b = [act / p for p, act in xs if p >= lo_ and (hi_ is None or p < hi_)]
+                if len(b) < 30:
+                    continue
+                out.append({'min': lo_, 'max': hi_, 'n': len(b), 'q': [round(quantile(b, k / 10), 2) for k in range(1, 10)]})
+            tiers[pos] = out
+        print('tiers (deciles P10..P90 of actual/projection by projection tier):')
+        print(json.dumps(tiers, indent=1))
 
 
 if __name__ == '__main__':

@@ -20,7 +20,7 @@
       "cmd": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.12-64\\python.exe research/integrity_v932_build_determinism_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "Normalized 9 deployment/manifest input files to LF before hashing\nNormalized 294 deployment/manifest input files to LF before hashing\nPASS V9.3.2 deterministic build manifest\n",
+      "stdout": "Normalized 9 deployment/manifest input files to LF before hashing\nNormalized 297 deployment/manifest input files to LF before hashing\nPASS V9.3.2 deterministic build manifest\n",
       "stderr": ""
     },
     {
@@ -115,6 +115,13 @@
       "stderr": ""
     },
     {
+      "cmd": "node research/integrity_v10_r5_test.js",
+      "ok": true,
+      "code": 0,
+      "stdout": "PASS UI v10 R5: bid ranges (backtest), waiver runs, exposure, opponent mode, team strength top-N, depth, deciles, wiring\n{\"bids\":{\"example\":{\"low\":40,\"high\":50,\"pctLow\":0.4,\"pctHigh\":0.5,\"nOwn\":3,\"nOther\":1,\"scope\":\"position and rank\",\"rank\":1,\"capped\":false},\"backtest\":{\"chopped\":{\"claims\":478,\"insideRange\":0.529,\"atOrBelowHigh\":0.803,\"medianHighMinusWinnerShare\":0.015},\"normal\":{\"claims\":385,\"insideRange\":0.543,\"atOrBelowHigh\":0.899,\"medianHighMinusWinnerShare\":0.03}}},\"runs\":\"ok\",\"exposure\":{\"players\":259,\"vsSlots\":169,\"vsOnly\":58},\"opponents\":{\"h2h\":16,\"fields\":5},\"team\":{\"counts\":{\"QB\":2,\"RB\":4,\"WR\":4,\"TE\":2}},\"deciles\":8,\"static\":\"ok\"}\n",
+      "stderr": ""
+    },
+    {
       "cmd": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.12-64\\python.exe research/integrity_structural_profile_test.py",
       "ok": true,
       "code": 0,
@@ -132,7 +139,7 @@
       "cmd": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.12-64\\python.exe research/integrity_dist_hygiene_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "PASS integrity_dist_hygiene_test files=454\n",
+      "stdout": "PASS integrity_dist_hygiene_test files=455\n",
       "stderr": ""
     },
     {
@@ -287,7 +294,7 @@
       "ok": true,
       "code": 0,
       "stdout": "",
-      "stderr": "..............\n----------------------------------------------------------------------\nRan 14 tests in 0.022s\n\nOK\n"
+      "stderr": "..............\n----------------------------------------------------------------------\nRan 14 tests in 0.027s\n\nOK\n"
     },
     {
       "cmd": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.12-64\\python.exe research/integrity_weekly_pipeline_readiness_test.py",
@@ -321,7 +328,7 @@
       "cmd": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.12-64\\python.exe research/integrity_m10_sunday_paired_checkpoint_test.py",
       "ok": true,
       "code": 0,
-      "stdout": "M10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE frozen_profile_snapshot C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-wb8v2ecj\\m10\\scoring-replay\\2026\\week_05\\profile-snapshot.json\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-wb8v2ecj\\m10\\forecasts\\2026\\week_05\\capture-manifest.json\nM10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE frozen_profile_snapshot C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-g_l_9vha\\m10\\scoring-replay\\2026\\week_05\\profile-snapshot.json\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-g_l_9vha\\m10\\forecasts\\2026\\week_05\\capture-manifest.json\nPASS Sunday paired checkpoint (timing, cohort, pairing, scoring, drift, first-write, partial-failure, write allowlist)\n",
+      "stdout": "M10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE frozen_profile_snapshot C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-kza8784a\\m10\\scoring-replay\\2026\\week_05\\profile-snapshot.json\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-kza8784a\\m10\\forecasts\\2026\\week_05\\capture-manifest.json\nM10_STAGE capture season=2026 week=5 hours_before_first_kickoff=6.000\nM10_STAGE preserve_source_bundle\nM10_STAGE validate_season_lock\nM10_STAGE frozen_inference history_rows=16 scheduled_players=4\nM10_STAGE default_distributions forecast_rows=12\nM10_STAGE default_distributions forecasts=12/12\nM10_STAGE weekly_inputs_ready\nM10_STAGE frozen_profile_snapshot C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-sifd1nsn\\m10\\scoring-replay\\2026\\week_05\\profile-snapshot.json\nM10_STAGE immutable_capture_and_profile_replay\nM10_STAGE profile_replay forecasts=11/12 residual_batch_rows=60715 scoring_groups=1\nM10_STAGE profile_replay forecasts=12/12 residual_batch_rows=9815 scoring_groups=1\nPASS R8C weekly capture CREATED: C:\\Users\\User\\AppData\\Local\\Temp\\fie-sunday-m10-stage-sifd1nsn\\m10\\forecasts\\2026\\week_05\\capture-manifest.json\nPASS Sunday paired checkpoint (timing, cohort, pairing, scoring, drift, first-write, partial-failure, write allowlist)\n",
       "stderr": ""
     },
     {
@@ -686,7 +693,7 @@
       "ok": true,
       "code": 0,
       "stdout": "",
-      "stderr": "test_current_tree_passes (__main__.RepositoryLifecycleRegression.test_current_tree_passes) ... ok\ntest_deleted_registered_workflow_fails (__main__.RepositoryLifecycleRegression.test_deleted_registered_workflow_fails) ... ok\ntest_exact_component_registration_regression (__main__.RepositoryLifecycleRegression.test_exact_component_registration_regression) ... ok\ntest_missing_canonical_document_fails (__main__.RepositoryLifecycleRegression.test_missing_canonical_document_fails) ... ok\ntest_new_schedule_and_registration_pass_together (__main__.RepositoryLifecycleRegression.test_new_schedule_and_registration_pass_together) ... ok\ntest_new_unregistered_schedule_fails (__main__.RepositoryLifecycleRegression.test_new_unregistered_schedule_fails) ... ok\ntest_removed_completion_trigger_fails (__main__.RepositoryLifecycleRegression.test_removed_completion_trigger_fails) ... ok\ntest_removed_schedule_fails (__main__.RepositoryLifecycleRegression.test_removed_schedule_fails) ... ok\ntest_renamed_registered_workflow_fails (__main__.RepositoryLifecycleRegression.test_renamed_registered_workflow_fails) ... ok\ntest_unclassified_manual_workflow_fails (__main__.RepositoryLifecycleRegression.test_unclassified_manual_workflow_fails) ... ok\ntest_yaml_extension_is_not_invisible (__main__.RepositoryLifecycleRegression.test_yaml_extension_is_not_invisible) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 2.652s\n\nOK\n"
+      "stderr": "test_current_tree_passes (__main__.RepositoryLifecycleRegression.test_current_tree_passes) ... ok\ntest_deleted_registered_workflow_fails (__main__.RepositoryLifecycleRegression.test_deleted_registered_workflow_fails) ... ok\ntest_exact_component_registration_regression (__main__.RepositoryLifecycleRegression.test_exact_component_registration_regression) ... ok\ntest_missing_canonical_document_fails (__main__.RepositoryLifecycleRegression.test_missing_canonical_document_fails) ... ok\ntest_new_schedule_and_registration_pass_together (__main__.RepositoryLifecycleRegression.test_new_schedule_and_registration_pass_together) ... ok\ntest_new_unregistered_schedule_fails (__main__.RepositoryLifecycleRegression.test_new_unregistered_schedule_fails) ... ok\ntest_removed_completion_trigger_fails (__main__.RepositoryLifecycleRegression.test_removed_completion_trigger_fails) ... ok\ntest_removed_schedule_fails (__main__.RepositoryLifecycleRegression.test_removed_schedule_fails) ... ok\ntest_renamed_registered_workflow_fails (__main__.RepositoryLifecycleRegression.test_renamed_registered_workflow_fails) ... ok\ntest_unclassified_manual_workflow_fails (__main__.RepositoryLifecycleRegression.test_unclassified_manual_workflow_fails) ... ok\ntest_yaml_extension_is_not_invisible (__main__.RepositoryLifecycleRegression.test_yaml_extension_is_not_invisible) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 3.507s\n\nOK\n"
     },
     {
       "cmd": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.12-64\\python.exe research/integrity_tranche5d_documentation_cleanup.py --mode target",

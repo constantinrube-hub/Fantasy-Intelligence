@@ -27,6 +27,12 @@ function week5Matchups(id) {
   });
 }
 
+/** Week of the bundled research snapshot of a league (Sleeper league.settings.leg inside the committed core.json). */
+function snapshotLeg(id) {
+  const fs = require('fs'), path = require('path');
+  try { const core = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', `data/research/leagues/${id}/app/core.json`), 'utf8')); const leg = Number(core?.sleeper?.league?.settings?.leg); return Number.isFinite(leg) && leg >= 1 ? leg : 6; }
+  catch { return 6; }
+}
 const REFERENCE_LEAGUES = {
   redraft: '1313697754907697152',   // ReDraft – Pro XVI (16 teams, 1QB, DEF)
   dynastySF: '1316165875291668480', // Genesis Dynasty (SF, K, multiple flex types)
@@ -64,13 +70,14 @@ const SCENARIOS = {
     }
   },
   // Provider is one week ahead of the bundled research snapshot (stale-bundle model).
-  'live-week-ahead': {
-    capture: W6_PREKICKOFF, seasonMarket: SEASON_MARKET, clock: '2026-10-15T18:00:00Z', week: 7,
-    nflState: nflState(7),
+  // Live Sleeper week = bundled research snapshot week + 1, read from the committed snapshot (the bots refresh it
+  // every few hours; a fixed "7" broke C-WEEK on 21 Oct when the snapshot itself reached Week 7).
+  'live-week-ahead': (() => { const snap = snapshotLeg(REFERENCE_LEAGUES.redraft), week = snap + 1; return {
+    capture: W6_PREKICKOFF, seasonMarket: SEASON_MARKET, clock: '2026-10-15T18:00:00Z', week, snapshotWeek: snap,
+    nflState: nflState(week),
     overrides: {
-      league: (league) => ({ ...league, settings: { ...(league.settings || {}), leg: 7, last_scored_leg: 6 } })
-    }
-  }
+      league: (league) => ({ ...league, settings: { ...(league.settings || {}), leg: week, last_scored_leg: week - 1 } })
+    } }; })()
 };
 
 module.exports = { SCENARIOS, REFERENCE_LEAGUES, W6_PREKICKOFF, SEASON_MARKET, W7_SUNDAY, W6_TUESDAY, week5Matchups };

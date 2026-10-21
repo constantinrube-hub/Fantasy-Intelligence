@@ -9,7 +9,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.4.0';
+const VERSION='10.5.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 let token=0,last=null;
 function draftAlert(r){const st=r.wm?.league?.status;if(st!=='drafting'&&st!=='pre_draft')return null;
@@ -26,13 +26,14 @@ function alertRow(a,now){
 function href(a){if(String(a.route||'').startsWith('classic:'))return `#/classic/${encodeURIComponent(a.leagueId)}/${a.route.slice(8)}`;return `#/league/${encodeURIComponent(a.leagueId)}/${a.route||'home'}`;}
 function matchupCell(wm){
   const k=K();if(!wm)return '–';
-  if(wm.field){const f=wm.field;if(f.meEliminated)return '<span class="v10-muted">Eliminated</span>';
-    return `#${f.myRank??'–'} of ${f.activeCount} · ${f.marginToCut===null?'–':k.signed(f.marginToCut)} vs cut${f.verified?'':' '+k.dot('amber','Field not verified against Sleeper eliminations')}`;}
-  const me=wm.me.totals.projected,o=wm.opponent?.totals?.projected;
+  const x=k.opp(wm);
+  if(wm.field){const f=wm.field,v=x.field||f;if(f.meEliminated)return '<span class="v10-muted">Eliminated</span>';
+    return `#${v.myRank??'–'} of ${f.activeCount} · ${v.marginToCut===null?'–':k.signed(v.marginToCut)} vs cut${f.verified?'':' '+k.dot('amber','Field not verified against Sleeper eliminations')}`;}
+  const me=wm.me.totals.projected,o=x.oppProjected;
   if(wm.opponent)return `${k.pts(me)} – ${k.pts(o)} <span class="v10-muted">vs ${k.esc(wm.opponent.name)}</span>`;
   return `${k.pts(me)} <span class="v10-muted">projected</span>`;
 }
-function winCell(wm){const k=K(),w=wm?.winEstimate;if(!w)return '';return `${k.winPct(w.value)} ${k.dot('amber',w.note)}`;}
+function winCell(wm){const k=K(),w=wm?.winEstimate;if(!w)return '';const x=k.opp(wm);return `${k.winPct(x.win)} ${k.dot('amber',`${w.note} Opponent ${x.mode==='optimal'?'at his best lineup until lock':'as set'}.`)}`;}
 function record(wm){const r=wm?.standings?.rows?.find(x=>x.me);if(!r)return '';return wm.standings.chopped?`PF #${r.rank}`:`${r.wins}-${r.losses}${r.ties?`-${r.ties}`:''} · #${r.rank}`;}
 function lineupMini(wm){
   const k=K(),rec=wm.me.recommended,changed=new Set(rec.changes.map(c=>c.outPid));
@@ -87,18 +88,46 @@ function feedSection(rows){
   const items=f.items.slice(0,25);
   return `<section class="v10-card" id="v10Feed"><h2>Since your last visit <span class="v10-muted">${k.esc(k.time(f.since))}</span></h2>${items.length?`<ul class="v10-feed">${items.map(x=>`<li class="v10-feed-${k.esc(x.tier)}">${x.tier==='urgent'?k.tierChip('urgent')+' ':''}${x.kind==='tx'?`<span class="v10-muted">${k.esc(x.leagueName)} ·</span> `:''}${k.esc(x.text)}${x.at?` <span class="v10-lock">${k.esc(k.time(x.at))}</span>`:''}</li>`).join('')}</ul>${f.items.length>items.length?`<div class="v10-muted">${f.items.length-items.length} more</div>`:''}`:k.empty('Nothing changed for your players or rosters.')}</section>`;
 }
+// R5.3 · Exposure: Player · Game · Rostered · Started by me · Started vs me (H2H opponents' current lineups) · Chopped
+// fields (other active teams starting him) · Net (by me − vs me). Opponents' lineups are "as set now".
 function myPlayersSection(rows){
   const k=K(),ok=rows.filter(r=>r?.wm);if(!ok.length)return '';
-  const mp=window.FIEPortfolioViews.myPlayers(ok),top=mp.rows.filter(r=>r.starts>0).slice(0,40);
-  const line=x=>{const sum=`<span class="v10-mp-name">${k.playerLink(x,{leagueId:x.leagues[0]?.leagueId})} <span class="v10-muted">${k.esc(x.position)} · ${k.esc(x.team||'FA')}</span> ${k.statusChip(x.status)}</span><span class="v10-num">${x.starts}</span><span class="v10-num">${x.rostered}</span><span class="v10-muted">${k.esc(k.gameText(x.game))}</span>`;
-    const body=`<table class="v10-mini"><tbody>${x.leagues.map(l=>`<tr><td><a href="#/league/${encodeURIComponent(l.leagueId)}/lineup">${k.esc(l.leagueName)}</a></td><td>${l.role==='start'?k.esc(l.slot):l.role}</td><td class="v10-num">${k.pts(l.value)}</td></tr>`).join('')}</tbody></table>`;
+  const mp=window.FIEPortfolioViews.myPlayers(ok),list=mp.rows.filter(r=>r.starts>0||r.vs>0).sort((a,b)=>(b.starts+b.vs)-(a.starts+a.vs)||(b.starts-a.starts)||(b.rostered-a.rostered)),top=list.slice(0,40);
+  const role=l=>l.role==='start'?`you start (${k.esc(l.slot)})`:l.role==='vs'?`<span class="v10-bad">opponent starts (${k.esc(l.slot)})</span>`:k.esc(l.role);
+  const line=x=>{const sum=`<span class="v10-mp-name">${k.playerLink(x,{leagueId:x.leagues[0]?.leagueId})} <span class="v10-muted">${k.esc(x.position)} · ${k.esc(x.team||'FA')}</span> ${k.statusChip(x.status)}</span><span class="v10-muted">${k.esc(k.gameText(x.game))}</span><span class="v10-num">${x.rostered||'–'}</span><span class="v10-num">${x.starts||'–'}</span><span class="v10-num">${x.vs?`<span class="v10-bad">${x.vs}</span>`:'–'}</span><span class="v10-num">${x.fieldStarts||'–'}</span><span class="v10-num"><b class="${x.net>0?'v10-good':x.net<0?'v10-bad':''}">${x.net>0?'+':''}${x.net}</b></span>`;
+    const body=`<table class="v10-mini"><tbody>${x.leagues.map(l=>`<tr><td><a href="#/league/${encodeURIComponent(l.leagueId)}/${l.role==='vs'?'matchup':'lineup'}">${k.esc(l.leagueName)}</a></td><td>${role(l)}</td><td class="v10-num">${k.pts(l.value)}</td></tr>`).join('')}</tbody></table>`;
     return k.expand(sum,body,{cls:'v10-mprow',key:`mp:${x.pid}`});};
-  return `<section class="v10-card"><h2>My players this week <span class="v10-muted">${mp.players} players · ${mp.startSlots} starting slots${mp.unavailableStarters.length?` · <b class="v10-bad">${mp.unavailableStarters.length} starting but can't play</b>`:''}</span></h2>
-    <div class="v10-mphead"><span>Player</span><span class="v10-num">Starts</span><span class="v10-num">Rostered</span><span>Game</span></div>${top.map(line).join('')}
-    ${mp.rows.length>top.length?k.expand(`<span class="v10-muted">${mp.rows.length-top.length} more players (bench / IR / taxi only)</span>`,mp.rows.filter(r=>!top.includes(r)).map(line).join(''),{key:'mp:rest'}):''}</section>`;
+  const rest=mp.rows.filter(r=>r.rostered&&!top.includes(r)&&!(r.starts||r.vs));
+  return `<section class="v10-card"><h2>Exposure this week <span class="v10-muted">${mp.players} rostered players · ${mp.startSlots} of your starting slots · ${mp.vsSlots} opponent starts against you${mp.unavailableStarters.length?` · <b class="v10-bad">${mp.unavailableStarters.length} starting but can't play</b>`:''}</span></h2>
+    <div class="v10-mphead"><span>Player</span><span>Game</span><span class="v10-num">Rostered</span><span class="v10-num">Started by me</span><span class="v10-num" title="Your head-to-head opponents' current lineups">Started vs me</span><span class="v10-num" title="Other active teams in your chopped leagues starting him">Chopped fields</span><span class="v10-num" title="Started by me − started vs me">Net</span></div>${top.map(line).join('')}
+    ${list.length>top.length?k.expand(`<span class="v10-muted">${list.length-top.length} more players starting for you or against you</span>`,list.slice(40).map(line).join(''),{key:'mp:more'}):''}
+    ${rest.length?k.expand(`<span class="v10-muted">${rest.length} more players (bench / IR / taxi only)</span>`,rest.map(line).join(''),{key:'mp:rest'}):''}
+    <p class="v10-muted v10-small">Opponents' lineups as set now (they can still change before lock). Net &gt; 0: his points help you in more matchups than they hurt.</p></section>`;
 }
-function leaguesTable(rows,now){
-  const k=K(),wk=rows.find(r=>r?.wm)?.wm.key.week;return `<section class="v10-card"><h2>Leagues</h2><div class="v10-lhead"><span>League</span><span>${wk?`Week ${k.esc(wk)}`:'This week'}</span><span>Win est.</span><span>Record</span><span>Tasks</span><span>Lock</span></div>${rows.map(r=>r?leagueRow(r,now):`<div class="v10-lrow v10-loading">Loading…</div>`).join('')}</section>`;
+// R5.4 · One Leagues table with a week picker (results of past weeks, projections of later weeks) instead of a separate
+// "Latest results" card; the live week shows last week's result summary as a link.
+let ovWeek=null;
+function weekPicker(live){const k=K(),sel=ovWeek??live;return `<select data-v10-ovweek aria-label="Week">${Array.from({length:18},(_,i)=>i+1).map(w=>`<option value="${w}"${w===sel?' selected':''}>Week ${w}${w<live?' · results':w===live?' · live':''}</option>`).join('')}</select>`;}
+function lastWeekSummary(res,live){const k=K();if(!res||live<=1)return '';const xs=res.filter(x=>x&&x.r);if(!xs.length)return '';
+  const h=xs.filter(x=>!x.chopped&&x.r.oppPoints!==null),w=h.filter(x=>x.r.points>x.r.oppPoints).length,l=h.filter(x=>x.r.points<x.r.oppPoints).length,c=xs.filter(x=>x.chopped&&!x.r.eliminated);
+  const surv=c.filter(x=>!x.r.lowest).length,chop=c.filter(x=>x.r.lowest).length;
+  return ` <a class="v10-muted v10-small" href="#/overview?week=${live-1}">Week ${live-1}: ${w}–${l}${h.length-w-l?`–${h.length-w-l}`:''} head-to-head${c.length?` · chopped: ${surv} survived${chop?`, ${chop} chopped`:''}`:''} →</a>`;}
+function pastTable(w,items){const k=K();
+  return `<table class="v10-table"><thead><tr><th>League</th><th>Result</th><th class="v10-num">Points</th><th class="v10-num">Rank of week</th><th class="v10-num" title="Your points minus your starters' Sleeper projection for that week (as published now)">vs projection</th><th class="v10-num">Record now</th></tr></thead><tbody>${items.map(({entry,wm,r,chopped,proj})=>{
+    if(!r)return `<tr><td>${k.esc(entry.name)}</td><td colspan="5" class="v10-muted">no result for Week ${k.esc(w)}</td></tr>`;
+    const res=r.eliminated?'<span class="v10-muted">Eliminated</span>':r.oppPoints!==null&&!chopped?(r.points>r.oppPoints?'<b class="v10-good">W</b>':r.points<r.oppPoints?'<b class="v10-bad">L</b>':'T'):chopped?(r.lowest?'<b class="v10-bad">Chopped</b>':'Survived'):'';
+    return `<tr><td><a href="#/league/${encodeURIComponent(entry.id)}/lineup?week=${w}">${k.esc(entry.name)}</a></td><td>${res}</td><td class="v10-num">${r.eliminated?'–':k.pts(r.points,2)}${!r.eliminated&&r.oppPoints!==null&&!chopped?` – ${k.pts(r.oppPoints,2)}`:''}</td><td class="v10-num">${r.eliminated?'–':`${r.rank}/${r.teams}`}</td><td class="v10-num">${r.eliminated||proj===null?'–':k.signed(r.points-proj)}</td><td class="v10-num">${k.esc(wm?record(wm):'')}</td></tr>`;}).join('')}</tbody></table>
+    <p class="v10-muted v10-small">vs projection uses Sleeper's projection for that week as published now (Sleeper may have revised it after kickoff); chopped ranks count only teams that played.</p>`;}
+function futureTable(w,items){const k=K();
+  return `<table class="v10-table"><thead><tr><th>League</th><th>Week ${k.esc(w)}</th><th class="v10-num">Win est.</th><th>Your byes</th></tr></thead><tbody>${items.map(({entry,wm})=>{if(!wm)return `<tr><td>${k.esc(entry.name)}</td><td colspan="3" class="v10-muted">not available</td></tr>`;
+    const pub=wm.issues.every(i=>i.code!=='NO_PROJECTIONS'),bye=wm.me.submitted.filter(e=>e.p?.game?.bye).map(e=>e.p.name);
+    const m=wm.field?(wm.field.meEliminated?'<span class="v10-muted">Eliminated</span>':pub?`#${wm.field.myRank??'–'} of ${wm.field.activeCount}`:'<span class="v10-muted">projections not published</span>'):wm.opponent?`${pub?`${k.pts(wm.me.totals.projected)} – ${k.pts(k.opp(wm).oppProjected)} `:''}<span class="v10-muted">vs ${k.esc(wm.opponent.name)}${pub?'':' · projections not published'}</span>`:(pub?k.pts(wm.me.totals.projected):'<span class="v10-muted">projections not published</span>');
+    return `<tr><td><a href="#/league/${encodeURIComponent(entry.id)}/lineup?week=${w}">${k.esc(entry.name)}</a></td><td>${m}</td><td class="v10-num">${pub&&wm.winEstimate?k.winPct(k.opp(wm).win):'–'}</td><td>${bye.length?`<span class="v10-bad">${bye.map(k.esc).join(', ')}</span>`:'–'}</td></tr>`;}).join('')}</tbody></table>
+    <p class="v10-muted v10-small">Future weeks: your current roster and starters with Sleeper's projection for that week once published; byes from the NFL schedule.</p>`;}
+function leaguesTable(rows,now,live=null,summary=''){
+  const k=K(),wk=rows.find(r=>r?.wm)?.wm.key.week;live=live??wk;
+  if(ovWeek&&live&&ovWeek!==live)return `<section class="v10-card" id="v10Leagues"><h2>Leagues ${weekPicker(live)}</h2><div id="v10WeekTable">${k.empty(`Loading Week ${k.esc(ovWeek)}…`)}</div></section>`;
+  return `<section class="v10-card" id="v10Leagues"><h2>Leagues ${live?weekPicker(live):''}${summary}</h2><div class="v10-lhead"><span>League</span><span>${wk?`Week ${k.esc(wk)}`:'This week'}</span><span>Win est.</span><span>Record</span><span>Tasks</span><span>Lock</span></div>${rows.map(r=>r?leagueRow(r,now):`<div class="v10-lrow v10-loading">Loading…</div>`).join('')}</section>`;
 }
 function resultsSection(res){
   const k=K();if(!res)return `<section class="v10-card" id="v10Results"><h2>Latest results</h2>${k.empty('Loading last week…')}</section>`;
@@ -107,18 +136,33 @@ function resultsSection(res){
     const res=r.eliminated?'<span class="v10-muted">Eliminated</span>':r.oppPoints!==null&&!chopped?(r.points>r.oppPoints?'<b class="v10-good">W</b>':r.points<r.oppPoints?'<b class="v10-bad">L</b>':'T'):chopped?(r.lowest?'<b class="v10-bad">Chopped</b>':'Survived'):'';
     return `<tr><td><a href="#/league/${encodeURIComponent(entry.id)}/matchup">${k.esc(entry.name)}</a></td><td>${res}</td><td class="v10-num">${r.eliminated?'–':k.pts(r.points,2)}${!r.eliminated&&r.oppPoints!==null&&!chopped?` – ${k.pts(r.oppPoints,2)}`:''}</td><td class="v10-num">${r.eliminated?'–':`${r.rank}/${r.teams}`}</td></tr>`;}).join('')}</tbody></table></section>`;
 }
-async function render(root){
-  const my=++token,now=Date.now(),list=await D().leagues();if(my!==token)return;
-  const rows=new Array(list.length).fill(null);let resultsRows=null;
-  const paint=()=>{if(my!==token)return;const t=Date.now(),done=rows.every(Boolean);K().repaint(root,`<div class="v10-overview">${header(rows.map((r,i)=>r||{entry:list[i]}),t)}${queue(rows,t)}${done?feedSection(rows):''}${leaguesTable(rows,t)}${done?myPlayersSection(rows):''}${resultsSection(resultsRows)}</div>`);};
+async function render(root,{week=null}={}){
+  const my=++token,now=Date.now(),list=await D().leagues();if(my!==token)return;ovWeek=week;
+  const rows=new Array(list.length).fill(null);let resultsRows=null,weekHtml=null;
+  const liveWeek=()=>rows.find(r=>r?.wm)?.wm?.key?.week??null;
+  const paint=()=>{if(my!==token)return;const t=Date.now(),done=rows.every(Boolean),lv=liveWeek();K().repaint(root,`<div class="v10-overview">${header(rows.map((r,i)=>r||{entry:list[i]}),t)}${queue(rows,t)}${done?feedSection(rows):''}${leaguesTable(rows,t,lv,lastWeekSummary(resultsRows,lv))}${done?myPlayersSection(rows):''}</div>`);if(weekHtml){const el=root.querySelector('#v10WeekTable');if(el)el.innerHTML=weekHtml;}bindPicker();};
+  const bindPicker=()=>{root.querySelector('[data-v10-ovweek]')?.addEventListener('change',e=>{const w=Number(e.target.value),lv=liveWeek();location.hash=w===lv?'#/overview':`#/overview?week=${w}`;});};
   let pending=null;const schedule=()=>{if(!pending)pending=setTimeout(()=>{pending=null;paint();},120);};
   paint();
   await D().portfolio({onEach:(i,r)=>{rows[i]=r;schedule();}});
   if(my!==token)return;clearTimeout(pending);pending=null;paint();last={at:Date.now(),rows};
-  // Latest results: previous completed week, after the current week is on screen.
-  const week=rows.find(r=>r?.wm)?.wm?.key?.week;
-  if(week>1){const res=await Promise.all(rows.map(async r=>r?.wm?{entry:r.wm.entry,chopped:!!r.wm.format.chopped,r:await D().results(r.wm.entry,week-1)}:null));if(my!==token)return;resultsRows=res;const el=root.querySelector('#v10Results');if(el)el.outerHTML=resultsSection(resultsRows);}
-  else{resultsRows=[];const el=root.querySelector('#v10Results');if(el)el.outerHTML=resultsSection(resultsRows);}
+  // R5.1 · Waiver to-dos become "Bid $a–b on X" (league history + other leagues, FIEBids) before the week's waiver run,
+  // "Add X now (free agent)" after it. Loaded after the page is on screen (one bid book per session).
+  (async()=>{for(const r of rows){const a=r?.alerts?.find(x=>x.code==='WAIVER_ADD');if(!a||!r.waivers||!r.wm)continue;
+    const b=await D().bidAdvice(r.wm,r.waivers.rows).catch(()=>null);if(my!==token)return;if(!b)continue;
+    const e=b.byPid.get(a.playerId),drop=a.dropName?` (drop ${a.dropName})`:a.freeSpot?' (free roster spot)':'';
+    if(b.schedule?.ranThisWeek)a.bidText=`Add ${a.playerName} now — free agent${drop}`;
+    else if(e)a.bidText=`Bid $${e.low}–${e.high} on ${a.playerName}${drop}${b.nextRun?` · waivers ${K().time(b.nextRun)}`:''}`;}
+    if(my===token)paint();})();
+  // Last week's result summary (link to the past-week table), after the current week is on screen.
+  const lw=rows.find(r=>r?.wm)?.wm?.key?.week;
+  // Selected other week (R5.4): past = results + projection gap, future = projections of that week.
+  if(ovWeek&&lw&&ovWeek!==lw){const W2=ovWeek,ok=rows.filter(r=>r?.wm);
+    const items=await Promise.all(ok.map(async r=>{const e=r.wm.entry;if(W2<lw){const [res,pm]=await Promise.all([D().results(e,W2),D().model(e,{week:W2}).catch(()=>null)]);
+        const proj=pm?pm.me.submitted.reduce((s,x)=>s+(x.p?(x.p.active.value??0):0),0):null;return{entry:e,wm:r.wm,r:res,chopped:!!r.wm.format.chopped,proj:pm&&pm.issues.every(i=>i.code!=='NO_PROJECTIONS')?proj:null};}
+      return{entry:e,wm:await D().model(e,{week:W2}).catch(()=>null)};}));
+    if(my!==token)return;weekHtml=W2<lw?pastTable(W2,items):futureTable(W2,items);paint();}
+  if(lw>1){const res=await Promise.all(rows.map(async r=>r?.wm?{entry:r.wm.entry,chopped:!!r.wm.format.chopped,r:await D().results(r.wm.entry,lw-1)}:null));if(my!==token)return;resultsRows=res;paint();}
 }
 function cancel(){token++;}
 window.FIEV10Overview={VERSION,render,cancel,last:()=>last};

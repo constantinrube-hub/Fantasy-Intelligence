@@ -102,7 +102,7 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | Check | Contract |
 |---|---|
 | C-LOAD | reference leagues load; Weekly/Waivers render with no page error |
-| C-WEEK | live Sleeper week wins over the snapshot week; notice shown |
+| C-WEEK | live Sleeper week wins over the snapshot week; notice shown (scenario `live-week-ahead`: live week = committed snapshot week + 1, so the bots' snapshot refreshes cannot break it) |
 | C-WAIVER | no CLAIM for Doubtful/Out/IR/…; status column; unavailable adds below CLAIMs |
 | C-DRAFT | no draft-preparation task for in-season leagues |
 | C-BANNER | submitted starter who cannot play → red Weekly alert |
@@ -118,14 +118,14 @@ node research/ui_replay/run.js --only C-WEEK,C-BANNER  # selected checks
 | V-CHOPPED | (v10) only active teams, verified eliminations, cut margin, no H2H estimate |
 | V-SWITCH | (v10) A → B → A shows the visible league; `?ui=classic` restores classic |
 | V-BRIDGE | (v10) Trades/Draft/Lab (and the old Waivers route) open classic for the same league; pill returns |
-| V-WAIVERS | (v10, Tuesday scenario) best adds by lineup gain with legal drop, ≤ 3 per position, no CLAIM/bid in Basic, market + budgets |
+| V-WAIVERS | (v10, Tuesday scenario) best adds by lineup gain with legal drop, ≤ 3 per position, never a CLAIM (R5.1: a bid range $a–b is allowed), this week's runs + budgets |
 | V-REVIEW | (v10) Week 5 review: submitted ≤ hindsight, projection-best ≤ hindsight |
 | V-WEEKPICK | (v10) past → review, future → projections, live → normal lineup |
 | V-READER | (v10) reader from a name, pin two, compare with lineup impact |
-| V-FEED | (v10) second visit lists status changes; My players counts |
+| V-FEED | (v10) second visit lists status changes; exposure table (R5.3: started by me / vs me) |
 | V-SPECIAL | (v10, R3) Kicker and D/ST boards in Lineup; free-agent gains equal the Waivers engine; no PAY/WAIT/STREAM |
 | V-PLAYERS | (v10, R3) Players filters (position, owner, search), expand, defaults reset on league change |
-| V-TEAM | (v10, R3) Team: strength ranks, depth, byes, roster with Sleeper slots |
+| V-TEAM | (v10, R3; R5.6) Team: strength top-N with ranks, depth table, byes, roster with Sleeper slots |
 | V-TRADES | (v10, R3) Trades: both lineups per week + season rate, verdict; Draft link only with an open Sleeper draft (R4.3: none in the capture, so neither redraft nor dynasty shows it) |
 | V-LAB | (v10, R3) Research Lab: model state (all leagues), accuracy on the scored Week 5 fixture, forecasts, rankings with the research board, documents; no console errors |
 
@@ -139,6 +139,9 @@ captures post-week matchups. Pure-module contracts run without a browser (all in
 `node research/integrity_v10_r4_test.js` (R4: lineup changes per slot, Best Ball bench, adds disabled, chopped results,
 simulation guards, refresh cadence, to-do columns, FAAB context, byes this week; Week 7 Tuesday capture
 `20261020T175919279901Z` plus synthetic fixtures).
+`node research/integrity_v10_r5_test.js` (R5: bid ranges incl. the Weeks 3–6 backtest on the auction-history capture
+`target_week_07/20261020T175951784034Z`, waiver runs, exposure, opponent mode, team strength top-N, depth, deciles,
+wiring). Research: `node research/v10_bid_backtest.js` (bid range coverage, `--own-only` for the own-league baseline).
 The whole replay (`--suite all`) has 27 checks after R3: classic 10, v10 17. Classic checks open `/?ui=classic` explicitly (they keep testing classic when
 `default_ui` becomes `v10`); v10 checks open `/?ui=v10#…`.
 

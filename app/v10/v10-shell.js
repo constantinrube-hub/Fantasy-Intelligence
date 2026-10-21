@@ -14,7 +14,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.4.0';
+const VERSION='10.5.0';
 const KEY='fieUiMode';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 const CLASSIC_TABS={waivers:['market','waivers'],trades:['market','trades'],draft:['draft','draft'],lab:['lab',null],weekly:['weekly','startsit']};
@@ -45,7 +45,7 @@ function parse(){const [path,qs]=(location.hash||'').replace(/^#\/?/,'').split('
   if(h[0]==='league'&&h[1])return{view:'league',id:h[1],tab:['home','lineup','matchup','waivers','players','team','trades'].includes(h[2])?h[2]:'home',week};
   if(h[0]==='classic'&&h[1])return{view:'classic',id:h[1],tab:h[2]||'weekly'};
   if(h[0]==='lab')return{view:'lab',tab:h[1]||'state',id:q.get('league')||null,pos:q.get('pos')||null,week};
-  return{view:'overview'};}
+  return{view:'overview',week};}
 async function route(){
   if(document.body.classList.contains('fie-v10-off'))return;
   const r=parse();current=r;
@@ -54,7 +54,7 @@ async function route(){
   show(true);
   root.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===r.view));
   const sel=root.querySelector('#v10LeagueSelect');if(sel)sel.value=r.view==='league'?r.id:'';
-  try{if(r.view==='league')await window.FIEV10League.render(main,r.id,r.tab,r.week);else if(r.view==='lab')await window.FIEV10Lab.render(main,r.tab,r.id,r.pos,r.week);else await window.FIEV10Overview.render(main);}
+  try{if(r.view==='league')await window.FIEV10League.render(main,r.id,r.tab,r.week);else if(r.view==='lab')await window.FIEV10Lab.render(main,r.tab,r.id,r.pos,r.week);else await window.FIEV10Overview.render(main,{week:r.week});}
   catch(e){main.innerHTML=K().empty(`Something went wrong: ${String(e?.message||e)}`);window.FIECore?.Diagnostics?.capture?.(e,{domain:'v10-route'});}
   asOf();
 }

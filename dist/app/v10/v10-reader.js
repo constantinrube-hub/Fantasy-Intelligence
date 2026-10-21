@@ -10,7 +10,7 @@
  */
 (function(){
 'use strict';
-const VERSION='10.2.0';
+const VERSION='10.5.0';
 const K=()=>window.FIEV10Kit,D=()=>window.FIEV10Data;
 const PINS='fieV10Pins',MAX=3;
 let token=0;
@@ -54,6 +54,25 @@ async function open(pid,lid){
     ${k.expand('<b>Details</b>',det.body,{adv:det.adv,cls:'v10-rd-x',open:true,key:`rd:${pid}`})}
     <div class="v10-row"><button class="v10-btn" data-v10-pin="${k.esc(pid)}" data-v10-pin-league="${k.esc(wm.key.leagueId)}" data-v10-pin-name="${k.esc(p.name)}"${pinned?' disabled':''}>${pinned?'Pinned':'Pin to compare'}</button>${pins().length?'<button class="v10-btn" data-v10-compare>Compare pinned</button>':''}</div></div>`;
 }
+// R5.7 · P10…P90 curve (one line per player, outcome on the y axis): source position × projection tier until
+// player-level spreads exist (policy switch) — the note says which. Inline SVG, theme colours via currentColor/CSS vars.
+const CURVE_COLORS=['var(--v-accent)','var(--v-rec)','var(--v-good)'];
+function curve(ps){const k=K(),xs=ps.filter(p=>p?.range?.deciles);if(!xs.length)return '';
+  const W=520,H=210,L=40,B=26,T=10,R=10,max=Math.max(1,...xs.flatMap(p=>p.range.deciles.q)),ymax=Math.ceil(max/5)*5,X=i=>L+i*(W-L-R)/8,Y=v=>T+(H-T-B)*(1-v/ymax);
+  const grid=[0,.25,.5,.75,1].map(f=>{const v=ymax*f;return `<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--v-line)"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--v-muted)">${Math.round(v)}</text>`;}).join('');
+  const xl=Array.from({length:9},(_,i)=>`<text x="${X(i)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--v-muted)">P${(i+1)*10}</text>`).join('');
+  const lines=xs.map((p,j)=>`<polyline fill="none" stroke="${CURVE_COLORS[j%3]}" stroke-width="2.5" points="${p.range.deciles.q.map((v,i)=>`${X(i)},${Y(v)}`).join(' ')}"/>${p.range.deciles.q.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="${CURVE_COLORS[j%3]}"><title>${k.esc(p.name)} P${(i+1)*10}: ${k.pts(v)}</title></circle>`).join('')}`).join('');
+  const legend=xs.map((p,j)=>`<span class="v10-chip" style="border-color:${CURVE_COLORS[j%3]};color:${CURVE_COLORS[j%3]}">${k.esc(p.name)} · P50 ${k.pts(p.range.deciles.q[4])}</span>`).join(' ');
+  const src=xs[0].range.deciles.source;
+  return `<h3>Outcome range this week</h3><div class="v10-row">${legend}</div><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px" role="img" aria-label="P10 to P90 points per player">${grid}${xl}${lines}</svg>
+    <p class="v10-muted v10-small">Points at each percentile (P10 = 1 week in 10 below, P90 = 1 week in 10 above). Shape: ${k.esc(src)}${src==='player'?'':' — measured on 2026 Weeks 1–6 for QB/RB/WR/TE (a low projection has a relatively wider spread); two players of the same position and projection level have the same shape. Player-specific spreads replace this when available.'} K, D/ST and IDP have no curve yet.</p>`;}
+// R5.7 · Where the projection comes from: Sleeper's projected stat line × this league's scoring, per stat.
+function statTable(ps,wm){const k=K(),xs=ps.filter(p=>p?.stats);if(!xs.length)return '';
+  const sc=wm.league.scoring||{},rows=xs.map(p=>new Map((window.FIEScoringCore.breakdown(p.stats,sc,p.position)||[]).filter(r=>Math.abs(r.points)>=0.05).map(r=>[r.key,r]))),keys=[...new Set(rows.flatMap(m=>[...m.keys()]))];
+  keys.sort((a,b)=>Math.max(...rows.map(m=>Math.abs(m.get(b)?.points||0)))-Math.max(...rows.map(m=>Math.abs(m.get(a)?.points||0))));
+  return `<h3>Projection breakdown <span class="v10-muted">Sleeper stat line × ${k.esc(wm.entry.name)} scoring</span></h3><table class="v10-table v10-cmpstats"><thead><tr><th>Stat (points per unit)</th>${xs.map(p=>`<th class="v10-num">${k.esc(p.name)}</th>`).join('')}</tr></thead><tbody>
+    ${keys.map(key=>`<tr><td>${k.esc(key)} <span class="v10-muted">×${k.esc(rows.find(m=>m.get(key))?.get(key)?.weight)}</span></td>${rows.map(m=>{const r=m.get(key);return `<td class="v10-num">${r?`${k.pts(r.points)} <span class="v10-muted v10-small">(${k.esc(Math.round(r.stat*10)/10)})</span>`:'–'}</td>`;}).join('')}</tr>`).join('')}
+    <tr><td><b>Total</b></td>${xs.map(p=>`<td class="v10-num"><b>${k.pts(p.active.value)}</b></td>`).join('')}</tr></tbody></table>`;}
 async function compare(){
   const my=++token,k=K(),el=panel(),list=pins();el.hidden=false;el.classList.add('v10-rd-wide');
   if(!list.length){el.innerHTML=k.empty('Nothing pinned.');return;}
@@ -71,7 +90,7 @@ async function compare(){
     <tr><td>Sum W${weeks[0]}–W${weeks[weeks.length-1]}</td>${cell(d=>`<b>${k.pts(d.hv.reduce((s,h)=>s+(h.value||0),0))}</b>`)}</tr>
     <tr><td>Range (P10–P90 where calibrated)</td>${cell(d=>d.p?.range?`${k.pts(d.p.range.low)}–${k.pts(d.p.range.high)}${d.p.range.calibrated?'':' <span class="v10-muted" title="Rule-of-thumb range (no calibration for this position)">*</span>'}`:'–')}</tr>
     <tr><td>Your lineup</td>${cell(d=>`<span class="v10-small">${impactText(d.im)}</span>`)}</tr>
-    </tbody></table><p class="v10-muted">Lineup impact = full re-optimisation of your legal lineup in this league (same engine as Waivers). Ranges: P10–P90 calibrated on 2026 Weeks 1–5 for QB/RB/WR/TE; * = rule of thumb (K, D/ST, IDP).</p></div>`;
+    </tbody></table>${curve(data.map(d=>d.p))}${statTable(data.map(d=>d.p),wm)}<p class="v10-muted">Lineup impact = full re-optimisation of your legal lineup in this league (same engine as Waivers). Ranges: P10–P90 calibrated on 2026 Weeks 1–5 for QB/RB/WR/TE (out of sample Week 6: 79 % inside, RB/TE a bit narrow); * = rule of thumb (K, D/ST, IDP).</p></div>`;
 }
 function renderTray(){
   const root=document.getElementById('fieV10');if(!root)return;let t=document.getElementById('fieV10Tray');const list=pins(),k=K();

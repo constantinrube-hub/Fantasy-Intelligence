@@ -1,3 +1,31 @@
+# UI v10 · R5 Decide better (preview), 2026-10-21
+
+Release R5 of the UI v10 plan (`FIE_V10_FEEDBACK_PLAN_2026-10-20.md`, your decisions of 20 Oct). Still opt-in behind
+`?ui=v10`. No projection, scoring, ranking, governance or research change; the WP-V1 position spread used by the win
+estimate is unchanged (the new tier deciles only shape the Compare curve).
+
+- **R5.1 Bid ranges** — new `app/core/bids.js` (FIEBids 10.5.0, loaded in `index.html`, manifest `v10_bids`),
+  `app/v10/v10-data.js` 10.5.0 (`bidBook`, `bidAdvice`, `prevWeekEnd`), `app/v10/v10-waivers.js` 10.5.0 (Bid column, note),
+  `app/v10/v10-overview.js` 10.5.0 ("Bid $a–b on X (drop Y) · waivers Wed 18:00"), `app/core/alerts.js` (action text),
+  policy `waivers.bids`. Own league = baseline, other leagues with lower weight (your 20 Oct decision), rank-matched,
+  p50–p80, capped at your budget. Backtest `research/v10_bid_backtest.js`: top of range ≥ winning bid in 80 % / 90 %
+  (chopped / normal) of 863 Weeks 3–6 claims (own league only: 77 % / 81 %).
+- **R5.2 This week's waiver runs** (`app/core/waivers.js` 10.5.0 `market.weekRuns`, `v10-waivers.js`).
+- **R5.3 Exposure** (`app/core/portfolio.js` 10.5.0, `v10-overview.js`, `v10.css`): started by me / vs me / chopped fields / net.
+- **R5.4 Overview week picker** (`v10-overview.js`, `app/v10/v10-shell.js` 10.5.0): past weeks with results and the gap to
+  projection, future weeks with projections once published and byes; last week's summary replaces the results card.
+- **R5.5 Opponent optimal until lock** (`app/core/week-model.js`, `app/v10/v10-kit.js` 10.5.0, `app/v10/v10-league.js` 10.5.0,
+  `v10-overview.js`, policy `opponents.optimal_until` = Thursday 18:00 UTC): win estimate, Field and cut line use optimal
+  opponents until Thursday evening, as set after; toggle auto / optimal / as set; both numbers shown.
+- **R5.6 Team strength top-N + depth table** (`app/core/team-views.js` 10.5.0, `app/v10/v10-team.js` 10.5.0) with your counting
+  rules (TE = TE + ⌈FLEX/2⌉, equal weights; IDP slots + 1, LB + 2, IDP-FLEX ignored; no cross-position counting).
+- **R5.7 Compare curve, projection breakdown, Lab forecast weeks** (`app/v10/v10-reader.js` 10.5.0, `week-model.js`
+  `range.deciles`, `app/v10/v10-lab.js` 10.5.0, policy `variance.calibration.tiers` + `player_level: false`,
+  `research/wpv1_measure_spread.py --tiers`). Out-of-sample check of the WP-V1 calibration on Week 6 (n = 173): 79 %
+  inside P10–P90 (target 80 %); QB 86 %, RB 67 %, WR 87 %, TE 72 % — RB/TE slightly too narrow, re-fit after Week 7.
+- **Tests / docs**: `research/integrity_v10_r5_test.js` (gate + manifest), `UI_CONTRACT.md §7.2b`, `§9`, `TESTING.md`;
+  generator validates `waivers.bids`, `opponents`, tier deciles.
+
 # UI v10 · R4 Fix & tidy (preview), 2026-10-21
 
 Release R4 of the UI v10 plan (`FIE_V10_FEEDBACK_PLAN_2026-10-20.md`, your review of R3). Still opt-in behind
