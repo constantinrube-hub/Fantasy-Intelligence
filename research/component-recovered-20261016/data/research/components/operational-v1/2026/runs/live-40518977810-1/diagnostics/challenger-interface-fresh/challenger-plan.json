@@ -1,0 +1,67 @@
+{
+  "baseline_changed": false,
+  "baseline_fit": "data/research/components/operational-v1/2026/runs/live-40518977810-1/fit/source-refit.json",
+  "baseline_fit_sha256": "441fc1c0b2539db3887414ced394e06cae4cc9bd97f4bf6dcf05a57fa8ad414e",
+  "baseline_method_version": "SOURCE_PREWEEK_ROLE_REFIT_V3_OPPONENT_COLUMN",
+  "candidate_artifact": null,
+  "contract": {
+    "automatic_promotion": false,
+    "baseline_replacement_allowed": false,
+    "candidate_weight_grid": null,
+    "coherence_required": [
+      "team_opportunity_normalization",
+      "shared_passing_receiving_events",
+      "shared_offense_opposing_defense_events",
+      "independent_validation"
+    ],
+    "excluded_features": [
+      "sleeper_projection",
+      "target_or_future_outcome",
+      "postgame_diagnostic",
+      "unimplemented_weather"
+    ],
+    "feature_families": [
+      "historical_player_efficiency",
+      "pregame_role_and_opportunity",
+      "team_environment",
+      "opponent_position_and_role_profiles"
+    ],
+    "feature_selection_enabled": false,
+    "historical_validation_is_exploratory": true,
+    "protected_selection_outcomes": {
+      "season": 2026,
+      "weeks": [
+        6,
+        7,
+        8
+      ]
+    },
+    "schema": "fie-component-challenger-contract-v1",
+    "scoring_leagues_are_independent_samples": false,
+    "selection_protocol": "CHRONOLOGICAL_TRAIN_THEN_VALIDATION_THEN_UNSEEN_TEST",
+    "statistical_training_checkpoint": "docs/audits/CODEX_MODEL_ROUTING.md",
+    "status": "INTERFACE_ONLY_TRAINING_DISABLED",
+    "training_cutoff": "NO_LATER_THAN_COMPLETED_PRIOR_WEEK_AND_OBSERVATION_CUTOFF",
+    "training_enabled": false,
+    "version": "CHALLENGER_INTERFACE_V1"
+  },
+  "contract_sha256": "61f77e7a54f56a08be994f5b6e35f53fbd28a2ae5b38d08c6d6c59ffce090132",
+  "feature_selection_performed": false,
+  "required_candidate_outputs": [
+    "candidate_id",
+    "methodology_hash",
+    "source_cutoff",
+    "chronological_folds",
+    "selected_weights",
+    "selected_features",
+    "support_counts",
+    "paired_validation",
+    "coherence_validation",
+    "prospective_freeze"
+  ],
+  "schema": "fie-component-challenger-plan-v1",
+  "status": "INTERFACE_READY_NOT_TRAINED",
+  "training_path": "data/research/components/operational-v1/2026/runs/live-40518977810-1/training-week07",
+  "training_sha256": "54984eea0947c5925416630eb90415eba6cd8c27245c72fbd57e4a66fe34d384",
+  "training_through_week": 7
+}
