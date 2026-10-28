@@ -31,6 +31,53 @@ UA = "Fantasy-Intelligence-M10-R8C/1.0"
 GAMES_URL = "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
 STATE_URL = "https://api.sleeper.app/v1/state/nfl"
 
+# Bye-week handling (28 Oct 2026). nflverse's weekly roster omits teams on bye,
+# and the current player base carries D/ST rows only for teams with a game. A
+# rostered player of a bye team therefore has no target-week identity. That is
+# a known "no game" state, not an identity failure, so it must not block the
+# whole league. Team codes are normalised because nflverse writes the Rams as
+# "LA" while Sleeper and the app write "LAR".
+NFL_TEAMS = frozenset({
+    "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE", "DAL", "DEN", "DET", "GB", "HOU", "IND", "JAX", "KC",
+    "LAC", "LAR", "LV", "MIA", "MIN", "NE", "NO", "NYG", "NYJ", "PHI", "PIT", "SEA", "SF", "TB", "TEN", "WAS",
+})
+TEAM_ALIASES = {"LA": "LAR", "STL": "LAR", "SD": "LAC", "OAK": "LV", "LVR": "LV", "JAC": "JAX", "WSH": "WAS"}
+
+
+def normalize_team(value: Any) -> str:
+    text = str(value or "").upper().strip()
+    return TEAM_ALIASES.get(text, text)
+
+
+def bye_teams(scheduled_teams: Any) -> frozenset[str]:
+    """Teams without a game in the target week; empty when the schedule is not supplied.
+
+    An empty or unknown schedule fails closed (no team is treated as on bye), so
+    callers that do not pass a verified schedule keep the previous behaviour.
+    """
+    if not scheduled_teams:
+        return frozenset()
+    scheduled = {normalize_team(team) for team in scheduled_teams}
+    unknown = scheduled - NFL_TEAMS
+    if unknown:
+        raise ValueError(f"unknown scheduled team codes: {sorted(unknown)}")
+    return NFL_TEAMS - scheduled
+
+
+def bye_team_of(sleeper_id: str, player: dict[str, Any] | None, byes: frozenset[str]) -> str | None:
+    """Return the bye team of a roster entry that cannot be resolved, else None.
+
+    D/ST entries use the team code as their Sleeper ID; players carry their team
+    in the current snapshot. Anything else stays unresolved (fail closed).
+    """
+    if not byes:
+        return None
+    if player is None:
+        team = normalize_team(sleeper_id)
+        return team if team in byes else None
+    team = normalize_team(player.get("team"))
+    return team if team in byes else None
+
 
 def normalize_sleeper_id(value: Any) -> str:
     """Normalize CSV numeric coercion without changing genuine string IDs."""
@@ -106,14 +153,22 @@ def current_roster_identity(rosters: pd.DataFrame, *, season: int, week: int) ->
     # nflreadr's roster-status dictionary defines INA as under contract but
     # inactive, not a departure. Preserve membership without inferring whether
     # that player is available to play. Unknown codes still fail closed.
-    known = status.isin({"ACT", "DEV", "RES", "EXE", "INA", "RET", "CUT"})
+    # TRD/TRC/TRT (28 Oct 2026): transaction statuses nflverse uses for players
+    # being traded or moved off a roster (so far only practice-squad players:
+    # Week 5 TRD OL, Week 7 TRT LB, Week 8 TRD TE and TRC RB). Before this they
+    # were unknown codes, and two skill-position rows in the Week 8 file would
+    # have failed the whole capture. They are treated like RET/CUT: the player is
+    # not bound to that team for the target week. Other unknown codes still fail.
+    transaction = {"TRD", "TRC", "TRT"}
+    known = status.isin({"ACT", "DEV", "RES", "EXE", "INA", "RET", "CUT"} | transaction)
     if not known.all():
         unknown = status[~known].value_counts().sort_index().to_dict()
         raise ValueError(f"current NFL roster has an unrecognized membership status for {season} week {week}: {unknown}")
     exclusions = []
-    departed = status.isin({"RET", "CUT"})
+    departed = status.isin({"RET", "CUT"} | transaction)
     for _, row in selected[departed].iterrows():
-        exclusions.append({"gsis_id": None if pd.isna(row["gsis_id"]) else str(row["gsis_id"]), "reason": "NOT_CURRENT_NFL_ROSTER_MEMBER"})
+        reason = "ROSTER_TRANSACTION_STATUS" if str(row["status"]).strip().upper() in transaction else "NOT_CURRENT_NFL_ROSTER_MEMBER"
+        exclusions.append({"gsis_id": None if pd.isna(row["gsis_id"]) else str(row["gsis_id"]), "reason": reason})
     selected = selected[~departed].copy()
     ids = selected["gsis_id"].astype("string").str.strip()
     unresolved = ids.isna() | ids.isin({"", "nan", "None"})
@@ -201,8 +256,15 @@ def _league_roster_state(
     season: int,
     week: int,
     username: str,
+    scheduled_teams: Any = None,
 ) -> dict[str, Any]:
-    """Resolve one managed Sleeper roster against cutoff-bound canonical evidence."""
+    """Resolve one managed Sleeper roster against cutoff-bound canonical evidence.
+
+    ``scheduled_teams``: teams with a game in the target week (from the verified
+    schedule). When given, roster entries of bye teams are recorded in
+    ``excluded_bye_roster_players`` instead of blocking the league. When omitted,
+    behaviour is unchanged (every unresolved entry blocks).
+    """
     try:
         from in_season_pr2_weekly_lineups import (
             catalog, current_index, current_snapshot, managed_roster, row_for_roster_id,
@@ -274,10 +336,15 @@ def _league_roster_state(
     ambiguous_sleeper_ids = {sleeper_id for sleeper_id, values in identity_bindings.items() if len(values) != 1}
     sleeper_to_canonical = {sleeper_id: next(iter(values)) for sleeper_id, values in identity_bindings.items() if len(values) == 1}
     index, player_catalog = current_index(current), catalog(root, core)
-    legal, unresolved, excluded_players = [], [], []
+    byes = bye_teams(scheduled_teams)
+    legal, unresolved, excluded_players, bye_players = [], [], [], []
     for sleeper_id in roster_ids:
         player = row_for_roster_id(sleeper_id, index, player_catalog)
         if player is None:
+            bye_team = bye_team_of(sleeper_id, None, byes)
+            if bye_team:
+                bye_players.append({"sleeper_id": sleeper_id, "team": bye_team, "reason": "BYE_NO_GAME"})
+                continue
             unresolved.append({"sleeper_id": sleeper_id, "reason": "CURRENT_PLAYER_UNRESOLVED"})
             continue
         position = player_position(player, contract)
@@ -289,6 +356,10 @@ def _league_roster_state(
             continue
         canonical_id = sleeper_to_canonical.get(sleeper_id)
         if not canonical_id:
+            bye_team = bye_team_of(sleeper_id, player, byes)
+            if bye_team:
+                bye_players.append({"sleeper_id": sleeper_id, "position": position, "team": bye_team, "reason": "BYE_NO_GAME"})
+                continue
             unresolved.append({"sleeper_id": sleeper_id, "position": position, "reason": "M10_IDENTITY_UNRESOLVED"})
             continue
         legal.append(canonical_id)
@@ -305,6 +376,7 @@ def _league_roster_state(
         "legal_canonical_player_ids": sorted(legal), "blocker": None,
         "managed_roster_id": str(roster.get("roster_id") or ""),
         "excluded_non_m10_roster_players": sorted(excluded_players, key=lambda row: (row["position"], row["sleeper_id"])),
+        "excluded_bye_roster_players": sorted(bye_players, key=lambda row: (row["team"], row["sleeper_id"])),
         "runtime_contract_sha256": contract_sha,
         "evidence": {
             "profile_path": profile_path.relative_to(root).as_posix(), "profile_sha256": governed_json_sha256(profile_path),
@@ -315,7 +387,7 @@ def _league_roster_state(
     }
 
 
-def _profile_payload(identity_snapshot: dict[str, Any], *, season: int, week: int, root: Path = ROOT) -> dict[str, Any]:
+def _profile_payload(identity_snapshot: dict[str, Any], *, season: int, week: int, root: Path = ROOT, scheduled_teams: Any = None) -> dict[str, Any]:
     registry = json.loads((root / "data/research/leagues/registry.json").read_text(encoding="utf-8"))
     portfolio = json.loads((root / "config/league-portfolio.json").read_text(encoding="utf-8"))
     username = str(portfolio.get("sleeper_username") or "").strip()
@@ -329,7 +401,7 @@ def _profile_payload(identity_snapshot: dict[str, Any], *, season: int, week: in
         profile_path = root / str(entry["profile_path"])
         profile = json.loads(profile_path.read_text(encoding="utf-8"))
         profiles.append({"league_id": str(league_id), "league_format": profile["format"], "profile_scoring_signature": profile["scoring_signature"], "profile_fingerprint": profile["profile_fingerprint"], "scoring_settings": profile["scoring_settings"], "captured_at": captured_at})
-        states.append(_league_roster_state(root, str(league_id), entry, identity_snapshot, season=season, week=week, username=username))
+        states.append(_league_roster_state(root, str(league_id), entry, identity_snapshot, season=season, week=week, username=username, scheduled_teams=scheduled_teams))
     assert profiles, "no enabled league profiles"
     assert len(profiles) == len(states)
     return {"enabled_league_count": len(profiles), "profiles": profiles, "league_roster_states": states, "managed_sleeper_username": username, "m10_roster_scope": ["QB", "RB", "WR", "TE"]}
@@ -400,7 +472,7 @@ def capture(output_dir: Path, *, season: int | None, week: int | None, output_ro
     for name, aliases in targets.items(): normalized[name] = _number(current, *aliases)
     normalized = normalized.dropna(subset=["season", "week", "canonical_player_id", "team"]).astype(object).where(pd.notna(normalized), None)
     completed_path = output_dir / "completed-games.json"; write_json(completed_path, {"player_games": normalized.to_dict("records")})
-    profiles_path = output_dir / "roster-profile-snapshot.json"; write_json(profiles_path, _profile_payload(roster_identity, season=resolved_season, week=resolved_week))
+    profiles_path = output_dir / "roster-profile-snapshot.json"; write_json(profiles_path, _profile_payload(roster_identity, season=resolved_season, week=resolved_week, scheduled_teams=scheduled_teams))
     manifest = output_dir / "raw-envelope.json"
     write_json(manifest, {"schema": RAW_SCHEMA, "fixture": False, "research_only": True, "production_model": "M9", "production_activation": False, "app_integration": False, "runtime_integration": False, "shadow_integration": False, "automatic_promotion": False, "historical_reconstruction": False, "capture": {"season": resolved_season, "week": resolved_week, "observed_at": observed, "first_kickoff_at": kickoff.isoformat(), "hours_before_first_kickoff": capture_hours(observed, kickoff.isoformat())}, "source_records": [_record("schedule", schedule_path, observed, [state_response, games_response]), _record("completed_games", completed_path, observed, completed_responses), _record("identity_snapshot", identity_path, observed, [players_response, rosters_response]), _record("roster_profile_snapshot", profiles_path, observed, [])]})
     # The governed profile snapshot is local evidence, not an HTTP response.
