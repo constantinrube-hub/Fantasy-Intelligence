@@ -1,0 +1,42 @@
+{
+ "schema": "fie-lab-shadow-registration-v1",
+ "registered_at": "2026-10-28T21:15:00Z",
+ "registered_by": "Constantin (decision 28 Oct 2026, 22:10 Berlin), written by Claude",
+ "before": "Week 8 first kickoff 2026-10-30T00:15:00Z; no Week 8 outcome exists at registration",
+ "context": "Week 7 clean test (w7_clean_test_v1.json): F1b, F5 and Q1 each failed one pre-registered criterion by a small margin and were not adopted; F2 newly-out was worse. Verdicts of w7_freeze_v1.json stand unchanged.",
+ "status_of_variants": "SHADOW: computed and reported every week, never used in SIM-FIE, lineup advice or the app. Adoption only by explicit approval of the owner after the pooled verdict.",
+ "production_configuration_weeks_8_9": "SIM-FIE = frozen engine v0.2 + F1 availability (FIE_AVAIL unset). Unchanged by this registration.",
+ "variants": {
+  "S-F1B": {
+   "spec": "Availability with projection bands; frozen W4-6 fit f1b_model_fit_w4_6 in w7_freeze_v1.json (no refit).",
+   "evaluation_weeks": [7, 8, 9],
+   "rule": "Pass if, pooled over Weeks 7-9, player-level Brier (FIE universe, centre >= 3 PPR) is not worse than F1 AND team-level H2H Brier (SIM-FIE, Thursday lineups, offence only) is not worse than F1."
+  },
+  "S-F5": {
+   "spec": "M10 raw components x (1 + b_pos (implied_team_points - 22.5)/10), b_pos from w7_freeze_v1.json (QB 0.249, RB 0.192, TE 0.172, WR 0.178). Lines: Week 8+ Odds API Thursday capture median; fallback nflverse snapshot (Proxy).",
+   "evaluation_weeks": [7, 8, 9],
+   "rule": "Pass if, pooled over Weeks 7-9 (played, FIE universe), PPR MAE is lower at >= 3 of 4 positions AND the mean of within-week Spearman (players with either projection >= 5 PPR, >= 8 per week-position) is not lower than M10's by more than 0.02 at any position."
+  },
+  "S-Q1": {
+   "spec": "QB carries and rushing yards = (sum of last <= 4 2026 games + 2 x 2025 per-game average) / (n_games + 2); 2025 average replaced by the 2025 QB player-game mean if absent; rushing TDs scaled by the rush-yard ratio. Implementation as in w7_clean_test.py v0.1 t5_q1.",
+   "evaluation_weeks": [7, 8, 9],
+   "rule": "Pass if, pooled over Weeks 7-9, QB rushing-yard MAE is lower than M10's AND QB PPR MAE is not higher."
+  },
+  "S-F2N": {
+   "spec": "Redistribute (share 1.0) only the projected targets/carries of players Out/Doubtful/IR/PUP/Sus/NA/COV at the cutoff who played their previous team game; long-term absences contribute nothing. Implementation as in w7_clean_test.py v0.1 t6_f2_newly_out.",
+   "evaluation_weeks": [7, 8, 9],
+   "prior_note": "Low prior: Week 7 +0.036 MAE (SE 0.105); Weeks 4-6 (seen before registration, not a clean test) +0.054 (SE 0.044). Kept only because shadow evaluation costs nothing; bias moved towards zero (-0.65 to -0.18).",
+   "rule": "Pass if, pooled over Weeks 7-9, paired MAE on affected played teammates (centre >= 1 PPR) is lower."
+  }
+ },
+ "multiplicity": "Four variants are tested; at the verdict, report all four together with week-level results. A pass is necessary, not sufficient: adoption requires the owner's approval, and a variant that passes only through Week 7 (already seen) is reported as such.",
+ "verdict_due": "After Week 9 outcomes (expected Tue 10 Nov 2026).",
+ "evaluation_code_sha256": {
+  "fie_lab/w7_clean_test.py": "00b28f3bb0c041286f2688bb5b8708a04b01b217af397dd8624a07bcf92d7b85"
+ },
+ "references_sha256": {
+  "data/derived/w7_freeze_v1.json": "b8d6503b055dae28727830b49903e27eca1915592e4c5b226611777974dbd29c",
+  "data/derived/w7_clean_test_v1.json": "fd9539ed21ccaf288e80c1d6b2e6ed55372e98d484d654844989f93fbc21dd70"
+ },
+ "also_continuing": "D/ST production-as-run vs Sleeper, Weeks 7-9, rule unchanged from the 25 Oct registration (within-week Spearman higher in >= 2 of 3 weeks AND pooled MAE not worse by more than 0.1). After Week 7: 1 of 1 on ranking, MAE gap +0.10."
+}
