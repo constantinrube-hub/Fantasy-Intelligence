@@ -9,7 +9,8 @@ from pathlib import Path
 import pandas as pd
 
 from capture_m10_prospective_weekly_raw import (
-    ROOT, _league_roster_state, attach_sleeper_identity, normalize_sleeper_id,
+    NFL_TEAMS, ROOT, _league_roster_state, attach_sleeper_identity, bye_team_of, bye_teams, normalize_sleeper_id,
+    normalize_team,
 )
 from in_season_pr2_weekly_lineups import current_snapshot
 from m10_prospective_operational_capture import validate_decisions
@@ -25,6 +26,34 @@ def repository_identity() -> dict:
         current = current_snapshot(ROOT / f"data/research/leagues/{league_id}/current/milestone5_current.json", ROOT)
         players.extend(row for row in current.get("players") or [] if row.get("sleeper_id") and row.get("canonical_player_id"))
     return {"players": players}
+
+
+def bye_week_checks() -> None:
+    """Bye-team roster entries are a known no-game state, never a silent pass for real gaps."""
+    assert normalize_team("la") == "LAR" and normalize_team(" WSH ") == "WAS" and normalize_team("KC") == "KC"
+    assert bye_teams(None) == frozenset() and bye_teams([]) == frozenset()
+    week8 = NFL_TEAMS - {"HOU", "NO", "NYG", "SF"}
+    scheduled = {"LA" if team == "LAR" else team for team in week8}  # nflverse spelling of the Rams
+    assert bye_teams(scheduled) == {"HOU", "NO", "NYG", "SF"}
+    try:
+        bye_teams(scheduled | {"XXX"})
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("unknown team codes must fail closed")
+    byes = bye_teams(scheduled)
+    assert bye_team_of("HOU", None, byes) == "HOU"           # D/ST of a bye team
+    assert bye_team_of("KC", None, byes) is None             # D/ST of a playing team stays unresolved
+    assert bye_team_of("10859", None, byes) is None          # unknown player stays unresolved
+    assert bye_team_of("10859", {"team": "SF"}, byes) == "SF"
+    assert bye_team_of("10859", {"team": "LA"}, byes) is None  # Rams play: alias must not create a bye
+    assert bye_team_of("10859", {"team": None}, byes) is None
+    assert bye_team_of("HOU", None, frozenset()) is None     # no schedule: previous behaviour
+
+
+def live_scheduled_teams(current: dict) -> set[str]:
+    """No-network proxy for the target-week schedule: teams whose players carry an opponent."""
+    return {normalize_team(row.get("team")) for row in current.get("players") or [] if row.get("team") and row.get("opponent")}
 
 
 def mapping_checks() -> None:
@@ -53,7 +82,9 @@ def mapping_checks() -> None:
     current = current_snapshot(ROOT / f"data/research/leagues/{league_id}/current/milestone5_current.json", ROOT)
     season, week = int(current["season"]), int(current["week"])
     assert season > 0 and week > 0
-    ready = _league_roster_state(ROOT, league_id, registry[league_id], live_identity, season=season, week=week, username=username)
+    scheduled = live_scheduled_teams(current)
+    ready = _league_roster_state(ROOT, league_id, registry[league_id], live_identity, season=season, week=week, username=username,
+                                 scheduled_teams=scheduled or None)
     # The live roster of this fixture league changes every week (waivers, trades,
     # identity updates). A per-league data gap is surfaced as a warning and blocks
     # that league's decision traces downstream; it must not fail the release gate
@@ -65,6 +96,8 @@ def mapping_checks() -> None:
             "blocker": ready.get("blocker"), "blocker_detail": ready.get("blocker_detail"),
         }, sort_keys=True, default=str), file=sys.stderr)
     else:
+        byes = bye_teams(scheduled) if scheduled else frozenset()
+        assert all(row["team"] in byes and row["reason"] == "BYE_NO_GAME" for row in ready["excluded_bye_roster_players"])
         assert ready["excluded_non_m10_starter_slots"] == ["K", "DEF"]
         assert ready["m10_roster_positions"] == ["QB", "RB", "RB", "WR", "WR", "TE", "FLEX"]
         assert len(ready["runtime_contract_sha256"]) == 64
@@ -140,9 +173,10 @@ def exact_assignment_checks() -> None:
 
 
 def main() -> None:
+    bye_week_checks()
     mapping_checks()
     exact_assignment_checks()
-    print("PASS M10 canonical roster mapping, offensive-scope exclusions, and exact legal assignment")
+    print("PASS M10 canonical roster mapping, offensive-scope exclusions, bye-week exclusions, and exact legal assignment")
 
 
 if __name__ == "__main__":
