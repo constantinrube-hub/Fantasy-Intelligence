@@ -1,0 +1,234 @@
+{
+  "as_of_utc": "2026-10-29T03:51:06.689870+00:00",
+  "checkpoints": [
+    {
+      "checkpoint": "M10_WEEK_OPEN",
+      "closes_at": "2026-10-30T00:15:00+00:00",
+      "opens_at": "2026-10-29T06:15:00+00:00",
+      "season": 2026,
+      "status": "NOT_DUE",
+      "week": 8
+    },
+    {
+      "checkpoint": "SUNDAY_M10_SLEEPER_PAIRED",
+      "closes_at": "2026-11-01T13:30:00+00:00",
+      "opens_at": "2026-11-01T12:00:00+00:00",
+      "season": 2026,
+      "status": "NOT_DUE",
+      "week": 8
+    },
+    {
+      "checkpoint": "PR2_WEEK_OPEN_T6",
+      "closes_at": "2026-10-29T20:15:00+00:00",
+      "opens_at": "2026-10-29T16:45:00+00:00",
+      "season": 2026,
+      "status": "NOT_DUE",
+      "week": 8
+    },
+    {
+      "checkpoint": "PR2_SUNDAY_MAIN_T4",
+      "closes_at": "2026-11-01T15:30:00+00:00",
+      "opens_at": "2026-11-01T14:00:00+00:00",
+      "season": 2026,
+      "status": "NOT_DUE",
+      "week": 8
+    }
+  ],
+  "context_audit": {
+    "as_of_utc": "2026-10-29T03:51:06.689870+00:00",
+    "datasets": {
+      "AVAILABILITY": {
+        "coverage": {
+          "IDP": {
+            "non_null_field_counts": {
+              "active": 5502,
+              "age": 5116,
+              "depth_chart_order": 897,
+              "depth_chart_position": 975,
+              "injury_body_part": 327,
+              "injury_notes": 55,
+              "injury_start_date": 0,
+              "injury_status": 363,
+              "news_updated": 3661,
+              "practice_description": 1,
+              "practice_participation": 1,
+              "status": 5502,
+              "years_exp": 5501
+            },
+            "rows": 5502,
+            "rows_with_injury_status": 363,
+            "rows_with_team": 1319
+          },
+          "KICKER": {
+            "non_null_field_counts": {
+              "active": 198,
+              "age": 175,
+              "depth_chart_order": 32,
+              "depth_chart_position": 32,
+              "injury_body_part": 3,
+              "injury_notes": 1,
+              "injury_start_date": 0,
+              "injury_status": 3,
+              "news_updated": 155,
+              "practice_description": 0,
+              "practice_participation": 0,
+              "status": 198,
+              "years_exp": 197
+            },
+            "rows": 198,
+            "rows_with_injury_status": 3,
+            "rows_with_team": 39
+          },
+          "OFFENSE": {
+            "non_null_field_counts": {
+              "active": 836,
+              "age": 824,
+              "depth_chart_order": 600,
+              "depth_chart_position": 581,
+              "injury_body_part": 153,
+              "injury_notes": 44,
+              "injury_start_date": 0,
+              "injury_status": 155,
+              "news_updated": 817,
+              "practice_description": 0,
+              "practice_participation": 0,
+              "status": 836,
+              "years_exp": 836
+            },
+            "rows": 836,
+            "rows_with_injury_status": 155,
+            "rows_with_team": 836
+          }
+        },
+        "freshness_limit_hours": 36,
+        "metadata": {
+          "path": "data/research/availability/sleeper/2026/availability_2026-10-28.jsonl.gz.meta.json",
+          "sha256": "024e6bbf2c45b4f17c78ffa82d8ae2fa3ad53bba4c967a2b898f53b53ca9c2e6"
+        },
+        "observed_at": "2026-10-28T14:21:41.377325+00:00",
+        "snapshot": {
+          "path": "data/research/availability/sleeper/2026/availability_2026-10-28.jsonl.gz",
+          "sha256": "88022402f5573cdcea44a6650fded6e062796913eae14b715efc1660a7d416ac"
+        },
+        "source": {
+          "path": "data/research/availability/sleeper/2026/availability_2026-10-28.source.json.gz",
+          "sha256": "0e56589ac0bbc0bcc351b2ccb7d1842ff8ae1f241790a4bf5143735f509e91ea"
+        },
+        "status": "SOURCE_VALIDATED",
+        "validation_scope": "Captured provider response and normalized archive integrity; not injury forecast accuracy."
+      },
+      "TRENCH": {
+        "max_input_week": 7,
+        "observed_at": "2026-10-28T11:42:36.315881+00:00",
+        "owner_status": "READY_RESEARCH_ONLY",
+        "path": "data/research/trench/2026/prospective/week_08/trench-evidence-v1.json",
+        "sha256": "cc63570ce0784d3bfd0af4097d8d794d6dd05b11c003202461725f5a28a8ad23",
+        "source_observed_at": "2026-10-28T11:42:35.790464+00:00",
+        "source_sha256": "d2a7b67eacd56aa4025cd6f9da5994d129503ab7cd3f599ecfdb918524593c39",
+        "status": "BOUND_RESEARCH_ONLY",
+        "team_count": 32,
+        "validation_scope": "Stored target, leakage guard and ownership; raw PBP hash is declared, not replayed by this audit."
+      },
+      "WEATHER": {
+        "age_hours": 4.955,
+        "context": {
+          "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/context-evidence.json",
+          "sha256": "3172271ac120c674299e2d9458b1f7f703707baa474f740b93918907b1343952"
+        },
+        "forecast_sources": [
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_CAR_GB.source-envelope.json",
+            "sha256": "0275d1b3f41e496eb762e7733c786dee42f7445e027fc9733a407250d85a1be2"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_ARI_DAL.source-envelope.json",
+            "sha256": "2f5e6c7a7ea75b8f0c3486b6227c7a331c528d185100f53569322223453ba441"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_ATL_TB.source-envelope.json",
+            "sha256": "8bf2dfab19bb3e5f74e18bf9fc4ffe1faf2f1f3745d825df48f17bd0e9377cbd"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_BAL_BUF.source-envelope.json",
+            "sha256": "545d2c47c25701f8e9e4be6daee57ee4dc09a4c7693540ac9d1729963d8e7a01"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_CLE_PIT.source-envelope.json",
+            "sha256": "7c5544967241fbf5767deed2a21790b8963cb99482766d6c3b6c299f51ba8067"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_IND_JAX.source-envelope.json",
+            "sha256": "81e4127079fab25482e169dd77ecacb7db74a4d83abc0c2acd5dd92dce316169"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_LV_NYJ.source-envelope.json",
+            "sha256": "f555ff787adf4ed879dea9fca52730201e089a1e07f3e895f5c06d69a3b9f1bb"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_MIN_DET.source-envelope.json",
+            "sha256": "b29362f77e247bc5e88ca7cfa556fd50950b1249074df70a961eec93574441af"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_TEN_CIN.source-envelope.json",
+            "sha256": "e8c1dd1eaee32380593553ca37920fa65da2bd43d372bd6b881b5f18785278d9"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_LAC_LA.source-envelope.json",
+            "sha256": "cb48146167f0fbe448d7187b98daa1a6fb8211c6edd6d709e2b951f811c32b0f"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_KC_DEN.source-envelope.json",
+            "sha256": "a2d6662bc9732fa5142d8af92ecc40d7cbc52b3d1a20a3e6f7b4f44730c3f863"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_NE_MIA.source-envelope.json",
+            "sha256": "087b29676d22ce34f6e87fb07e59e0ad95ca3f74d47e6d6a5a576aa6e5555ae4"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_PHI_WAS.source-envelope.json",
+            "sha256": "fed9b508aab0749addedf73a6162f98b5b81eaaf3c1a2f319503a1d84ff40531"
+          },
+          {
+            "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/2026_08_CHI_SEA.source-envelope.json",
+            "sha256": "61ed6c8fd19570b8aef3d474de5dc64a4b37e179723618c833c61e4d6743964a"
+          }
+        ],
+        "future_game_count": 14,
+        "missing_weather_game_ids": [],
+        "observed_at": "2026-10-28T22:53:49.750528+00:00",
+        "schedule": {
+          "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/schedule-source-envelope.json",
+          "sha256": "2ff3f016f595a559bc63a711d53f38b81ce76faf2ee0b80f09e9bdef9b91de7a"
+        },
+        "status": "SOURCE_VALIDATED",
+        "validation_scope": "Source bindings and normalization; no forecast-accuracy or venue-coordinate certification."
+      }
+    },
+    "network_access": false,
+    "producer": {
+      "module": "research/weekly_context_audit.py",
+      "sha256": "7280b9c6871b96cc0240bbc9ee6ffd32488cdb8bf48d8b8146dd94b7ccfba71a",
+      "version": "1.0.0"
+    },
+    "read_only": true,
+    "schema": "fie-weekly-context-audit-v1",
+    "season": 2026,
+    "status": "BOUND",
+    "week": 8
+  },
+  "historical_reconstruction": false,
+  "network_access": false,
+  "note": "Missing evidence is observed here; only the original capture owner may write a terminal missed-capture record.",
+  "production_model_changed": false,
+  "read_only": true,
+  "schedule_source": {
+    "game_count": 14,
+    "observed_at": "2026-10-28T22:53:49.750528+00:00",
+    "path": "data/research/context/weather/2026/week_08/20261028T225349750528Z/schedule-source-envelope.json",
+    "sha256": "2ff3f016f595a559bc63a711d53f38b81ce76faf2ee0b80f09e9bdef9b91de7a"
+  },
+  "schema": "fie-weekly-evidence-audit-v1",
+  "season": 2026,
+  "status": "ON_TRACK",
+  "week": 8
+}
