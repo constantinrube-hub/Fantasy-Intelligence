@@ -1,0 +1,96 @@
+{
+ "schema": "fie-lab-preregistration-v1",
+ "id": "C3-M3K",
+ "title": "M3k fringe guard for M10_HGB (prospective test Weeks 8-10); M4 recalibration closed without registration",
+ "version": 1,
+ "readiness_item": "c3",
+ "registered_at_utc": "2026-10-30T12:52:00Z",
+ "author": "Claude (for Constantin)",
+ "timing": {
+  "promised": "Specs registered before Week 8 outcomes exist (error register v1, section 5).",
+  "actual": "Registered after the Week 8 Thursday game (CAR at GB, kickoff 2026-10-30T00:15Z) and before every other Week 8 game (Sunday 1 Nov).",
+  "handling": "All Week 8 rows of CAR and GB players are excluded from the test (49 of 681 Week 8 M10 rows). No Week 8 outcome was read: the loaders drop every 2026 row with week >= 8 before any processing, and test T2 proves that rewriting those rows leaves every output byte-identical."
+ },
+ "status": "SHADOW. Computed and reported, never used in SIM-FIE, lineup advice or the app. Adoption only by explicit approval of the owner after the verdict.",
+ "what_was_looked_at_before_registration": [
+  "M10_HGB out-of-sample history 2022-25 (season lock), all weeks: flag biases, ratios by projection band, calibration slopes by week band.",
+  "2025 check (fit 2022-24): looked at twice. First for the two forms in the error register's wording (M3-shrink, M4-ab), which failed; then once for the revised forms (M3k, M4-slope). This is one revision after one failure, disclosed here; it weakens the 2025 check as independent evidence.",
+  "2026 Weeks 4-7 (CONTAMINATED: M3 and M4 were found on these weeks), reported descriptively only.",
+  "Week 8 M10 forecasts (pre-game file captured 29 Oct 10:21 UTC) to produce the frozen Week 8 arm forecasts. No Week 8 outcome."
+ ],
+ "arm": {
+  "name": "R-M3k",
+  "base": "M10_HGB default-PPR mean (predicted_fantasy_points_default)",
+  "flags": {
+   "order": "a row takes the first flag that applies: FG1, then FG2, then FG3",
+   "FG1": "week >= 4 and at most 1 game this season with an offensive snap (nflverse snap counts, weeks before the target week)",
+   "FG2": "rookie (nflverse rookie_season, fallback draft_year) and mean offensive snap share this season < 40 % (no games = 0 %)",
+   "FG3": ">= 2 games this season and the last game's offensive snap share is at least 15 percentage points below the mean of the up-to-3 games before it"
+  },
+  "adjustment": "flagged: pred' = k[pos, flag] x pred; unflagged: unchanged",
+  "k": "sum(actual PPR) / sum(M10 PPR) over played history rows (2022-25, weeks >= 4) of that position and flag; cells with < 100 rows pool all positions for that flag; clipped to [0.3, 1.0]. Frozen in c3_m3k_frozen_v1.json, never refitted during the test.",
+  "k_values": {
+   "QB": {"FG1": 0.576, "FG2": "0.899 (pooled, QB cell < 100)", "FG3": 0.804},
+   "RB": {"FG1": 0.539, "FG2": 0.940, "FG3": 0.884},
+   "WR": {"FG1": 0.611, "FG2": 0.836, "FG3": 0.890},
+   "TE": {"FG1": 0.554, "FG2": 0.870, "FG3": 0.857}
+  },
+  "interaction_with_availability": "M10 means and the k factors are both conditional on playing (history rows are played rows), so M3k does not double-count the F1 availability discount in SIM-FIE."
+ },
+ "evaluation": {
+  "weeks": [8, 9, 10],
+  "universe": "M10_HGB forecast rows with a stat line (played), QB/RB/WR/TE; Week 8 CAR and GB rows excluded",
+  "comparison": "R-M3k vs raw M10_HGB, pooled over Weeks 8-10, per position",
+  "pass_rule": "all three: (1) PPR MSE lower at >= 3 of 4 positions; (2) PPR MAE not higher by more than 0.02 at any position; (3) mean within-week Spearman (players with either projection >= 5 PPR, week-position cells with >= 8 players) not lower by more than 0.02 at any position",
+  "reported_not_in_rule": "results by flag type, paired bootstrap 90 % interval of the MSE difference (2,000 draws, seed 20261030), week-level rule results, Thursday Sleeper on the same rows where joinable",
+  "procedure": "Week 8: frozen file c3_m3k_week8_forecasts_v1.csv. Weeks 9 and 10: c3_week.py with the frozen k file (features from earlier weeks only). Verdict: c3_grade_run.py after the Week 10 outcomes.",
+  "verdict_due": "after Week 10 outcomes (expected Tue 17 Nov 2026)",
+  "prior": "About one in three. 2025 (fit 2022-24), Weeks 4-17: passes all three conditions (MSE lower at 4 of 4). 2025 Weeks 8-10 only: MSE lower at 2 of 4 and Spearman guard missed at RB and TE by 0.001-0.002. 2026 Weeks 4-7 (contaminated): MSE lower at 1 of 4; flagged rows over-corrected (bias -0.60 to +0.60)."
+ },
+ "multiplicity": "One arm. It runs alongside 15 other challengers; read its verdict together with theirs.",
+ "closed_without_registration": {
+  "M4": {
+   "claim": "M10 projections are compressed (calibration slope > 1).",
+   "finding": "Real in history, but a mid-season pattern rather than an early-2026 one: 2022-25 slope by week band QB 0.78/1.04/1.18/1.16/0.98, RB 0.99/1.10/1.12/1.05/1.00, TE 0.79/1.16/1.19/1.08/1.07, WR 0.95/1.01/1.04/1.06/1.04 (Weeks 1-3/4-7/8-10/11-13/14-18). At QB it is the fringe effect: slope 1.14 drops to 0.92 without flagged rows.",
+   "why_closed": "Neither form improves squared error out of sample. M4-ab (a + b x M10, register wording) on 2025: MSE worse at 3 of 4 positions; its intercept carries the history level into seasons with a different level. M4-slope (level-preserving) on 2025 Weeks 4-17 moves MSE by -0.29 to +0.11 pts2 against MSEs of 27-73; in Weeks 8-10 TE -0.82 but QB +0.42; on 2026 Weeks 4-7 (contaminated) TE +0.20. With true slopes of 1.1-1.2, even a perfect stretch recovers (b-1)2 x the projection variance: about 0.6-0.8 % of MSE at QB/RB/WR and about 1.5 % at TE.",
+   "what_remains": "Spread matters for win probabilities, not point accuracy; the simulator's residual distributions carry it. Revisit only inside the M11 rebuild."
+  },
+  "M3-shrink": "Register wording (shrink toward a position base rate) failed the 2025 check: it pulls low projections up although FG1 players score about 0.5-0.75 x M10 at every projection level."
+ },
+ "files_sha256": {
+  "c3_m3k_frozen_v1.json": "a38e4356b10aff0acf6bf4309f4e5e8440b1d0c86161a57631c521128c1e401d",
+  "c3_m3k_week8_forecasts_v1.csv": "6162d235dad0594d3a599e5a8bdbfcf90bceaf524b58c3061237fd61c216af75",
+  "c3_check_tables.json": "a291917e29a202eb4004b8c5d9823fb73ae06a5bf9ffa5438b58a9fe24547e39"
+ },
+ "code_sha256": {
+  "c3_lib.py": "bf206e4bd5e185bdcf4afe7d8fb5efd4faefdd6419afa16a00ba1b04188c719e",
+  "c3_model.py": "15a0dc890c9776bcfb0e918c192c969862a6717c8261fb178fd33ddcd3ae6400",
+  "c3_grade.py": "87769b69a0ff1b1044feb2280541a15cf01e13a60711f1bfcc5f55b94c30ba83",
+  "c3_grade_run.py": "58876dd4a70911b571c45d7d668778b157e90249bc15c767fb9187e9475e9d98",
+  "c3_week.py": "7140e132f8641f44ac8796b4d7e499076c1e83df8452c10fd14aab38d35a5895",
+  "c3_build.py": "de2103aa6d04c2ef75837ea8e4606c389b6553f7064dd17bcf78b639789c04b3",
+  "c3_explore.py": "a38e419c8b4da1a41c9dfc3b3622060c215b7c6b58f3dd726ddcdd8dd39d5bb2",
+  "c3_test.py": "71db6381b333ab75cf440ae848275a7f499c222f720f320c71ac6824adabf68f"
+ },
+ "inputs": {
+  "repo": "constantinrube-hub/Fantasy-Intelligence @ 9aefae20ba1094dd54ecce00c5d62589b2b77cc8 (read-only clone)",
+  "season_lock_sha256": "836e54f24f9b889d1ab5bf3d04350d9cf4e0667f3aef64a0f475166224fee57d",
+  "m10_week8_forecast_sha256": "377a3cee10d04c9f8a1126e1c93a509f6ed4501bdac52483c535b35eba4cfd06",
+  "nflverse_downloaded_utc": "2026-10-30T12:43Z",
+  "nflverse_sha256": {
+   "players.csv": "b0a90135bb4f9ee6ff425207f67d4207f77c406562494abf74c866ddc31fcc81",
+   "snap_counts_2022.csv": "0018a4833fbf0f825286c1c27450c6254391b548d6c55bcde728e93e4816815a",
+   "snap_counts_2023.csv": "303b61aa5c33ffda863f93a750fc14483f397f9187ad502b1ce71e9b516a64c0",
+   "snap_counts_2024.csv": "a2aa58efe093f8aa0ad5aadf09f81d8ec690a1183bd2dde68d20e7f109a9c335",
+   "snap_counts_2025.csv": "3fc2deb0e9ad86d34d4578cb80bb21c95253e088ee22ca028adf46f7485eff1f",
+   "snap_counts_2026.csv": "03d803cce40868395fb6d7a3903e5e10f2d17651ca2c3391218dde85d5da148e",
+   "stats_player_week_2022.csv": "ad426c3fe5bf1cc30c3f137fdfe96d054e19d400879ee4413129da49fa7b54be",
+   "stats_player_week_2023.csv": "f19cb71a5de0dce7fd09376026237c9ee9d5a93fe13815a2ea3ec2d37204cb17",
+   "stats_player_week_2024.csv": "3ddc45a84f759aa348ce465ae001752c530575455717657cdfe1f8abfcdb4759",
+   "stats_player_week_2025.csv": "e5e0615b3d96a3eaebfaee91e55afb4a4e7fe0caf057454177bcd7d6ad4bcfc2",
+   "stats_player_week_2026.csv": "918be44736b5d191b7efea8b6d916d5da457ae7ed4ed76060b166200f2aaec0a"
+  }
+ },
+ "tests": "c3_test.py: T1 byte-identical rebuild; T2 2026 Week >= 8 rows rewritten -> identical outputs; T3 k factors unchanged when all 2026 rows are altered; T4 scorer exact (3.6e-15); T5 c3_week.py 8 reproduces the frozen Week 8 file; T6 grading code dry run. All pass.",
+ "deviations_policy": "Any deviation is listed in the grading report."
+}
