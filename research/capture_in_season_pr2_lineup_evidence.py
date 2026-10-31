@@ -174,11 +174,23 @@ def automatic_capture_decision(root: Path, csv_bytes: bytes, *, season: int, as_
     }
 
 
+# nflverse writes the Rams as "LA"; Sleeper and the app write "LAR". Without
+# normalisation every Rams player lost his kickoff mapping (28 Oct 2026 finding:
+# 10 of 70 unmapped roster IDs in the Week 7 evidence). Same table as in
+# capture_m10_prospective_weekly_raw.py.
+TEAM_ALIASES = {"LA": "LAR", "STL": "LAR", "SD": "LAC", "OAK": "LV", "LVR": "LV", "JAC": "JAX", "WSH": "WAS"}
+
+
+def normalize_team(value: Any) -> str:
+    text = str(value or "").upper().strip()
+    return TEAM_ALIASES.get(text, text)
+
+
 def team_kickoffs(games: list[dict[str, Any]]) -> dict[str, str]:
     out: dict[str, str] = {}
     for game in games:
         for team in (game.get("home_team"), game.get("away_team")):
-            text = str(team or "").upper().strip()
+            text = normalize_team(team)
             if not text or text in out:
                 raise ValueError(f"ambiguous or missing team schedule mapping: {text or 'EMPTY'}")
             out[text] = str(game["kickoff_utc"])
@@ -231,7 +243,7 @@ def build_evidence(
         for raw_id in roster.get("players") or []:
             player = index.get(str(raw_id)) or index.get(str(raw_id).upper())
             player_id = canonical_player_id(player) if isinstance(player, dict) else None
-            team = str((player or {}).get("team") or "").upper().strip()
+            team = normalize_team((player or {}).get("team"))
             if player_id and team in by_team:
                 player_kickoffs[player_id] = by_team[team]
             else:
