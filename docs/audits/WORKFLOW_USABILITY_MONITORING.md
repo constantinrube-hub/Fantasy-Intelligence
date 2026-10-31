@@ -19,6 +19,12 @@ The active automatic evidence workflows now emit one small, run-bound artifact n
 
 `USABLE` is the only state counted as a usable result. `NO_OP` is separately healthy and does not automatically merit investigation. `PARTIAL`, `BLOCKED`, `MISSED`, and `INFRASTRUCTURE` are included in the investigation table.
 
+Known gaps (since 30 Oct 2026): a monitor-config row may declare `known_gap_reasons`. A `PARTIAL` run whose reason codes are all declared there is reported in a separate "Known gaps" section and not counted as investigate; any additional reason code, or any other state, keeps it in the investigation table. Declared today: Window 1C, Window 1D, weekly research preparation and the prospective waiver evaluation, all `OPERATIONAL_READINESS_PARTIAL` by design (research preparation never reports a complete cycle). Limitation: the monitor cannot tell a by-design partial from a new partial that reuses the same reason code; the per-workflow counts stay visible for that reason.
+
+Reusable research workflow (since 30 Oct 2026): `_fie-week6-research-preparation.yml` stamps the caller's path and name (`github.workflow_ref`, `github.workflow`) into its summary. Before, it stamped its own path, which the monitor would reject as an identity mismatch (`INVALID_USABILITY_ARTIFACT`) for every run of its callers.
+
+Component forecast (since 30 Oct 2026): `component-weekly.yml` emits with adapter `component-run`, which reads the sealed run receipt: `FROZEN` and `ALREADY_FROZEN` (outcome recapture) are `USABLE`; a `FAIL` receipt or a run that issued nothing inside the window is `BLOCKED`; calendar and `--check-work` skips are `NO_OP` with their reason.
+
 ## Fail-closed behavior
 
 - A successful run without a valid run-bound usability artifact is `BLOCKED`, including legacy runs inside the rolling window. It is never inferred usable from the green check alone.

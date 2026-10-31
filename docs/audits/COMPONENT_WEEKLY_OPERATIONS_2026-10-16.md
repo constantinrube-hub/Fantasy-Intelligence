@@ -102,11 +102,26 @@ failure remains a failed job even when its diagnostic run is archived successful
 
 ## Schedule and activation
 
-Scheduled operation is Tuesday and Wednesday at the 07:35 Europe/Berlin window.
-Two UTC poll hours cover DST; the runner accepts only the local 07 hour, so the
-other poll is a NO_OP. This is a due window, not a guaranteed exact start time;
-GitHub schedules can be delayed. Tuesday is the primary issue and Wednesday
-is a retry / actual correction pass. The default-branch calendar's September-
+Scheduled operation (since 30 Oct 2026, readiness item c1) is a window from
+Tuesday 19:00 to Thursday 18:00 Europe/Berlin. Cron fires every 2 hours from
+Tue 19:35 to Thu 11:35 Berlin (`timezone: Europe/Berlin`); the runner gate admits
+starts up to Thu 18:00 because GitHub cron on this repository starts 1.5-4.5 h
+late and drops up to half of the slots. The window opens Tuesday evening, not
+morning, because Monday-night snap counts reach nflverse during Tuesday
+(Week 6: 13/14 games at 10:01 UTC, 14/14 by 17:59 UTC) and a week is issued only
+once.
+
+Inside the window, `--check-work` (after a git-only history restore) skips runs
+with nothing left to do, before any dependency install or download:
+`ISSUE_DUE` until the upcoming week is FROZEN; `OUTCOME_CAPTURE_DUE` until the
+completed week's outcomes were captured this week; `ALREADY_DONE_UNTIL_RECAPTURE`
+until Wednesday 06:00; then one `RECAPTURE_DUE` for stat corrections; then
+`ALREADY_DONE`. Manual dispatches are never skipped. Previously (16-29 Oct) the
+gate admitted only the 07 local hour on Tuesday/Wednesday, so every delayed
+scheduled run ended as a green NO_OP. Each run emits a `fie-workflow-usability`
+summary (adapter `component-run`) and is listed in the usability monitor.
+Not yet included: the completeness wait (skip issuance while the completed
+week's pbp/player_week/snaps are incomplete); see backlog bk6. The default-branch calendar's September-
 January window, January 11 closeout and January 12-April 25 blackout are respected.
 The adapter is season-bound to 2026, including January 2027 closeout. It refuses
 to issue unsupported shortened late-season windows or silently switch seasons.

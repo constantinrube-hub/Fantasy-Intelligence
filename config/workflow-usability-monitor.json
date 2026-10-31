@@ -13,8 +13,8 @@
   "automatic_events": ["schedule", "workflow_run"],
   "workflows": [
     {"path": ".github/workflows/build-fie-current.yml", "name": "Refresh FIE Current Season"},
-    {"path": ".github/workflows/build-fie-window1c-weekly-actions.yml", "name": "Build FIE Window 1C Weekly Actions"},
-    {"path": ".github/workflows/build-fie-window1d-optimal-waiver.yml", "name": "Build FIE Window 1D Optimal Waiver"},
+    {"path": ".github/workflows/build-fie-window1c-weekly-actions.yml", "name": "Build FIE Window 1C Weekly Actions", "known_gap_reasons": ["OPERATIONAL_READINESS_PARTIAL"]},
+    {"path": ".github/workflows/build-fie-window1d-optimal-waiver.yml", "name": "Build FIE Window 1D Optimal Waiver", "known_gap_reasons": ["OPERATIONAL_READINESS_PARTIAL"]},
     {"path": ".github/workflows/build-fie-window2a-trench-evidence.yml", "name": "Build FIE Window 2A Trench Evidence"},
     {"path": ".github/workflows/capture-fie-availability.yml", "name": "Capture Daily FIE Availability Evidence"},
     {"path": ".github/workflows/capture-fie-m10-prospective.yml", "name": "Capture FIE M10 Prospective Research Evidence"},
@@ -24,8 +24,12 @@
     {"path": ".github/workflows/capture-fie-sunday-paired-checkpoint.yml", "name": "Capture FIE Sunday M10 / Sleeper Paired Checkpoint"},
     {"path": ".github/workflows/capture-fie-waiver-evidence.yml", "name": "Capture FIE Waiver Evidence"},
     {"path": ".github/workflows/capture-fie-weather-evidence.yml", "name": "Capture FIE Pregame Weather Evidence"},
-    {"path": ".github/workflows/evaluate-fie-pr2-weekly-lineups.yml", "name": "Evaluate FIE PR2 Weekly Lineup Capture"}
+    {"path": ".github/workflows/capture-fie-weekly-research-preparation.yml", "name": "Capture FIE Weekly Research Preparation", "known_gap_reasons": ["OPERATIONAL_READINESS_PARTIAL"]},
+    {"path": ".github/workflows/component-weekly.yml", "name": "FIE Component Forecast and Weekly Evaluation"},
+    {"path": ".github/workflows/evaluate-fie-pr2-weekly-lineups.yml", "name": "Evaluate FIE PR2 Weekly Lineup Capture"},
+    {"path": ".github/workflows/evaluate-fie-prospective-waiver.yml", "name": "Evaluate FIE Prospective Three-Week Waiver Evidence", "known_gap_reasons": ["OPERATIONAL_READINESS_PARTIAL"]}
   ],
+  "known_gap_note": "A PARTIAL run whose reason codes are all listed in its known_gap_reasons is reported under Known gaps, not Investigate. These four are PARTIAL by design: research preparation never reports a complete cycle, and Window 1C/1D readiness stays PARTIAL until per-product validation. Added 30 Oct 2026 (readiness c1).",
   "semantics": {
     "USABLE": "The invocation produced or verified a current, contract-valid result for its purpose.",
     "NO_OP": "Nothing was due, the immutable result already existed, or policy correctly skipped the invocation.",

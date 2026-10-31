@@ -200,6 +200,29 @@ def classify_emission(
             return "MISSED", ["CHECKPOINT_MISSED"], detail
         return "BLOCKED", ["CHECKPOINT_STATUS_UNKNOWN", checkpoint_status], detail
 
+    if adapter == "component-run":
+        # Sealed run receipt written by research/component_weekly_ops.py (schema fie-component-weekly-run-v1).
+        if not source_file or not source_file.is_file():
+            return "BLOCKED", ["COMPONENT_RUN_RECEIPT_MISSING"], {"policy_reason": reason or None}
+        receipt = read_json(source_file)
+        run_status = str(receipt.get("status") or "UNKNOWN")
+        forecast = str(receipt.get("forecast_status") or "")
+        detail = {"policy_reason": reason or None, "run_status": run_status, "forecast_status": forecast or None,
+                  "issued_start_weeks": receipt.get("issued_start_weeks") or [],
+                  "plan": receipt.get("plan") or {}, "mode": receipt.get("mode")}
+        if receipt.get("schema") != "fie-component-weekly-run-v1":
+            return "BLOCKED", ["COMPONENT_RUN_RECEIPT_INVALID"], detail
+        if run_status != "PASS":
+            error = str(receipt.get("error") or "").split(":", 1)[0]
+            return "BLOCKED", ["COMPONENT_RUN_" + run_status, error], detail
+        if forecast == "FROZEN":
+            return "USABLE", ["COMPONENT_FORECAST_FROZEN"], detail
+        if forecast == "ALREADY_FROZEN":
+            return "USABLE", ["COMPONENT_OUTCOMES_RECAPTURED_FORECAST_ALREADY_FROZEN"], detail
+        if receipt.get("mode") == "review":
+            return "USABLE", ["COMPONENT_REVIEW_COMPLETE"], detail
+        return "BLOCKED", ["COMPONENT_FORECAST_NOT_ISSUED", forecast or "NO_FORECAST_STATUS"], detail
+
     if adapter in {"commit", "policy-commit"}:
         changed = _git_changed_paths(root, initial_sha)
         detail = {"changed_paths": changed[:100], "changed_path_count": len(changed)}
@@ -337,14 +360,22 @@ def build_report(
     rows = []
     for run in sorted(selected, key=lambda row: (row.get("created_at") or "", int(row["id"])), reverse=True):
         summary = summaries[int(run["id"])]
+        reasons = summary.get("reason_codes") or []
+        # A PARTIAL whose every reason is declared in the config as a known, by-design gap is
+        # reported in its own section and not counted as "investigate". Any other reason, or any
+        # other state, keeps the producer's recommendation.
+        known = set(monitored[run["path"]].get("known_gap_reasons") or [])
+        known_gap = summary["state"] == "PARTIAL" and bool(reasons) and set(reasons) <= known
         rows.append({
             "run_id": int(run["id"]), "workflow_path": run["path"],
             "workflow_name": monitored[run["path"]]["name"], "event": run.get("event"),
             "created_at": run.get("created_at"), "updated_at": run.get("updated_at"),
             "conclusion": run.get("conclusion"), "html_url": run.get("html_url"),
             "head_sha": run.get("head_sha"), "state": summary["state"],
-            "usable": summary["usable"], "investigate_recommended": summary["investigate_recommended"],
-            "reason_codes": summary.get("reason_codes") or [], "detail": summary.get("detail") or {},
+            "usable": summary["usable"],
+            "investigate_recommended": summary["investigate_recommended"] and not known_gap,
+            "known_gap": known_gap,
+            "reason_codes": reasons, "detail": summary.get("detail") or {},
         })
     totals = Counter(row["state"] for row in rows)
     by_workflow = []
@@ -355,6 +386,8 @@ def build_report(
             "workflow_path": path, "workflow_name": definition["name"], "run_count": len(subset),
             "state_counts": {state: counts[state] for state in STATES},
             "investigate_count": sum(row["investigate_recommended"] for row in subset),
+            "known_gap_count": sum(row["known_gap"] for row in subset),
+            "known_gap_reasons": sorted(definition.get("known_gap_reasons") or []),
             "latest_run_at": max((row["created_at"] for row in subset), default=None),
         })
     return {
@@ -365,6 +398,7 @@ def build_report(
         "usable_run_count": totals["USABLE"],
         "non_usable_run_count": len(rows) - totals["USABLE"],
         "investigate_run_count": sum(row["investigate_recommended"] for row in rows),
+        "known_gap_run_count": sum(row["known_gap"] for row in rows),
         "by_workflow": by_workflow, "runs": rows,
         "semantics": config.get("semantics") or {},
     }
@@ -376,7 +410,8 @@ def report_markdown(report: dict[str, Any]) -> str:
         "# FIE automatic workflow usability — rolling 14 days", "",
         f"Generated: `{report['generated_at_utc']}`", "",
         f"Runs: **{report['run_count']}**; usable: **{report['usable_run_count']}**; "
-        f"investigate: **{report['investigate_run_count']}**.", "",
+        f"investigate: **{report['investigate_run_count']}**; "
+        f"known gaps: **{report.get('known_gap_run_count', 0)}**.", "",
         "| State | Runs | Meaning |", "|---|---:|---|",
     ]
     for state in STATES:
@@ -393,6 +428,15 @@ def report_markdown(report: dict[str, Any]) -> str:
         lines.append(f"| {row.get('created_at') or '—'} | {row['workflow_name']} | {row['state']} | {reason} | {link} |")
     if not investigate:
         lines.append("| — | — | — | No runs currently require investigation | — |")
+    lines += ["", "## Known gaps", "",
+              "PARTIAL by design: every reason is declared in `known_gap_reasons` in the monitor config. "
+              "Counted here, not under investigate. A new reason code moves a run back to the table above.", "",
+              "| Workflow | Known-gap runs | Declared reasons |", "|---|---:|---|"]
+    gaps = [row for row in report["by_workflow"] if row.get("known_gap_reasons")]
+    for row in gaps:
+        lines.append(f"| {row['workflow_name']} | {row.get('known_gap_count', 0)} | {', '.join(row['known_gap_reasons'])} |")
+    if not gaps:
+        lines.append("| — | — | No known gaps declared |")
     lines += ["", "## Expected no-ops", "", "| Time | Workflow | Reason | Run |", "|---|---|---|---|"]
     no_ops = [row for row in report["runs"] if row["state"] == "NO_OP"]
     for row in no_ops:
@@ -451,7 +495,7 @@ def main(argv: list[str] | None = None) -> int:
     emit.add_argument("--workflow-name", required=True)
     emit.add_argument("--run-id", required=True)
     emit.add_argument("--event", required=True)
-    emit.add_argument("--adapter", required=True, choices=("current-refresh", "readiness-index", "weekly-pipeline", "waiver-index", "availability-index", "checkpoint-json", "commit", "policy-commit"))
+    emit.add_argument("--adapter", required=True, choices=("current-refresh", "readiness-index", "weekly-pipeline", "waiver-index", "availability-index", "checkpoint-json", "component-run", "commit", "policy-commit"))
     emit.add_argument("--job-status", required=True)
     emit.add_argument("--source-file", type=Path)
     emit.add_argument("--dependency-file", type=Path)
