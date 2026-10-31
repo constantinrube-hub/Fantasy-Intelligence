@@ -33,7 +33,13 @@ def test_contract_and_adapters() -> None:
     assert tuple(config["states"]) == STATES
     assert config["automatic_events"] == ["schedule", "workflow_run"]
     paths = [row["path"] for row in config["workflows"]]
-    assert len(paths) == len(set(paths)) == 13
+    assert len(paths) == len(set(paths)) == 16
+    for required in (".github/workflows/component-weekly.yml",
+                     ".github/workflows/capture-fie-weekly-research-preparation.yml",
+                     ".github/workflows/evaluate-fie-prospective-waiver.yml"):
+        assert required in paths, required
+    for row in config["workflows"]:
+        assert set(row.get("known_gap_reasons") or []) <= {"OPERATIONAL_READINESS_PARTIAL"}, row["path"]
 
     with tempfile.TemporaryDirectory() as folder:
         root = Path(folder)
@@ -69,6 +75,35 @@ def test_contract_and_adapters() -> None:
         assert classify_emission(adapter="checkpoint-json", job_status="success", source_file=checkpoint, root=root)[0] == "MISSED"
         assert classify_emission(adapter="policy-commit", job_status="success", policy_allowed="false", policy_reason="OUTSIDE_CHECKPOINT_WINDOW", root=root)[0] == "NO_OP"
         assert classify_emission(adapter="commit", job_status="failure", root=root)[0] == "INFRASTRUCTURE"
+
+        # component-run adapter (component-weekly.yml)
+        receipt = root / "run-receipt.json"
+        base = {"schema": "fie-component-weekly-run-v1", "mode": "weekly", "plan": {"forecast_start": 9}}
+        assert classify_emission(adapter="component-run", job_status="success", policy_allowed="false",
+                                 policy_reason="ALREADY_DONE", source_file=receipt, root=root)[:2] == ("NO_OP", ["ALREADY_DONE"])
+        assert classify_emission(adapter="component-run", job_status="success", policy_allowed="false",
+                                 policy_reason="OUTSIDE_WINDOW_OR_CALENDAR", root=root)[0] == "NO_OP"
+        assert classify_emission(adapter="component-run", job_status="success", policy_allowed="true",
+                                 source_file=receipt, root=root)[:2] == ("BLOCKED", ["COMPONENT_RUN_RECEIPT_MISSING"])
+        write(receipt, {**base, "status": "PASS", "forecast_status": "FROZEN", "issued_start_weeks": [9]})
+        state, reasons, detail = classify_emission(adapter="component-run", job_status="success", policy_allowed="true",
+                                                   policy_reason="ISSUE_DUE", source_file=receipt, root=root)
+        assert (state, reasons) == ("USABLE", ["COMPONENT_FORECAST_FROZEN"]) and detail["issued_start_weeks"] == [9]
+        write(receipt, {**base, "status": "PASS", "forecast_status": "ALREADY_FROZEN"})
+        assert classify_emission(adapter="component-run", job_status="success", policy_allowed="true",
+                                 source_file=receipt, root=root)[0] == "USABLE"
+        write(receipt, {**base, "status": "PASS", "forecast_status": "WAITING_FOR_COMPLETED_PRIOR_WEEK_OR_OUTSIDE_SUPPORTED_WINDOW"})
+        state, reasons, _ = classify_emission(adapter="component-run", job_status="success", policy_allowed="true",
+                                              source_file=receipt, root=root)
+        assert state == "BLOCKED" and "COMPONENT_FORECAST_NOT_ISSUED" in reasons
+        write(receipt, {**base, "status": "FAIL", "error": "INCOMPLETE_CRITICAL_CAPTURE:forecast-observations"})
+        assert classify_emission(adapter="component-run", job_status="success", policy_allowed="true",
+                                 source_file=receipt, root=root)[:2] == ("BLOCKED", ["COMPONENT_RUN_FAIL", "INCOMPLETE_CRITICAL_CAPTURE"])
+        write(receipt, {"schema": "something-else", "status": "PASS", "forecast_status": "FROZEN"})
+        assert classify_emission(adapter="component-run", job_status="success", policy_allowed="true",
+                                 source_file=receipt, root=root)[:2] == ("BLOCKED", ["COMPONENT_RUN_RECEIPT_INVALID"])
+        assert classify_emission(adapter="component-run", job_status="failure", policy_allowed="true",
+                                 source_file=receipt, root=root)[0] == "INFRASTRUCTURE"
 
 
 def test_summary_report_and_fail_closed_fallback() -> None:
@@ -106,12 +141,53 @@ def test_summary_report_and_fail_closed_fallback() -> None:
     assert "Runs worth investigating" in text and "RUN_FAILURE" in text and "Expected no-ops" in text
 
 
+def test_known_gap_demotion() -> None:
+    """A by-design PARTIAL leaves the investigate count; any other reason or state does not."""
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    path = ".github/workflows/evaluate-fie-prospective-waiver.yml"
+    name = next(row["name"] for row in config["workflows"] if row["path"] == path)
+    other = ".github/workflows/build-fie-current.yml"
+    runs, summaries = [], {}
+    cases = [(21, path, "PARTIAL", ["OPERATIONAL_READINESS_PARTIAL"]),             # known gap
+             (22, path, "PARTIAL", ["OPERATIONAL_READINESS_PARTIAL", "NEW_GAP"]),  # extra reason
+             (23, path, "BLOCKED", ["OPERATIONAL_READINESS_BLOCKED"]),             # other state
+             (24, other, "PARTIAL", ["OPERATIONAL_READINESS_PARTIAL"])]            # not declared there
+    for run_id, wf, state, reasons in cases:
+        runs.append({"id": run_id, "path": wf, "name": name, "event": "schedule", "status": "completed",
+                     "created_at": f"2026-10-30T10:{run_id}:00Z", "conclusion": "success"})
+        summaries[run_id] = make_summary(workflow_path=wf, workflow_name=name, run_id=str(run_id), event="schedule",
+                                         adapter="readiness-index", job_status="success", state=state,
+                                         reasons=reasons, detail={})
+    report = build_report(config=config, runs=runs, summaries=summaries,
+                          generated_at="2026-10-30T12:00:00+00:00", repository="x/y")
+    flags = {row["run_id"]: (row["known_gap"], row["investigate_recommended"]) for row in report["runs"]}
+    assert flags == {21: (True, False), 22: (False, True), 23: (False, True), 24: (False, True)}, flags
+    assert report["known_gap_run_count"] == 1 and report["investigate_run_count"] == 3
+    row = next(r for r in report["by_workflow"] if r["workflow_path"] == path)
+    assert row["known_gap_count"] == 1 and row["investigate_count"] == 2
+    text = report_markdown(report)
+    assert "## Known gaps" in text and "known gaps: **1**" in text
+
+
 def test_workflow_instrumentation_and_calendar() -> None:
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     reusable = (ROOT / ".github/workflows/_fie-evidence-capture-reusable.yml").read_text(encoding="utf-8")
+    research = (ROOT / ".github/workflows/_fie-week6-research-preparation.yml").read_text(encoding="utf-8")
     for row in config["workflows"]:
         text = (ROOT / row["path"]).read_text(encoding="utf-8")
         if row["path"] in {
+            ".github/workflows/capture-fie-weekly-research-preparation.yml",
+            ".github/workflows/evaluate-fie-prospective-waiver.yml",
+        }:
+            # Delegates to the research reusable, which stamps the CALLER's path and name.
+            assert "_fie-week6-research-preparation.yml" in text, row["path"]
+            assert f"name: {row['name']}" in text, row["path"]
+            assert "CALLER_REF: ${{ github.workflow_ref }}" in research
+            assert "CALLER_NAME: ${{ github.workflow }}" in research
+            assert '--workflow-path "$caller"' in research
+            assert "--workflow-path .github/workflows/_fie-week6-research-preparation.yml" not in research
+            assert "name: fie-workflow-usability" in research and "if: always()" in research
+        elif row["path"] in {
             ".github/workflows/capture-fie-waiver-evidence.yml",
             ".github/workflows/capture-fie-weather-evidence.yml",
         }:
@@ -132,6 +208,7 @@ def test_workflow_instrumentation_and_calendar() -> None:
 def main() -> None:
     test_contract_and_adapters()
     test_summary_report_and_fail_closed_fallback()
+    test_known_gap_demotion()
     test_workflow_instrumentation_and_calendar()
     print("PASS workflow usability states, producer summaries, fail-closed aggregation, and rolling report")
 

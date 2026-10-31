@@ -1,3 +1,31 @@
+# Research operations · component gate window and monitor coverage, 2026-10-30
+
+Readiness item c1 (`FIE_RESEARCH_ENGINE_OVERHAUL_REVIEW_2026-10-26.md` §5.7 P1 and P2). No model, scoring, projection,
+app, governance or forecast-content change; no `dist` rebuild needed (no app file changed).
+
+- **component-weekly: hour gate replaced by a window.** `research/component_weekly_ops.py`: `calendar_due` admits
+  Tue 19:00 - Thu 18:00 Berlin instead of the 07 local hour on Tue/Wed (`in_window`, constants `WINDOW_OPEN`,
+  `WINDOW_CLOSE`). Reason: GitHub cron here starts 1.5-4.5 h late and drops up to half of the slots, so every scheduled
+  run since 16 Oct ended as a green NO_OP. The window opens in the evening because Monday-night snap counts complete
+  during Tuesday and a week is issued only once (the completeness wait itself is not part of this change).
+- **New `--check-work` early exit** (`check_work`, `prior_pass_runs`, `fetch_schedule`): scheduled runs inside the window
+  skip the heavy run unless the upcoming week is unissued, the completed week's outcomes were not captured this week, or
+  the Wednesday-06:00 stat-correction recapture is still due. Manual dispatches always run. Idempotence (`issued`
+  check) is unchanged.
+- **`.github/workflows/component-weekly.yml`**: cron every 2 h Tue 19:35 - Thu 11:35 with `timezone: Europe/Berlin`;
+  git-only history restore moved before the work check (the delivery verifier is manifest-based, so restored history
+  does not affect it); usability summary emitted and uploaded.
+- **Monitor** (`research/workflow_usability.py`, `config/workflow-usability-monitor.json`): new adapter `component-run`;
+  three workflows added (component forecast, weekly research preparation, prospective waiver evaluation; 13 → 16);
+  `known_gap_reasons` moves by-design `OPERATIONAL_READINESS_PARTIAL` runs of Window 1C/1D and the two research
+  workflows into a "Known gaps" section instead of the investigation table.
+- **`.github/workflows/_fie-week6-research-preparation.yml`**: the usability summary carries the caller's path and name
+  (`github.workflow_ref`, `github.workflow`); with its own path every run would have been rejected as an identity mismatch.
+- **Tests**: `research/integrity_component_weekly_test.py` 19 → 26 (window incl. DST and January closeout, manual
+  dispatch, six work-check cases); `research/integrity_workflow_usability_test.py` (component-run adapter, known-gap
+  demotion, caller stamping, 16 monitored workflows). Both fail on the previous code.
+- **Docs**: `docs/audits/COMPONENT_WEEKLY_OPERATIONS_2026-10-16.md` (schedule section), `docs/audits/WORKFLOW_USABILITY_MONITORING.md`.
+
 # UI v10 · R6 Season simulation (preview), 2026-10-21
 
 Release R6 of the UI v10 plan (your decision of 20 Oct: v10-native engine instead of patching the classic one).

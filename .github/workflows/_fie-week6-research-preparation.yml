@@ -76,10 +76,18 @@ jobs:
         if: always()
         env:
           JOB_STATUS: ${{ job.status }}
+          # In a called workflow, github.workflow_ref and github.workflow describe the CALLER
+          # (e.g. owner/repo/.github/workflows/evaluate-fie-prospective-waiver.yml@refs/heads/main).
+          # The monitor validates the summary against the caller's path, so stamp that one.
+          CALLER_REF: ${{ github.workflow_ref }}
+          CALLER_NAME: ${{ github.workflow }}
+        shell: bash
         run: |
+          caller="${CALLER_REF#*/*/}"
+          caller="${caller%@*}"
           python research/workflow_usability.py emit \
-            --workflow-path .github/workflows/_fie-week6-research-preparation.yml \
-            --workflow-name 'FIE Weekly Research Preparation' \
+            --workflow-path "$caller" \
+            --workflow-name "$CALLER_NAME" \
             --run-id "$GITHUB_RUN_ID" --event "$GITHUB_EVENT_NAME" \
             --job-status "$JOB_STATUS" --adapter readiness-index \
             --source-file .cache/week6-preparation-index.json

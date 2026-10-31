@@ -14,7 +14,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, time as dtime, timedelta, timezone
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
@@ -70,20 +70,79 @@ def schedule_plan(records, as_of):
     return {'completed_through': completed, 'upcoming_week': upcoming, 'forecast_start': start,
             'reason': 'READY' if start else 'WAITING_FOR_COMPLETED_PRIOR_WEEK_OR_OUTSIDE_SUPPORTED_WINDOW'}
 
+BERLIN = ZoneInfo('Europe/Berlin')
+# Gate window (Berlin local time). Opens Tue 19:00: Monday-night snap counts were still missing
+# from nflverse at 10:01 UTC on Tue 20 Oct and complete by 17:59 UTC, and a week is issued only
+# once. Closes Thu 18:00, six hours after the last cron slot (11:35), because GitHub cron on
+# this repo starts 1.5-4.5 h late; a late run that still issues before the Thursday session is
+# better than a gate rejection.
+WINDOW_OPEN = (1, 19)   # (weekday, hour): Tuesday 19:00
+WINDOW_CLOSE = (3, 18)  # Thursday 18:00 (exclusive)
+RECAPTURE_FROM = (2, 6)  # Wednesday 06:00: one stat-correction recapture after this
+
+
+def in_window(local):
+    """True from Tue 19:00 to Thu 18:00 Berlin (local is a Berlin-aware datetime)."""
+    key = (local.weekday(), local.hour)
+    return WINDOW_OPEN <= key < WINDOW_CLOSE
+
+
 def calendar_due(as_of, event, ref, config):
     if event == 'schedule':
         if ref != 'refs/heads/main':
             return False
-        local = as_of.astimezone(ZoneInfo('Europe/Berlin'))
+        local = as_of.astimezone(BERLIN)
         if local.year != 2026 and not (local.year == 2027 and local.month == 1):
             return False
-        if local.weekday() not in {1, 2} or local.hour != 7:
+        if not in_window(local):
             return False
         md = local.strftime('%m-%d')
         if config['blackout']['start'] <= md <= config['blackout']['end']:
             return False
         return local.month >= 9 or (local.month == 1 and md <= config['closeout_end'])
     return True
+
+
+def _utc(value):
+    return datetime.fromisoformat(str(value).replace('Z', '+00:00')).astimezone(timezone.utc)
+
+
+def _week_anchor(as_of, weekday, hour):
+    """The Berlin datetime of (weekday, hour) in the Tuesday-anchored week containing as_of."""
+    local = as_of.astimezone(BERLIN)
+    tuesday = local.date() - timedelta(days=(local.weekday() - 1) % 7)
+    day = tuesday + timedelta(days=(weekday - 1) % 7)
+    return datetime.combine(day, dtime(hour, 0), BERLIN)
+
+
+def check_work(as_of, plan, previous):
+    """Early exit for scheduled runs inside the window. Returns (due, reason).
+
+    previous: [(folder, receipt)] of sealed PASS runs, folder holding actual-week*/actual-receipt.json.
+    Work this week is, in order: (1) issue the upcoming window once; (2) capture the completed
+    week's outcomes at least once this week; (3) recapture them once from Wed 06:00 for stat
+    corrections. Everything else is ALREADY_DONE and skips the heavy run.
+    """
+    start = plan.get('forecast_start')
+    completed = plan.get('completed_through')
+    if start is not None and not any(start in r.get('issued_start_weeks', []) for _, r in previous):
+        return True, 'ISSUE_DUE'
+    latest = None
+    for folder, _ in previous:
+        for path in Path(folder).glob('actual-week*/actual-receipt.json'):
+            r = read(path)
+            if r.get('week') == completed and r.get('built_at'):
+                built = _utc(r['built_at'])
+                latest = built if latest is None or built > latest else latest
+    week_start = _week_anchor(as_of, 1, 0)
+    recapture_from = _week_anchor(as_of, *RECAPTURE_FROM)
+    if latest is None or latest < week_start:
+        return True, 'OUTCOME_CAPTURE_DUE'
+    if as_of < recapture_from:
+        return False, 'ALREADY_DONE_UNTIL_RECAPTURE'
+    if latest >= recapture_from:
+        return False, 'ALREADY_DONE'
+    return True, 'RECAPTURE_DUE'
 
 def verify_run(folder):
     receipt = read(folder / 'run-receipt.json')
@@ -95,6 +154,22 @@ def verify_run(folder):
     if actual != set(receipt['files']):
         raise ValueError('OPERATIONAL_HISTORY_FILE_SET_DRIFT')
     return receipt
+
+def prior_pass_runs(project):
+    """Sealed, hash-verified PASS runs of the restored operational history."""
+    base = Path(project) / HISTORY / 'runs'
+    result = []
+    for p in sorted(base.glob('*/run-receipt.json')):
+        receipt = verify_run(p.parent)
+        if receipt['status'] == 'PASS':
+            result.append((p.parent, receipt))
+    return result
+
+
+def fetch_schedule():
+    with urlopen(Request(SCHEDULE_URL, headers={'User-Agent': 'FIE-Component-Weekly/1'}), timeout=90) as response:
+        return response.read()
+
 
 class Runner:
     def __init__(self, project, run_id, mode, executor=None):
@@ -190,18 +265,11 @@ class Runner:
         self.diagnostics_review(REFERENCE / 'freeze', [actual], 'week05-must-not-match-week06')
 
     def prior_runs(self):
-        base = self.project / HISTORY / 'runs'
-        result = []
-        for p in sorted(base.glob('*/run-receipt.json')):
-            receipt = verify_run(p.parent)
-            if receipt['status'] == 'PASS':
-                result.append((p.parent, receipt))
-        return result
+        return prior_pass_runs(self.project)
 
     def weekly(self, mode, ablations=False, revise=False):
         self.diagnostics_seed()
-        with urlopen(Request(SCHEDULE_URL, headers={'User-Agent': 'FIE-Component-Weekly/1'}), timeout=90) as response:
-            raw = response.read()
+        raw = fetch_schedule()
         (self.folder / 'planning-schedule.csv').write_bytes(raw)
         plan = schedule_plan(csv.DictReader(io.StringIO(raw.decode('utf-8-sig'))), datetime.now(timezone.utc))
         self.receipt['plan'] = plan
@@ -307,11 +375,24 @@ def main():
     p.add_argument('--ablations', action='store_true')
     p.add_argument('--revise', action='store_true')
     p.add_argument('--check-due', action='store_true')
+    p.add_argument('--check-work', action='store_true',
+                   help='After a due calendar check and a history restore: skip scheduled runs with no work left')
     a = p.parse_args()
     if a.check_due:
         due = calendar_due(datetime.now(timezone.utc), os.getenv('GITHUB_EVENT_NAME', 'workflow_dispatch'),
                            os.getenv('GITHUB_REF', 'refs/heads/main'), read(REPO / 'config/workflow-season-calendar.json'))
         print('due=' + str(due).lower())
+        print('reason=' + ('IN_WINDOW' if due else 'OUTSIDE_WINDOW_OR_CALENDAR'))
+        return 0
+    if a.check_work:
+        if os.getenv('GITHUB_EVENT_NAME', 'workflow_dispatch') != 'schedule':
+            due, reason = True, 'MANUAL_DISPATCH_ALWAYS_RUNS'
+        else:
+            as_of = datetime.now(timezone.utc)
+            plan = schedule_plan(csv.DictReader(io.StringIO(fetch_schedule().decode('utf-8-sig'))), as_of)
+            due, reason = check_work(as_of, plan, prior_pass_runs(PROJECT))
+        print('due=' + str(due).lower())
+        print('reason=' + reason)
         return 0
     if a.mode in {'weekly', 'forecast', 'review', 'diagnostics'} and os.getenv('GITHUB_ACTIONS') == 'true' and os.getenv('GITHUB_REF') != 'refs/heads/main':
         raise ValueError('LIVE_OPERATION_REQUIRES_MAIN')

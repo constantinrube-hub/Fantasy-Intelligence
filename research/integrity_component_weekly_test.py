@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
-from component_weekly_ops import Runner, HISTORY, calendar_due, digest, schedule_plan, verify_run, write_new
+from component_weekly_ops import Runner, HISTORY, calendar_due, check_work, digest, schedule_plan, verify_run, write_new
 from component_weekly_history import PREFIX, BRANCH, merge_immutable, operation
 
 CONFIG = {'blackout': {'start': '01-12', 'end': '04-25'}, 'closeout_end': '01-11'}
@@ -51,16 +51,100 @@ class TimingTests(unittest.TestCase):
         rows = [game(w, '2026-09-%02d' % (w + 1)) for w in range(1, 17)] + [game(17, '2026-12-30', False)]
         self.assertIsNone(schedule_plan(rows, at('2026-12-28T10:00:00+00:00'))['forecast_start'])
 
-    def test_summer_and_winter_berlin_gate(self):
-        for value in ['2026-10-20T05:35:00+00:00', '2026-11-03T06:35:00+00:00']:
-            self.assertTrue(calendar_due(at(value), 'schedule', 'refs/heads/main', CONFIG))
-        self.assertFalse(calendar_due(at('2026-10-20T06:35:00+00:00'), 'schedule', 'refs/heads/main', CONFIG))
+    def test_summer_and_winter_berlin_window(self):
+        # Window: Tue 19:00 - Thu 18:00 Berlin. 20 Oct is CEST (UTC+2), 3 Nov is CET (UTC+1).
+        inside = ['2026-10-20T17:00:00+00:00',  # Tue 19:00 CEST, first admitted minute
+                  '2026-11-03T18:00:00+00:00',  # Tue 19:00 CET
+                  '2026-11-04T09:35:00+00:00',  # Wed
+                  '2026-11-05T16:59:00+00:00',  # Thu 17:59 CET, a 5 h late 11:35 slot
+                  '2027-01-05T18:35:00+00:00']  # January closeout, Tue 19:35 CET
+        outside = ['2026-10-20T16:59:00+00:00',  # Tue 18:59 CEST
+                   '2026-10-20T05:35:00+00:00',  # the old Tue 07:35 slot
+                   '2026-11-03T17:59:00+00:00',  # Tue 18:59 CET
+                   '2026-11-05T17:00:00+00:00',  # Thu 18:00 CET, closed
+                   '2026-11-06T09:35:00+00:00',  # Fri
+                   '2026-11-02T20:00:00+00:00']  # Mon
+        for value in inside:
+            self.assertTrue(calendar_due(at(value), 'schedule', 'refs/heads/main', CONFIG), value)
+        for value in outside:
+            self.assertFalse(calendar_due(at(value), 'schedule', 'refs/heads/main', CONFIG), value)
 
     def test_blackout_research_branch_and_other_season_blocked(self):
-        for value, ref in [('2026-02-03T06:35:00+00:00', 'refs/heads/main'),
-                           ('2026-10-20T05:35:00+00:00', 'refs/heads/research/x'),
-                           ('2027-10-19T05:35:00+00:00', 'refs/heads/main')]:
+        for value, ref in [('2026-02-03T18:35:00+00:00', 'refs/heads/main'),
+                           ('2026-10-20T17:35:00+00:00', 'refs/heads/research/x'),
+                           ('2027-10-19T17:35:00+00:00', 'refs/heads/main'),
+                           ('2027-01-12T18:35:00+00:00', 'refs/heads/main')]:
             self.assertFalse(calendar_due(at(value), 'schedule', ref, CONFIG))
+
+    def test_manual_dispatch_is_never_gated(self):
+        self.assertTrue(calendar_due(at('2026-11-06T09:35:00+00:00'), 'workflow_dispatch', 'refs/heads/main', CONFIG))
+
+
+class WorkCheckTests(unittest.TestCase):
+    """--check-work: issue once, capture outcomes once, recapture once from Wed 06:00 Berlin."""
+    PLAN = {'completed_through': 8, 'forecast_start': 9, 'upcoming_week': 9}
+
+    def runs(self, base, specs):
+        out = []
+        for i, (issued, built) in enumerate(specs):
+            folder = Path(base) / ('run%d' % i)
+            folder.mkdir(parents=True)
+            if built:
+                write_new(folder / 'actual-week08/actual-receipt.json', {'week': 8, 'built_at': built})
+            out.append((folder, {'status': 'PASS', 'issued_start_weeks': issued}))
+        return out
+
+    def check(self, now, specs, plan=None):
+        with tempfile.TemporaryDirectory() as d:
+            return check_work(at(now), plan or self.PLAN, self.runs(d, specs))
+
+    def test_issue_due_until_upcoming_week_frozen(self):
+        self.assertEqual(self.check('2026-11-03T18:35:00+00:00', []), (True, 'ISSUE_DUE'))
+        self.assertEqual(self.check('2026-11-03T18:35:00+00:00', [([8], '2026-10-27T18:40:00+00:00')]), (True, 'ISSUE_DUE'))
+
+    def test_issued_tuesday_skips_until_wednesday_recapture(self):
+        done = [([9], '2026-11-03T18:40:00+00:00')]  # manual run Tue 19:40 CET
+        self.assertEqual(self.check('2026-11-03T20:35:00+00:00', done), (False, 'ALREADY_DONE_UNTIL_RECAPTURE'))
+        self.assertEqual(self.check('2026-11-04T04:59:00+00:00', done), (False, 'ALREADY_DONE_UNTIL_RECAPTURE'))
+        self.assertEqual(self.check('2026-11-04T05:00:00+00:00', done), (True, 'RECAPTURE_DUE'))  # Wed 06:00 CET
+
+    def test_recaptured_wednesday_is_done(self):
+        done = [([9], '2026-11-03T18:40:00+00:00'), ([], '2026-11-04T07:50:00+00:00')]
+        self.assertEqual(self.check('2026-11-04T09:35:00+00:00', done), (False, 'ALREADY_DONE'))
+        self.assertEqual(self.check('2026-11-05T10:35:00+00:00', done), (False, 'ALREADY_DONE'))
+
+    def test_last_weeks_outcomes_do_not_count(self):
+        # Issued for week 9 but outcomes of week 8 not captured this week (e.g. a manual run on
+        # Monday): the Tuesday window must still capture them.
+        stale = [([9], '2026-11-02T20:00:00+00:00')]
+        self.assertEqual(self.check('2026-11-03T18:35:00+00:00', stale), (True, 'OUTCOME_CAPTURE_DUE'))
+
+    def test_nothing_to_issue_still_captures_and_recaptures_outcomes(self):
+        late = {'completed_through': 16, 'forecast_start': None, 'upcoming_week': 17}
+        with tempfile.TemporaryDirectory() as d:
+            base = Path(d)
+            def mk(name, built):
+                f = base / name; f.mkdir()
+                write_new(f / 'actual-week16/actual-receipt.json', {'week': 16, 'built_at': built})
+                return (f, {'status': 'PASS'})
+            self.assertEqual(check_work(at('2026-12-29T18:35:00+00:00'), late, []), (True, 'OUTCOME_CAPTURE_DUE'))
+            first = [mk('a', '2026-12-29T18:50:00+00:00')]
+            self.assertEqual(check_work(at('2026-12-29T20:35:00+00:00'), late, first), (False, 'ALREADY_DONE_UNTIL_RECAPTURE'))
+            self.assertEqual(check_work(at('2026-12-30T06:35:00+00:00'), late, first), (True, 'RECAPTURE_DUE'))
+            both = first + [mk('b', '2026-12-30T07:00:00+00:00')]
+            self.assertEqual(check_work(at('2026-12-30T10:35:00+00:00'), late, both), (False, 'ALREADY_DONE'))
+
+    def test_summer_time_recapture_boundary(self):
+        done = [([7], '2026-10-20T17:40:00+00:00')]  # Tue 19:40 CEST, plan for week 7
+        plan = {'completed_through': 6, 'forecast_start': 7, 'upcoming_week': 7}
+        def mk(base):
+            f = Path(base) / 'r'; f.mkdir()
+            write_new(f / 'actual-week06/actual-receipt.json', {'week': 6, 'built_at': '2026-10-20T17:40:00+00:00'})
+            return [(f, {'status': 'PASS', 'issued_start_weeks': [7]})]
+        with tempfile.TemporaryDirectory() as d:
+            prev = mk(d)
+            self.assertEqual(check_work(at('2026-10-21T03:59:00+00:00'), plan, prev)[0], False)  # Wed 05:59 CEST
+            self.assertEqual(check_work(at('2026-10-21T04:00:00+00:00'), plan, prev), (True, 'RECAPTURE_DUE'))
 
 class EvidenceTests(unittest.TestCase):
     def test_failure_seals_receipt_without_success_claim(self):
