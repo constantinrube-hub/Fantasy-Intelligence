@@ -1,0 +1,32 @@
+{
+ "schema": "fie-lab-variant-registration-v1",
+ "variant_id": "S-BLEND75",
+ "registered_at": "2026-10-28T23:15:00Z",
+ "registered_by": "Constantin (decision 29 Oct 2026, 00:07 Berlin), written by Claude",
+ "before": "Week 8 first kickoff 2026-10-30T00:15:00Z; no Week 8 outcome exists at registration",
+ "status": "SHADOW: computed and reported weekly, never used in lineup advice or the app. Sleeper stays the production source (owner decision 29 Oct 00:07). Adoption only by explicit owner approval after the verdict.",
+ "spec": {
+  "formula": "B75 = 0.75 x Sleeper + 0.25 x M10_HGB, per player, on the default-PPR basis of fie_paired_sleeper_eval.py (Sleeper: repo DEFAULT_PPR weights + 2 per 2-pt conversion applied to Sleeper's stat projections; M10: predicted_fantasy_points_default)",
+  "weights_fixed": "0.75/0.25 is fixed; no refit on any later week",
+  "weight_origin": "Chosen on 2026 Weeks 4-6 (FIE_M10_VS_SLEEPER_DEEP_DIVE_2026-10-26.md, start/sit mix). Week 7 outcomes were seen in aggregate (paired evaluation 29 Oct 00:05) but the blend was not computed on them.",
+  "cutoff": "Thursday captures: Sleeper benchmark data/research/market/sleeper/2026/week_NN.jsonl.gz and M10 forecast data/research/prospective/m10/forecasts/2026/week_NN/; pairs as in fie_paired_sleeper_eval.py (players with an observed outcome row)",
+  "context_only": "B50 (0.5/0.5) is reported next to B75 as context, not tested"
+ },
+ "evaluation_weeks": [
+  8,
+  9,
+  10
+ ],
+ "rule": "Pass if, pooled over Weeks 8-10, B75's PPR MAE is lower than Sleeper's at >= 3 of 4 positions (QB, RB, WR, TE) AND the mean within-week Spearman of B75 (players with Sleeper projection >= 5 PPR, >= 8 per week-position) is not lower than Sleeper's by more than 0.01 at any position.",
+ "also_reported": [
+  "Weeks 4-7 retrospective (labelled as seen data, not part of the verdict)",
+  "per-week lift with week-t and player-bootstrap intervals, as in fie_paired_sleeper_eval.py",
+  "bias by position"
+ ],
+ "verdict_due": "After Week 10 outcomes (expected Tue 17 Nov 2026). An interim read after Week 9 is description only.",
+ "multiplicity": "Reported together with S-F1B, S-F5, S-Q1, S-F2N (w8_shadow_registration_v1.json). A pass makes the blend eligible, not adopted.",
+ "evaluation_code_sha256": {
+  "fie_paired_sleeper_eval.py": "a3c04c6b5d1ef6bc1b3b5c4d881d16e9fb253d67ed45503697c61f83c542a8c9"
+ },
+ "note": "The blend computation is not yet in fie_paired_sleeper_eval.py; it will be added as an option without changing the existing outputs, and the new script hash recorded in the verdict."
+}
