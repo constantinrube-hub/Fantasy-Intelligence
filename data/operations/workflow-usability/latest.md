@@ -1,35 +1,35 @@
 # FIE automatic workflow usability — rolling 14 days
 
-Generated: `2026-11-07T15:40:45.451180+00:00`
+Generated: `2026-11-08T15:59:11.968112+00:00`
 
-Runs: **408**; usable: **146**; investigate: **30**; known gaps: **34**.
+Runs: **400**; usable: **141**; investigate: **28**; known gaps: **36**.
 
 | State | Runs | Meaning |
 |---|---:|---|
-| USABLE | 146 | The invocation produced or verified a current, contract-valid result for its purpose. |
-| NO_OP | 198 | Nothing was due, the immutable result already existed, or policy correctly skipped the invocation. |
-| PARTIAL | 35 | Some intended evidence is usable, but declared source or portfolio coverage is incomplete. |
-| BLOCKED | 20 | The workflow completed technically but did not prove a usable result for its intended purpose. |
-| MISSED | 2 | A time-bound evidence opportunity passed without a valid prospective capture. |
+| USABLE | 141 | The invocation produced or verified a current, contract-valid result for its purpose. |
+| NO_OP | 195 | Nothing was due, the immutable result already existed, or policy correctly skipped the invocation. |
+| PARTIAL | 38 | Some intended evidence is usable, but declared source or portfolio coverage is incomplete. |
+| BLOCKED | 18 | The workflow completed technically but did not prove a usable result for its intended purpose. |
+| MISSED | 1 | A time-bound evidence opportunity passed without a valid prospective capture. |
 | INFRASTRUCTURE | 7 | The workflow did not complete successfully because of a technical, runner, validation, or delivery failure. |
 
 ## Workflows
 
 | Workflow | Runs | Usable | No-op | Partial | Blocked | Missed | Infrastructure | Investigate |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Refresh FIE Current Season | 44 | 38 | 0 | 0 | 0 | 0 | 6 | 6 |
+| Refresh FIE Current Season | 43 | 36 | 0 | 1 | 0 | 0 | 6 | 7 |
 | Build FIE Window 1C Weekly Actions | 47 | 0 | 38 | 9 | 0 | 0 | 0 | 0 |
 | Build FIE Window 1D Optimal Waiver | 47 | 0 | 38 | 9 | 0 | 0 | 0 | 0 |
 | Build FIE Window 2A Trench Evidence | 2 | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
 | Capture Daily FIE Availability Evidence | 14 | 14 | 0 | 0 | 0 | 0 | 0 | 0 |
-| Capture FIE M10 Prospective Research Evidence | 48 | 1 | 47 | 0 | 0 | 0 | 0 | 0 |
-| Capture Immutable FIE Sleeper Weekly Benchmark | 40 | 28 | 11 | 0 | 0 | 0 | 1 | 1 |
-| Capture FIE PR2 Weekly Lineup Evidence | 51 | 1 | 50 | 0 | 0 | 0 | 0 | 0 |
+| Capture FIE M10 Prospective Research Evidence | 47 | 1 | 46 | 0 | 0 | 0 | 0 | 0 |
+| Capture Immutable FIE Sleeper Weekly Benchmark | 38 | 26 | 11 | 0 | 0 | 0 | 1 | 1 |
+| Capture FIE PR2 Weekly Lineup Evidence | 49 | 1 | 48 | 0 | 0 | 0 | 0 | 0 |
 | Capture Daily FIE Sleeper Season Projections / ADP | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| Capture FIE Sunday M10 / Sleeper Paired Checkpoint | 2 | 0 | 0 | 0 | 0 | 2 | 0 | 2 |
+| Capture FIE Sunday M10 / Sleeper Paired Checkpoint | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
 | Capture FIE Waiver Evidence | 30 | 27 | 2 | 1 | 0 | 0 | 0 | 1 |
-| Capture FIE Pregame Weather Evidence | 34 | 34 | 0 | 0 | 0 | 0 | 0 | 0 |
-| Capture FIE Weekly Research Preparation | 28 | 0 | 0 | 13 | 15 | 0 | 0 | 15 |
+| Capture FIE Pregame Weather Evidence | 33 | 33 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Capture FIE Weekly Research Preparation | 28 | 0 | 0 | 15 | 13 | 0 | 0 | 13 |
 | FIE Component Forecast and Weekly Evaluation | 9 | 1 | 6 | 0 | 2 | 0 | 0 | 2 |
 | Evaluate FIE PR2 Weekly Lineup Capture | 6 | 0 | 6 | 0 | 0 | 0 | 0 | 0 |
 | Evaluate FIE Prospective Three-Week Waiver Evidence | 6 | 0 | 0 | 3 | 3 | 0 | 0 | 3 |
@@ -40,6 +40,7 @@ Expected no-ops are excluded from this table.
 
 | Time | Workflow | State | Reason | Run |
 |---|---|---|---|---|
+| 2026-11-08T11:56:05Z | Refresh FIE Current Season | PARTIAL | CURRENT_REFRESH_PORTFOLIO_INCOMPLETE | [#42477898449](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42477898449) |
 | 2026-11-05T13:12:19Z | Refresh FIE Current Season | INFRASTRUCTURE | JOB_FAILURE | [#42033689823](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42033689823) |
 | 2026-11-04T18:39:57Z | Capture FIE Waiver Evidence | PARTIAL | PARTIAL_SOURCE_FAILURE | [#41889380874](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/41889380874) |
 | 2026-11-01T17:18:22Z | Capture FIE Sunday M10 / Sleeper Paired Checkpoint | MISSED | CHECKPOINT_MISSED | [#41330790593](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/41330790593) |
@@ -67,9 +68,6 @@ Expected no-ops are excluded from this table.
 | 2026-10-26T12:51:27Z | Capture FIE Weekly Research Preparation | BLOCKED | INVALID_USABILITY_ARTIFACT, ValueError | [#40325764507](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40325764507) |
 | 2026-10-26T05:16:31Z | Capture Immutable FIE Sleeper Weekly Benchmark | INFRASTRUCTURE | JOB_FAILURE | [#40273335866](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40273335866) |
 | 2026-10-25T20:46:33Z | Capture FIE Weekly Research Preparation | BLOCKED | INVALID_USABILITY_ARTIFACT, ValueError | [#40232349386](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40232349386) |
-| 2026-10-25T14:37:35Z | Capture FIE Sunday M10 / Sleeper Paired Checkpoint | MISSED | CHECKPOINT_MISSED | [#40203113217](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40203113217) |
-| 2026-10-25T11:18:01Z | Capture FIE Weekly Research Preparation | BLOCKED | INVALID_USABILITY_ARTIFACT, ValueError | [#40188278484](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40188278484) |
-| 2026-10-24T19:28:03Z | Capture FIE Weekly Research Preparation | BLOCKED | INVALID_USABILITY_ARTIFACT, ValueError | [#40125421189](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40125421189) |
 
 ## Known gaps
 
@@ -79,13 +77,26 @@ PARTIAL by design: every reason is declared in `known_gap_reasons` in the monito
 |---|---:|---|
 | Build FIE Window 1C Weekly Actions | 9 | OPERATIONAL_READINESS_PARTIAL |
 | Build FIE Window 1D Optimal Waiver | 9 | OPERATIONAL_READINESS_PARTIAL |
-| Capture FIE Weekly Research Preparation | 13 | OPERATIONAL_READINESS_PARTIAL |
+| Capture FIE Weekly Research Preparation | 15 | OPERATIONAL_READINESS_PARTIAL |
 | Evaluate FIE Prospective Three-Week Waiver Evidence | 3 | OPERATIONAL_READINESS_PARTIAL |
 
 ## Expected no-ops
 
 | Time | Workflow | Reason | Run |
 |---|---|---|---|
+| 2026-11-08T12:54:40Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#42482429467](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42482429467) |
+| 2026-11-08T12:51:19Z | Build FIE Window 1D Optimal Waiver | PIPELINE_UPSTREAM_NOT_DUE | [#42482176198](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42482176198) |
+| 2026-11-08T12:47:58Z | Build FIE Window 1C Weekly Actions | PIPELINE_OUTSIDE_TUESDAY_WEDNESDAY | [#42481918724](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42481918724) |
+| 2026-11-08T10:21:40Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#42471098474](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42471098474) |
+| 2026-11-08T04:57:50Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#42448867373](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42448867373) |
+| 2026-11-08T03:37:08Z | Build FIE Window 1D Optimal Waiver | PIPELINE_UPSTREAM_NOT_DUE | [#42443476765](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42443476765) |
+| 2026-11-08T03:33:37Z | Build FIE Window 1C Weekly Actions | PIPELINE_OUTSIDE_TUESDAY_WEDNESDAY | [#42443225839](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42443225839) |
+| 2026-11-08T00:34:56Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#42430395436](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42430395436) |
+| 2026-11-07T21:47:28Z | Build FIE Window 1D Optimal Waiver | PIPELINE_UPSTREAM_NOT_DUE | [#42417521207](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42417521207) |
+| 2026-11-07T21:43:24Z | Build FIE Window 1C Weekly Actions | PIPELINE_OUTSIDE_TUESDAY_WEDNESDAY | [#42417202176](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42417202176) |
+| 2026-11-07T21:33:05Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#42416393953](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42416393953) |
+| 2026-11-07T19:25:16Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#42406121145](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42406121145) |
+| 2026-11-07T17:33:13Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#42396879444](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42396879444) |
 | 2026-11-07T12:59:58Z | Build FIE Window 1D Optimal Waiver | PIPELINE_UPSTREAM_NOT_DUE | [#42374910527](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42374910527) |
 | 2026-11-07T12:59:26Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#42374875123](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42374875123) |
 | 2026-11-07T12:56:18Z | Build FIE Window 1C Weekly Actions | PIPELINE_OUTSIDE_TUESDAY_WEDNESDAY | [#42374662250](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/42374662250) |
@@ -268,21 +279,5 @@ PARTIAL by design: every reason is declared in `known_gap_reasons` in the monito
 | 2026-10-25T16:18:09Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#40211020374](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40211020374) |
 | 2026-10-25T16:11:35Z | Build FIE Window 1D Optimal Waiver | PIPELINE_UPSTREAM_NOT_DUE | [#40210498844](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40210498844) |
 | 2026-10-25T16:09:08Z | Build FIE Window 1C Weekly Actions | PIPELINE_OUTSIDE_TUESDAY_WEDNESDAY | [#40210303398](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40210303398) |
-| 2026-10-25T15:42:45Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#40208234316](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40208234316) |
-| 2026-10-25T11:28:02Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#40188978162](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40188978162) |
-| 2026-10-25T10:55:54Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#40186774250](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40186774250) |
-| 2026-10-25T10:40:04Z | Build FIE Window 1D Optimal Waiver | PIPELINE_UPSTREAM_NOT_DUE | [#40185709885](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40185709885) |
-| 2026-10-25T10:37:34Z | Build FIE Window 1C Weekly Actions | PIPELINE_OUTSIDE_TUESDAY_WEDNESDAY | [#40185545335](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40185545335) |
-| 2026-10-25T04:40:20Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#40162732244](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40162732244) |
-| 2026-10-25T03:40:25Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#40159078032](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40159078032) |
-| 2026-10-25T02:23:35Z | Build FIE Window 1D Optimal Waiver | PIPELINE_UPSTREAM_NOT_DUE | [#40154266176](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40154266176) |
-| 2026-10-25T02:21:05Z | Build FIE Window 1C Weekly Actions | PIPELINE_OUTSIDE_TUESDAY_WEDNESDAY | [#40154113131](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40154113131) |
-| 2026-10-24T23:13:52Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#40141869824](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40141869824) |
-| 2026-10-24T22:57:23Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#40140717887](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40140717887) |
-| 2026-10-24T20:48:54Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#40131467359](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40131467359) |
-| 2026-10-24T20:24:34Z | Capture FIE M10 Prospective Research Evidence | NO_REPOSITORY_CHANGE | [#40129644176](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40129644176) |
-| 2026-10-24T20:15:30Z | Build FIE Window 1D Optimal Waiver | PIPELINE_UPSTREAM_NOT_DUE | [#40128967020](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40128967020) |
-| 2026-10-24T20:13:13Z | Build FIE Window 1C Weekly Actions | PIPELINE_OUTSIDE_TUESDAY_WEDNESDAY | [#40128797882](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40128797882) |
-| 2026-10-24T15:56:24Z | Capture FIE PR2 Weekly Lineup Evidence | OUTSIDE_CHECKPOINT_WINDOW | [#40109246224](https://github.com/constantinrube-hub/Fantasy-Intelligence/actions/runs/40109246224) |
 
 A successful GitHub conclusion is not counted as usable unless the producer emitted a valid usability summary. Legacy successes without that proof are BLOCKED, not silently promoted.
