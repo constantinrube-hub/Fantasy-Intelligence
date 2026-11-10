@@ -12,7 +12,7 @@ Built for **C0nstant1n** from governed current snapshots.
 - Blocked evidence: **0**
 - Unknown evidence: **0**
 - Not applicable: **2**
-- Leagues with alerts (inspect execution guards): **18**
+- Leagues with alerts (inspect execution guards): **19**
 
 Target basis: `EXPLICIT_OPERATOR_WEEK`
 
@@ -20,7 +20,7 @@ Evidence status: **PARTIAL** — ready: 0; partial: 21; blocked: 0; not_applicab
 
 Offensive waiver coverage: `{'NO_ELIGIBLE_ROWS': 21, 'UNKNOWN': 2}`
 
-Lineup capabilities: `{'ACTION_AVAILABLE': 9, 'ACTION_REQUIRED_EMPTY_STARTER_SLOT': 1, 'NOT_APPLICABLE_BEST_BALL': 6, 'NO_CHANGE_IDENTIFIED': 5}`
+Lineup capabilities: `{'ACTION_AVAILABLE': 12, 'ACTION_REQUIRED_EMPTY_STARTER_SLOT': 1, 'NOT_APPLICABLE_BEST_BALL': 6, 'NO_CHANGE_IDENTIFIED': 2}`
 Lineup execution context: `{'NOT_APPLICABLE_BEST_BALL': 6, 'PREGAME_ALERT_ONLY': 15}`
 Waiver watchlist capabilities: `{'WAIVER_MODEL_READY': 1, 'WATCH_ONLY_NO_WAIVER_MODEL': 20}`
 
@@ -30,7 +30,7 @@ Portfolio readiness is not proof of model activation, complete position coverage
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **1.113 h**.
+Input week: **10**; target: **10**; snapshot age: **1.283 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -54,30 +54,29 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Jalen Tolbert (bench) — Out
 - **HIGH** Jawhar Jordan (bench) — Out
 - **HIGH** Jeremiyah Love (bench) — IR
+- **HIGH** Malik Willis (bench) — IR
 - **HIGH** Romeo Doubs (bench) — IR
 - **HIGH** Sam Darnold (bench) — Out
 - **HIGH** Xavier Legette (bench) — IR
-- **WATCH** Ladd McConkey (bench) — Questionable
 
 ### Lineup alerts
 - `FLEX`: **Isaiah Likely over Quinshon Judkins** — +1.7 projected pts
-- `QB`: **Malik Willis over Jordan Love** — +0.4 projected pts
 
 ### Available-player watchlist
-- **Drew Lock** (QB) — week 15.831 — WATCH_ONLY
-- **Deshaun Watson** (QB) — week 13.5708 — WATCH_ONLY
-- **Carson Wentz** (QB) — week 11.126 — WATCH_ONLY
-- **Tyler Higbee** (TE) — week 8.692 — WATCH_ONLY
-- **Trey Smack** (K) — week 7.99 — WATCH_ONLY
-- **Drew Stevens** (K) — week 7.58 — WATCH_ONLY
-- **Darnell Washington** (TE) — week 7.47 — WATCH_ONLY
-- **Brandon McManus** (K) — week 7.31 — WATCH_ONLY
+- **Drew Lock** (QB) — week 15.455 — WATCH_ONLY
+- **Deshaun Watson** (QB) — week 13.6486 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 12.81 — WATCH_ONLY
+- **Tyler Higbee** (TE) — week 8.632 — WATCH_ONLY
+- **Charlie Smyth** (K) — week 7.89 — WATCH_ONLY
+- **Drew Stevens** (K) — week 7.85 — WATCH_ONLY
+- **Trey Smack** (K) — week 7.77 — WATCH_ONLY
+- **Brandon McManus** (K) — week 7.7 — WATCH_ONLY
 
 ## Chopped - Drive 🏉 Football League (CHOPPED)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **1.075 h**.
+Input week: **10**; target: **10**; snapshot age: **1.237 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **373**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -97,20 +96,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - Projection mix: `{'FIE_GOVERNED': 0, 'SLEEPER_FALLBACK': 0, 'EXISTING_DECISION_PROJECTION': 0, 'UNAVAILABLE': 0}`
 
 ### Available-player watchlist
-- **Jahmyr Gibbs** (RB) — week 24.68 — WATCH_ONLY
-- **Drake Maye** (QB) — week 23.605 — WATCH_ONLY
-- **Tyler Shough** (QB) — week 17.0976 — WATCH_ONLY
-- **J.J. McCarthy** (QB) — week 16.943 — WATCH_ONLY
-- **Matthew Stafford** (QB) — week 16.9106 — WATCH_ONLY
-- **Malik Willis** (QB) — week 16.8288 — WATCH_ONLY
-- **Drew Lock** (QB) — week 16.481 — WATCH_ONLY
-- **C.J. Stroud** (QB) — week 16.2424 — WATCH_ONLY
+- **Jahmyr Gibbs** (RB) — week 24.745 — WATCH_ONLY
+- **Drake Maye** (QB) — week 23.2764 — WATCH_ONLY
+- **Tyler Shough** (QB) — week 17.5746 — WATCH_ONLY
+- **J.J. McCarthy** (QB) — week 16.8462 — WATCH_ONLY
+- **Matthew Stafford** (QB) — week 16.7506 — WATCH_ONLY
+- **C.J. Stroud** (QB) — week 16.2538 — WATCH_ONLY
+- **George Kittle** (TE) — week 16.13 — WATCH_ONLY
+- **Drew Lock** (QB) — week 16.095 — WATCH_ONLY
 
 ## ReDraft – Pro 🎯 XVI Football  (REDRAFT)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **1.036 h**.
+Input week: **10**; target: **10**; snapshot age: **1.189 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **534**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -136,24 +135,24 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Lamar Jackson (bench) — IR
 
 ### Lineup alerts
-- `RB`: **Jordan Mason over Josh Jacobs** — +9.1 projected pts
-- `FLEX`: **Wan'Dale Robinson over Kyle Pitts Sr.** — +1.1 projected pts
+- `RB`: **Jordan Mason over Josh Jacobs** — +8.9 projected pts
+- `WR`: **Wan'Dale Robinson over Jakobi Meyers** — +1.3 projected pts
 
 ### Available-player watchlist
-- **Drew Lock** (QB) — week 16.481 — WATCH_ONLY
-- **Daniel Jones** (QB) — week 13.6634 — WATCH_ONLY
-- **Justin Herbert** (QB) — week 13.429 — WATCH_ONLY
-- **Jacoby Brissett** (QB) — week 13.397 — WATCH_ONLY
-- **Carson Wentz** (QB) — week 11.966 — WATCH_ONLY
-- **Carson Beck** (QB) — week 11.5412 — WATCH_ONLY
+- **Drew Lock** (QB) — week 16.095 — WATCH_ONLY
+- **Justin Herbert** (QB) — week 13.9432 — WATCH_ONLY
+- **Daniel Jones** (QB) — week 13.7152 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 13.39 — WATCH_ONLY
+- **Jacoby Brissett** (QB) — week 13.3822 — WATCH_ONLY
+- **Fernando Mendoza** (QB) — week 11.572 — WATCH_ONLY
+- **Carson Beck** (QB) — week 11.4848 — WATCH_ONLY
 - **Brevyn Spann-Ford** (TE) — week 8.85 — WATCH_ONLY
-- **BAL D/ST** (DEF) — week 8.48 — WATCH_ONLY
 
 ## Dynasty - Prime 💎 XVI Football  (DYNASTY)
 
-Status: **READY_NO_URGENT_ACTION**
+Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.996 h**.
+Input week: **10**; target: **10**; snapshot age: **1.142 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -168,7 +167,7 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
 - Roster: **12**
-- Lineup: **NO_CHANGE_IDENTIFIED**
+- Lineup: **ACTION_AVAILABLE**
 - Waiver watchlist: **WATCH_ONLY_NO_WAIVER_MODEL**
 - Projection mix: `{'FIE_GOVERNED': 0, 'SLEEPER_FALLBACK': 26, 'EXISTING_DECISION_PROJECTION': 0, 'UNAVAILABLE': 0}`
 
@@ -180,21 +179,24 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Zachariah Branch (bench) — Out
 - **WATCH** Luther Burden III (bench) — Questionable
 
+### Lineup alerts
+- `WR`: **Antonio Williams over Jordyn Tyson** — +1.2 projected pts
+
 ### Available-player watchlist
-- **Elijah Higgins** (TE) — week 8.002 — WATCH_ONLY
-- **Zonovan Knight** (RB) — week 7.653 — WATCH_ONLY
-- **Pierre Strong Jr.** (RB) — week 6.711 — WATCH_ONLY
-- **Tutu Atwell** (WR) — week 5.73 — WATCH_ONLY
-- **Lan Larison** (RB) — week 4.738 — WATCH_ONLY
-- **Simi Fehoko** (WR) — week 4.6 — WATCH_ONLY
-- **Khalil Herbert** (RB) — week 4.593 — WATCH_ONLY
-- **Charlie Kolar** (TE) — week 4.293 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 12.81 — WATCH_ONLY
+- **Zonovan Knight** (RB) — week 8.569 — WATCH_ONLY
+- **Elijah Higgins** (TE) — week 7.694 — WATCH_ONLY
+- **Tutu Atwell** (WR) — week 7.546 — WATCH_ONLY
+- **Pierre Strong Jr.** (RB) — week 6.762 — WATCH_ONLY
+- **Lan Larison** (RB) — week 5.529 — WATCH_ONLY
+- **Khalil Herbert** (RB) — week 4.596 — WATCH_ONLY
+- **Charlie Kolar** (TE) — week 4.437 — WATCH_ONLY
 
 ## BestBall - Pro 🎖️XVI League (REDRAFT_BESTBALL)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.958 h**.
+Input week: **10**; target: **10**; snapshot age: **1.096 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **534**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -221,20 +223,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Malik Benson (bench) — Out
 
 ### Available-player watchlist
-- **Drew Lock** (QB) — week 16.481 — WATCH_ONLY
-- **Ollie Gordon II** (RB) — week 12.627 — WATCH_ONLY
-- **Tyler Higbee** (TE) — week 10.347 — WATCH_ONLY
-- **Devin Singletary** (RB) — week 9.924 — WATCH_ONLY
+- **Drew Lock** (QB) — week 16.095 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 13.39 — WATCH_ONLY
+- **Ollie Gordon II** (RB) — week 12.481 — WATCH_ONLY
+- **Tyler Higbee** (TE) — week 10.287 — WATCH_ONLY
+- **Devin Singletary** (RB) — week 9.864 — WATCH_ONLY
 - **Demarcus Robinson** (WR) — week 9.437 — WATCH_ONLY
+- **Corey Kiner** (RB) — week 9.164 — WATCH_ONLY
 - **Brevyn Spann-Ford** (TE) — week 8.85 — WATCH_ONLY
-- **Corey Kiner** (RB) — week 8.686 — WATCH_ONLY
-- **Austin Ekeler** (RB) — week 8.11 — WATCH_ONLY
 
 ## BestBall - Prime 🏆 XVI League (REDRAFT_BESTBALL)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.919 h**.
+Input week: **10**; target: **10**; snapshot age: **1.048 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **534**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -262,20 +264,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Noah Whittington (bench) — Out
 
 ### Available-player watchlist
-- **Drew Lock** (QB) — week 16.481 — WATCH_ONLY
-- **Ollie Gordon II** (RB) — week 12.627 — WATCH_ONLY
-- **Carson Wentz** (QB) — week 11.966 — WATCH_ONLY
-- **Tyler Higbee** (TE) — week 10.347 — WATCH_ONLY
+- **Drew Lock** (QB) — week 16.095 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 13.39 — WATCH_ONLY
+- **Ollie Gordon II** (RB) — week 12.481 — WATCH_ONLY
+- **Tyler Higbee** (TE) — week 10.287 — WATCH_ONLY
 - **Demarcus Robinson** (WR) — week 9.437 — WATCH_ONLY
+- **Corey Kiner** (RB) — week 9.164 — WATCH_ONLY
 - **Brevyn Spann-Ford** (TE) — week 8.85 — WATCH_ONLY
-- **Corey Kiner** (RB) — week 8.686 — WATCH_ONLY
-- **Austin Ekeler** (RB) — week 8.11 — WATCH_ONLY
+- **Zonovan Knight** (RB) — week 8.569 — WATCH_ONLY
 
 ## Crazy tryhards (DYNASTY)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.88 h**.
+Input week: **10**; target: **10**; snapshot age: **1.001 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -297,32 +299,32 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 ### Injury/status checks
 - **URGENT** Garrett Wilson (starter) — Out
 - **URGENT** Josh Jacobs (starter) — Out
+- **URGENT** Malik Willis (starter) — IR
 - **HIGH** A.J. Brown (bench) — Out
 - **HIGH** Brenen Thompson (bench) — Out
 - **HIGH** MarShawn Lloyd (bench) — Out
 - **HIGH** Ty Simpson (bench) — Out
-- **WATCH** Malik Willis (starter) — Questionable
 - **WATCH** Justin Herbert (bench) — Questionable
 
 ### Lineup alerts
-- `FLEX`: **A.J. Brown over Josh Jacobs** — +14.6 projected pts
-- `FLEX`: **Mark Andrews over Zach Charbonnet** — +1.6 projected pts
+- `SUPER_FLEX`: **Justin Herbert over Malik Willis** — +16.2 projected pts
+- `FLEX`: **A.J. Brown over Josh Jacobs** — +14.2 projected pts
 
 ### Available-player watchlist
-- **Jacoby Brissett** (QB) — week 15.977 — WATCH_ONLY
-- **Carson Wentz** (QB) — week 14.256 — WATCH_ONLY
-- **Carson Beck** (QB) — week 13.5712 — WATCH_ONLY
+- **Jacoby Brissett** (QB) — week 15.9522 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 15.35 — WATCH_ONLY
+- **Carson Beck** (QB) — week 13.4948 — WATCH_ONLY
 - **Brevyn Spann-Ford** (TE) — week 10.84 — WATCH_ONLY
 - **Demarcus Robinson** (WR) — week 9.747 — WATCH_ONLY
-- **Elijah Higgins** (TE) — week 9.722 — WATCH_ONLY
-- **Justice Hill** (RB) — week 7.471 — WATCH_ONLY
-- **Reggie Virgil** (WR) — week 7.399 — WATCH_ONLY
+- **Elijah Higgins** (TE) — week 9.354 — WATCH_ONLY
+- **Tutu Atwell** (WR) — week 7.776 — WATCH_ONLY
+- **Justice Hill** (RB) — week 7.472 — WATCH_ONLY
 
 ## Genesis Dynasty - sixteen now & for the future (DYNASTY)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.841 h**.
+Input week: **10**; target: **10**; snapshot age: **0.955 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -352,23 +354,24 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **WATCH** Charlie Jones (bench) — Questionable
 
 ### Lineup alerts
-- `FLEX`: **KaVontae Turpin over Chimere Dike** — +4.4 projected pts
+- `WRRB_FLEX`: **KaVontae Turpin over Jordyn Tyson** — +4.4 projected pts
+- `FLEX`: **Emmett Johnson over Chimere Dike** — +0.5 projected pts
 
 ### Available-player watchlist
-- **Eddy Pineiro** (K) — week 10.454 — WATCH_ONLY
-- **Dominic Zvada** (K) — week 8.912 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 12.81 — WATCH_ONLY
+- **Dominic Zvada** (K) — week 9.418 — WATCH_ONLY
+- **Ryan Fitzgerald** (K) — week 8.922 — WATCH_ONLY
+- **Chris Boswell** (K) — week 8.919 — WATCH_ONLY
 - **Brevyn Spann-Ford** (TE) — week 8.85 — WATCH_ONLY
-- **Chris Boswell** (K) — week 8.839 — WATCH_ONLY
-- **Ryan Fitzgerald** (K) — week 8.791 — WATCH_ONLY
-- **Harrison Butker** (K) — week 8.345 — WATCH_ONLY
-- **Drew Stevens** (K) — week 8.336 — WATCH_ONLY
-- **Brandon McManus** (K) — week 7.954 — WATCH_ONLY
+- **Eddy Pineiro** (K) — week 8.811 — WATCH_ONLY
+- **Charlie Smyth** (K) — week 8.691 — WATCH_ONLY
+- **Drew Stevens** (K) — week 8.673 — WATCH_ONLY
 
 ## Stoned Lack IDP Dynasty 39 (DYNASTY)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.801 h**.
+Input week: **10**; target: **10**; snapshot age: **0.908 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -398,24 +401,24 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** KaVontae Turpin (bench) — Out
 
 ### Lineup alerts
-- `RB`: **Ollie Gordon II over Bucky Irving** — +12.6 projected pts
-- `DL`: **Demario Davis over Lukas Van Ness** — +0.6 projected pts
+- `RB`: **Ollie Gordon II over Bucky Irving** — +12.5 projected pts
+- `DL`: **Demario Davis over Lukas Van Ness** — +0.7 projected pts
 
 ### Available-player watchlist
-- **Drew Lock** (QB) — week 18.571 — WATCH_ONLY
-- **Carson Wentz** (QB) — week 13.2772 — WATCH_ONLY
+- **Drew Lock** (QB) — week 18.075 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 14.77 — WATCH_ONLY
 - **Demarcus Robinson** (WR) — week 9.437 — WATCH_ONLY
-- **D.J. Reed** (DB) — week 8.737 — WATCH_ONLY
-- **Jaquan Brisker** (DB) — week 8.3467 — WATCH_ONLY
-- **Austin Ekeler** (RB) — week 8.05 — WATCH_ONLY
+- **D.J. Reed** (DB) — week 8.7727 — WATCH_ONLY
+- **Zonovan Knight** (RB) — week 8.569 — WATCH_ONLY
+- **Jaquan Brisker** (DB) — week 8.403 — WATCH_ONLY
+- **Austin Ekeler** (RB) — week 8.381 — WATCH_ONLY
 - **Ji'Ayir Brown** (DB) — week 7.8303 — WATCH_ONLY
-- **Zonovan Knight** (RB) — week 7.797 — WATCH_ONLY
 
 ## Stoned Lack Bestball Dynasty 4 (DYNASTY_BESTBALL)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.762 h**.
+Input week: **10**; target: **10**; snapshot age: **0.861 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -445,20 +448,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **WATCH** Brandon Aiyuk (bench) — DNR
 
 ### Available-player watchlist
-- **Drew Lock** (QB) — week 18.131 — WATCH_ONLY
-- **Carson Wentz** (QB) — week 12.9272 — WATCH_ONLY
+- **Drew Lock** (QB) — week 17.645 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 14.77 — WATCH_ONLY
 - **Demarcus Robinson** (WR) — week 9.407 — WATCH_ONLY
-- **Corey Kiner** (RB) — week 9.183 — WATCH_ONLY
-- **Austin Ekeler** (RB) — week 7.97 — WATCH_ONLY
-- **Zonovan Knight** (RB) — week 7.707 — WATCH_ONLY
-- **Reggie Virgil** (WR) — week 7.199 — WATCH_ONLY
+- **Corey Kiner** (RB) — week 9.164 — WATCH_ONLY
+- **Zonovan Knight** (RB) — week 8.469 — WATCH_ONLY
+- **Austin Ekeler** (RB) — week 8.301 — WATCH_ONLY
+- **Tutu Atwell** (WR) — week 7.526 — WATCH_ONLY
 - **Brevyn Spann-Ford** (TE) — week 7.16 — WATCH_ONLY
 
 ## Stoned Lack Dynasty 30 (DYNASTY)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.725 h**.
+Input week: **10**; target: **10**; snapshot age: **0.816 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -483,30 +486,30 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Brenen Thompson (bench) — Out
 - **HIGH** Christian Kirk (bench) — IR
 - **HIGH** Kyler Murray (bench) — Out
+- **HIGH** Malik Willis (bench) — IR
 - **HIGH** Michael Pittman Jr. (bench) — IR
 - **HIGH** Romeo Doubs (bench) — IR
-- **WATCH** Puka Nacua (starter) — Questionable
 
 ### Lineup alerts
+- `FLEX`: **Pat Freiermuth over DeVonta Smith** — +11.2 projected pts
 - `WR`: **Khalil Shakir over Puka Nacua** — +11.0 projected pts
-- `FLEX`: **Pat Freiermuth over DeVonta Smith** — +10.9 projected pts
 - `RB`: **Ty Johnson over D'Andre Swift** — +5.3 projected pts
 
 ### Available-player watchlist
-- **Dominic Zvada** (K) — week 8.11 — WATCH_ONLY
-- **Ryan Fitzgerald** (K) — week 8.01 — WATCH_ONLY
-- **Nick Folk** (K) — week 7.67 — WATCH_ONLY
-- **Brandon McManus** (K) — week 7.34 — WATCH_ONLY
-- **Reggie Virgil** (WR) — week 7.219 — WATCH_ONLY
-- **Brevyn Spann-Ford** (TE) — week 7.19 — WATCH_ONLY
-- **Jason Sanders** (K) — week 6.93 — WATCH_ONLY
-- **Andre Szmyt** (K) — week 6.82 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 12.257 — WATCH_ONLY
+- **Dominic Zvada** (K) — week 8.58 — WATCH_ONLY
+- **Ryan Fitzgerald** (K) — week 8.13 — WATCH_ONLY
+- **Charlie Smyth** (K) — week 7.89 — WATCH_ONLY
+- **Brandon McManus** (K) — week 7.7 — WATCH_ONLY
+- **Tutu Atwell** (WR) — week 7.546 — WATCH_ONLY
+- **Andre Szmyt** (K) — week 7.38 — WATCH_ONLY
+- **Jason Sanders** (K) — week 7.25 — WATCH_ONLY
 
 ## Stoned Lack Bestball Dynasty 3 (DYNASTY_BESTBALL)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.687 h**.
+Input week: **10**; target: **10**; snapshot age: **0.77 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -527,7 +530,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 ### Injury/status checks
 - **URGENT** Cam Skattebo (starter) — Out
-- **URGENT** Michael Wilson (starter) — Out
+- **URGENT** Michael Wilson (starter) — IR
 - **URGENT** Tank Bigsby (starter) — IR
 - **HIGH** Alec Pierce (bench) — IR
 - **HIGH** Jake Ferguson (bench) — Out
@@ -536,20 +539,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **WATCH** Ladd McConkey (starter) — Questionable
 
 ### Available-player watchlist
-- **Carson Wentz** (QB) — week 10.9672 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 12.257 — WATCH_ONLY
 - **Demarcus Robinson** (WR) — week 9.407 — WATCH_ONLY
-- **Corey Kiner** (RB) — week 9.183 — WATCH_ONLY
+- **Corey Kiner** (RB) — week 9.164 — WATCH_ONLY
 - **Brevyn Spann-Ford** (TE) — week 8.82 — WATCH_ONLY
-- **Elijah Higgins** (TE) — week 8.098 — WATCH_ONLY
-- **Austin Ekeler** (RB) — week 7.97 — WATCH_ONLY
-- **Reggie Virgil** (WR) — week 7.199 — WATCH_ONLY
-- **Pierre Strong Jr.** (RB) — week 6.773 — WATCH_ONLY
+- **Austin Ekeler** (RB) — week 8.301 — WATCH_ONLY
+- **Elijah Higgins** (TE) — week 7.674 — WATCH_ONLY
+- **Tutu Atwell** (WR) — week 7.526 — WATCH_ONLY
+- **Pierre Strong Jr.** (RB) — week 6.762 — WATCH_ONLY
 
 ## Stoned Lack Bestball 2 (DYNASTY_BESTBALL)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.65 h**.
+Input week: **10**; target: **10**; snapshot age: **0.724 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -579,20 +582,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **WATCH** Patrick Mahomes (starter) — Questionable
 
 ### Available-player watchlist
-- **Drew Lock** (QB) — week 15.391 — WATCH_ONLY
-- **Carson Wentz** (QB) — week 10.9672 — WATCH_ONLY
+- **Drew Lock** (QB) — week 15.025 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 12.257 — WATCH_ONLY
 - **Demarcus Robinson** (WR) — week 9.407 — WATCH_ONLY
-- **Corey Kiner** (RB) — week 9.183 — WATCH_ONLY
-- **Tyler Higbee** (TE) — week 8.69 — WATCH_ONLY
-- **Austin Ekeler** (RB) — week 7.97 — WATCH_ONLY
-- **Zonovan Knight** (RB) — week 7.707 — WATCH_ONLY
-- **Konata Mumpfield** (WR) — week 7.338 — WATCH_ONLY
+- **Corey Kiner** (RB) — week 9.164 — WATCH_ONLY
+- **Tyler Higbee** (TE) — week 8.602 — WATCH_ONLY
+- **Zonovan Knight** (RB) — week 8.469 — WATCH_ONLY
+- **Austin Ekeler** (RB) — week 8.301 — WATCH_ONLY
+- **Konata Mumpfield** (WR) — week 7.979 — WATCH_ONLY
 
 ## Genesis NFL GM League Dynasty 2025 4 (DYNASTY)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.613 h**.
+Input week: **10**; target: **10**; snapshot age: **0.68 h**.
 Governed eligible rows — weekly: **0**; next-three-week waiver: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -612,35 +615,33 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - Projection mix: `{'FIE_GOVERNED': 0, 'SLEEPER_FALLBACK': 30, 'EXISTING_DECISION_PROJECTION': 0, 'UNAVAILABLE': 0}`
 
 ### Injury/status checks
-- **URGENT** Brenen Thompson (starter) — Out
-- **URGENT** Elijah Sarratt (starter) — Out
 - **HIGH** Billy Bowman Jr. (bench) — Out
+- **HIGH** Brenen Thompson (bench) — Out
 - **HIGH** Dorian Strong (bench) — PUP
-- **HIGH** Gracen Halton (bench) — Out
+- **HIGH** Elijah Sarratt (bench) — Out
+- **HIGH** Gracen Halton (bench) — IR
 - **HIGH** Jalon Kilgore (bench) — Out
 - **HIGH** Justin Walley (bench) — Out
 - **HIGH** Malachi Lawrence (bench) — IR
 
 ### Lineup alerts
-- `SUPER_FLEX`: **Cam Ward over Elijah Sarratt** — +11.7 projected pts
 - `DB`: **Marques Sigle over Emmanuel McNeil-Warren** — +5.4 projected pts
-- `FLEX`: **Chimere Dike over Brenen Thompson** — +1.5 projected pts
 
 ### Available-player watchlist
-- **Josh Allen** (QB) — week 25.563 — WATCH_ONLY
-- **Jaxon Smith-Njigba** (WR) — week 24.229 — WATCH_ONLY
-- **Jahmyr Gibbs** (RB) — week 24.162 — WATCH_ONLY
-- **Drake Maye** (QB) — week 22.5118 — WATCH_ONLY
-- **Christian McCaffrey** (RB) — week 22.164 — WATCH_ONLY
-- **Brock Purdy** (QB) — week 22.0348 — WATCH_ONLY
-- **Joe Burrow** (QB) — week 21.1356 — WATCH_ONLY
+- **Josh Allen** (QB) — week 25.5522 — WATCH_ONLY
+- **Jahmyr Gibbs** (RB) — week 24.285 — WATCH_ONLY
+- **Jaxon Smith-Njigba** (WR) — week 23.637 — WATCH_ONLY
+- **Drake Maye** (QB) — week 22.3764 — WATCH_ONLY
+- **Christian McCaffrey** (RB) — week 22.104 — WATCH_ONLY
+- **Brock Purdy** (QB) — week 21.9148 — WATCH_ONLY
+- **Joe Burrow** (QB) — week 21.4086 — WATCH_ONLY
 - **Kenneth Walker III** (RB) — week 20.7 — WATCH_ONLY
 
 ## 🪓 MinusPPR Knockout (CHOPPED)
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **10**; target: **10**; snapshot age: **0.573 h**.
+Input week: **10**; target: **10**; snapshot age: **0.632 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **133**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -660,20 +661,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - Projection mix: `{'FIE_GOVERNED': 0, 'SLEEPER_FALLBACK': 11, 'EXISTING_DECISION_PROJECTION': 0, 'UNAVAILABLE': 0}`
 
 ### Available-player watchlist
-- **Josh Allen** (QB) — week 49.695 — WATCH_ONLY
-- **Patrick Mahomes** (QB) — week 41.462 — WATCH_ONLY
-- **Bryce Young** (QB) — week 41.365 — WATCH_ONLY
-- **J.J. McCarthy** (QB) — week 36.896 — WATCH_ONLY
-- **Drew Lock** (QB) — week 36.334 — WATCH_ONLY
-- **Aaron Rodgers** (QB) — week 35.867 — WATCH_ONLY
-- **Malik Willis** (QB) — week 35.625 — WATCH_ONLY
-- **C.J. Stroud** (QB) — week 35.091 — WATCH_ONLY
+- **Josh Allen** (QB) — week 49.75 — WATCH_ONLY
+- **Patrick Mahomes** (QB) — week 41.542 — WATCH_ONLY
+- **Bryce Young** (QB) — week 41.41 — WATCH_ONLY
+- **Aaron Rodgers** (QB) — week 37.046 — WATCH_ONLY
+- **J.J. McCarthy** (QB) — week 36.965 — WATCH_ONLY
+- **Drew Lock** (QB) — week 35.578 — WATCH_ONLY
+- **C.J. Stroud** (QB) — week 35.106 — WATCH_ONLY
+- **Deshaun Watson** (QB) — week 34.689 — WATCH_ONLY
 
 ## German Football League (REDRAFT)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.535 h**.
+Input week: **10**; target: **10**; snapshot age: **0.586 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **534**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -693,30 +694,31 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - Projection mix: `{'FIE_GOVERNED': 0, 'SLEEPER_FALLBACK': 18, 'EXISTING_DECISION_PROJECTION': 0, 'UNAVAILABLE': 0}`
 
 ### Injury/status checks
+- **URGENT** Malik Willis (starter) — IR
 - **HIGH** David Montgomery (bench) — Out
 - **HIGH** Jayden Reed (bench) — IR
 - **HIGH** Lamar Jackson (bench) — IR
-- **WATCH** Malik Willis (starter) — Questionable
 
 ### Lineup alerts
-- `RB`: **David Montgomery over Tyler Allgeier** — +1.3 projected pts
+- `QB`: **Matthew Stafford over Malik Willis** — +16.2 projected pts
+- `RB`: **David Montgomery over Tyler Allgeier** — +1.1 projected pts
 - `FLEX`: **Brenton Strange over Tucker Kraft** — +0.3 projected pts
 
 ### Available-player watchlist
-- **Bryce Young** (QB) — week 19.0438 — WATCH_ONLY
-- **Aaron Rodgers** (QB) — week 16.8144 — WATCH_ONLY
-- **J.J. McCarthy** (QB) — week 16.133 — WATCH_ONLY
-- **Geno Smith** (QB) — week 15.9238 — WATCH_ONLY
-- **Drew Lock** (QB) — week 15.831 — WATCH_ONLY
+- **Bryce Young** (QB) — week 19.0918 — WATCH_ONLY
+- **Aaron Rodgers** (QB) — week 17.3794 — WATCH_ONLY
+- **Geno Smith** (QB) — week 16.127 — WATCH_ONLY
+- **J.J. McCarthy** (QB) — week 16.0362 — WATCH_ONLY
+- **Drew Lock** (QB) — week 15.455 — WATCH_ONLY
 - **Michael Penix Jr.** (QB) — week 14.1732 — WATCH_ONLY
-- **Deshaun Watson** (QB) — week 13.6466 — WATCH_ONLY
-- **Daniel Jones** (QB) — week 12.7234 — WATCH_ONLY
+- **Deshaun Watson** (QB) — week 13.8096 — WATCH_ONLY
+- **Justin Herbert** (QB) — week 13.0332 — WATCH_ONLY
 
 ## Guillotine - last team standing (CHOPPED)
 
 Status: **READY_NO_URGENT_ACTION**
 
-Input week: **10**; target: **10**; snapshot age: **0.497 h**.
+Input week: **10**; target: **10**; snapshot age: **0.538 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **373**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -741,20 +743,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Sam Darnold (bench) — Out
 
 ### Available-player watchlist
-- **Jayden Daniels** (QB) — week 19.3922 — WATCH_ONLY
-- **Aaron Rodgers** (QB) — week 17.3344 — WATCH_ONLY
-- **Jonathan Taylor** (RB) — week 17.094 — WATCH_ONLY
-- **J.J. McCarthy** (QB) — week 16.943 — WATCH_ONLY
-- **Malik Willis** (QB) — week 16.8288 — WATCH_ONLY
-- **Drew Lock** (QB) — week 16.481 — WATCH_ONLY
-- **Geno Smith** (QB) — week 16.2738 — WATCH_ONLY
+- **Jayden Daniels** (QB) — week 19.1344 — WATCH_ONLY
+- **Aaron Rodgers** (QB) — week 17.9194 — WATCH_ONLY
+- **Jonathan Taylor** (RB) — week 17.028 — WATCH_ONLY
+- **J.J. McCarthy** (QB) — week 16.8462 — WATCH_ONLY
+- **Geno Smith** (QB) — week 16.477 — WATCH_ONLY
+- **Drew Lock** (QB) — week 16.095 — WATCH_ONLY
 - **Michael Penix Jr.** (QB) — week 14.8932 — WATCH_ONLY
+- **Jalen Coker** (WR) — week 14.58 — WATCH_ONLY
 
 ## SLR2026 - Liga 38 (REDRAFT)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.458 h**.
+Input week: **10**; target: **10**; snapshot age: **0.492 h**.
 Governed eligible rows — weekly: **469**; next-three-week waiver: **633**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -779,24 +781,24 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Terrance Ferguson (bench) — IR
 
 ### Lineup alerts
-- `RB`: **Zach Charbonnet over Bucky Irving** — +10.2 projected pts
-- `TE`: **Brenton Strange over Juwan Johnson** — +2.0 projected pts
+- `RB`: **Zach Charbonnet over Bucky Irving** — +12.8 projected pts
+- `TE`: **Brenton Strange over Juwan Johnson** — +1.8 projected pts
 
 ### Available-player watchlist
-- **Brandon Aubrey** (K) — week 8.7864, next-3 9.1 — REVIEW
-- **Will Reichard** (K) — week 7.6762, next-3 8.7 — REVIEW
-- **Evan McPherson** (K) — week 8.2707, next-3 8.7 — REVIEW
-- **Evan McPherson** (K) — week 8.2707, next-3 8.7 — REVIEW
-- **Cam Little** (K) — week 9.0881, next-3 8.6 — REVIEW
-- **Jason Myers** (K) — week 8.2639, next-3 8.4 — REVIEW
-- **Harrison Butker** (K) — week 8.6512, next-3 8.3 — REVIEW
-- **Harrison Butker** (K) — week 8.6512, next-3 8.3 — REVIEW
+- **Brandon Aubrey** (K) — week 8.8931, next-3 9.3 — REVIEW
+- **Harrison Butker** (K) — week 8.6512, next-3 8.8 — REVIEW
+- **Harrison Butker** (K) — week 8.6512, next-3 8.8 — REVIEW
+- **Justin Tucker** (K) — week 8.6512, next-3 8.8 — REVIEW
+- **Cam Little** (K) — week 9.0881, next-3 8.7 — REVIEW
+- **Ka'imi Fairbairn** (K) — week 8.6112, next-3 8.7 — REVIEW
+- **Evan McPherson** (K) — week 8.3272, next-3 8.5 — REVIEW
+- **Evan McPherson** (K) — week 8.3272, next-3 8.5 — REVIEW
 
 ## The Hunger Games (CHOPPED)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.419 h**.
+Input week: **10**; target: **10**; snapshot age: **0.445 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **373**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -811,29 +813,32 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
 - Roster: **14**
-- Lineup: **NO_CHANGE_IDENTIFIED**
+- Lineup: **ACTION_AVAILABLE**
 - Waiver watchlist: **WATCH_ONLY_NO_WAIVER_MODEL**
 - Projection mix: `{'FIE_GOVERNED': 0, 'SLEEPER_FALLBACK': 11, 'EXISTING_DECISION_PROJECTION': 0, 'UNAVAILABLE': 0}`
 
 ### Injury/status checks
 - **URGENT** Rhamondre Stevenson (starter) — Out
-- **HIGH** Michael Wilson (bench) — Out
+- **HIGH** Michael Wilson (bench) — IR
+
+### Lineup alerts
+- `QB`: **Joe Burrow over Brock Purdy** — +0.4 projected pts
 
 ### Available-player watchlist
-- **Jahmyr Gibbs** (RB) — week 24.622 — WATCH_ONLY
-- **Jared Goff** (QB) — week 22.3698 — WATCH_ONLY
-- **Aaron Rodgers** (QB) — week 21.0544 — WATCH_ONLY
-- **Matthew Stafford** (QB) — week 20.4958 — WATCH_ONLY
-- **Tyler Shough** (QB) — week 19.946 — WATCH_ONLY
-- **Geno Smith** (QB) — week 19.4738 — WATCH_ONLY
-- **Drew Lock** (QB) — week 19.221 — WATCH_ONLY
-- **C.J. Stroud** (QB) — week 18.9318 — WATCH_ONLY
+- **Jahmyr Gibbs** (RB) — week 24.745 — WATCH_ONLY
+- **Jared Goff** (QB) — week 22.4168 — WATCH_ONLY
+- **Aaron Rodgers** (QB) — week 21.7594 — WATCH_ONLY
+- **Tyler Shough** (QB) — week 20.6546 — WATCH_ONLY
+- **Matthew Stafford** (QB) — week 20.2706 — WATCH_ONLY
+- **Geno Smith** (QB) — week 19.777 — WATCH_ONLY
+- **C.J. Stroud** (QB) — week 18.9338 — WATCH_ONLY
+- **Drew Lock** (QB) — week 18.715 — WATCH_ONLY
 
 ## AEF - FFLeague (REDRAFT)
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.38 h**.
+Input week: **10**; target: **10**; snapshot age: **0.397 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **534**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -848,7 +853,7 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
 - Roster: **1**
-- Lineup: **NO_CHANGE_IDENTIFIED**
+- Lineup: **ACTION_AVAILABLE**
 - Waiver watchlist: **WATCH_ONLY_NO_WAIVER_MODEL**
 - Projection mix: `{'FIE_GOVERNED': 0, 'SLEEPER_FALLBACK': 21, 'EXISTING_DECISION_PROJECTION': 0, 'UNAVAILABLE': 0}`
 
@@ -857,17 +862,20 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** DeVonta Smith (bench) — Out
 - **HIGH** Jeremiyah Love (bench) — IR
 - **HIGH** Lamar Jackson (bench) — IR
+- **HIGH** Malik Willis (bench) — IR
 - **HIGH** Mike Evans (bench) — Out
 - **WATCH** J.J. McCarthy (starter) — Questionable
-- **WATCH** Malik Willis (bench) — Questionable
+
+### Lineup alerts
+- `FLEX`: **Zach Charbonnet over Germie Bernard** — +2.3 projected pts
 
 ### Available-player watchlist
-- **Aaron Rodgers** (QB) — week 16.6944 — WATCH_ONLY
+- **Aaron Rodgers** (QB) — week 17.2594 — WATCH_ONLY
 - **Michael Penix Jr.** (QB) — week 13.9332 — WATCH_ONLY
-- **Pat Freiermuth** (TE) — week 12.827 — WATCH_ONLY
-- **Daniel Jones** (QB) — week 12.4634 — WATCH_ONLY
+- **Pat Freiermuth** (TE) — week 13.225 — WATCH_ONLY
+- **Daniel Jones** (QB) — week 12.1652 — WATCH_ONLY
+- **Kyle McCord** (QB) — week 11.6924 — WATCH_ONLY
 - **Cam Ward** (QB) — week 11.5494 — WATCH_ONLY
-- **Carson Wentz** (QB) — week 11.1372 — WATCH_ONLY
 - **David Montgomery** (RB) — week 11.059 — WATCH_ONLY
 - **Wan'Dale Robinson** (WR) — week 10.999 — WATCH_ONLY
 
@@ -875,7 +883,7 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 
 Status: **NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY**
 
-Input week: **10**; target: **10**; snapshot age: **0.34 h**.
+Input week: **10**; target: **10**; snapshot age: **0.35 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **373**.
 
 Not applicable: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY`
@@ -884,7 +892,7 @@ Not applicable: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY`
 
 Status: **NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY**
 
-Input week: **10**; target: **10**; snapshot age: **0.301 h**.
+Input week: **10**; target: **10**; snapshot age: **0.303 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **373**.
 
 Not applicable: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY`
@@ -893,7 +901,7 @@ Not applicable: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY`
 
 Status: **ACTION_REQUIRED**
 
-Input week: **10**; target: **10**; snapshot age: **0.262 h**.
+Input week: **10**; target: **10**; snapshot age: **0.257 h**.
 Governed eligible rows — weekly: **370**; next-three-week waiver: **373**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -919,14 +927,14 @@ Local M5 checks do not replay the original capture or authorize new forecasts. P
 - **HIGH** Josh Jacobs (bench) — Out
 
 ### Available-player watchlist
-- **Trevor Lawrence** (QB) — week 25.6058 — WATCH_ONLY
+- **Trevor Lawrence** (QB) — week 25.4518 — WATCH_ONLY
 - **Dak Prescott** (QB) — week 22.0888 — WATCH_ONLY
-- **Aaron Rodgers** (QB) — week 21.0564 — WATCH_ONLY
-- **J.J. McCarthy** (QB) — week 19.4848 — WATCH_ONLY
-- **Geno Smith** (QB) — week 19.4738 — WATCH_ONLY
-- **Drew Lock** (QB) — week 19.221 — WATCH_ONLY
-- **Kirk Cousins** (QB) — week 17.775 — WATCH_ONLY
+- **Aaron Rodgers** (QB) — week 21.7594 — WATCH_ONLY
+- **Geno Smith** (QB) — week 19.777 — WATCH_ONLY
+- **J.J. McCarthy** (QB) — week 19.4662 — WATCH_ONLY
+- **Drew Lock** (QB) — week 18.715 — WATCH_ONLY
 - **Michael Penix Jr.** (QB) — week 17.4732 — WATCH_ONLY
+- **Kirk Cousins** (QB) — week 17.1874 — WATCH_ONLY
 
 ## Interpretation guardrails
 
