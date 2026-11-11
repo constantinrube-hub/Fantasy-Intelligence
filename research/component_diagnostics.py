@@ -319,7 +319,9 @@ def review(project, frozen, actual_dirs, output):
         key = cid, season, week; outcome = actual.get(key); pos = row['position_model']; model = row['model_id']
         if outcome is None or outcome['position_model'] != pos:
             missing += len(row['components']); continue
-        team = meta.get(cid, {}).get('team', 'UNKNOWN')
+        # A player with no team at freeze time (free agent, later signed) has team=None
+        # in the frozen metadata; None cannot be sorted with team strings (Week 10 crash).
+        team = meta.get(cid, {}).get('team') or 'UNKNOWN'
         observed_team = outcome.get('team') or actual_meta.get(key, {}).get('team')
         lead = fr['target_weeks'].index(week) + 1
         for component, pred in row['components'].items():
