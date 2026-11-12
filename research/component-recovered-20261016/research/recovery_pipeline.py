@@ -76,6 +76,39 @@ def prepare(root,bundle_path,through,training_dir=None,replay=False):
         off[club]=shrink([x for x in teamgames if x['team']==club],league);defense[club]=shrink([x for x in teamgames if x['opponent']==club],league)
     return bundle,data,entities,ps,lock,profile,owned,off,defense,pools,hist_refs,train
 
+def add_standin_kickers(es,ps,lock,training,contexts,fitted,stage,start):
+    """League-average stand-in kicker for a club without an available kicker (added 12 Nov 2026).
+
+    Week 10 2026: BAL's only kicker in the data, Tyler Loop, is on IR; Jake Moody kicks only as a
+    game-day practice-squad elevation and is on no roster between games. Every issuance then aborted
+    with NO_AVAILABLE_KICKER and no club got a forecast. For each club and target week in which the
+    club plays and has no available kicker, one stand-in entity carries the team's kicking:
+      - parameters: the frozen K prior with no player history (the model's own league-average prior);
+      - available only in those weeks (engine.available reads standin_weeks), so a real kicker is
+        always used whenever one exists, and the stand-in is credited nothing in other weeks;
+      - no fantasy positions and no Sleeper ID: never owned, never a league or waiver row;
+      - no outcome can match its ID, so grading never scores it.
+    Every other club is untouched; games draw from their own seeds, so their output is unchanged.
+    """
+    engine.configure(fitted,stage,{},start)
+    empty=pd.read_csv(training,nrows=0)  # same columns as the training table, no player history
+    added=[]
+    for club in sorted({e['team'] for e in es if e['team']}):
+        weeks=[w for w in range(start,start+3) if (w,club) in contexts and not any(
+            e['team']==club and e['position_model']=='K' and engine.available(e,w) for e in es)]
+        if not weeks:continue
+        cid='STANDIN_K_'+club
+        es.append({'canonical_player_id':cid,'current_roster_week':start,'depth_order':engine.num(None),'entry_season':None,
+                   'fantasy_positions':[],'gsis_id':None,'identity_status':'STANDIN_NO_AVAILABLE_KICKER',
+                   'injury_status':'','model_position':'K','name':club+' stand-in kicker (league-average prior)',
+                   'official_status':None,'position_model':'K','position_source_disagreement':False,'provider_injury':'',
+                   'provider_status':'STANDIN','sleeper_id':None,'snaps':{},'source_roster_status':'STANDIN','team':club,
+                   'standin_weeks':weeks})
+        ps[cid]=parameters(lock,empty,'K',MODELS[1])
+        added.append({'canonical_player_id':cid,'team':club,'weeks':weeks,'reason':'NO_AVAILABLE_KICKER'})
+        print('STANDIN_KICKER',club,weeks,flush=True)
+    return added
+
 def generate(output,bundle_path=None,fitted_path=None,start=6,stage=4,training_dir=None,replay=False,root=ROOT,game_limit=None):
     if not 1<=start<=16 or stage not in range(5):raise ValueError('INVALID_TARGET_WINDOW_OR_STAGE')
     output=root/output
@@ -90,12 +123,13 @@ def generate(output,bundle_path=None,fitted_path=None,start=6,stage=4,training_d
     if game_limit:games=games[:game_limit];contexts={k:v for k,v in contexts.items() if v['game_id'] in {g['game_id'] for g in games}}
     if not replay and (clock(now())>=clock(first[start]) or clock(bundle['observation_cutoff'])>=clock(first[start])):raise ValueError('PREGAME_ISSUANCE_REQUIRED_USE_REPLAY_FOR_AUDIT')
     if replay and (start!=6 or bundle_path!=JOINT/'observations/observation-bundle.json'):raise ValueError('ARCHIVED_REPLAY_ONLY_FOR_FROZEN_WINDOW')
+    standins=[] if replay else add_standin_kickers(es,ps,lock,training,contexts,fitted,stage,start)
     output.mkdir(parents=True,exist_ok=True);out=output/'issuance';out.mkdir();(out/'draws').mkdir()
     contracts=read(root/'config/contracts/runtime-contracts.json');old_profiles={p.stem:read(p) for p in (root/OLD/'profiles').glob('*.json')}
     model=f'RECOVERED_V2_STAGE_{stage}';groups={club:[e for e in es if e['team']==club] for club in off}
     writers={n:JsonLines(out/(n+'.jsonl.gz')) for n in ['weekly-components','weekly-league-scores','team-ledgers','allocation']};horizon=collections.defaultdict(lambda:np.zeros(engine.N));count=0;checks=0
     write(output/'entities.json',{'entities':es});write(output/'team-parameters.json',{'offense':off,'defense':defense})
-    write(output/'pipeline-lock.json',{'fitted_path':fitted_path.as_posix(),'fitted_sha256':sha(root/fitted_path),'bundle_path':bundle_path.as_posix(),'bundle_sha256':sha(root/bundle_path),'training_path':training.relative_to(root).as_posix(),'training_sha256':sha(training),'historical':hrefs,'stage':stage,'replay':replay,'target_weeks':list(range(start,start+3)),'source_version':fitted['version'],'original_WR_training_recovered':False})
+    write(output/'pipeline-lock.json',{'fitted_path':fitted_path.as_posix(),'fitted_sha256':sha(root/fitted_path),'bundle_path':bundle_path.as_posix(),'bundle_sha256':sha(root/bundle_path),'training_path':training.relative_to(root).as_posix(),'training_sha256':sha(training),'historical':hrefs,'stage':stage,'replay':replay,'target_weeks':list(range(start,start+3)),'source_version':fitted['version'],'original_WR_training_recovered':False,'standin_kickers':standins})
     def emit(e,week,samples,context=None):
         nonlocal count
         relevant={k:v for k,v in samples.items() if k.startswith('dst_')==(e['position_model']=='DEF')}

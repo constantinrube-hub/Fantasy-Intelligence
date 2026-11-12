@@ -84,6 +84,7 @@ def num(x):
 
 def available(e,week):
  if e['position_model']=='DEF':return True
+ if e.get('standin_weeks') is not None:return week in e['standin_weeks']  # stand-in kicker: only where the club has no kicker
  if not e['team']:return False
  if e['provider_injury'] in {'IR','PUP','SUSPENDED'} or e['source_roster_status'] in {'RES','PUP'}:return False
  if week==FIRST_WEEK and (e['provider_injury']=='OUT' or e['official_status']=='OUT'):return False
