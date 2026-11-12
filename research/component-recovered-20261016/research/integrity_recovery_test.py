@@ -60,4 +60,19 @@ class RecoveryTests(unittest.TestCase):
    lines(f/'forecasts.jsonl.gz',existing);(f/'profiles.json').write_text(json.dumps([{'league_id':'L','scoring_settings':{'pass_yd':.04,'pass_td':4}}]));receipt={'models':['A','B','SLEEPER_EXPLICIT_FIELDS'],'target_weeks':[6,7,8],'artifacts':{}}
    receipt['artifacts']={p.relative_to(r).as_posix():sha(p) for p in f.glob('*') if p.name!='freeze-receipt.json'};(f/'freeze-receipt.json').write_text(json.dumps(receipt))
    result=review(Path('freeze'),[Path('actual')],Path('review'),r);sc=list(rows(r/'review/league-errors.jsonl.gz'));self.assertTrue(sc);self.assertTrue(all(x.get('score_scope')=='SLEEPER_MATCHED_COMPONENT_SUBTOTAL' and x['scoring_keys']==['pass_yd'] for x in sc));self.assertTrue(all(x['covered_rule_count']==1 and x['full_rule_count']==2 for x in sc))
+ def test_standin_kicker_only_where_club_has_no_available_kicker(self):
+  # 12 Nov 2026: BAL's only kicker was on IR (Moody kicks via game-day elevation only) -> NO_AVAILABLE_KICKER aborted every issuance.
+  import recovery_pipeline as rp
+  with tempfile.TemporaryDirectory() as d:
+   t=Path(d)/'training-2026.csv.gz';import pandas as pd;pd.DataFrame({'canonical_player_id':['x'],'week':[1],'week_state':['COMPLETED_GAME'],'stat_activity':[1]}).to_csv(t,index=False)
+   es=[self.entity('loop','K',team='BAL',provider_injury='IR'),self.entity('tucker','K',team='KC'),self.entity('wr','WR',team='BAL')]
+   ps={e['canonical_player_id']:{'components':{}} for e in es};calls=[]
+   old=rp.parameters;rp.parameters=lambda lock,history,position,model:calls.append((len(history),position)) or {'components':{'prior':True}}
+   try:added=rp.add_standin_kickers(es,ps,{'training_through_week':9},t,{(10,'BAL'):{},(12,'BAL'):{},(10,'KC'):{},(11,'KC'):{}},{},0,10)
+   finally:rp.parameters=old
+  self.assertEqual(added,[{'canonical_player_id':'STANDIN_K_BAL','team':'BAL','weeks':[10,12],'reason':'NO_AVAILABLE_KICKER'}])
+  s=es[-1];self.assertEqual((s['team'],s['model_position'],s['fantasy_positions'],s['sleeper_id']),('BAL','K',[],None))
+  self.assertEqual(calls,[(0,'K')]);self.assertEqual(ps['STANDIN_K_BAL'],{'components':{'prior':True}})
+  self.assertEqual([available(s,w) for w in (10,11,12)],[True,False,True])
+  self.assertTrue(available(es[1],10));self.assertFalse(available(es[0],10))
 if __name__=='__main__':unittest.main()
