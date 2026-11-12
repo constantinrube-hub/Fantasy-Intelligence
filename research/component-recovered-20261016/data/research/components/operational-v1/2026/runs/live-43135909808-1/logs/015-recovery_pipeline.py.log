@@ -1,0 +1,24 @@
+GENERATED 2026_10_WAS_NYG 0
+GENERATED 2026_10_NE_DET 0
+GENERATED 2026_10_KC_ATL 0
+GENERATED 2026_10_HOU_CLE 0
+GENERATED 2026_10_MIN_GB 0
+GENERATED 2026_10_MIA_IND 0
+GENERATED 2026_10_CAR_NO 0
+GENERATED 2026_10_BUF_NYJ 0
+GENERATED 2026_10_JAX_TEN 0
+GENERATED 2026_10_LA_ARI 0
+GENERATED 2026_10_SEA_LV 0
+GENERATED 2026_10_SF_DAL 0
+GENERATED 2026_10_PIT_CIN 0
+Traceback (most recent call last):
+  File "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/research/component-recovered-20261016/research/recovery_pipeline.py", line 134, in <module>
+    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--bundle',type=Path);p.add_argument('--fitted',type=Path);p.add_argument('--start-week',type=int,default=6);p.add_argument('--stage',type=int,default=4);p.add_argument('--training-dir',type=Path);p.add_argument('--replay',action='store_true');p.add_argument('--game-limit',type=int);a=p.parse_args();generate(a.output,a.bundle,a.fitted,a.start_week,a.stage,a.training_dir,a.replay,game_limit=a.game_limit)
+                                                                                                                                                                                                                                                                                                                                                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/research/component-recovered-20261016/research/recovery_pipeline.py", line 115, in generate
+    arrays[club],ledgers[club],dw[club]=engine.team_events(rng,groups[club],ps,lock,week,off[club],defense[opp],pools,pace);ledgers[club]['week']=week
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/research/component-recovered-20261016/research/recovery_engine.py", line 177, in team_events
+    if not kicker:raise ValueError('NO_AVAILABLE_KICKER')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: NO_AVAILABLE_KICKER
