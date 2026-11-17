@@ -44,12 +44,18 @@ jobs:
           python-version: '3.12'
       - run: pip install -r research/requirements.txt
       - name: Validate frozen research and source boundaries without network
-        run: python research/integrity_week6_evidence_preparation_test.py
+        run: |
+          python research/integrity_week6_evidence_preparation_test.py
+          python -I -B research/integrity_prep_storage_policy_test.py
       - name: Capture exact responses and prepare research evidence
         env:
           INPUT_MODE: ${{ inputs.mode }}
           INPUT_SEASON: ${{ inputs.season }}
           INPUT_WEEK: ${{ inputs.week }}
+          # Storage policy 2026-11-15: stop waiver-expanded and the heavy weekly-preparation products.
+          # weekly-sources, waiver-v2, auction-history and the research view keep running. Set to '0' to undo.
+          FIE_PREP_SKIP_EXPANDED: '1'
+          FIE_PREP_SKIP_HEAVY_PRODUCTS: '1'
         shell: bash
         run: |
           args=(--season "$INPUT_SEASON" --mode "$INPUT_MODE")

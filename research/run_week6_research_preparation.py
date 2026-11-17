@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse
 import json
+import os
 from pathlib import Path
 from prospective_research_io import binding, clock, encoded, gates, now, replay_response, write
 from capture_week6_research_sources import capture, resolve_target, validate_manifest
@@ -12,6 +13,29 @@ from waiver_v2_prospective import ROOT
 from prepare_weekly_research_context import build as context
 from prepare_league_research_evidence import build as league_evidence
 from prepare_weekly_report_products import preparation, markdown
+
+# Storage policy (2026-11-15, decision 1 of FIE_DEEP_DIVE_AND_OFFSEASON_PLAN_2026-11-14.md).
+# Both switches default to off, so tests and manual runs behave exactly as before.
+#   FIE_PREP_SKIP_EXPANDED=1        skip the waiver-expanded branch (history, forecasts, evaluation, readiness)
+#   FIE_PREP_SKIP_HEAVY_PRODUCTS=1  skip scenario_inputs, football_context and seven_report_products, and
+#                                   record stage results in cycle.json as a digest instead of inline copies
+# raw_sources (weekly-sources), auction_history, scenario_readiness, league_evidence (needed by the specialist
+# freeze), waiver-v2, weekly_model_outcomes, readiness_ledger and the read-only research view are unchanged.
+HEAVY_PRODUCTS = frozenset({'scenario_inputs', 'football_context', 'seven_report_products'})
+
+
+def _flag(name):
+    return os.environ.get(name, '').strip() == '1'
+
+
+def storage_policy():
+    return {'skip_expanded': _flag('FIE_PREP_SKIP_EXPANDED'), 'skip_heavy_products': _flag('FIE_PREP_SKIP_HEAVY_PRODUCTS')}
+
+
+def _digest(value):
+    import hashlib
+    raw = encoded(value)
+    return {'inline_omitted': True, 'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw)}
 
 
 def expanded_readiness_ledger(root,season,week,capture_path):
@@ -30,10 +54,13 @@ def expanded_readiness_ledger(root,season,week,capture_path):
 def run(root,season,week=None,mode='capture',envelope=None,completed_week=None):
     if completed_week is not None and (mode!='evaluate' or week!=18 or completed_week!=18):
         raise ValueError('LOCAL_CLOSEOUT_REQUIRES_EXPLICIT_WEEK18_COMPLETED18')
-    stages=[];started=now()
+    stages=[];started=now();policy=storage_policy()
     def stage(name,fn):
         try:
-            value=fn();stages.append({'name':name,'status':'PRODUCED','result':str(value) if isinstance(value,Path) else value});return value
+            value=fn()
+            result=str(value) if isinstance(value,Path) else value
+            if policy['skip_heavy_products'] and isinstance(result,(dict,list)):result=_digest(result)
+            stages.append({'name':name,'status':'PRODUCED','result':result});return value
         except (ValueError,KeyError,TypeError,OSError,AssertionError) as error:
             stages.append({'name':name,'status':'BLOCKED','reason':type(error).__name__+':'+str(error)[:500]});return None
     if envelope:
@@ -52,6 +79,8 @@ def run(root,season,week=None,mode='capture',envelope=None,completed_week=None):
         for name,fn in [('scenario_readiness',lambda:scenario_readiness(root,season=season,week=week,as_of=now())),
                         ('scenario_inputs',lambda:scenario_inputs(root,envelope)),('football_context',lambda:context(root,envelope)),('league_evidence',lambda:league_evidence(root,envelope)),
                         ('seven_report_products',lambda:preparation(root,season,week,now()))]:
+            if policy['skip_heavy_products'] and name in HEAVY_PRODUCTS:
+                stages.append({'name':name,'status':'SKIPPED_BY_POLICY','reason':'FIE_PREP_SKIP_HEAVY_PRODUCTS'});continue
             value=stage(name,fn)
             if value is not None:
                 write(base/(name+'.json'),value)
@@ -80,7 +109,9 @@ def run(root,season,week=None,mode='capture',envelope=None,completed_week=None):
             owner_review=stage('weekly_model_outcomes',lambda:weekly_model_outcomes(root,season,completed_week or week-1))
             if owner_review:write(base/'weekly_model_outcomes.json',owner_review)
         expanded_capture=None;expanded_readiness=None
-        if (root/'config/waiver-v2-expanded-scope.json').is_file():
+        if policy['skip_expanded']:
+            stages.append({'name':'expanded_exact_history','status':'SKIPPED_BY_POLICY','reason':'FIE_PREP_SKIP_EXPANDED'})
+        elif (root/'config/waiver-v2-expanded-scope.json').is_file():
             from waiver_v2_expanded_runtime import prepare as expanded_prepare,publish as expanded_publish
             expanded_history=stage('expanded_exact_history',lambda:expanded_prepare(root,envelope,root/f'data/research/prospective/waiver-expanded/history/{season}/week_{week:02d}/{stamp}',completed_week=completed_week if mode=='evaluate' else None))
             expanded_capture=root/f'data/research/prospective/waiver-expanded/forecasts/{season}/week_{week:02d}/capture.json'
@@ -101,14 +132,18 @@ def run(root,season,week=None,mode='capture',envelope=None,completed_week=None):
     else:
         stages.append({'name':'normalized_research','status':'BLOCKED','reason':'NO_VALID_RAW_RESPONSES'})
     produced=sum(s['status']=='PRODUCED' for s in stages)
+    blocked=sum(s['status']=='BLOCKED' for s in stages);skipped=sum(s['status']=='SKIPPED_BY_POLICY' for s in stages)
     # Reports, calibration and scientific eligibility remain incomplete even
     # when capture mechanics succeed. Do not report a complete research cycle.
     status='PARTIAL' if produced else 'BLOCKED'
     report={'schema':'fie-week6-research-preparation-cycle-v1','season':season,'week':week,'mode':mode,
             'started_at':started,'completed_at':now(),'stages':stages,
             'source_envelope':binding(root,envelope,source['captured_at']) if source else None,
-            'operational_readiness':{'status':status,'counts':{'produced_stages':produced,'blocked_stages':len(stages)-produced}},
+            'operational_readiness':{'status':status,'counts':{'produced_stages':produced,'blocked_stages':blocked}},
             **gates(['BLOCKED_PER_PRODUCT_AND_MODEL_VALIDATION_REQUIRED'])}
+    if any(policy.values()):
+        # Only when a switch is on, so the cycle report is byte-for-byte unchanged otherwise.
+        report['operational_readiness']['counts']['skipped_stages']=skipped;report['storage_policy']=policy
     path=base/'cycle.json';write(path,report)
     index=root/'.cache/week6-preparation-index.json';index.parent.mkdir(parents=True,exist_ok=True)
     index.write_bytes(encoded({'report_json':path.relative_to(root).as_posix()}))

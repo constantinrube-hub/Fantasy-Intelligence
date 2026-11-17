@@ -1,3 +1,30 @@
+# Research operations · storage policy for the weekly research preparation, 2026-11-15
+
+Decision 1 of `FIE_DEEP_DIVE_AND_OFFSEASON_PLAN_2026-11-14.md` (project docs): stop the two stores that grew by about
+1.3 GB a week and that no model, workflow or app view reads. No model, scoring, projection, app, governance or
+forecast-content change.
+
+- **`research/run_week6_research_preparation.py`**: two environment switches, both off by default (output is byte-for-byte
+  unchanged when off).
+  - `FIE_PREP_SKIP_EXPANDED=1` skips the waiver-expanded branch (history, forecasts, evaluation, expanded readiness).
+    The read-only research view then binds only the waiver-v2 capture.
+  - `FIE_PREP_SKIP_HEAVY_PRODUCTS=1` skips `scenario_inputs`, `football_context` and `seven_report_products`, and
+    `cycle.json` records each stage result as a SHA-256 digest instead of an inline copy (it was ~19 MB per run).
+  - Skipped stages are reported as `SKIPPED_BY_POLICY`; when a switch is on, the report adds `skipped_stages` and
+    `storage_policy`. `blocked_stages` now counts BLOCKED stages explicitly (identical to before when nothing is skipped).
+  - Unchanged: raw sources (`weekly-sources`, read by the weekly lab freeze), `auction-history`, `scenario_readiness`,
+    `league_evidence` and the specialist freeze, waiver-v2 history/forecast/evaluation, `weekly_model_outcomes`,
+    `readiness_ledger`, the research view.
+- **`.github/workflows/_fie-week6-research-preparation.yml`**: both switches set to `'1'` for capture and evaluate runs;
+  runs the new test before the capture. Undo: set them to `'0'`.
+- **New test** `research/integrity_prep_storage_policy_test.py` (stubbed, no network): switches off = unchanged file
+  set and report keys; each switch stops exactly its outputs; raw capture, waiver-v2 and auction history still run.
+  Fails on the previous script.
+- **`config/build-manifest.json`, `dist/config/build-manifest.json`**: hashes of the two changed files updated
+  (`week6_research_runner`, `week6_research_reusable_workflow`), so the release gate stays green without a dist rebuild.
+- Existing files under `waiver-expanded/` and `weekly-preparation/` are untouched; their removal belongs to the
+  off-season storage migration.
+
 # Research operations · component gate window and monitor coverage, 2026-10-30
 
 Readiness item c1 (`FIE_RESEARCH_ENGINE_OVERHAUL_REVIEW_2026-10-26.md` §5.7 P1 and P2). No model, scoring, projection,
