@@ -29,6 +29,30 @@ def tracked_inbound_references(source: str) -> list[str]:
     return result.stdout.splitlines()
 
 
+def manifest_references(manifest: str, source: str) -> bool:
+    """Target-mode check that a tracked historical manifest still names a retained source path.
+
+    Same result as `any(line.startswith(f"{manifest}:") for line in tracked_inbound_references(source))`
+    (the manifest is tracked, is not the source itself, and contains the source basename), but reads the
+    one manifest instead of running `git grep` over every tracked file. Added 2026-11-17: about 95 % of
+    tracked files are research data under data/, and four full-tree greps exceeded the release gate's
+    90-second limit from 11 Nov 2026 on, which blocked every current-season refresh. Preflight mode keeps
+    the full-tree search, because there the point is to find unexpected references anywhere.
+    """
+    if manifest == source:
+        return False
+    tracked = subprocess.run(
+        ["git", "ls-files", "--error-unmatch", "--", manifest],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    if tracked.returncode != 0:
+        return False
+    return Path(source).name in (ROOT / manifest).read_text(encoding="utf-8", errors="replace")
+
+
 def renamed_at_preflight(source: str, destination: str) -> bool:
     result = subprocess.run(
         [
@@ -121,7 +145,10 @@ def main() -> None:
         manifest = row["tracked_historical_manifest"]
         assert (ROOT / source).is_file(), source
         assert (ROOT / manifest).is_file(), manifest
-        assert any(line.startswith(f"{manifest}:") for line in tracked_inbound_references(source)), row
+        if args.mode == "target":
+            assert manifest_references(manifest, source), row
+        else:
+            assert any(line.startswith(f"{manifest}:") for line in tracked_inbound_references(source)), row
         if args.mode == "target":
             unchanged = subprocess.run(
                 ["git", "diff", "--quiet", "0f9390bcdb2b3630c5e9ad41902edbf1c6800622", "HEAD", "--", source],

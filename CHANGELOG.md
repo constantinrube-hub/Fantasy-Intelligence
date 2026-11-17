@@ -1,3 +1,23 @@
+# Research operations · release gate: Tranche 5D target check no longer scans the whole repository, 2026-11-17
+
+Every scheduled "Refresh FIE Current Season" run failed from 11 Nov 2026 (23:27 UTC) on: `tools/release_build.py`
+stops when `research/release_gate.py` fails, and the gate's check
+`research/integrity_tranche5d_documentation_cleanup.py --mode target` hit its 90-second limit (run 43990563828:
+`"timeout": true`). In target mode the check ran `git grep` over every tracked file four times, once per retained
+record, only to confirm that a root-level historical manifest still names the record's path. About 95 % of tracked
+files (64,089 of 67,378) are research data under `data/`, which grows every week. No model, scoring, projection,
+app, governance or forecast-content change.
+
+- **`research/integrity_tranche5d_documentation_cleanup.py`**: new `manifest_references(manifest, source)` for target
+  mode. It reads the one manifest instead of searching the tree. It returns the same answer as before: the manifest is
+  tracked, is not the source itself, and contains the source basename. Checked on all 4 retained records plus
+  4 negative cases (wrong manifest, untracked manifest, manifest = source), and the script's target-mode
+  output is byte-identical. Preflight mode keeps the full-tree `git grep`, which is what it is for.
+- **`config/build-manifest.json`, `dist/config/build-manifest.json`**: hash and size of the changed file updated
+  (`documentation_cleanup_integrity`), so `integrity_build_manifest_test.py` stays green without a dist rebuild.
+- Runtime on a checkout without `data/`: 0.57 s before, 0.16 s after. On the full checkout the change removes the
+  only full-tree scan in the gate.
+
 # UI v10 · default switch, 2026-11-15
 
 Decision 3 of `FIE_DEEP_DIVE_AND_OFFSEASON_PLAN_2026-11-14.md`; readiness item ui1.
