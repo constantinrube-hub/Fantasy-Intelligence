@@ -1,6 +1,6 @@
 # FIE Window 1D Waiver Plan · Week 11
 
-Generated: `2026-11-18T14:57:20.532564+00:00`
+Generated: `2026-11-19T00:28:41.907455+00:00`
 
 Research-only decision support. M9 production and canonical rankings are unchanged.
 
@@ -20,7 +20,7 @@ Portfolio readiness is not proof of model activation, complete position coverage
 
 ### Chopped - Drive 🏉 Football League · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.838 h**.
+Input week: **11**; target: **11**; snapshot age: **0.948 h**.
 Governed waiver eligible rows: **381**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -34,11 +34,21 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Luther Burden III | 107.0 · Maxmalstift | — | — | WINNER_ONLY_OBSERVED |
+| Jordan Mason | 0.0 · Pilot1860 | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### 🪓 MinusPPR Knockout · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.51 h**.
+Input week: **11**; target: **11**; snapshot age: **0.548 h**.
 Governed waiver eligible rows: **135**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -52,11 +62,21 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Stefon Diggs | 0.0 · HansPeterOrding | — | — | WINNER_ONLY_OBSERVED |
+| Garrett Wilson | — | — | 17.0 · HansPeterOrding | FAILED_CLAIMS_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Guillotine - last team standing · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.46 h**.
+Input week: **11**; target: **11**; snapshot age: **0.484 h**.
 Governed waiver eligible rows: **381**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -74,7 +94,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### The Hunger Games · CHOPPED · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.409 h**.
+Input week: **11**; target: **11**; snapshot age: **0.42 h**.
 Governed waiver eligible rows: **381**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -92,7 +112,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Ultimate ITN Chopped League · CHOPPED · NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY
 
-Input week: **11**; target: **11**; snapshot age: **0.359 h**.
+Input week: **11**; target: **11**; snapshot age: **0.357 h**.
 Governed waiver eligible rows: **381**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -110,7 +130,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY
 
 ### 🪓 The Final Cut · CHOPPED · NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY
 
-Input week: **11**; target: **11**; snapshot age: **0.333 h**.
+Input week: **11**; target: **11**; snapshot age: **0.326 h**.
 Governed waiver eligible rows: **381**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -123,12 +143,25 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 | TE | 0 | fum_rec_td, st_ff, st_fum_rec, st_td | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Brock Bowers | — | — | 33.0 · joker1411 | FAILED_CLAIMS_ONLY_OBSERVED |
+| Rome Odunze | — | — | 16.0 · joker1411 | FAILED_CLAIMS_ONLY_OBSERVED |
+| Ladd McConkey | — | — | 0.0 · KruppasCowboys, 0.0 · KruppasCowboys | FAILED_CLAIMS_ONLY_OBSERVED |
+| Carnell Tate | 0.0 · KruppasCowboys | — | 0.0 · KruppasCowboys | PARTIAL_OBSERVED |
+| David Montgomery | 31.0 · Deckhard | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
 
 No bid recommendation produced. Reason: `NOT_APPLICABLE_ELIMINATED_RESEARCH_ONLY`
 
 ### 🪓 Among Us Guillotine 3 · CHOPPED_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.308 h**.
+Input week: **11**; target: **11**; snapshot age: **0.295 h**.
 Governed waiver eligible rows: **381**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -142,11 +175,22 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Luther Burden III | 66.0 · NFLDirk | — | — | WINNER_ONLY_OBSERVED |
+| Ashton Jeanty | — | — | 3.0 · T23Perle | FAILED_CLAIMS_ONLY_OBSERVED |
+| Jonathan Taylor | — | — | 69.0 · NFLDirk | FAILED_CLAIMS_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Dynasty 29 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.863 h**.
+Input week: **11**; target: **11**; snapshot age: **0.979 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -164,7 +208,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### ReDraft – Pro 🎯 XVI Football  · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.812 h**.
+Input week: **11**; target: **11**; snapshot age: **0.917 h**.
 Governed waiver eligible rows: **544**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -178,11 +222,26 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Jalon Daniels | — | — | 3.0 · SerSch | FAILED_CLAIMS_ONLY_OBSERVED |
+| Austin Ekeler | — | — | 0.0 · fapl | FAILED_CLAIMS_ONLY_OBSERVED |
+| Justin Herbert | 17.0 · SerSch | — | — | WINNER_ONLY_OBSERVED |
+| Dontayvion Wicks | — | — | 0.0 · fapl | FAILED_CLAIMS_ONLY_OBSERVED |
+| CHI D/ST | — | — | 0.0 · fapl, 0.0 · Robin050192 | FAILED_CLAIMS_ONLY_OBSERVED |
+| CIN D/ST | — | — | 0.0 · fapl | FAILED_CLAIMS_ONLY_OBSERVED |
+| NYJ D/ST | 0.0 · fapl | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Dynasty - Prime 💎 XVI Football  · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.786 h**.
+Input week: **11**; target: **11**; snapshot age: **0.885 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -200,7 +259,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### BestBall - Pro 🎖️XVI League · REDRAFT_BESTBALL · NOT_APPLICABLE_ADDS_DISABLED
 
-Input week: **11**; target: **11**; snapshot age: **0.761 h**.
+Input week: **11**; target: **11**; snapshot age: **0.854 h**.
 Governed waiver eligible rows: **544**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -218,7 +277,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ADDS_DISABLED`
 
 ### BestBall - Prime 🏆 XVI League · REDRAFT_BESTBALL · NOT_APPLICABLE_ADDS_DISABLED
 
-Input week: **11**; target: **11**; snapshot age: **0.735 h**.
+Input week: **11**; target: **11**; snapshot age: **0.823 h**.
 Governed waiver eligible rows: **544**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -236,7 +295,7 @@ No bid recommendation produced. Reason: `NOT_APPLICABLE_ADDS_DISABLED`
 
 ### Crazy tryhards · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.71 h**.
+Input week: **11**; target: **11**; snapshot age: **0.792 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -254,7 +313,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Genesis Dynasty - sixteen now & for the future · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.684 h**.
+Input week: **11**; target: **11**; snapshot age: **0.76 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -268,11 +327,20 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Cairo Santos | 0.0 · ponass06 | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack IDP Dynasty 39 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.659 h**.
+Input week: **11**; target: **11**; snapshot age: **0.729 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -290,7 +358,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball Dynasty 4 · DYNASTY_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.633 h**.
+Input week: **11**; target: **11**; snapshot age: **0.697 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -308,7 +376,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Dynasty 30 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.609 h**.
+Input week: **11**; target: **11**; snapshot age: **0.668 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -322,11 +390,21 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Josh Cuevas | 0.0 · SeahawksHermann | — | — | WINNER_ONLY_OBSERVED |
+| Josh Cameron | 1.0 · MrPril21 | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball Dynasty 3 · DYNASTY_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.584 h**.
+Input week: **11**; target: **11**; snapshot age: **0.638 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -339,12 +417,23 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 | TE | 0 | fum | CURRENT_SCORING_UNSUPPORTED, CURRENT_M5_POSITION_GATE_OFF, CURRENT_M5_FORMAT_GATE_OFF |
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
+
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Xavier Hutchinson | 0.0 · elpresidente84 | — | — | WINNER_ONLY_OBSERVED |
+| Laquon Treadwell | — | — | 0.0 · elpresidente84 | FAILED_CLAIMS_ONLY_OBSERVED |
+| Kayshon Boutte | — | — | 0.0 · elpresidente84 | FAILED_CLAIMS_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
 
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Stoned Lack Bestball 2 · DYNASTY_BESTBALL · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.56 h**.
+Input week: **11**; target: **11**; snapshot age: **0.608 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -358,11 +447,24 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Xavier Hutchinson | 20.0 · GoPats1992 | — | — | WINNER_ONLY_OBSERVED |
+| Brevyn Spann-Ford | — | — | 20.0 · GoPats1992 | FAILED_CLAIMS_ONLY_OBSERVED |
+| Elic Ayomanor | 20.0 · GoPats1992 | — | — | WINNER_ONLY_OBSERVED |
+| Tommy Tremble | 20.0 · GoPats1992 | — | — | WINNER_ONLY_OBSERVED |
+| Zonovan Knight | 20.0 · GoPats1992 | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
 No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### Genesis NFL GM League Dynasty 2025 4 · DYNASTY · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.536 h**.
+Input week: **11**; target: **11**; snapshot age: **0.579 h**.
 Governed waiver eligible rows: **0**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -380,7 +482,7 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### German Football League · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.485 h**.
+Input week: **11**; target: **11**; snapshot age: **0.516 h**.
 Governed waiver eligible rows: **544**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
@@ -398,8 +500,8 @@ No bid recommendation produced. Reason: `BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS`
 
 ### SLR2026 - Liga 38 · REDRAFT · READY
 
-Input week: **11**; target: **11**; snapshot age: **0.435 h**.
-Governed waiver eligible rows: **644**.
+Input week: **11**; target: **11**; snapshot age: **0.453 h**.
+Governed waiver eligible rows: **642**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
 
@@ -412,24 +514,26 @@ Offensive waiver coverage (source rows; current local gate diagnostics):
 
 Local M5 checks do not replay the original capture or authorize new forecasts. Player ownership, roster legality and live budgets remain separate checks.
 
-FAAB remaining: **69.0 / 100.0**
+#### Observed target-week bid ledger
+
+| Player | Winner | Your observed claim(s) | Other observed failed claims | Visibility |
+|---|---|---|---|---|
+| Emari Demercado | 1.0 · C0nstant1n | 1.0 (complete) | — | WINNER_ONLY_OBSERVED |
+| DET D/ST | 1.0 · RatloseRaiders | — | — | WINNER_ONLY_OBSERVED |
+
+Only claims exposed by Sleeper are shown. Missing claims and private bids remain unknown, and target-week results are excluded from their own recommendation model.
+
+
+FAAB remaining: **68.0 / 100.0**
 
 | Player | Pos | Add→Drop signal | Bid | Range | Win P | Confidence |
 |---|---:|---:|---:|---:|---:|---|
-| Harrison Butker | K | 1.396325 | 3 | 1–11 | 0.931034 | HIGH |
-| Justin Tucker | K | 1.396325 | 3 | 1–11 | 0.931034 | HIGH |
-| LAC D/ST | DEF | 1.0089 | 2 | 2–9 | 0.914286 | HIGH |
-| Cairo Santos | K | 0.9754 | 3 | 1–8 | 0.931034 | HIGH |
-| DEN D/ST | DEF | 0.9638 | 2 | 2–9 | 0.914286 | HIGH |
-| Wil Lutz | K | 0.9302 | 3 | 1–8 | 0.931034 | HIGH |
-| Cameron Dicker | K | 0.8643 | 3 | 1–8 | 0.931034 | HIGH |
-| Jake Moody | K | 0.6326 | 1 | 1–4 | 0.896552 | HIGH |
-| Nick Folk | K | 0.6326 | 1 | 1–4 | 0.896552 | HIGH |
-| Lenny Krieg | K | 0.6105 | 1 | 1–4 | 0.896552 | HIGH |
+| Harrison Butker | K | 0.022 | 7 | 1–11 | 0.970674 | HIGH |
+| Justin Tucker | K | 0.022 | 7 | 1–11 | 0.970674 | HIGH |
 
 ### AEF - FFLeague · REDRAFT · BLOCKED_NO_ELIGIBLE_WAIVER_PROJECTIONS
 
-Input week: **11**; target: **11**; snapshot age: **0.384 h**.
+Input week: **11**; target: **11**; snapshot age: **0.389 h**.
 Governed waiver eligible rows: **544**.
 
 Offensive waiver coverage (source rows; current local gate diagnostics):
