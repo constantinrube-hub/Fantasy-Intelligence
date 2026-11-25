@@ -22,7 +22,7 @@
       "sha256": "7cff476b170d963d7afbfbafd1abdac1c3f1197d616a2958ab3e96bb4ae25c9f"
     }
   },
-  "generated_at": "2026-11-25T01:56:55.229421+00:00",
+  "generated_at": "2026-11-25T16:08:15.183375+00:00",
   "status": "complete",
   "season": 2026,
   "week": 12,
@@ -211,7 +211,7 @@
         "trade_review_days": 0,
         "bench_lock": 1,
         "offseason_adds": 1,
-        "leg": 11,
+        "leg": 12,
         "daily_waivers_base": 4,
         "reserve_slots": 4,
         "reserve_allow_cov": 1,
@@ -407,19 +407,19 @@
       }
     ],
     "advanced_coverage": {
-      "pfr_passing_drop_pct": 0.03104330187847253,
-      "pfr_passing_bad_throw_pct": 0.03104330187847253,
-      "pfr_times_sacked": 0.03104330187847253,
-      "pfr_times_blitzed": 0.03104330187847253,
-      "pfr_times_hurried": 0.03104330187847253,
-      "pfr_times_hit": 0.03104330187847253,
-      "pfr_times_pressured": 0.03104330187847253,
-      "pfr_times_pressured_pct": 0.03104330187847253,
-      "pfr_receiving_drop": 0.21227621483375958,
-      "pfr_receiving_drop_pct": 0.21227621483375958,
-      "pfr_def_times_blitzed": 0.3694329305935268,
-      "pfr_def_times_hurried": 0.3694329305935268,
-      "pfr_def_times_hitqb": 0.3694329305935268
+      "pfr_passing_drop_pct": 0.033512655436987386,
+      "pfr_passing_bad_throw_pct": 0.033512655436987386,
+      "pfr_times_sacked": 0.033512655436987386,
+      "pfr_times_blitzed": 0.033512655436987386,
+      "pfr_times_hurried": 0.033512655436987386,
+      "pfr_times_hit": 0.033512655436987386,
+      "pfr_times_pressured": 0.033512655436987386,
+      "pfr_times_pressured_pct": 0.033512655436987386,
+      "pfr_receiving_drop": 0.22832701296410618,
+      "pfr_receiving_drop_pct": 0.22832701296410618,
+      "pfr_def_times_blitzed": 0.39730134932533734,
+      "pfr_def_times_hurried": 0.39730134932533734,
+      "pfr_def_times_hitqb": 0.39730134932533734
     },
     "completed_weeks": [
       1,
@@ -436,37 +436,60 @@
     ]
   },
   "sleeper_archive": {
-    "written": false,
-    "skipped": true,
-    "season": 2026,
-    "week": 12,
-    "pregame_eligible": false,
     "capture_policy_version": 2,
-    "season_type": "regular",
     "capture_window_hours": 18.0,
+    "captured_at": "2026-11-25T09:14:37.735116+00:00",
     "first_kickoff_utc": "2026-11-26T01:00:00+00:00",
-    "hours_before_kickoff": 23.051306,
-    "reason": "before_capture_window"
+    "first_write_policy": true,
+    "hours_before_kickoff": 15.756466,
+    "path": "data/research/market/sleeper/2026/week_12.jsonl.gz",
+    "point_in_time_metadata": {
+      "as_of_semantics": "provider response observed and immutably first-written at captured_at; never reconstructed later",
+      "capture_intent": "prospective_weekly_market_benchmark",
+      "release_cadence": "verified pregame scheduled capture",
+      "revision_metadata_status": "NOT_EXPOSED_BY_PROVIDER",
+      "schema": "fie-point-in-time-source-metadata-v1",
+      "source_endpoint": "https://api.sleeper.com/projections/nfl/2026/12?season_type=regular",
+      "source_release_identifier": null,
+      "source_revision_identifier": null
+    },
+    "pregame_eligible": true,
+    "reason": "timing_verified",
+    "rows": 9422,
+    "season": 2026,
+    "season_type": "regular",
+    "sha256": "b7512346e4bd9c7c9fac0c9ebf2c37a2550948dd702276609a7154ee6a2df9fb",
+    "source": "Sleeper projection endpoint",
+    "week": 12,
+    "written": false,
+    "first_write": true,
+    "manifest": "data/research/market/sleeper/manifest.json"
   },
   "sleeper_baseline_receipt": {
     "schema": "fie-sleeper-baseline-source-receipt-v1",
     "season": 2026,
     "week": 12,
-    "source_observed_at": "2026-11-25T01:58:26.300037+00:00",
+    "source_observed_at": "2026-11-25T16:09:46.028107+00:00",
     "scoring_signature": "0b264245218667cd",
-    "status": "ARCHIVE_MISSING"
+    "status": "ARCHIVED_PROJECTION_STATS_DIFFER",
+    "archive_sha256": "b7512346e4bd9c7c9fac0c9ebf2c37a2550948dd702276609a7154ee6a2df9fb",
+    "archive_captured_at": "2026-11-25T09:14:37.735116+00:00",
+    "archive_stats_sha256": "06f269cad77c3f4adb3007d5c273e6be7788aea7571762d3c7454a996f3ca9fa",
+    "refresh_stats_sha256": "874045072be214c9021d4b41d85724e1e9f7ea163b108141fee0123dda0cd6d1",
+    "archive_player_count": 9422,
+    "refresh_player_count": 9422
   },
   "kickoff": {
     "first_kickoff_utc": "2026-11-26T01:00:00+00:00",
-    "capture_pregame_eligible": false,
+    "capture_pregame_eligible": true,
     "capture_policy": {
       "capture_policy_version": 2,
       "season_type": "regular",
       "capture_window_hours": 18.0,
       "first_kickoff_utc": "2026-11-26T01:00:00+00:00",
-      "hours_before_kickoff": 23.051306,
-      "pregame_eligible": false,
-      "reason": "before_capture_window"
+      "hours_before_kickoff": 8.86243,
+      "pregame_eligible": true,
+      "reason": "timing_verified"
     }
   },
   "guardrails": [
@@ -483,8 +506,8 @@
   ],
   "storage": {
     "format": "fie-current-split-v1",
-    "player_base": "data/research/shared/current/player_base.8979b825bf499808.json",
-    "scoring_overlay": "data/research/shared/current/scoring/0b264245218667cd.807bf6dc153c51dd.json",
+    "player_base": "data/research/shared/current/player_base.5333d3472891bca6.json",
+    "scoring_overlay": "data/research/shared/current/scoring/0b264245218667cd.af47910008600f53.json",
     "player_count": 10698,
     "excluded_player_ids": [
       "17",
