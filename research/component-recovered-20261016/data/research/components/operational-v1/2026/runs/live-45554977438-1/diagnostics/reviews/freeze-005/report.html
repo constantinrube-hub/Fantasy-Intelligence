@@ -1,0 +1,3102 @@
+<!doctype html><meta charset="utf-8"><title>Component error diagnostics</title><style>body{font:15px/1.5 system-ui;margin:30px;max-width:1200px}pre{white-space:pre-wrap}td,th{padding:8px;border-bottom:1px solid #ddd;vertical-align:top}table{border-collapse:collapse}</style><h1>Component error diagnostics</h1><p>Postgame diagnostic only. These values never modify an issued forecast.</p><pre>{
+  &quot;status&quot;: &quot;OBSERVED_DIAGNOSTICS&quot;,
+  &quot;matched_values&quot;: 721767,
+  &quot;missing_values&quot;: 2816097,
+  &quot;decomposition_statuses&quot;: {
+    &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;: 145718,
+    &quot;DECOMPOSED&quot;: 13491,
+    &quot;MISSING_FACTOR_VALUES&quot;: 93
+  },
+  &quot;group_rows&quot;: 49588,
+  &quot;probability_groups&quot;: 277,
+  &quot;league_impact_rows&quot;: 1891967,
+  &quot;freeze_path&quot;: &quot;data/research/components/operational-v1/2026/runs/live-44173289426-1/forecast-freeze&quot;,
+  &quot;freeze_sha256&quot;: &quot;05ee4f3eb1ca2d0e7af63f0634519d18de7fbe48369c89856ef47424b097e250&quot;,
+  &quot;actual_sources&quot;: [
+    {
+      &quot;path&quot;: &quot;data/research/components/operational-v1/2026/runs/live-45554977438-1/actual-week11&quot;,
+      &quot;sha256&quot;: &quot;6ef1befc0acbd4b1b9b990a49b03970c5645638dda011ac3d25ba5e97c690df3&quot;
+    }
+  ],
+  &quot;error_sign&quot;: &quot;FORECAST_MINUS_ACTUAL&quot;
+}</pre><p>Preview: up to 100 rows. Complete rows are in the companion compressed tables.</p><table><tr><th>Record</th></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041562&quot;,
+  &quot;name&quot;: &quot;Fernando Mendoza&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;LV&quot;,
+  &quot;actual_team&quot;: &quot;LV&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;25+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 32.9609375,
+  &quot;actual&quot;: 267.0,
+  &quot;error&quot;: -234.0390625,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -180.68674404259093,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 19.65173037169315,
+    &quot;implied_passing_yards_per_passing_completions&quot;: -73.00404882910213
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    7.0322265625,
+    1.0,
+    0.5588112762116373,
+    8.387673956262425
+  ],
+  &quot;actual_factors&quot;: [
+    37.0,
+    1.0,
+    0.4864864864864865,
+    14.833333333333334
+  ],
+  &quot;reconciliation_error&quot;: 8.526512829121202e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041561&quot;,
+  &quot;name&quot;: &quot;Carson Beck&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 13,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 233.8212890625,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 233.8212890625,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 34.966796875,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041561&quot;,
+  &quot;name&quot;: &quot;Carson Beck&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 13,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 233.8212890625,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 233.8212890625,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 34.966796875,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041561&quot;,
+  &quot;name&quot;: &quot;Carson Beck&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 15,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 233.5888671875,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 233.5888671875,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 34.966796875,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041561&quot;,
+  &quot;name&quot;: &quot;Carson Beck&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 13,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 232.0830078125,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 232.0830078125,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 34.966796875,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041056&quot;,
+  &quot;name&quot;: &quot;Cade Klubnik&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 14,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 226.361328125,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 226.361328125,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 31.787109375,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041056&quot;,
+  &quot;name&quot;: &quot;Cade Klubnik&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 20,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 226.171875,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 226.171875,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 31.787109375,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041056&quot;,
+  &quot;name&quot;: &quot;Cade Klubnik&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 21,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 225.8330078125,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 225.8330078125,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 31.787109375,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041056&quot;,
+  &quot;name&quot;: &quot;Cade Klubnik&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 21,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 225.8330078125,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 225.8330078125,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 31.787109375,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041561&quot;,
+  &quot;name&quot;: &quot;Carson Beck&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 18,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 222.9443359375,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 222.9443359375,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 34.966796875,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041056&quot;,
+  &quot;name&quot;: &quot;Cade Klubnik&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 22,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 222.83203125,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 222.83203125,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 31.787109375,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039792&quot;,
+  &quot;name&quot;: &quot;Devontez Walker&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 36,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 211.0,
+  &quot;error&quot;: -211.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -7.0,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039792&quot;,
+  &quot;name&quot;: &quot;Devontez Walker&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 65,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.1103515625,
+  &quot;actual&quot;: 211.0,
+  &quot;error&quot;: -206.8896484375,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -188.12608883004015,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -18.763559607459847
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1650390625,
+    24.90532544378698
+  ],
+  &quot;actual_factors&quot;: [
+    7.0,
+    30.142857142857142
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039792&quot;,
+  &quot;name&quot;: &quot;Devontez Walker&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 63,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.244140625,
+  &quot;actual&quot;: 211.0,
+  &quot;error&quot;: -206.755859375,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -192.00382396479364,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -14.752035410206382
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1630859375,
+    26.023952095808383
+  ],
+  &quot;actual_factors&quot;: [
+    7.0,
+    30.142857142857142
+  ],
+  &quot;reconciliation_error&quot;: -2.842170943040401e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039792&quot;,
+  &quot;name&quot;: &quot;Devontez Walker&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 63,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.41796875,
+  &quot;actual&quot;: 211.0,
+  &quot;error&quot;: -206.58203125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -188.60840773809525,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -17.97362351190476
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.17578125,
+    25.133333333333333
+  ],
+  &quot;actual_factors&quot;: [
+    7.0,
+    30.142857142857142
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039792&quot;,
+  &quot;name&quot;: &quot;Devontez Walker&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 108,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.6748046875,
+  &quot;actual&quot;: 211.0,
+  &quot;error&quot;: -206.3251953125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -189.02900752314815,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -17.296187789351848
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1845703125,
+    25.32804232804233
+  ],
+  &quot;actual_factors&quot;: [
+    7.0,
+    30.142857142857142
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039792&quot;,
+  &quot;name&quot;: &quot;Devontez Walker&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 63,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.7177734375,
+  &quot;actual&quot;: 211.0,
+  &quot;error&quot;: -206.2822265625,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -190.31292297919833,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -15.969303583301674
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.18359375,
+    25.6968085106383
+  ],
+  &quot;actual_factors&quot;: [
+    7.0,
+    30.142857142857142
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039792&quot;,
+  &quot;name&quot;: &quot;Devontez Walker&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 64,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.7333984375,
+  &quot;actual&quot;: 211.0,
+  &quot;error&quot;: -206.2666015625,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -187.72384782883836,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -18.542753733661637
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.189453125,
+    24.984536082474225
+  ],
+  &quot;actual_factors&quot;: [
+    7.0,
+    30.142857142857142
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041562&quot;,
+  &quot;name&quot;: &quot;Fernando Mendoza&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;LV&quot;,
+  &quot;actual_team&quot;: &quot;LV&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;25+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 78.0322265625,
+  &quot;actual&quot;: 267.0,
+  &quot;error&quot;: -188.9677734375,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -120.54470200565355,
+    &quot;player_share&quot;: -37.878579776920965,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 34.94877938417546,
+    &quot;implied_passing_yards_per_passing_completions&quot;: -65.49327103910092
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    16.80078125,
+    0.7905719600093002,
+    0.5988530255128299,
+    9.810313075506446
+  ],
+  &quot;actual_factors&quot;: [
+    37.0,
+    1.0,
+    0.4864864864864865,
+    14.833333333333334
+  ],
+  &quot;reconciliation_error&quot;: 2.842170943040401e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038400&quot;,
+  &quot;name&quot;: &quot;Tanner McKee&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;PHI&quot;,
+  &quot;actual_team&quot;: &quot;PHI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 20,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 178.060546875,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 178.060546875,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 27.455078125,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0030565&quot;,
+  &quot;name&quot;: &quot;Geno Smith&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 64,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 176.0,
+  &quot;error&quot;: -176.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -21.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0030565&quot;,
+  &quot;name&quot;: &quot;Geno Smith&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 39,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 176.0,
+  &quot;error&quot;: -176.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -21.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0030565&quot;,
+  &quot;name&quot;: &quot;Geno Smith&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 176.0,
+  &quot;error&quot;: -176.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -21.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0030565&quot;,
+  &quot;name&quot;: &quot;Geno Smith&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 176.0,
+  &quot;error&quot;: -176.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -21.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0030565&quot;,
+  &quot;name&quot;: &quot;Geno Smith&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 176.0,
+  &quot;error&quot;: -176.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -21.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0030565&quot;,
+  &quot;name&quot;: &quot;Geno Smith&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 176.0,
+  &quot;error&quot;: -176.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -21.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0030565&quot;,
+  &quot;name&quot;: &quot;Geno Smith&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;NYJ&quot;,
+  &quot;actual_team&quot;: &quot;NYJ&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 176.0,
+  &quot;error&quot;: -176.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -21.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;SLEEPER_EXPLICIT_FIELDS&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041561&quot;,
+  &quot;name&quot;: &quot;Carson Beck&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 26,
+  &quot;rank_band&quot;: &quot;25+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 170.69,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 170.69,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 31.65,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0026300&quot;,
+  &quot;name&quot;: &quot;Josh Johnson&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 39,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 155.0,
+  &quot;error&quot;: -155.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -31.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0026300&quot;,
+  &quot;name&quot;: &quot;Josh Johnson&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 155.0,
+  &quot;error&quot;: -155.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -31.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0026300&quot;,
+  &quot;name&quot;: &quot;Josh Johnson&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 155.0,
+  &quot;error&quot;: -155.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -31.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0026300&quot;,
+  &quot;name&quot;: &quot;Josh Johnson&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 155.0,
+  &quot;error&quot;: -155.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -31.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0026300&quot;,
+  &quot;name&quot;: &quot;Josh Johnson&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 155.0,
+  &quot;error&quot;: -155.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -31.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0026300&quot;,
+  &quot;name&quot;: &quot;Josh Johnson&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 27,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 155.0,
+  &quot;error&quot;: -155.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -31.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0026300&quot;,
+  &quot;name&quot;: &quot;Josh Johnson&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 58,
+  &quot;rank_band&quot;: &quot;25+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 9.0576171875,
+  &quot;actual&quot;: 155.0,
+  &quot;error&quot;: -145.9423828125,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -79.13655065150402,
+    &quot;player_share&quot;: -89.05682994015292,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 5.239302983241855,
+    &quot;implied_passing_yards_per_passing_completions&quot;: 17.0116947959151
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    7.3486328125,
+    0.18245847176079735,
+    0.6241806263656228,
+    10.822637106184365
+  ],
+  &quot;actual_factors&quot;: [
+    31.0,
+    1.0,
+    0.5806451612903226,
+    8.61111111111111
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038400&quot;,
+  &quot;name&quot;: &quot;Tanner McKee&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;PHI&quot;,
+  &quot;actual_team&quot;: &quot;PHI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 20,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 134.15234375,
+  &quot;actual&quot;: 0.0,
+  &quot;error&quot;: 134.15234375,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: 22.287109375,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040014&quot;,
+  &quot;name&quot;: &quot;Kyle McCord&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;MIA&quot;,
+  &quot;actual_team&quot;: &quot;MIA&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 19,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 227.02734375,
+  &quot;actual&quot;: 102.0,
+  &quot;error&quot;: 125.02734375,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -1.9188859307738255,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 84.78040858906968,
+    &quot;implied_passing_yards_per_passing_completions&quot;: 42.165821091704125
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    32.609375,
+    1.0,
+    0.6274856252994729,
+    11.09511764425142
+  ],
+  &quot;actual_factors&quot;: [
+    33.0,
+    1.0,
+    0.36363636363636365,
+    8.5
+  ],
+  &quot;reconciliation_error&quot;: -2.842170943040401e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040014&quot;,
+  &quot;name&quot;: &quot;Kyle McCord&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;MIA&quot;,
+  &quot;actual_team&quot;: &quot;MIA&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 19,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 227.02734375,
+  &quot;actual&quot;: 102.0,
+  &quot;error&quot;: 125.02734375,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -1.9188859307738255,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 84.78040858906968,
+    &quot;implied_passing_yards_per_passing_completions&quot;: 42.165821091704125
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    32.609375,
+    1.0,
+    0.6274856252994729,
+    11.09511764425142
+  ],
+  &quot;actual_factors&quot;: [
+    33.0,
+    1.0,
+    0.36363636363636365,
+    8.5
+  ],
+  &quot;reconciliation_error&quot;: -2.842170943040401e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038496&quot;,
+  &quot;name&quot;: &quot;Xavier Gipson&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;NYG&quot;,
+  &quot;actual_team&quot;: &quot;NYG&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 36,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 125.0,
+  &quot;error&quot;: -125.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -5.0,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038496&quot;,
+  &quot;name&quot;: &quot;Xavier Gipson&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;NYG&quot;,
+  &quot;actual_team&quot;: &quot;NYG&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 85,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 125.0,
+  &quot;error&quot;: -125.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -5.0,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038496&quot;,
+  &quot;name&quot;: &quot;Xavier Gipson&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;NYG&quot;,
+  &quot;actual_team&quot;: &quot;NYG&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 85,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 125.0,
+  &quot;error&quot;: -125.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -5.0,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038496&quot;,
+  &quot;name&quot;: &quot;Xavier Gipson&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;NYG&quot;,
+  &quot;actual_team&quot;: &quot;NYG&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 85,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 125.0,
+  &quot;error&quot;: -125.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -5.0,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038496&quot;,
+  &quot;name&quot;: &quot;Xavier Gipson&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;NYG&quot;,
+  &quot;actual_team&quot;: &quot;NYG&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 85,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 125.0,
+  &quot;error&quot;: -125.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -5.0,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038496&quot;,
+  &quot;name&quot;: &quot;Xavier Gipson&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;NYG&quot;,
+  &quot;actual_team&quot;: &quot;NYG&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 85,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 125.0,
+  &quot;error&quot;: -125.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -5.0,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040014&quot;,
+  &quot;name&quot;: &quot;Kyle McCord&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;MIA&quot;,
+  &quot;actual_team&quot;: &quot;MIA&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 20,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 225.3369140625,
+  &quot;actual&quot;: 102.0,
+  &quot;error&quot;: 123.3369140625,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -1.911025377612584,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 85.87284597473783,
+    &quot;implied_passing_yards_per_passing_completions&quot;: 39.37509346537474
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    32.609375,
+    1.0,
+    0.633445136559655,
+    10.908897503782148
+  ],
+  &quot;actual_factors&quot;: [
+    33.0,
+    1.0,
+    0.36363636363636365,
+    8.5
+  ],
+  &quot;reconciliation_error&quot;: -1.4210854715202004e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0037801&quot;,
+  &quot;name&quot;: &quot;KaVontae Turpin&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;DAL&quot;,
+  &quot;actual_team&quot;: &quot;DAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 36,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 121.0,
+  &quot;error&quot;: -121.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -5.0,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040014&quot;,
+  &quot;name&quot;: &quot;Kyle McCord&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;MIA&quot;,
+  &quot;actual_team&quot;: &quot;MIA&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 21,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 222.265625,
+  &quot;actual&quot;: 102.0,
+  &quot;error&quot;: 120.265625,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -1.8945927568782772,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 84.16016240833285,
+    &quot;implied_passing_yards_per_passing_completions&quot;: 38.00005534854545
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    32.609375,
+    1.0,
+    0.6290728318160038,
+    10.83499952394554
+  ],
+  &quot;actual_factors&quot;: [
+    33.0,
+    1.0,
+    0.36363636363636365,
+    8.5
+  ],
+  &quot;reconciliation_error&quot;: 2.842170943040401e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0038496&quot;,
+  &quot;name&quot;: &quot;Xavier Gipson&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;NYG&quot;,
+  &quot;actual_team&quot;: &quot;NYG&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 76,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 5.1923828125,
+  &quot;actual&quot;: 125.0,
+  &quot;error&quot;: -119.8076171875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -122.90607681650246,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 3.0984596290024626
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1982421875,
+    26.192118226600986
+  ],
+  &quot;actual_factors&quot;: [
+    5.0,
+    25.0
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040014&quot;,
+  &quot;name&quot;: &quot;Kyle McCord&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;MIA&quot;,
+  &quot;actual_team&quot;: &quot;MIA&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 21,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 220.3662109375,
+  &quot;actual&quot;: 102.0,
+  &quot;error&quot;: 118.3662109375,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -1.8819070580833988,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 78.46864758595063,
+    &quot;implied_passing_yards_per_passing_completions&quot;: 41.77947040963279
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    32.609375,
+    1.0,
+    0.6074808337326306,
+    11.124229726398816
+  ],
+  &quot;actual_factors&quot;: [
+    33.0,
+    1.0,
+    0.36363636363636365,
+    8.5
+  ],
+  &quot;reconciliation_error&quot;: 2.842170943040401e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0037801&quot;,
+  &quot;name&quot;: &quot;KaVontae Turpin&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;DAL&quot;,
+  &quot;actual_team&quot;: &quot;DAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 99,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.7802734375,
+  &quot;actual&quot;: 121.0,
+  &quot;error&quot;: -116.2197265625,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -116.30463238706683,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 0.08490582456682905
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.197265625,
+    24.23267326732673
+  ],
+  &quot;actual_factors&quot;: [
+    5.0,
+    24.2
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0037801&quot;,
+  &quot;name&quot;: &quot;KaVontae Turpin&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;DAL&quot;,
+  &quot;actual_team&quot;: &quot;DAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 62,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.8603515625,
+  &quot;actual&quot;: 121.0,
+  &quot;error&quot;: -116.1396484375,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -117.91904296875,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 1.7793945312500057
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1953125,
+    24.885
+  ],
+  &quot;actual_factors&quot;: [
+    5.0,
+    24.2
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0037801&quot;,
+  &quot;name&quot;: &quot;KaVontae Turpin&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;DAL&quot;,
+  &quot;actual_team&quot;: &quot;DAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 60,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.9814453125,
+  &quot;actual&quot;: 121.0,
+  &quot;error&quot;: -116.0185546875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -117.79423113567073,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 1.775676448170728
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.2001953125,
+    24.882926829268293
+  ],
+  &quot;actual_factors&quot;: [
+    5.0,
+    24.2
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0037801&quot;,
+  &quot;name&quot;: &quot;KaVontae Turpin&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;DAL&quot;,
+  &quot;actual_team&quot;: &quot;DAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 59,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 5.1240234375,
+  &quot;actual&quot;: 121.0,
+  &quot;error&quot;: -115.8759765625,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -120.15748441348522,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 4.281507850985225
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1982421875,
+    25.84729064039409
+  ],
+  &quot;actual_factors&quot;: [
+    5.0,
+    24.2
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0037801&quot;,
+  &quot;name&quot;: &quot;KaVontae Turpin&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;DAL&quot;,
+  &quot;actual_team&quot;: &quot;DAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 58,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 5.20703125,
+  &quot;actual&quot;: 121.0,
+  &quot;error&quot;: -115.79296875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -117.96174946816315,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 2.1687807181631515
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.2080078125,
+    25.03286384976526
+  ],
+  &quot;actual_factors&quot;: [
+    5.0,
+    24.2
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0037801&quot;,
+  &quot;name&quot;: &quot;KaVontae Turpin&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;DAL&quot;,
+  &quot;actual_team&quot;: &quot;DAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 59,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 5.2314453125,
+  &quot;actual&quot;: 121.0,
+  &quot;error&quot;: -115.7685546875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -116.74178701978211,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 0.9732323322821119
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.212890625,
+    24.573394495412845
+  ],
+  &quot;actual_factors&quot;: [
+    5.0,
+    24.2
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0031408&quot;,
+  &quot;name&quot;: &quot;Mike Evans&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;SF&quot;,
+  &quot;actual_team&quot;: &quot;SF&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 182,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 109.0,
+  &quot;error&quot;: -109.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -7.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0031408&quot;,
+  &quot;name&quot;: &quot;Mike Evans&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;SF&quot;,
+  &quot;actual_team&quot;: &quot;SF&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 111,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 109.0,
+  &quot;error&quot;: -109.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -7.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0031408&quot;,
+  &quot;name&quot;: &quot;Mike Evans&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;SF&quot;,
+  &quot;actual_team&quot;: &quot;SF&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 133,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 109.0,
+  &quot;error&quot;: -109.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -7.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0031408&quot;,
+  &quot;name&quot;: &quot;Mike Evans&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;SF&quot;,
+  &quot;actual_team&quot;: &quot;SF&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 133,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 109.0,
+  &quot;error&quot;: -109.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -7.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0031408&quot;,
+  &quot;name&quot;: &quot;Mike Evans&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;SF&quot;,
+  &quot;actual_team&quot;: &quot;SF&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 133,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 109.0,
+  &quot;error&quot;: -109.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -7.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0031408&quot;,
+  &quot;name&quot;: &quot;Mike Evans&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;SF&quot;,
+  &quot;actual_team&quot;: &quot;SF&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 133,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 109.0,
+  &quot;error&quot;: -109.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -7.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0031408&quot;,
+  &quot;name&quot;: &quot;Mike Evans&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;SF&quot;,
+  &quot;actual_team&quot;: &quot;SF&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 133,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 109.0,
+  &quot;error&quot;: -109.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -7.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0035685&quot;,
+  &quot;name&quot;: &quot;David Montgomery&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;HOU&quot;,
+  &quot;actual_team&quot;: &quot;HOU&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;rushing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 108,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 107.0,
+  &quot;error&quot;: -107.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -26.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0035685&quot;,
+  &quot;name&quot;: &quot;David Montgomery&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;HOU&quot;,
+  &quot;actual_team&quot;: &quot;HOU&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;rushing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 77,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 107.0,
+  &quot;error&quot;: -107.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -26.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0035685&quot;,
+  &quot;name&quot;: &quot;David Montgomery&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;HOU&quot;,
+  &quot;actual_team&quot;: &quot;HOU&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;rushing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 87,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 107.0,
+  &quot;error&quot;: -107.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -26.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0035685&quot;,
+  &quot;name&quot;: &quot;David Montgomery&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;HOU&quot;,
+  &quot;actual_team&quot;: &quot;HOU&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;rushing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 87,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 107.0,
+  &quot;error&quot;: -107.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -26.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0035685&quot;,
+  &quot;name&quot;: &quot;David Montgomery&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;HOU&quot;,
+  &quot;actual_team&quot;: &quot;HOU&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;rushing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 87,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 107.0,
+  &quot;error&quot;: -107.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -26.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0035685&quot;,
+  &quot;name&quot;: &quot;David Montgomery&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;HOU&quot;,
+  &quot;actual_team&quot;: &quot;HOU&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;rushing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 87,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 107.0,
+  &quot;error&quot;: -107.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -26.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0035685&quot;,
+  &quot;name&quot;: &quot;David Montgomery&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;HOU&quot;,
+  &quot;actual_team&quot;: &quot;HOU&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;rushing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 87,
+  &quot;rank_band&quot;: &quot;ZERO_FORECAST&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_LOW_OR_UNKNOWN&quot;,
+  &quot;forecast&quot;: 0.0,
+  &quot;actual&quot;: 107.0,
+  &quot;error&quot;: -107.0,
+  &quot;contributions&quot;: {},
+  &quot;status&quot;: &quot;ZERO_PARENT_UNIDENTIFIABLE&quot;,
+  &quot;opportunity_error&quot;: -26.0,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0036900&quot;,
+  &quot;name&quot;: &quot;Ja&#x27;Marr Chase&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;CIN&quot;,
+  &quot;actual_team&quot;: &quot;CIN&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 1,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 137.294921875,
+  &quot;actual&quot;: 31.0,
+  &quot;error&quot;: 106.294921875,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: -9.773816456585987,
+    &quot;player_share&quot;: 31.627750482824027,
+    &quot;implied_receptions_per_targets&quot;: 18.907271491712756,
+    &quot;implied_receiving_yards_per_receptions&quot;: 65.53371635704922
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_receptions_per_targets&quot;,
+    &quot;implied_receiving_yards_per_receptions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    35.349609375,
+    0.3444665451129897,
+    0.7129681610393777,
+    15.814398200224971
+  ],
+  &quot;actual_factors&quot;: [
+    40.0,
+    0.225,
+    0.5555555555555556,
+    6.2
+  ],
+  &quot;reconciliation_error&quot;: 1.4210854715202004e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0032104&quot;,
+  &quot;name&quot;: &quot;Ameer Abdullah&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;JAX&quot;,
+  &quot;actual_team&quot;: &quot;JAX&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 15,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 14.2373046875,
+  &quot;actual&quot;: 119.0,
+  &quot;error&quot;: -104.7626953125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -93.32956186498568,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -11.433133447514322
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.5751953125,
+    24.75212224108659
+  ],
+  &quot;actual_factors&quot;: [
+    4.0,
+    29.75
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0032104&quot;,
+  &quot;name&quot;: &quot;Ameer Abdullah&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;JAX&quot;,
+  &quot;actual_team&quot;: &quot;JAX&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 13,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 17.6044921875,
+  &quot;actual&quot;: 119.0,
+  &quot;error&quot;: -101.3955078125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -89.0739352479273,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -12.321572564572705
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.7177734375,
+    24.526530612244898
+  ],
+  &quot;actual_factors&quot;: [
+    4.0,
+    29.75
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0032104&quot;,
+  &quot;name&quot;: &quot;Ameer Abdullah&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;JAX&quot;,
+  &quot;actual_team&quot;: &quot;JAX&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 13,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 17.7763671875,
+  &quot;actual&quot;: 119.0,
+  &quot;error&quot;: -101.2236328125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -88.49689856430932,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -12.72673424819068
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.7294921875,
+    24.36813922356091
+  ],
+  &quot;actual_factors&quot;: [
+    4.0,
+    29.75
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0032104&quot;,
+  &quot;name&quot;: &quot;Ameer Abdullah&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;JAX&quot;,
+  &quot;actual_team&quot;: &quot;JAX&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 13,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 17.998046875,
+  &quot;actual&quot;: 119.0,
+  &quot;error&quot;: -101.001953125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -88.35476138891764,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -12.64719173608237
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.7373046875,
+    24.410596026490065
+  ],
+  &quot;actual_factors&quot;: [
+    4.0,
+    29.75
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0032104&quot;,
+  &quot;name&quot;: &quot;Ameer Abdullah&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;JAX&quot;,
+  &quot;actual_team&quot;: &quot;JAX&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 13,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 18.078125,
+  &quot;actual&quot;: 119.0,
+  &quot;error&quot;: -100.921875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -88.61150491648706,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -12.310370083512929
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.736328125,
+    24.551724137931036
+  ],
+  &quot;actual_factors&quot;: [
+    4.0,
+    29.75
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0032104&quot;,
+  &quot;name&quot;: &quot;Ameer Abdullah&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;JAX&quot;,
+  &quot;actual_team&quot;: &quot;JAX&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 12,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 18.2587890625,
+  &quot;actual&quot;: 119.0,
+  &quot;error&quot;: -100.7412109375,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -88.85163483796296,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -11.889576099537038
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.73828125,
+    24.73148148148148
+  ],
+  &quot;actual_factors&quot;: [
+    4.0,
+    29.75
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039807&quot;,
+  &quot;name&quot;: &quot;Max Melton&quot;,
+  &quot;position&quot;: &quot;DB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 4,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 3.6435546875,
+  &quot;actual&quot;: 103.0,
+  &quot;error&quot;: -99.3564453125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -87.30621744791665,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -12.05022786458334
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.13671875,
+    26.65
+  ],
+  &quot;actual_factors&quot;: [
+    3.0,
+    34.333333333333336
+  ],
+  &quot;reconciliation_error&quot;: 1.4210854715202004e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B1_SHRUNK_VOLUME_RATE_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040785&quot;,
+  &quot;name&quot;: &quot;Dohnte Meyers&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;CIN&quot;,
+  &quot;actual_team&quot;: &quot;CIN&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 2,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 50.9853515625,
+  &quot;actual&quot;: 150.0,
+  &quot;error&quot;: -99.0146484375,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -101.98371336446006,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 2.9690649269600584
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    1.98046875,
+    25.744082840236686
+  ],
+  &quot;actual_factors&quot;: [
+    6.0,
+    25.0
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040785&quot;,
+  &quot;name&quot;: &quot;Dohnte Meyers&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;CIN&quot;,
+  &quot;actual_team&quot;: &quot;CIN&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 2,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 51.15234375,
+  &quot;actual&quot;: 150.0,
+  &quot;error&quot;: -98.84765625,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -101.50094809338253,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 2.653291843382533
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    1.9931640625,
+    25.66389024987751
+  ],
+  &quot;actual_factors&quot;: [
+    6.0,
+    25.0
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040785&quot;,
+  &quot;name&quot;: &quot;Dohnte Meyers&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;CIN&quot;,
+  &quot;actual_team&quot;: &quot;CIN&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 2,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 51.1640625,
+  &quot;actual&quot;: 150.0,
+  &quot;error&quot;: -98.8359375,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -101.06477419969512,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 2.2288366996951225
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    2.001953125,
+    25.55707317073171
+  ],
+  &quot;actual_factors&quot;: [
+    6.0,
+    25.0
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039807&quot;,
+  &quot;name&quot;: &quot;Max Melton&quot;,
+  &quot;position&quot;: &quot;DB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 3,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.220703125,
+  &quot;actual&quot;: 103.0,
+  &quot;error&quot;: -98.779296875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -85.41036579185379,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -13.368931083146206
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1630859375,
+    25.880239520958085
+  ],
+  &quot;actual_factors&quot;: [
+    3.0,
+    34.333333333333336
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040785&quot;,
+  &quot;name&quot;: &quot;Dohnte Meyers&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;CIN&quot;,
+  &quot;actual_team&quot;: &quot;CIN&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 2,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 51.2705078125,
+  &quot;actual&quot;: 150.0,
+  &quot;error&quot;: -98.7294921875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -101.66975528492647,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 2.9402630974264667
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    1.9921875,
+    25.73578431372549
+  ],
+  &quot;actual_factors&quot;: [
+    6.0,
+    25.0
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039807&quot;,
+  &quot;name&quot;: &quot;Max Melton&quot;,
+  &quot;position&quot;: &quot;DB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 4,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.353515625,
+  &quot;actual&quot;: 103.0,
+  &quot;error&quot;: -98.646484375,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -86.56551642808134,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -12.080967946918667
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1630859375,
+    26.694610778443113
+  ],
+  &quot;actual_factors&quot;: [
+    3.0,
+    34.333333333333336
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039807&quot;,
+  &quot;name&quot;: &quot;Max Melton&quot;,
+  &quot;position&quot;: &quot;DB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 4,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.375,
+  &quot;actual&quot;: 103.0,
+  &quot;error&quot;: -98.625,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -87.27365944602272,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -11.351340553977273
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1611328125,
+    27.151515151515152
+  ],
+  &quot;actual_factors&quot;: [
+    3.0,
+    34.333333333333336
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040785&quot;,
+  &quot;name&quot;: &quot;Dohnte Meyers&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;CIN&quot;,
+  &quot;actual_team&quot;: &quot;CIN&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 2,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 51.4423828125,
+  &quot;actual&quot;: 150.0,
+  &quot;error&quot;: -98.5576171875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -101.34268721417683,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 2.7850700266768342
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    2.001953125,
+    25.69609756097561
+  ],
+  &quot;actual_factors&quot;: [
+    6.0,
+    25.0
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0040785&quot;,
+  &quot;name&quot;: &quot;Dohnte Meyers&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;CIN&quot;,
+  &quot;actual_team&quot;: &quot;CIN&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 2,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 51.4638671875,
+  &quot;actual&quot;: 150.0,
+  &quot;error&quot;: -98.5361328125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -100.76884595129121,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 2.232713138791212
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    2.013671875,
+    25.557225994180406
+  ],
+  &quot;actual_factors&quot;: [
+    6.0,
+    25.0
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039807&quot;,
+  &quot;name&quot;: &quot;Max Melton&quot;,
+  &quot;position&quot;: &quot;DB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 3,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 4.466796875,
+  &quot;actual&quot;: 103.0,
+  &quot;error&quot;: -98.533203125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -85.29903527462122,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -13.234167850378787
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.171875,
+    25.988636363636363
+  ],
+  &quot;actual_factors&quot;: [
+    3.0,
+    34.333333333333336
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039807&quot;,
+  &quot;name&quot;: &quot;Max Melton&quot;,
+  &quot;position&quot;: &quot;DB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 3,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 5.013671875,
+  &quot;actual&quot;: 103.0,
+  &quot;error&quot;: -97.986328125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -88.50578294055019,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -9.480545184449813
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.1767578125,
+    28.364640883977902
+  ],
+  &quot;actual_factors&quot;: [
+    3.0,
+    34.333333333333336
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0033119&quot;,
+  &quot;name&quot;: &quot;Jacoby Brissett&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 18,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 178.599609375,
+  &quot;actual&quot;: 276.0,
+  &quot;error&quot;: -97.400390625,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 36.4895707470499,
+    &quot;player_share&quot;: -85.02450808312237,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: -26.59110094231532,
+    &quot;implied_passing_yards_per_passing_completions&quot;: -22.274352346612243
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    43.4013671875,
+    0.6844947460792475,
+    0.5767726241740903,
+    10.42323036589536
+  ],
+  &quot;actual_factors&quot;: [
+    37.0,
+    1.0,
+    0.6486486486486487,
+    11.5
+  ],
+  &quot;reconciliation_error&quot;: -2.842170943040401e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0032104&quot;,
+  &quot;name&quot;: &quot;Ameer Abdullah&quot;,
+  &quot;position&quot;: &quot;RB&quot;,
+  &quot;team&quot;: &quot;JAX&quot;,
+  &quot;actual_team&quot;: &quot;JAX&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 15,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 23.3623046875,
+  &quot;actual&quot;: 119.0,
+  &quot;error&quot;: -95.6376953125,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -80.70420205533918,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: -14.933493257160812
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.9833984375,
+    23.756703078450844
+  ],
+  &quot;actual_factors&quot;: [
+    4.0,
+    29.75
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_0&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041040&quot;,
+  &quot;name&quot;: &quot;Antonio Williams&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;WAS&quot;,
+  &quot;actual_team&quot;: &quot;WAS&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 56,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 26.82421875,
+  &quot;actual&quot;: 122.0,
+  &quot;error&quot;: -95.17578125,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 2.5309779712750466,
+    &quot;player_share&quot;: -63.12821645088576,
+    &quot;implied_receptions_per_targets&quot;: -17.74299131374609,
+    &quot;implied_receiving_yards_per_receptions&quot;: -16.835551456643177
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_receptions_per_targets&quot;,
+    &quot;implied_receiving_yards_per_receptions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    33.1923828125,
+    0.12221601106240254,
+    0.6273471352912855,
+    10.54029163468918
+  ],
+  &quot;actual_factors&quot;: [
+    32.0,
+    0.34375,
+    0.8181818181818182,
+    13.555555555555555
+  ],
+  &quot;reconciliation_error&quot;: 2.842170943040401e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041040&quot;,
+  &quot;name&quot;: &quot;Antonio Williams&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;WAS&quot;,
+  &quot;actual_team&quot;: &quot;WAS&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 54,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 27.2900390625,
+  &quot;actual&quot;: 122.0,
+  &quot;error&quot;: -94.7099609375,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 2.2084509455592127,
+    &quot;player_share&quot;: -71.36272115613545,
+    &quot;implied_receptions_per_targets&quot;: -18.239162084048505,
+    &quot;implied_receiving_yards_per_receptions&quot;: -7.316528642875251
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_receptions_per_targets&quot;,
+    &quot;implied_receiving_yards_per_receptions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    33.015625,
+    0.10811050638902035,
+    0.6265389876880985,
+    12.203056768558952
+  ],
+  &quot;actual_factors&quot;: [
+    32.0,
+    0.34375,
+    0.8181818181818182,
+    13.555555555555555
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_4&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039398&quot;,
+  &quot;name&quot;: &quot;Joe Milton&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;PHI&quot;,
+  &quot;actual_team&quot;: &quot;PHI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 13,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 235.6865234375,
+  &quot;actual&quot;: 141.0,
+  &quot;error&quot;: 94.6865234375,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 90.49008972378981,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 45.39441468385585,
+    &quot;implied_passing_yards_per_passing_completions&quot;: -41.19798097014566
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    34.18359375,
+    1.0,
+    0.6671523254485202,
+    10.334560870123752
+  ],
+  &quot;actual_factors&quot;: [
+    21.0,
+    1.0,
+    0.5238095238095238,
+    12.818181818181818
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;SLEEPER_EXPLICIT_FIELDS&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0033119&quot;,
+  &quot;name&quot;: &quot;Jacoby Brissett&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;BAL&quot;,
+  &quot;actual_team&quot;: &quot;BAL&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 24,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 181.94,
+  &quot;actual&quot;: 276.0,
+  &quot;error&quot;: -94.06,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -25.35952752122749,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: -8.267426774064305,
+    &quot;implied_passing_yards_per_passing_completions&quot;: -60.43304570470821
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    33.08,
+    0.625453446191052,
+    8.793620106331561
+  ],
+  &quot;actual_factors&quot;: [
+    37.0,
+    0.6486486486486487,
+    11.5
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039807&quot;,
+  &quot;name&quot;: &quot;Max Melton&quot;,
+  &quot;position&quot;: &quot;DB&quot;,
+  &quot;team&quot;: &quot;ARI&quot;,
+  &quot;actual_team&quot;: &quot;ARI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;kick_return_yards&quot;,
+  &quot;pregame_component_rank&quot;: 3,
+  &quot;rank_band&quot;: &quot;1-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 9.3486328125,
+  &quot;actual&quot;: 103.0,
+  &quot;error&quot;: -93.6513671875,
+  &quot;contributions&quot;: {
+    &quot;player_opportunities&quot;: -98.62581380208334,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;: 4.974446614583333
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;player_opportunities&quot;,
+    &quot;implied_kick_return_yards_per_kick_returns&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    0.25,
+    37.39453125
+  ],
+  &quot;actual_factors&quot;: [
+    3.0,
+    34.333333333333336
+  ],
+  &quot;reconciliation_error&quot;: -1.4210854715202004e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;UNAVAILABLE_OR_TEAM_CHANGED&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_3&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041040&quot;,
+  &quot;name&quot;: &quot;Antonio Williams&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;WAS&quot;,
+  &quot;actual_team&quot;: &quot;WAS&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 54,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 29.3154296875,
+  &quot;actual&quot;: 122.0,
+  &quot;error&quot;: -92.6845703125,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 2.354552151506286,
+    &quot;player_share&quot;: -68.32283842332,
+    &quot;implied_receptions_per_targets&quot;: -19.22726711749199,
+    &quot;implied_receiving_yards_per_receptions&quot;: -7.489016923194302
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_receptions_per_targets&quot;,
+    &quot;implied_receiving_yards_per_receptions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    33.0673828125,
+    0.11724402705177048,
+    0.6201511335012595,
+    12.19293257514216
+  ],
+  &quot;actual_factors&quot;: [
+    32.0,
+    0.34375,
+    0.8181818181818182,
+    13.555555555555555
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039398&quot;,
+  &quot;name&quot;: &quot;Joe Milton&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;PHI&quot;,
+  &quot;actual_team&quot;: &quot;PHI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 14,
+  &quot;rank_band&quot;: &quot;13-24&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 233.64453125,
+  &quot;actual&quot;: 141.0,
+  &quot;error&quot;: 92.64453125,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 90.03436693163698,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: 40.301452717068,
+    &quot;implied_passing_yards_per_passing_completions&quot;: -37.691288398705
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    34.1982421875,
+    1.0,
+    0.6499900054256261,
+    10.511027150514014
+  ],
+  &quot;actual_factors&quot;: [
+    21.0,
+    1.0,
+    0.5238095238095238,
+    12.818181818181818
+  ],
+  &quot;reconciliation_error&quot;: -1.4210854715202004e-14,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041040&quot;,
+  &quot;name&quot;: &quot;Antonio Williams&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;WAS&quot;,
+  &quot;actual_team&quot;: &quot;WAS&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 49,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 29.7685546875,
+  &quot;actual&quot;: 122.0,
+  &quot;error&quot;: -92.2314453125,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 2.3547456313815354,
+    &quot;player_share&quot;: -65.85229848144759,
+    &quot;implied_receptions_per_targets&quot;: -17.234949913657026,
+    &quot;implied_receiving_yards_per_receptions&quot;: -11.498942548776917
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_receptions_per_targets&quot;,
+    &quot;implied_receiving_yards_per_receptions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    33.068359375,
+    0.12249719449530447,
+    0.6386210221793636,
+    11.507361268403171
+  ],
+  &quot;actual_factors&quot;: [
+    32.0,
+    0.34375,
+    0.8181818181818182,
+    13.555555555555555
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;RECOVERED_V2_STAGE_2&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0041040&quot;,
+  &quot;name&quot;: &quot;Antonio Williams&quot;,
+  &quot;position&quot;: &quot;WR&quot;,
+  &quot;team&quot;: &quot;WAS&quot;,
+  &quot;actual_team&quot;: &quot;WAS&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;receiving_yards&quot;,
+  &quot;pregame_component_rank&quot;: 49,
+  &quot;rank_band&quot;: &quot;49+&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 30.212890625,
+  &quot;actual&quot;: 122.0,
+  &quot;error&quot;: -91.787109375,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 1.913237237984783,
+    &quot;player_share&quot;: -66.30552342076138,
+    &quot;implied_receptions_per_targets&quot;: -17.25688680292224,
+    &quot;implied_receiving_yards_per_receptions&quot;: -10.137936389301174
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_receptions_per_targets&quot;,
+    &quot;implied_receiving_yards_per_receptions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    32.861328125,
+    0.12243684992570579,
+    0.6393203883495145,
+    11.745634016704631
+  ],
+  &quot;actual_factors&quot;: [
+    32.0,
+    0.34375,
+    0.8181818181818182,
+    13.555555555555555
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr><tr><td><pre>{
+  &quot;model_id&quot;: &quot;B0_ROLLING_COMPONENTS_V1&quot;,
+  &quot;canonical_player_id&quot;: &quot;00-0039918&quot;,
+  &quot;name&quot;: &quot;Caleb Williams&quot;,
+  &quot;position&quot;: &quot;QB&quot;,
+  &quot;team&quot;: &quot;CHI&quot;,
+  &quot;actual_team&quot;: &quot;CHI&quot;,
+  &quot;week&quot;: 11,
+  &quot;lead_week&quot;: 1,
+  &quot;component&quot;: &quot;passing_yards&quot;,
+  &quot;pregame_component_rank&quot;: 3,
+  &quot;rank_band&quot;: &quot;1-12&quot;,
+  &quot;replay_only&quot;: false,
+  &quot;cutoff_activity_cohort&quot;: &quot;PROJECTED_ACTIVE&quot;,
+  &quot;forecast&quot;: 272.5537109375,
+  &quot;actual&quot;: 181.0,
+  &quot;error&quot;: 91.5537109375,
+  &quot;contributions&quot;: {
+    &quot;team_opportunities&quot;: 92.35975957241307,
+    &quot;player_share&quot;: 0.0,
+    &quot;implied_passing_completions_per_passing_attempts&quot;: -3.14571382458881,
+    &quot;implied_passing_yards_per_passing_completions&quot;: 2.339665189675741
+  },
+  &quot;status&quot;: &quot;DECOMPOSED&quot;,
+  &quot;factors&quot;: [
+    &quot;team_opportunities&quot;,
+    &quot;player_share&quot;,
+    &quot;implied_passing_completions_per_passing_attempts&quot;,
+    &quot;implied_passing_yards_per_passing_completions&quot;
+  ],
+  &quot;forecast_factors&quot;: [
+    34.7568359375,
+    1.0,
+    0.6431963136748055,
+    12.191813734055565
+  ],
+  &quot;actual_factors&quot;: [
+    23.0,
+    1.0,
+    0.6521739130434783,
+    12.066666666666666
+  ],
+  &quot;reconciliation_error&quot;: 0.0,
+  &quot;efficiencies_are_implied_from_means&quot;: true,
+  &quot;team_budget_scope&quot;: &quot;COMPLETE_OBSERVED_ACTOR_SUM&quot;
+}</pre></td></tr></table>

@@ -1,0 +1,268 @@
+{
+  "activation_eligible": false,
+  "base_phase": "E4_RETURN_YARDS",
+  "blockers": {
+    "path": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/live-45554977438-1/actual-week11/events/report-blockers.jsonl",
+    "phase_counts": {
+      "E2": 1,
+      "E4": 2
+    },
+    "rows": 3,
+    "sample": [
+      {
+        "event_type": "all_play_fumble_lost",
+        "game_id": "2026_10_SF_DAL",
+        "phase": "E2",
+        "play_id": "4831",
+        "reason": "player-week fumbles_lost_total admits zero or multiple multi-fumbler assignments",
+        "season": 2026,
+        "status": "BLOCKED_EVENT_SEMANTICS",
+        "week": 10
+      },
+      {
+        "event_type": "kick_return_yards",
+        "game_id": "2026_09_LV_SF",
+        "phase": "E4",
+        "play_id": "393",
+        "reason": "non-zero lateral return lacks player-attributed yardage split",
+        "season": 2026,
+        "status": "BLOCKED_EVENT_SEMANTICS",
+        "week": 9
+      },
+      {
+        "event_type": "kick_return_yards",
+        "game_id": "2026_09_LV_SF",
+        "phase": "E4",
+        "play_id": "3538",
+        "reason": "non-zero lateral return lacks player-attributed yardage split",
+        "season": 2026,
+        "status": "BLOCKED_EVENT_SEMANTICS",
+        "week": 9
+      }
+    ],
+    "season_counts": {
+      "2026": 3
+    },
+    "sha256": "7cb5e3e2a27672e9de13f6e6db97d247c2f0d8e3ec198cfcc5bc06880c95bb71",
+    "status_counts": {
+      "BLOCKED_EVENT_SEMANTICS": 3
+    }
+  },
+  "builder_sha256": "cca1ad48c7012d0c13b9e3cb1a20fcf172d4ad7b281f9f9007b960c2b77d971d",
+  "diagnostic_only": true,
+  "event_ledger": {
+    "path": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/live-45554977438-1/actual-week11/events/events.csv.gz",
+    "rows": 3624,
+    "sha256": "e6403ee2d615f53bb2873ea90e58252f8b172a471aacd13a1d52d94b17569b8a"
+  },
+  "event_weekly_stats": {
+    "path": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/live-45554977438-1/actual-week11/events/weekly.csv.gz",
+    "rows": 3777,
+    "sha256": "52683c82d6b9160a5fce690eeb57023dc18f251ae96f6e8e56d976857111e937"
+  },
+  "event_zero_policy": "SOURCE_READY_RULES_AND_SOURCE_COVERED_PUBLISHED_PLAYER_WEEKS_ONLY",
+  "fumble_lost_reconciliation": {
+    "ambiguous_plays": 5,
+    "input": {
+      "path": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/live-45554977438-1/actual-week11/events/all-stats.csv.gz",
+      "scope": "EXPLICIT_ALL_POSITION_SOURCE",
+      "sha256": "9d82b7f2a17ab5e4cad416546b239c70b152dd9446f4522278150ca3ea9cf2df"
+    },
+    "mismatch_rows": 1,
+    "resolved_plays": 4,
+    "sample": [
+      {
+        "canonical_player_id": "00-0036036",
+        "pbp_fumbles_lost": 0,
+        "season": 2026,
+        "stat_fumbles_lost": 1,
+        "week": 10
+      }
+    ],
+    "status": "BLOCKED_EVENT_SEMANTICS"
+  },
+  "limitations": [
+    "E5 counts official PBP play events; it does not infer long-play bonuses from weekly totals.",
+    "A 50-yard touchdown emits the documented 40- and 50-yard bonus events; lateral receiving yards require exact player-week aggregate reconciliation.",
+    "This remains research-only and cannot activate M5, app rankings, recommendations, or transactions."
+  ],
+  "phase": "E5_LONG_PLAY_COUNTERS",
+  "receiving_yard_reconciliation": {
+    "excluded_out_of_scope_pbp_rows": 33,
+    "mismatch_rows": 0,
+    "missing_aggregate_rows": 0,
+    "rows": 3652,
+    "status": "EXACT_EVENT_READY"
+  },
+  "return_reconciliation_input": {
+    "path": "/home/runner/work/Fantasy-Intelligence/Fantasy-Intelligence/research/component-recovered-20261016/data/research/components/operational-v1/2026/runs/live-45554977438-1/actual-week11/events/all-stats.csv.gz",
+    "scope": "EXPLICIT_ALL_POSITION_SOURCE",
+    "sha256": "9d82b7f2a17ab5e4cad416546b239c70b152dd9446f4522278150ca3ea9cf2df"
+  },
+  "return_yard_reconciliation": {
+    "fg_ret_yd": {
+      "mismatch_rows": 0,
+      "status": "BLOCKED_SOURCE_INCOMPLETE"
+    },
+    "kr_yd": {
+      "mismatch_rows": 0,
+      "status": "BLOCKED_EVENT_SEMANTICS"
+    },
+    "pr_yd": {
+      "mismatch_rows": 0,
+      "status": "EXACT_EVENT_READY"
+    }
+  },
+  "rule_support": {
+    "bonus_rush_td_qb": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "fg_ret_yd": {
+      "reason": "no dedicated individual field-goal returner ID is confirmed in the canonical PBP schema",
+      "required_columns": [],
+      "support_status": "BLOCKED_SOURCE_INCOMPLETE"
+    },
+    "fum": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "fum_lost": {
+      "reason": "PBP assigned fumbles lost do not match canonical player-week totals",
+      "required_columns": [],
+      "support_status": "BLOCKED_RECONCILIATION_MISMATCH"
+    },
+    "fum_rec_td": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "kr_yd": {
+      "reason": "2 kick_return_yards PBP events lack exact player-attributed return yards",
+      "required_columns": [],
+      "support_status": "BLOCKED_EVENT_SEMANTICS"
+    },
+    "pass_cmp_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_int_td": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_sack": {
+      "reason": "confirmed E2 PBP fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_td_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pass_td_50p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "pr_yd": {
+      "reason": "confirmed E4 direct returner PBP fields and reconciled player-week aggregate available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rec_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rec_td_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rec_td_50p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rush_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rush_td_40p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "rush_td_50p": {
+      "reason": "confirmed E5 official PBP play-stat fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_ff": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_fum_rec": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    },
+    "st_td": {
+      "reason": "confirmed E3 direct PBP player-role fields and complete seasons available",
+      "required_columns": [],
+      "support_status": "EXACT_EVENT_READY"
+    }
+  },
+  "sack_reconciliation": {
+    "excluded_non_qb_pbp_events": 1,
+    "mismatch_rows": 0,
+    "status": "EXACT_EVENT_READY"
+  },
+  "schema": "fie-waiver-v2-event-ledger-v1",
+  "source_inventory": {
+    "participation": {
+      "requested": false,
+      "rows": 0,
+      "schema_fingerprint": null,
+      "source_items": [],
+      "status": "NOT_REQUESTED"
+    },
+    "pbp_by_season": [
+      {
+        "missing_required_fields": [],
+        "regular_rows": 28467,
+        "rows": 28467,
+        "schema_fingerprint": "c9413853212af0341ce9ab72bcb4947e3d14c83bd1e93735b266d97d1e8247e2",
+        "season": 2026,
+        "source_complete": true,
+        "source_present": true,
+        "source_sha256": "7e18e9c756f82e6197338b8768b78fc5e099ebcf630845bc940e975ee0c96237",
+        "source_url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2026.csv",
+        "status": "SOURCE_READY_FOR_FUTURE_EVENT_DERIVATION"
+      }
+    ],
+    "pbp_global_missing_required_fields": [],
+    "pbp_required_fields": [
+      "season",
+      "week",
+      "game_id",
+      "play_id",
+      "season_type",
+      "play_type",
+      "play_deleted"
+    ],
+    "pbp_source_complete": true,
+    "phase": "E1_SOURCE_CONTRACT",
+    "requested_seasons": [
+      2026
+    ],
+    "schema": "fie-waiver-v2-event-ledger-v1"
+  }
+}
