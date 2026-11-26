@@ -22,7 +22,7 @@
       "sha256": "05ce94eacc4bf53fffaef9811c5a07a786b953468e31b6865d628d6dee1b333e"
     }
   },
-  "generated_at": "2026-11-25T15:45:20.746194+00:00",
+  "generated_at": "2026-11-26T01:08:02.244468+00:00",
   "status": "complete",
   "season": 2026,
   "week": 12,
@@ -130,7 +130,7 @@
         "leg": 12,
         "reserve_slots": 5,
         "reserve_allow_cov": 1,
-        "daily_waivers_last_ran": 24
+        "daily_waivers_last_ran": 25
       },
       "total_rosters": 18,
       "season": "2026",
@@ -322,10 +322,10 @@
     "identity": {
       "rows": 24872,
       "gsis": 24872,
-      "pfr": 22712,
+      "pfr": 22713,
       "pff": 11652,
       "otc": 9835,
-      "espn": 16605,
+      "espn": 16606,
       "sleeper": 6141,
       "tfg_join_key": 24872,
       "name_fallback": 0,
@@ -571,60 +571,43 @@
     ]
   },
   "sleeper_archive": {
-    "capture_policy_version": 2,
-    "capture_window_hours": 18.0,
-    "captured_at": "2026-11-25T09:14:37.735116+00:00",
-    "first_kickoff_utc": "2026-11-26T01:00:00+00:00",
-    "first_write_policy": true,
-    "hours_before_kickoff": 15.756466,
-    "path": "data/research/market/sleeper/2026/week_12.jsonl.gz",
-    "point_in_time_metadata": {
-      "as_of_semantics": "provider response observed and immutably first-written at captured_at; never reconstructed later",
-      "capture_intent": "prospective_weekly_market_benchmark",
-      "release_cadence": "verified pregame scheduled capture",
-      "revision_metadata_status": "NOT_EXPOSED_BY_PROVIDER",
-      "schema": "fie-point-in-time-source-metadata-v1",
-      "source_endpoint": "https://api.sleeper.com/projections/nfl/2026/12?season_type=regular",
-      "source_release_identifier": null,
-      "source_revision_identifier": null
-    },
-    "pregame_eligible": true,
-    "reason": "timing_verified",
-    "rows": 9422,
-    "season": 2026,
-    "season_type": "regular",
-    "sha256": "b7512346e4bd9c7c9fac0c9ebf2c37a2550948dd702276609a7154ee6a2df9fb",
-    "source": "Sleeper projection endpoint",
-    "week": 12,
     "written": false,
-    "first_write": true,
-    "manifest": "data/research/market/sleeper/manifest.json"
+    "skipped": true,
+    "season": 2026,
+    "week": 12,
+    "pregame_eligible": false,
+    "capture_policy_version": 2,
+    "season_type": "regular",
+    "capture_window_hours": 18.0,
+    "first_kickoff_utc": "2026-11-26T01:00:00+00:00",
+    "hours_before_kickoff": -0.133979,
+    "reason": "kickoff_already_started"
   },
   "sleeper_baseline_receipt": {
     "schema": "fie-sleeper-baseline-source-receipt-v1",
     "season": 2026,
     "week": 12,
-    "source_observed_at": "2026-11-25T15:46:53.227040+00:00",
+    "source_observed_at": "2026-11-26T01:08:57.973631+00:00",
     "scoring_signature": "6f4550e8aabe12a3",
     "status": "ARCHIVED_PROJECTION_STATS_DIFFER",
     "archive_sha256": "b7512346e4bd9c7c9fac0c9ebf2c37a2550948dd702276609a7154ee6a2df9fb",
     "archive_captured_at": "2026-11-25T09:14:37.735116+00:00",
     "archive_stats_sha256": "06f269cad77c3f4adb3007d5c273e6be7788aea7571762d3c7454a996f3ca9fa",
-    "refresh_stats_sha256": "d990bd26645a55a008cfec206743190e3d1aa092edf107995890709fdf8badd0",
+    "refresh_stats_sha256": "462a0969c2f6414a26e598f10934bece81258fcf51a76f14356e4d91f128a78d",
     "archive_player_count": 9422,
     "refresh_player_count": 9422
   },
   "kickoff": {
     "first_kickoff_utc": "2026-11-26T01:00:00+00:00",
-    "capture_pregame_eligible": true,
+    "capture_pregame_eligible": false,
     "capture_policy": {
       "capture_policy_version": 2,
       "season_type": "regular",
       "capture_window_hours": 18.0,
       "first_kickoff_utc": "2026-11-26T01:00:00+00:00",
-      "hours_before_kickoff": 9.244218,
-      "pregame_eligible": true,
-      "reason": "timing_verified"
+      "hours_before_kickoff": -0.133979,
+      "pregame_eligible": false,
+      "reason": "kickoff_already_started"
     }
   },
   "guardrails": [
@@ -641,8 +624,8 @@
   ],
   "storage": {
     "format": "fie-current-split-v1",
-    "player_base": "data/research/shared/current/player_base.5333d3472891bca6.json",
-    "scoring_overlay": "data/research/shared/current/scoring/6f4550e8aabe12a3.3d050aea888851d5.json",
+    "player_base": "data/research/shared/current/player_base.a6e755603257314e.json",
+    "scoring_overlay": "data/research/shared/current/scoring/6f4550e8aabe12a3.0449d1b5eaac607a.json",
     "player_count": 10698,
     "excluded_player_ids": [
       "17",
